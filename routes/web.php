@@ -1,0 +1,254 @@
+<?php
+
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\RequirementAnalysisController;
+use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\DocumentTranslationController;
+use App\Http\Controllers\SmartMailController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\ProjectAssignmentController;
+use App\Http\Controllers\Payroll\AttendanceRecordController;
+use App\Http\Controllers\Payroll\LeaveRequestController;
+use App\Http\Controllers\HRPolicySetupController;
+
+Route::get('/', function () {
+    return Inertia::render('Welcome');
+});
+
+
+// Auth Routes
+Route::get('/login', [LoginController::class, 'index'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+
+// Dashboard Routes (middleware protected)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', fn() => inertia('Dashboard'))->name('dashboard');
+    Route::get('/hr/dashboard', fn() => inertia('HR/Dashboard'))->name('hr.dashboard');
+    Route::get('/management/dashboard', fn() => inertia('Management/Dashboard'))->name('management.dashboard');
+    Route::get('/employee/dashboard', fn() => inertia('Employee/Dashboard'))->name('employee.dashboard');
+
+    // User & Roles
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::patch('/users/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
+
+    // Requirement Analysis
+    Route::get('/requirement-analysis', [RequirementAnalysisController::class, 'index'])->name('requirement.index');
+    Route::post('/requirement-analysis', [RequirementAnalysisController::class, 'store'])->name('requirement.store');
+    Route::get('/requirement-analysis/{analysis}', [RequirementAnalysisController::class, 'show'])->name('requirement.show');
+    Route::delete('/requirement-analysis/{analysis}', [RequirementAnalysisController::class, 'destroy'])->name('requirement.destroy');
+    Route::post('/requirement-analysis/{analysis}/reanalyze', [RequirementAnalysisController::class, 'reanalyze'])->name('requirement.reanalyze');
+
+    // Proposal Generator
+    Route::get('/proposals',  [ProposalController::class, 'index'])->name('proposals.index');
+    Route::post('/proposals', [ProposalController::class, 'store'])->name('proposals.store');
+    Route::get('/proposals/{proposal}', [ProposalController::class, 'show'])->name('proposal.show');
+    Route::get('/proposals/{proposal}/preview/{template?}', [ProposalController::class, 'preview'])->name('proposal.preview');
+    Route::get('/proposals/{proposal}/pdf/{template?}', [ProposalController::class, 'downloadPDF'])->name('proposal.pdf');
+    Route::patch('/proposals/{proposal}/status',    [ProposalController::class, 'updateStatus'])->name('proposal.status');
+    Route::post('/proposals/{proposal}/regenerate', [ProposalController::class, 'regenerate'])->name('proposal.regenerate');
+    Route::delete('/proposals/{proposal}',          [ProposalController::class, 'destroy'])->name('proposal.destroy');
+
+
+    // Document Translation
+    Route::get('/document-translation', [DocumentTranslationController::class, 'index'])->name('document-translation');
+    Route::post('/folders', [DocumentTranslationController::class, 'storeFolder'])->name('folders.store');
+    Route::put('/folders/{folder}', [DocumentTranslationController::class, 'updateFolder'])->name('folders.update');
+    Route::delete('/folders/{folder}', [DocumentTranslationController::class, 'destroyFolder'])->name('folders.destroy');
+    Route::get('/folders/{folder}/contents', [DocumentTranslationController::class, 'folderContents'])->name('folders.contents');
+    Route::post('/documents/upload', [DocumentTranslationController::class, 'upload'])->name('documents.upload');
+    Route::get('/documents/{document}/download/{language?}', [DocumentTranslationController::class, 'download'])->name('documents.download');
+    Route::delete('/documents/{document}', [DocumentTranslationController::class, 'destroyDocument'])->name('documents.destroy');
+        
+
+    // Feature 4 — Smart Mail
+    Route::prefix('smart-mail')->middleware(['auth'])->group(function () {
+        Route::get('/',                          [SmartMailController::class, 'index'])->name('smart-mail');
+        Route::post('/setup',                    [SmartMailController::class, 'saveMailSetting'])->name('smart-mail.setup');
+        Route::post('/test-connection',          [SmartMailController::class, 'testConnection'])->name('smart-mail.test');
+        Route::post('/send',                     [SmartMailController::class, 'send'])->name('smart-mail.send');
+        Route::post('/sync',                     [SmartMailController::class, 'sync'])->name('smart-mail.sync');
+        Route::patch('/{mail}/read',             [SmartMailController::class, 'markRead'])->name('smart-mail.read');
+        Route::patch('/{mail}/star',             [SmartMailController::class, 'toggleStar'])->name('smart-mail.star');
+        Route::delete('/{mail}',                 [SmartMailController::class, 'destroy'])->name('smart-mail.destroy');
+        Route::post('/{mail}/translate',         [SmartMailController::class, 'translate'])->name('smart-mail.translate');
+        Route::post('/ai/generate',              [SmartMailController::class, 'aiGenerate'])->name('smart-mail.ai.generate');
+        Route::post('/ai/translate-preview',     [SmartMailController::class, 'aiTranslatePreview'])->name('smart-mail.ai.translate');
+        Route::post('/ai/improve',               [SmartMailController::class, 'aiImprove'])->name('smart-mail.ai.improve');
+        Route::post('/templates/{template}/render', [SmartMailController::class, 'renderTemplate'])->name('smart-mail.template.render');
+        Route::get('/{mail}/download',           [SmartMailController::class, 'downloadPdf'])->name('smart-mail.download');
+    });
+
+    // ── AI Chat ──
+    Route::middleware(['auth'])->prefix('ai-chat')->name('chat.')->group(function () {
+
+        // Main page
+        Route::get('/', [ChatController::class, 'index'])->name('index');
+
+        // Conversations
+        Route::get('/conversations',          [ConversationController::class, 'index'])->name('conversations.index');
+        Route::post('/conversations/private', [ConversationController::class, 'createPrivate'])->name('conversations.private');
+        Route::post('/conversations/group',   [ConversationController::class, 'createGroup'])->name('conversations.group');
+        Route::post('/conversations/{conversation}/mute',    [ConversationController::class, 'toggleMute'])->name('conversations.mute');
+        Route::post('/conversations/{conversation}/archive', [ConversationController::class, 'toggleArchive'])->name('conversations.archive');
+        Route::delete('/conversations/{conversation}',       [ConversationController::class, 'destroy'])->name('conversations.destroy');
+
+        // Block / Unblock
+        Route::post('/block',   [ConversationController::class, 'blockUser'])->name('block');
+        Route::post('/unblock', [ConversationController::class, 'unblockUser'])->name('unblock');
+
+        // Messages
+        Route::get('/conversations/{conversation}/messages',  [MessageController::class, 'index'])->name('messages.index');
+        Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+        Route::put('/messages/{message}',                     [MessageController::class, 'update'])->name('messages.update');
+        Route::delete('/messages/{message}',                  [MessageController::class, 'destroy'])->name('messages.destroy');
+
+        // Reactions
+        Route::post('/messages/{message}/react', [MessageController::class, 'react'])->name('messages.react');
+
+        // Read receipts
+        Route::post('/conversations/{conversation}/read', [MessageController::class, 'markRead'])->name('messages.read');
+
+        // Typing indicator
+        Route::post('/conversations/{conversation}/typing', [MessageController::class, 'typing'])->name('messages.typing');
+
+        // Translate
+        Route::post('/messages/{message}/translate', [MessageController::class, 'translate'])->name('messages.translate');
+
+        // Media gallery
+        Route::get('/conversations/{conversation}/media', [MessageController::class, 'media'])->name('messages.media');
+
+        Route::post('/conversations/{conversation}/members', [ConversationController::class, 'addMember']);
+        Route::delete('/conversations/{conversation}/members/{userId}', [ConversationController::class, 'removeMember']);
+        Route::post('/conversations/{conversation}/group', [ConversationController::class, 'updateGroup']);
+    });
+
+
+    // Attendance
+    Route::get('/payroll/attendance', [AttendanceRecordController::class, 'index']);
+    Route::post('/payroll/attendance', [AttendanceRecordController::class, 'store']);
+
+    // Leave Management
+    Route::get('/payroll/leaves', [LeaveRequestController::class, 'index']);
+    Route::post('/payroll/leaves', [LeaveRequestController::class, 'store']);
+    Route::patch('/payroll/leaves/{leaveRequest}/approve', [LeaveRequestController::class, 'approve']);
+    Route::patch('/payroll/leaves/{leaveRequest}/reject', [LeaveRequestController::class, 'reject']);
+
+
+    // HR Policy
+   Route::prefix('payroll/hr-policy')->name('hr-policy.')->group(function () {
+
+        // Index
+        Route::get('/', [HRPolicySetupController::class, 'index'])
+            ->name('index');
+
+        // Leave Policy
+        Route::post('/leave-policy', [HRPolicySetupController::class, 'storeLeavePolicy'])
+            ->name('leave-policy.store');
+        Route::put('/leave-policy/{leavePolicy}', [HRPolicySetupController::class, 'updateLeavePolicy'])
+            ->name('leave-policy.update');
+        Route::delete('/leave-policy/{leavePolicy}', [HRPolicySetupController::class, 'destroyLeavePolicy'])
+            ->name('leave-policy.destroy');
+
+        // Overtime Policy
+        Route::post('/overtime-policy', [HRPolicySetupController::class, 'storeOvertimePolicy'])
+            ->name('overtime-policy.store');
+        Route::put('/overtime-policy/{overtimePolicy}', [HRPolicySetupController::class, 'updateOvertimePolicy'])
+            ->name('overtime-policy.update');
+        Route::delete('/overtime-policy/{overtimePolicy}', [HRPolicySetupController::class, 'destroyOvertimePolicy'])
+            ->name('overtime-policy.destroy');
+
+        // Currency
+        Route::post('/currency', [HRPolicySetupController::class, 'storeCurrency'])
+            ->name('currency.store');
+        Route::put('/currency/{currency}', [HRPolicySetupController::class, 'updateCurrency'])
+            ->name('currency.update');
+        Route::delete('/currency/{currency}', [HRPolicySetupController::class, 'destroyCurrency'])
+            ->name('currency.destroy');
+
+        // Deductions
+        Route::post('/deduction', [HRPolicySetupController::class, 'storeDeduction'])
+            ->name('deduction.store');
+        Route::put('/deduction/{deduction}', [HRPolicySetupController::class, 'updateDeduction'])
+            ->name('deduction.update');
+        Route::delete('/deduction/{deduction}', [HRPolicySetupController::class, 'destroyDeduction'])
+            ->name('deduction.destroy');
+
+        // Allowances
+        Route::post('/allowance', [HRPolicySetupController::class, 'storeAllowance'])
+            ->name('allowance.store');
+        Route::put('/allowance/{allowance}', [HRPolicySetupController::class, 'updateAllowance'])
+            ->name('allowance.update');
+        Route::delete('/allowance/{allowance}', [HRPolicySetupController::class, 'destroyAllowance'])
+            ->name('allowance.destroy');
+
+        // Salary Rule
+        Route::post('/salary-rule', [HRPolicySetupController::class, 'saveSalaryRule'])
+            ->name('salary-rule.save');
+        Route::put('/salary-rule', [HRPolicySetupController::class, 'saveSalaryRule'])
+            ->name('salary-rule.update');
+
+        // Payroll Banks
+        Route::post('/bank', [HRPolicySetupController::class, 'storeBank'])
+            ->name('bank.store');
+        Route::put('/bank/{bank}', [HRPolicySetupController::class, 'updateBank'])
+            ->name('bank.update');
+        Route::delete('/bank/{bank}', [HRPolicySetupController::class, 'destroyBank'])
+            ->name('bank.destroy');
+
+        
+        // Bonus Types
+        Route::post('/bonus-type', [HRPolicySetupController::class, 'storeBonusType'])
+            ->name('bonus-type.store');
+        Route::put('/bonus-type/{bonusType}', [HRPolicySetupController::class, 'updateBonusType'])
+            ->name('bonus-type.update');
+        Route::delete('/bonus-type/{bonusType}', [HRPolicySetupController::class, 'destroyBonusType'])
+            ->name('bonus-type.destroy');
+
+        // Bonus Schedules
+        Route::post('/bonus-schedule', [HRPolicySetupController::class, 'storeBonusSchedule'])
+            ->name('bonus-schedule.store');
+        Route::put('/bonus-schedule/{bonusSchedule}', [HRPolicySetupController::class, 'updateBonusSchedule'])
+            ->name('bonus-schedule.update');
+        Route::delete('/bonus-schedule/{bonusSchedule}', [HRPolicySetupController::class, 'destroyBonusSchedule'])
+            ->name('bonus-schedule.destroy');
+    });
+                    
+});
+
+
+
+
+// Management & Admin only
+Route::middleware(['auth', 'role:admin,management'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Projects CRUD
+    Route::resource('projects', ProjectController::class);
+
+    // Assignments
+    Route::prefix('assignments')->name('assignments.')->group(function () {
+        Route::get('/', [ProjectAssignmentController::class, 'index'])->name('index');
+        Route::post('/', [ProjectAssignmentController::class, 'store'])->name('store');
+        Route::put('/{projectAssignment}', [ProjectAssignmentController::class, 'update'])->name('update');
+        Route::delete('/{projectAssignment}', [ProjectAssignmentController::class, 'destroy'])->name('destroy');
+
+        // Availability dashboard
+        Route::get('/availability', [ProjectAssignmentController::class, 'availability'])->name('availability');
+    });
+
+});
+
+// Employee — ကိုယ့် assignments သာကြည့်နိုင်
+Route::middleware(['auth', 'role:employee'])->group(function () {
+    Route::get('/my-assignments', [ProjectAssignmentController::class, 'myAssignments'])->name('my.assignments');
+});

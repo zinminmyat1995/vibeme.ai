@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer components {
+    .input {
+        @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500;
+    }
+
+    .label {
+        @apply block text-sm font-medium text-gray-700;
+    }
+
+    .error {
+        @apply mt-1 text-xs text-red-500;
+    }
+}
+
+@layer utilities {
+    .animate-slide-in {
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .animate-progress {
+        animation: progress 4s linear forwards;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes progress {
+        from { width: 100%; }
+        to   { width: 0%; }
+    }
+}
