@@ -16,6 +16,14 @@ const PRESET_TITLES = [
     'Public Holiday OT',
 ];
 
+const PRESET_OT_TYPES = [
+    { title: 'Day Weekday OT',      rate_type: 'multiplier', rate_value: '1.5'  },
+    { title: 'Night Weekday OT',    rate_type: 'multiplier', rate_value: '2.0'  },
+    { title: 'Day Weekend OT',      rate_type: 'multiplier', rate_value: '2.0'  },
+    { title: 'Night Weekend OT',    rate_type: 'multiplier', rate_value: '3.0'  },
+    { title: 'Public Holiday OT',   rate_type: 'multiplier', rate_value: '3.0'  },
+];
+
 export default function OvertimePolicySection({ overtimePolicies }) {
     const [showForm, setShowForm]       = useState(false);
     const [editingId, setEditingId]     = useState(null);
@@ -257,6 +265,38 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                         </button>
                     </div>
 
+                        {/* Quick Select */}
+                        <div className="mt-3">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Quick Select</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {PRESET_OT_TYPES.map(preset => (
+                                    <button
+                                        key={preset.title}
+                                        type="button"
+                                        disabled={processing}
+                                        onClick={() => {
+                                            setData({
+                                                ...data,
+                                                title:      preset.title,
+                                                rate_type:  preset.rate_type,
+                                                rate_value: preset.rate_value,
+                                            });
+                                            setFormErrors(p => ({ ...p, title: '', rate_value: '' }));
+                                        }}
+                                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                                            data.title === preset.title
+                                                ? 'border-violet-400 bg-violet-100 text-violet-700'
+                                                : 'border-gray-200 bg-white text-gray-500 hover:border-violet-300 hover:text-violet-600'
+                                        }`}
+                                    >
+                                        {preset.title}
+                                        <span className="rounded px-1 py-0.5 text-xs font-bold bg-violet-100 text-violet-600">
+                                            {preset.rate_value}x
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     {/* Title */}
                     <div>
                         <label className="label">OT Title</label>
@@ -274,23 +314,7 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                                 {formErrors.title}
                             </p>
                         )}
-                        {/* Preset chips */}
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                            {PRESET_TITLES.map(t => (
-                                <button
-                                    key={t}
-                                    type="button"
-                                    onClick={() => { setData('title', t); setFormErrors(p => ({...p, title: ''})); }}
-                                    className={`rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${
-                                        data.title === t
-                                            ? 'border-violet-400 bg-violet-100 text-violet-700'
-                                            : 'border-gray-200 bg-white text-gray-500 hover:border-violet-300 hover:text-violet-600'
-                                    }`}
-                                >
-                                    {t}
-                                </button>
-                            ))}
-                        </div>
+
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

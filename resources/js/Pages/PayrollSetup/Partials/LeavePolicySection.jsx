@@ -11,6 +11,19 @@ const defaultForm = {
     is_active:         true,
 };
 
+const PRESET_LEAVE_TYPES = [
+    { name: 'Annual Leave',     gender: 'all',    days: 15, paid: true  },
+    { name: 'Sick Leave',       gender: 'all',    days: 10, paid: true  },
+    { name: 'Maternity Leave',  gender: 'female', days: 90, paid: true  },
+    { name: 'Paternity Leave',  gender: 'male',   days: 7,  paid: true  },
+    { name: 'Unpaid Leave',     gender: 'all',    days: 30, paid: false },
+    { name: 'Emergency Leave',  gender: 'all',    days: 3,  paid: true  },
+    { name: 'Marriage Leave',   gender: 'all',    days: 3,  paid: true  },
+    { name: 'Bereavement Leave',gender: 'all',    days: 3,  paid: true  },
+    { name: 'Public Holiday',   gender: 'all',    days: 12, paid: true  },
+    { name: 'Compensation Leave',gender: 'all',   days: 5,  paid: true  },
+];
+
 export default function LeavePolicySection({ leavePolicies }) {
     const [showForm, setShowForm]           = useState(false);
     const [editingId, setEditingId]         = useState(null);
@@ -221,7 +234,48 @@ export default function LeavePolicySection({ leavePolicies }) {
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
-
+                    {/* ── Quick Select ── */}
+                    <div>
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Quick Select</p>
+                        <div className="flex flex-wrap gap-1.5">
+                            {PRESET_LEAVE_TYPES.map(preset => (
+                                <button
+                                    key={preset.name}
+                                    type="button"
+                                    disabled={processing}
+                                    onClick={() => {
+                                        setData({
+                                            ...data,
+                                            leave_type:        preset.name,
+                                            days_per_year:     preset.days,
+                                            is_paid:           preset.paid,
+                                            applicable_gender: preset.gender,
+                                        });
+                                        setFormErrors(p => ({ ...p, leave_type: '', days_per_year: '' }));
+                                    }}
+                                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                                        data.leave_type === preset.name
+                                            ? 'border-violet-400 bg-violet-100 text-violet-700'
+                                            : 'border-gray-200 bg-white text-gray-500 hover:border-violet-300 hover:text-violet-600'
+                                    }`}
+                                >
+                                    {preset.name}
+                                    <span className={`rounded px-1 py-0.5 text-xs font-bold ${
+                                        preset.paid
+                                            ? 'bg-green-100 text-green-600'
+                                            : 'bg-gray-100 text-gray-500'
+                                    }`}>
+                                        {preset.paid ? 'paid' : 'unpaid'}
+                                    </span>
+                                    {preset.gender !== 'all' && (
+                                        <span className="rounded px-1 py-0.5 text-xs font-bold bg-blue-100 text-blue-600">
+                                            {preset.gender}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="label">Leave Type Name</label>

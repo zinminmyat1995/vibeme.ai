@@ -10,6 +10,7 @@ class SalaryRule extends Model
         'country_id',
         'pay_cycle',
         'probation_days',
+        'bonus_during_probation', // ← ထည့်
         'bank_id',
         'working_hours_per_day',
         'working_days_per_week',
@@ -20,7 +21,8 @@ class SalaryRule extends Model
     ];
 
     protected $casts = [
-        'late_deduction_rate' => 'decimal:2',
+        'late_deduction_rate'      => 'decimal:2',
+        'bonus_during_probation'   => 'boolean', // ← ထည့်
     ];
 
     public function country()

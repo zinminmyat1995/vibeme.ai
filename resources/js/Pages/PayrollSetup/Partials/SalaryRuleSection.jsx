@@ -33,18 +33,20 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
 
     const { data, setData, post, processing, reset } = useForm(
         salaryRule ? {
-            pay_cycle:             salaryRule.pay_cycle             ?? 'monthly',
-            probation_days:        salaryRule.probation_days        ?? '',
-            bank_id:               salaryRule.bank_id               ?? '',
-            working_hours_per_day: salaryRule.working_hours_per_day ?? '',
-            working_days_per_week: salaryRule.working_days_per_week ?? '',
-            overtime_base:         salaryRule.overtime_base         ?? 'hourly_rate',
-            late_deduction_unit:   salaryRule.late_deduction_unit   ?? 'per_minute',
-            late_deduction_rate:   salaryRule.late_deduction_rate   ?? 0,
-            currency_id:           salaryRule.currency_id           ?? '',
+            pay_cycle:               salaryRule.pay_cycle             ?? 'monthly',
+            probation_days:          salaryRule.probation_days        ?? '',
+            bonus_during_probation:  salaryRule.bonus_during_probation ?? false, // ← ထည့်
+            bank_id:                 salaryRule.bank_id               ?? '',
+            working_hours_per_day:   salaryRule.working_hours_per_day ?? '',
+            working_days_per_week:   salaryRule.working_days_per_week ?? '',
+            overtime_base:           salaryRule.overtime_base         ?? 'hourly_rate',
+            late_deduction_unit:     salaryRule.late_deduction_unit   ?? 'per_minute',
+            late_deduction_rate:     salaryRule.late_deduction_rate   ?? 0,
+            currency_id:             salaryRule.currency_id           ?? '',
         } : {
-            pay_cycle: 'monthly', probation_days: '', bank_id: '',
-            working_hours_per_day: '', working_days_per_week: '',
+            pay_cycle: 'monthly', probation_days: '',
+            bonus_during_probation: false, // ← ထည့်
+            bank_id: '', working_hours_per_day: '', working_days_per_week: '',
             overtime_base: 'hourly_rate', late_deduction_unit: 'per_minute',
             late_deduction_rate: 0, currency_id: '',
         }
@@ -178,6 +180,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <ConfirmRow icon="🕐" label="Work Hours" value={`${data.working_hours_per_day}h/day · ${data.working_days_per_week}d/week`}/>
                             <ConfirmRow icon="⚡" label="OT Base"    value={data.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'}/>
                             <ConfirmRow icon="⚠️" label="Late Deduct" value={`${data.late_deduction_rate || 0} / ${data.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
+                            <ConfirmRow icon="🎁" label="Bonus in Probation" value={data.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'}/>
                         </div>
                         <div className="border-t border-gray-100 px-8 py-5 flex gap-3">
                             <button onClick={() => setShowConfirm(false)} className="flex-1 rounded-xl border-2 border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
@@ -241,11 +244,26 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                     <div>
                         <label className="label">Probation Period</label>
                         <div className="relative mt-1">
-                            <input type="number" value={data.probation_days} onChange={e => { setData('probation_days', e.target.value); setFormErrors(p => ({...p, probation_days: ''})); }}
-                                className={`input pr-14 ${formErrors.probation_days ? 'border-red-400' : ''}`} min="0" placeholder="e.g. 90"/>
+                            <input type="number" value={data.probation_days}
+                                onChange={e => { setData('probation_days', e.target.value); setFormErrors(p => ({...p, probation_days: ''})); }}
+                                className={`input pr-14 ${formErrors.probation_days ? 'border-red-400' : ''}`}
+                                min="0" placeholder="e.g. 90"/>
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">days</span>
                         </div>
                         {formErrors.probation_days && <ErrMsg msg={formErrors.probation_days}/>}
+
+                        {/* Bonus during probation toggle ← ဒါထည့် */}
+                        <div className="mt-2 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5">
+                            <div>
+                                <p className="text-xs font-semibold text-gray-700">Pay bonus during probation?</p>
+                                <p className="text-xs text-gray-400">If off, bonuses are skipped for probation employees</p>
+                            </div>
+                            <Toggle
+                                label=""
+                                checked={data.bonus_during_probation}
+                                onChange={v => setData('bonus_during_probation', v)}
+                            />
+                        </div>
                     </div>
 
                     {/* Currency */}
@@ -527,34 +545,52 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <SavedCard label="Working Days"  value={`${salaryRule.working_days_per_week} days / week`}/>
                             <SavedCard label="OT Base"       value={salaryRule.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'} sub={salaryRule.overtime_base === 'hourly_rate' ? 'Daily ÷ working hrs' : 'Monthly ÷ working days'}/>
                             <SavedCard label="Late Deduct"   value={`${salaryRule.late_deduction_rate ?? 0} / ${salaryRule.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
+                            <SavedCard label="Bonus in Probation" value={salaryRule.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'} sub={salaryRule.bonus_during_probation ? 'Probation employees receive bonuses': 'Bonuses skipped during probation'}/>
                             {bonusSchedules?.length > 0 && (
-                                <div className="col-span-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-                                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Bonus Schedules</p>
-                                    <div className="flex flex-wrap gap-2">
+                                <div className="col-span-3 overflow-hidden rounded-xl border border-gray-100">
+                                    <div className="border-b border-gray-100 bg-gray-50/80 px-4 py-2.5">
+                                        <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Bonus Schedules</p>
+                                    </div>
+                                    <div className="divide-y divide-gray-50 bg-white">
                                         {bonusSchedules.map(s => {
-                                            const when = getWhen(s);
-                                            const freq = FREQ_OPTIONS.find(f => f.value === s.frequency)?.label;
+                                            const when  = getWhen(s);
+                                            const freq  = FREQ_OPTIONS.find(f => f.value === s.frequency)?.label;
+                                            const isPct = s.bonus_type?.calculation_type === 'percentage';
                                             return (
-                                                <div key={s.id} className={`rounded-xl border px-3 py-2 text-xs ${s.is_active ? 'border-violet-100 bg-violet-50' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
-                                                    <div className="flex items-center gap-1.5 mb-0.5">
-                                                        <span className="font-bold text-gray-800">{s.bonus_type?.name}</span>
-                                                        {!s.is_active && <span className="rounded-full bg-gray-200 px-1.5 py-0.5 text-xs text-gray-400">Inactive</span>}
-                                                    </div>
-                                                    <div className="flex items-center gap-1 text-gray-500">
-                                                        <span className="rounded-full bg-violet-100 px-2 py-0.5 font-semibold text-violet-700">{freq}</span>
-                                                        {when !== '—' && (
-                                                            <>
-                                                                <span className="text-gray-300">·</span>
-                                                                <span className="font-medium text-gray-600">{when}</span>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                    {s.notes && <p className="mt-1 text-gray-400 italic">{s.notes}</p>}
-                                                    <div className="mt-1 text-gray-500">
-                                                        {s.bonus_type?.calculation_type === 'percentage'
-                                                            ? <span className="font-semibold text-blue-600">{s.bonus_type.value}% of salary</span>
-                                                            : <span className="font-semibold text-green-600">{Number(s.bonus_type?.value ?? 0).toLocaleString()} flat</span>
-                                                        }
+                                                <div key={s.id} className={`px-4 py-3.5 hover:bg-gray-50/60 transition-colors ${!s.is_active ? 'opacity-50' : ''}`}>
+                                                    <div className="flex items-start justify-between gap-4">
+
+                                                        {/* Left: name + tags */}
+                                                        <div className="flex items-start gap-2.5">
+                                                            <span className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${s.is_active ? 'bg-green-400' : 'bg-gray-300'}`}/>
+                                                            <div>
+                                                                <p className="text-sm font-bold text-gray-800">{s.bonus_type?.name ?? '—'}</p>
+                                                                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                                                    {/* Frequency */}
+                                                                    <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700">{freq}</span>
+                                                                    {/* Pay When */}
+                                                                    {when !== '—' && when !== 'Every month' && (
+                                                                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
+                                                                            <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                                                            {when}
+                                                                        </span>
+                                                                    )}
+                                                                    {/* Status */}
+                                                                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${s.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                                                                        {s.is_active ? 'Active' : 'Inactive'}
+                                                                    </span>
+                                                                </div>
+                                                                {s.notes && <p className="mt-1 text-xs italic text-gray-400">{s.notes}</p>}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Right: rate */}
+                                                        <div className="flex-shrink-0 text-right">
+                                                            <p className={`text-base font-bold ${isPct ? 'text-blue-600' : 'text-green-600'}`}>
+                                                                {isPct ? `${formatRate(s.bonus_type.value)}%` : formatRate(s.bonus_type?.value ?? 0)}
+                                                            </p>
+                                                            <p className="text-xs text-gray-400">{isPct ? 'of salary' : 'flat amount'}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );
@@ -734,6 +770,11 @@ function Toggle({ label, checked, onChange, disabled }) {
         </label>
     );
 }
+// Rate display helper
+const formatRate = (value) => {
+    const num = parseFloat(value);
+    return num % 1 === 0 ? num.toLocaleString() : num.toFixed(2);
+};
 function Spinner() { return <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>; }
 function PlusIcon()  { return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>; }
 function EditIcon()  { return <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>; }

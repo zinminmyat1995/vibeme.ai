@@ -61,7 +61,16 @@ class HRPolicySetupController extends Controller
                 ->with('bonusType')
                 ->orderBy('created_at')
                 ->get(),
-
+            'country' => \App\Models\Country::find(auth()->user()->country_id),
+            'completedSections' => [
+                'leave'     => LeavePolicy::where('country_id', $countryId)->exists(),
+                'overtime'  => OvertimePolicy::where('country_id', $countryId)->exists(),
+                'currency'  => PayrollCurrency::where('country_id', $countryId)->exists(),
+                'deduction' => SalaryDeduction::where('country_id', $countryId)->exists(),
+                'allowance' => PayrollAllowance::where('country_id', $countryId)->exists(),
+                'bonus'     => PayrollBonusType::where('country_id', $countryId)->exists(),
+                'salary'    => SalaryRule::where('country_id', $countryId)->exists(),
+            ],
 
         ]);
     }
@@ -389,18 +398,18 @@ public function destroyBank(PayrollBank $bank)
         $countryId = $this->getCountryId();
 
         $validated = $request->validate([
-            'pay_cycle'              => 'required|in:monthly,semi_monthly,ten_day',
-            'probation_days'         => 'required|integer|min:0',
-            'bank_id'                => 'nullable|exists:payroll_banks,id',
-            'working_hours_per_day'  => 'required|integer|min:1|max:24',
-            'working_days_per_week'  => 'required|integer|min:1|max:7',
-            'overtime_base'          => 'required|in:daily_rate,hourly_rate',
-            'late_deduction_unit'    => 'required|in:per_minute,per_hour',
-            'late_deduction_rate'    => 'nullable|numeric|min:0',
-            'currency_id'            => 'nullable|exists:payroll_currencies,id',
+            'pay_cycle'                => 'required|in:monthly,semi_monthly,ten_day',
+            'probation_days'           => 'required|integer|min:0',
+            'bonus_during_probation'   => 'required|boolean', // ← ထည့်
+            'bank_id'                  => 'nullable|exists:payroll_banks,id',
+            'working_hours_per_day'    => 'required|integer|min:1|max:24',
+            'working_days_per_week'    => 'required|integer|min:1|max:7',
+            'overtime_base'            => 'required|in:daily_rate,hourly_rate',
+            'late_deduction_unit'      => 'required|in:per_minute,per_hour',
+            'late_deduction_rate'      => 'nullable|numeric|min:0',
+            'currency_id'              => 'nullable|exists:payroll_currencies,id',
         ]);
 
-        // late_deduction_rate default 0
         $validated['late_deduction_rate'] = $validated['late_deduction_rate'] ?? 0;
 
         SalaryRule::updateOrCreate(
@@ -491,7 +500,6 @@ public function destroyBank(PayrollBank $bank)
         // duplicate check
         $exists = \App\Models\PayrollBonusSchedule::where('country_id', $countryId)
             ->where('bonus_type_id', $request->bonus_type_id)
-            ->where('frequency', $request->frequency)
             ->exists();
 
         if ($exists) {
@@ -530,7 +538,6 @@ public function destroyBank(PayrollBank $bank)
 
         $exists = \App\Models\PayrollBonusSchedule::where('country_id', $bonusSchedule->country_id)
             ->where('bonus_type_id', $request->bonus_type_id)
-            ->where('frequency', $request->frequency)
             ->where('id', '!=', $bonusSchedule->id)
             ->exists();
 
