@@ -8,16 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class LeaveRequest extends Model
 {
 protected $fillable = [
-    'user_id',
-    'leave_type',
-    'day_type',        
-    'start_date',
-    'end_date',
-    'total_days',
-    'status',
-    'approved_by',
-    'approver_id',     
-    'note',
+    'user_id', 'leave_type', 'day_type',
+    'start_date', 'end_date', 'total_days',
+    'status', 'note', 'approver_id',
+    'approved_by', 'document_path', // ← ထည့်
 ];
 
     protected $casts = [

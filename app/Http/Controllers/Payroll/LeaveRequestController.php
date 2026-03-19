@@ -54,27 +54,26 @@ public function index(Request $request): Response
         ->get();
 
     // ── Leave policies for current user's country ──
-    $leavePolicies = LeavePolicy::where('country_id', function($q) use ($user) {
-        $q->select('id')->from('countries')->where('name', $user->country)->limit(1);
-    })->get();
+    $leavePolicies = LeavePolicy::where('country_id', $user->country_id)
+        ->where('is_active', true)
+        ->get();
 
-    // ── Employees for approver selection ──
     $employees = match($roleName) {
-        'member', 'employee' => User::select('id','name','avatar_url')
+        'member', 'employee' => User::select('id','name','avatar_url','role_id') // ← role_id ထည့်
             ->with('role:id,name')
             ->where('is_active', 1)
-            ->where('country', $user->country)
+            ->where('country_id', $user->country_id)
             ->whereHas('role', fn($q) => $q->where('name', 'management'))
             ->get(),
 
-        'management' => User::select('id','name','avatar_url')
+        'management' => User::select('id','name','avatar_url','role_id') // ← role_id ထည့်
             ->with('role:id,name')
             ->where('is_active', 1)
-            ->where('country', $user->country)
+            ->where('country_id', $user->country_id)
             ->whereHas('role', fn($q) => $q->where('name', 'hr'))
             ->get(),
 
-        'hr' => User::select('id','name','avatar_url')
+        'hr' => User::select('id','name','avatar_url','role_id') // ← role_id ထည့်
             ->with('role:id,name')
             ->where('is_active', 1)
             ->whereHas('role', fn($q) => $q->where('name', 'admin'))
@@ -96,64 +95,81 @@ public function index(Request $request): Response
 
 public function store(Request $request): \Illuminate\Http\RedirectResponse
 {
-    $request->validate([
-        'leave_type'  => 'required|in:annual,medical,emergency,unpaid,maternity,paternity',
+    $user      = Auth::user();
+    $userId    = $user->id;
+    $roleName  = $user->role?->name;
+    $countryId = $user->country_id;
+
+    $policy = \App\Models\LeavePolicy::where('country_id', $countryId)
+        ->where('leave_type', $request->leave_type)
+        ->first();
+
+    $requiresDoc = $policy?->requires_document ?? false;
+
+    $rules = [
+        'leave_type'  => 'required|string|max:100',
         'day_type'    => 'required|in:full_day,half_day_am,half_day_pm',
         'start_date'  => 'required|date',
         'end_date'    => 'required|date|after_or_equal:start_date',
         'note'        => 'required|string|max:500',
         'approver_id' => 'nullable|exists:users,id',
+    ];
+
+    if ($requiresDoc) {
+        $rules['document'] = 'required|file|mimes:pdf,jpg,jpeg,png|max:5120';
+    } else {
+        $rules['document'] = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120';
+    }
+
+    $request->validate($rules, [
+        'document.required' => 'This leave type requires a supporting document.',
+        'document.mimes'    => 'Document must be PDF, JPG, or PNG.',
+        'document.max'      => 'Document must be under 5MB.',
     ]);
 
-    $userId    = Auth::id();
     $dayType   = $request->day_type;
     $isHalfDay = in_array($dayType, ['half_day_am', 'half_day_pm']);
     $startDate = Carbon::parse($request->start_date);
     $endDate   = Carbon::parse($isHalfDay ? $request->start_date : $request->end_date);
 
-    // ── Date range conflict check ──────────────────────────
+    // Conflict check
     $current = $startDate->copy();
     while ($current <= $endDate) {
-        $dateStr = $current->format('Y-m-d');
-
+        $dateStr        = $current->format('Y-m-d');
         $existingOnDate = LeaveRequest::where('user_id', $userId)
             ->whereDate('start_date', '<=', $dateStr)
             ->whereDate('end_date',   '>=', $dateStr)
             ->where('status', '!=', 'rejected')
             ->get();
 
-        foreach ($existingOnDate as $existing) {
-            // Full day ရှိပြီးသား — ဘာမှ မတင်နိုင်
-            if ($existing->day_type === 'full_day') {
-                return redirect()->back()->withErrors([
-                    'start_date' => "Full day leave already exists on {$dateStr}. Cannot add more leave on this date."
-                ])->withInput();
-            }
+            // Conflict check မှာ ဒီလိုပြောင်းပါ
+            foreach ($existingOnDate as $existing) {
 
-            // ကိုယ်တင်မယ့်ဟာ full day — range ထဲမှာ half day ရှိနေပြီ
-            if ($dayType === 'full_day') {
-                $existingLabel = $existing->day_type === 'half_day_am' ? 'AM Half Day' : 'PM Half Day';
-                return redirect()->back()->withErrors([
-                    'start_date' => "{$existingLabel} leave already exists on {$dateStr}. Cannot add full day leave."
-                ])->withInput();
-            }
+                if ($existing->day_type === 'full_day') {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'start_date' => "You already have {$existing->leave_type} (Full Day) on {$dateStr}.",
+                    ]);
+                }
 
-            // Same half day type ထပ်တင်မရ
-            if ($dayType === $existing->day_type) {
-                $label = $dayType === 'half_day_am' ? 'AM Half Day' : 'PM Half Day';
-                return redirect()->back()->withErrors([
-                    'start_date' => "{$label} leave already exists on {$dateStr}."
-                ])->withInput();
-            }
-        }
+                if ($dayType === 'full_day') {
+                    $halfLabel = $existing->day_type === 'half_day_am' ? 'AM Half Day' : 'PM Half Day';
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'start_date' => "You already have {$existing->leave_type} ({$halfLabel}) on {$dateStr}. Cannot add a full day leave.",
+                    ]);
+                }
 
+                if ($dayType === $existing->day_type) {
+                    $label = $dayType === 'half_day_am' ? 'AM Half Day' : 'PM Half Day';
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'start_date' => "You already have {$existing->leave_type} ({$label}) on {$dateStr}.",
+                    ]);
+                }
+            }
         $current->addDay();
     }
-    // ───────────────────────────────────────────────────────
 
-    // Total days calculate
+    // Total days
     $totalDays = $isHalfDay ? 0.5 : 0;
-
     if (!$isHalfDay) {
         $cur = $startDate->copy();
         while ($cur <= $endDate) {
@@ -162,21 +178,67 @@ public function store(Request $request): \Illuminate\Http\RedirectResponse
         }
     }
 
-    LeaveRequest::create([
-        'user_id'     => $userId,
-        'leave_type'  => $request->leave_type,
-        'day_type'    => $dayType,
-        'start_date'  => $request->start_date,
-        'end_date'    => $isHalfDay ? $request->start_date : $request->end_date,
-        'total_days'  => $totalDays,
-        'status'      => 'pending',
-        'note'        => $request->note,
-        'approver_id' => $request->approver_id,
+    // Document upload
+    $documentPath = null;
+    if ($request->hasFile('document')) {
+        $file         = $request->file('document');
+        $fileName     = "user_{$userId}_{$request->start_date}_" . time() . '.' . $file->getClientOriginalExtension();
+        $documentPath = $file->storeAs("leave_documents/{$userId}", $fileName, 'public');
+    }
+
+    // ── Admin → auto approve ──
+    $isAdmin       = $roleName === 'admin';
+    $initialStatus = $isAdmin ? 'approved' : 'pending';
+    $approvedBy    = $isAdmin ? $userId : null;
+
+    $leaveRequest = LeaveRequest::create([
+        'user_id'       => $userId,
+        'leave_type'    => $request->leave_type,
+        'day_type'      => $dayType,
+        'start_date'    => $request->start_date,
+        'end_date'      => $isHalfDay ? $request->start_date : $request->end_date,
+        'total_days'    => $totalDays,
+        'status'        => $initialStatus,
+        'note'          => $request->note,
+        'approver_id'   => $isAdmin ? $userId : $request->approver_id,
+        'approved_by'   => $approvedBy,
+        'document_path' => $documentPath,
     ]);
 
-    return redirect()->back()->with('success', 'Leave request submitted successfully');
-}
+    // ── Admin ဆိုရင် balance ပါ တပြိုင်နက် deduct ──
+    if ($isAdmin) {
+        $year = Carbon::parse($request->start_date)->year;
 
+        // country_id နဲ့ policy ယူမယ် — approve function အတိုင်း
+        $policy = LeavePolicy::where('country_id', $countryId)
+            ->where('leave_type', $request->leave_type)
+            ->first();
+
+        $entitledDays = $policy?->days_per_year ?? 0;
+
+        $balance = LeaveBalance::firstOrCreate(
+            [
+                'user_id'    => $userId,
+                'leave_type' => $request->leave_type,
+                'year'       => $year,
+            ],
+            [
+                'entitled_days'  => $entitledDays,
+                'used_days'      => 0,
+                'remaining_days' => $entitledDays,
+            ]
+        );
+
+        $balance->increment('used_days',      $totalDays);
+        $balance->decrement('remaining_days', $totalDays);
+    }
+
+    $message = $isAdmin
+        ? 'Leave request submitted and auto-approved.'
+        : 'Leave request submitted successfully.';
+
+    return redirect()->back()->with('success', $message);
+}
 public function approve(LeaveRequest $leaveRequest): \Illuminate\Http\RedirectResponse
 {
     $leaveRequest->update([
