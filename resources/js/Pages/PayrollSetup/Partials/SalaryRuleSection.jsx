@@ -27,38 +27,49 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
     const isEdit = !!salaryRule;
 
     // ── General settings state ──
-    const [showConfirm, setShowConfirm]   = useState(false);
+    const [showConfirm, setShowConfirm]     = useState(false);
     const [showBankModal, setShowBankModal] = useState(false);
-    const [formErrors, setFormErrors]     = useState({});
+    const [formErrors, setFormErrors]       = useState({});
 
     const { data, setData, post, processing, reset } = useForm(
         salaryRule ? {
-            pay_cycle:               salaryRule.pay_cycle             ?? 'monthly',
-            probation_days:          salaryRule.probation_days        ?? '',
-            bonus_during_probation:  salaryRule.bonus_during_probation ?? false, // ← ထည့်
-            bank_id:                 salaryRule.bank_id               ?? '',
-            working_hours_per_day:   salaryRule.working_hours_per_day ?? '',
-            working_days_per_week:   salaryRule.working_days_per_week ?? '',
-            overtime_base:           salaryRule.overtime_base         ?? 'hourly_rate',
-            late_deduction_unit:     salaryRule.late_deduction_unit   ?? 'per_minute',
-            late_deduction_rate:     salaryRule.late_deduction_rate   ?? 0,
-            currency_id:             salaryRule.currency_id           ?? '',
+            pay_cycle:               salaryRule.pay_cycle              ?? 'monthly',
+            probation_days:          salaryRule.probation_days         ?? '',
+            bonus_during_probation:  salaryRule.bonus_during_probation ?? false,
+            bank_id:                 salaryRule.bank_id                ?? '',
+            working_hours_per_day:   salaryRule.working_hours_per_day  ?? '',
+            working_days_per_week:   salaryRule.working_days_per_week  ?? '',
+            // ── Shift times ──
+            day_shift_start:         salaryRule.day_shift_start?.substring(0, 5) ?? '08:00',
+            day_shift_end:           salaryRule.day_shift_end?.substring(0, 5)   ?? '18:00',
+            overtime_base:           salaryRule.overtime_base          ?? 'hourly_rate',
+            late_deduction_unit:     salaryRule.late_deduction_unit    ?? 'per_minute',
+            late_deduction_rate:     salaryRule.late_deduction_rate    ?? 0,
+            currency_id:             salaryRule.currency_id            ?? '',
         } : {
-            pay_cycle: 'monthly', probation_days: '',
-            bonus_during_probation: false, // ← ထည့်
-            bank_id: '', working_hours_per_day: '', working_days_per_week: '',
-            overtime_base: 'hourly_rate', late_deduction_unit: 'per_minute',
-            late_deduction_rate: 0, currency_id: '',
+            pay_cycle:              'monthly',
+            probation_days:         '',
+            bonus_during_probation: false,
+            bank_id:                '',
+            working_hours_per_day:  '',
+            working_days_per_week:  '',
+            // ── Shift times ──
+            day_shift_start:        '08:00',
+            day_shift_end:          '18:00',
+            overtime_base:          'hourly_rate',
+            late_deduction_unit:    'per_minute',
+            late_deduction_rate:    0,
+            currency_id:            '',
         }
     );
 
     // ── Bonus schedule state ──
     const defaultSF = { bonus_type_id: '', frequency: 'yearly', pay_month: '', pay_quarter: '', notes: '', is_active: true };
-    const [showSF, setShowSF]                   = useState(false);
-    const [editingSFId, setEditingSFId]         = useState(null);
-    const [deleteSFTarget, setDeleteSFTarget]   = useState(null);
-    const [deletingSF, setDeletingSF]           = useState(false);
-    const [sfErrors, setSFErrors]               = useState({});
+    const [showSF, setShowSF]                 = useState(false);
+    const [editingSFId, setEditingSFId]       = useState(null);
+    const [deleteSFTarget, setDeleteSFTarget] = useState(null);
+    const [deletingSF, setDeletingSF]         = useState(false);
+    const [sfErrors, setSFErrors]             = useState({});
 
     const { data: sf, setData: setSF, post: storeSF, put: updateSF, processing: sfProc, reset: resetSF } = useForm(defaultSF);
 
@@ -66,10 +77,16 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
     const validate = () => {
         const errs = {};
         if (!data.probation_days && data.probation_days !== 0) errs.probation_days = 'Required.';
-        if (!data.currency_id)        errs.currency_id        = 'Payroll currency is required.';
-        if (!data.bank_id)            errs.bank_id            = 'Bank payment is required.';
+        if (!data.currency_id)           errs.currency_id           = 'Payroll currency is required.';
+        if (!data.bank_id)               errs.bank_id               = 'Bank payment is required.';
         if (!data.working_hours_per_day) errs.working_hours_per_day = 'Required.';
         if (!data.working_days_per_week) errs.working_days_per_week = 'Required.';
+        // ── Shift time validation ──
+        if (!data.day_shift_start) errs.day_shift_start = 'Day shift start is required.';
+        if (!data.day_shift_end)   errs.day_shift_end   = 'Day shift end is required.';
+        if (data.day_shift_start && data.day_shift_end && data.day_shift_start === data.day_shift_end) {
+            errs.day_shift_end = 'Start and end cannot be the same time.';
+        }
         return errs;
     };
 
@@ -107,17 +124,13 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             updateSF(`/payroll/hr-policy/bonus-schedule/${editingSFId}`, {
                 preserveScroll: true,
                 onSuccess: () => { resetSF(); setShowSF(false); setEditingSFId(null); },
-                onError: (e) => {
-                    if (e.bonus_type_id) setSFErrors(p => ({...p, bonus_type_id: e.bonus_type_id}));
-                },
+                onError: (e) => { if (e.bonus_type_id) setSFErrors(p => ({...p, bonus_type_id: e.bonus_type_id})); },
             });
         } else {
             storeSF('/payroll/hr-policy/bonus-schedule', {
                 preserveScroll: true,
                 onSuccess: () => { resetSF(); setShowSF(false); },
-                onError: (e) => {
-                    if (e.bonus_type_id) setSFErrors(p => ({...p, bonus_type_id: e.bonus_type_id}));
-                },
+                onError: (e) => { if (e.bonus_type_id) setSFErrors(p => ({...p, bonus_type_id: e.bonus_type_id})); },
             });
         }
     };
@@ -173,13 +186,16 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         </div>
                         <div className="px-8 py-6 space-y-1">
                             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-400">Review before saving</p>
-                            <ConfirmRow icon="📅" label="Pay Cycle"  value={selectedCycle?.label ?? '—'}/>
-                            <ConfirmRow icon="⏳" label="Probation"  value={`${data.probation_days} days`}/>
-                            <ConfirmRow icon="💱" label="Currency"   value={selectedCurrency ? `${selectedCurrency.currency_name} (${selectedCurrency.currency_code})` : '—'}/>
-                            <ConfirmRow icon="🏦" label="Bank"       value={selectedBank?.bank_name ?? '—'}/>
-                            <ConfirmRow icon="🕐" label="Work Hours" value={`${data.working_hours_per_day}h/day · ${data.working_days_per_week}d/week`}/>
-                            <ConfirmRow icon="⚡" label="OT Base"    value={data.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'}/>
-                            <ConfirmRow icon="⚠️" label="Late Deduct" value={`${data.late_deduction_rate || 0} / ${data.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
+                            <ConfirmRow icon="📅" label="Pay Cycle"    value={selectedCycle?.label ?? '—'}/>
+                            <ConfirmRow icon="⏳" label="Probation"    value={`${data.probation_days} days`}/>
+                            <ConfirmRow icon="💱" label="Currency"     value={selectedCurrency ? `${selectedCurrency.currency_name} (${selectedCurrency.currency_code})` : '—'}/>
+                            <ConfirmRow icon="🏦" label="Bank"         value={selectedBank?.bank_name ?? '—'}/>
+                            <ConfirmRow icon="🕐" label="Work Hours"   value={`${data.working_hours_per_day}h/day · ${data.working_days_per_week}d/week`}/>
+                            {/* ── Shift time rows ── */}
+                            <ConfirmRow icon="🌤️" label="Day Shift"   value={`${to12h(data.day_shift_start)} – ${to12h(data.day_shift_end)}`}/>
+                            <ConfirmRow icon="🌙" label="Night Shift"  value={`${to12h(data.day_shift_end)} – ${to12h(data.day_shift_start)} (auto)`}/>
+                            <ConfirmRow icon="⚡" label="OT Base"      value={data.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'}/>
+                            <ConfirmRow icon="⚠️" label="Late Deduct"  value={`${data.late_deduction_rate || 0} / ${data.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
                             <ConfirmRow icon="🎁" label="Bonus in Probation" value={data.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'}/>
                         </div>
                         <div className="border-t border-gray-100 px-8 py-5 flex gap-3">
@@ -252,7 +268,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         </div>
                         {formErrors.probation_days && <ErrMsg msg={formErrors.probation_days}/>}
 
-                        {/* Bonus during probation toggle ← ဒါထည့် */}
+                        {/* Bonus during probation toggle */}
                         <div className="mt-2 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5">
                             <div>
                                 <p className="text-xs font-semibold text-gray-700">Pay bonus during probation?</p>
@@ -334,6 +350,71 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                 </label>
                             ))}
                         </div>
+                    </div>
+                </div>
+
+                {/* ══ SHIFT HOURS ══ */}
+                <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 space-y-3">
+                    {/* Header */}
+                    <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Shift Hours</p>
+                        <span className="ml-auto rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-600 border border-blue-100">
+                            Used for OT type auto-detection
+                        </span>
+                    </div>
+
+                    {/* Visual timeline bar */}
+                    <ShiftTimeline start={data.day_shift_start} end={data.day_shift_end} />
+
+                    {/* Inputs row */}
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Day shift start */}
+                        <div>
+                            <label className="label flex items-center gap-1.5">
+                                <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-400"/>
+                                Day shift starts
+                            </label>
+                            <input
+                                type="time"
+                                value={data.day_shift_start}
+                                onChange={e => {
+                                    setData('day_shift_start', e.target.value);
+                                    setFormErrors(p => ({ ...p, day_shift_start: '' }));
+                                }}
+                                className={`input mt-1 ${formErrors.day_shift_start ? 'border-red-400' : ''}`}
+                            />
+                            {formErrors.day_shift_start && <ErrMsg msg={formErrors.day_shift_start}/>}
+                        </div>
+
+                        {/* Day shift end */}
+                        <div>
+                            <label className="label flex items-center gap-1.5">
+                                <span className="inline-block h-2.5 w-2.5 rounded-full bg-indigo-400"/>
+                                Day shift ends
+                            </label>
+                            <input
+                                type="time"
+                                value={data.day_shift_end}
+                                onChange={e => {
+                                    setData('day_shift_end', e.target.value);
+                                    setFormErrors(p => ({ ...p, day_shift_end: '' }));
+                                }}
+                                className={`input mt-1 ${formErrors.day_shift_end ? 'border-red-400' : ''}`}
+                            />
+                            {formErrors.day_shift_end && <ErrMsg msg={formErrors.day_shift_end}/>}
+                        </div>
+                    </div>
+
+                    {/* Auto-derived night shift info */}
+                    <div className="flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 border border-indigo-100">
+                        <span className="text-sm flex-shrink-0">🌙</span>
+                        <p className="text-xs text-indigo-700">
+                            Night shift is automatically{' '}
+                            <span className="font-semibold">
+                            {to12h(data.day_shift_end)} → {to12h(data.day_shift_start)}
+                            </span>{' '}
+                            (everything outside day shift)
+                        </p>
                     </div>
                 </div>
 
@@ -543,9 +624,12 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <SavedCard label="Bank"          value={banks?.find(b => b.id == salaryRule.bank_id)?.bank_name ?? '—'} sub={banks?.find(b => b.id == salaryRule.bank_id)?.bank_code}/>
                             <SavedCard label="Working Hours" value={`${salaryRule.working_hours_per_day}h / day`}/>
                             <SavedCard label="Working Days"  value={`${salaryRule.working_days_per_week} days / week`}/>
+                            {/* ── Shift time saved cards ── */}
+                            <SavedCard label="Day Shift"   value={salaryRule.day_shift_start && salaryRule.day_shift_end ? `${to12h(salaryRule.day_shift_start)} – ${to12h(salaryRule.day_shift_end)}` : '—'} sub="Day shift hours"/>
+                            <SavedCard label="Night Shift" value={salaryRule.day_shift_end && salaryRule.day_shift_start ? `${to12h(salaryRule.day_shift_end)} – ${to12h(salaryRule.day_shift_start)}` : '—'} sub="Auto-derived"/>
                             <SavedCard label="OT Base"       value={salaryRule.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'} sub={salaryRule.overtime_base === 'hourly_rate' ? 'Daily ÷ working hrs' : 'Monthly ÷ working days'}/>
                             <SavedCard label="Late Deduct"   value={`${salaryRule.late_deduction_rate ?? 0} / ${salaryRule.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
-                            <SavedCard label="Bonus in Probation" value={salaryRule.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'} sub={salaryRule.bonus_during_probation ? 'Probation employees receive bonuses': 'Bonuses skipped during probation'}/>
+                            <SavedCard label="Bonus in Probation" value={salaryRule.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'} sub={salaryRule.bonus_during_probation ? 'Probation employees receive bonuses' : 'Bonuses skipped during probation'}/>
                             {bonusSchedules?.length > 0 && (
                                 <div className="col-span-3 overflow-hidden rounded-xl border border-gray-100">
                                     <div className="border-b border-gray-100 bg-gray-50/80 px-4 py-2.5">
@@ -559,23 +643,19 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                             return (
                                                 <div key={s.id} className={`px-4 py-3.5 hover:bg-gray-50/60 transition-colors ${!s.is_active ? 'opacity-50' : ''}`}>
                                                     <div className="flex items-start justify-between gap-4">
-
                                                         {/* Left: name + tags */}
                                                         <div className="flex items-start gap-2.5">
                                                             <span className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${s.is_active ? 'bg-green-400' : 'bg-gray-300'}`}/>
                                                             <div>
                                                                 <p className="text-sm font-bold text-gray-800">{s.bonus_type?.name ?? '—'}</p>
                                                                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                                                                    {/* Frequency */}
                                                                     <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700">{freq}</span>
-                                                                    {/* Pay When */}
                                                                     {when !== '—' && when !== 'Every month' && (
                                                                         <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
                                                                             <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                                                             {when}
                                                                         </span>
                                                                     )}
-                                                                    {/* Status */}
                                                                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${s.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
                                                                         {s.is_active ? 'Active' : 'Inactive'}
                                                                     </span>
@@ -583,7 +663,6 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                                                 {s.notes && <p className="mt-1 text-xs italic text-gray-400">{s.notes}</p>}
                                                             </div>
                                                         </div>
-
                                                         {/* Right: rate */}
                                                         <div className="flex-shrink-0 text-right">
                                                             <p className={`text-base font-bold ${isPct ? 'text-blue-600' : 'text-green-600'}`}>
@@ -614,14 +693,67 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
     );
 }
 
+// ── Shift Timeline Component ──────────────────────────────────
+function ShiftTimeline({ start, end }) {
+    const toMin = (t) => {
+        if (!t) return null;
+        const [h, m] = t.split(':').map(Number);
+        return h * 60 + m;
+    };
+
+    const startMin  = toMin(start) ?? 8 * 60;
+    const endMin    = toMin(end)   ?? 18 * 60;
+    const totalMin  = 24 * 60;
+    const dayStart  = (startMin / totalMin) * 100;
+    const isNormal  = endMin > startMin;
+    const dayWidth  = isNormal
+        ? ((endMin - startMin) / totalMin) * 100
+        : ((totalMin - startMin + endMin) / totalMin) * 100;
+    const nightWidth = 100 - dayWidth;
+
+    return (
+        <div className="space-y-1.5">
+            <div className="relative h-6 w-full overflow-hidden rounded-full bg-gray-200">
+                {/* Night left portion */}
+                {dayStart > 0 && (
+                    <div className="absolute inset-y-0 left-0 bg-indigo-200" style={{ width: `${dayStart}%` }}/>
+                )}
+                {/* Day portion */}
+                <div
+                    className="absolute inset-y-0 bg-amber-300"
+                    style={{ left: `${dayStart}%`, width: `${Math.min(dayWidth, 100)}%` }}
+                />
+                {/* Night right portion (normal range only) */}
+                {isNormal && nightWidth > 0 && (
+                    <div className="absolute inset-y-0 right-0 bg-indigo-200" style={{ width: `${nightWidth}%` }}/>
+                )}
+            </div>
+            <div className="flex items-center justify-between text-xs text-gray-400">
+                <span>00:00</span>
+                <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1">
+                        <span className="inline-block h-2 w-2 rounded-sm bg-amber-300"/>
+                        Day ({to12h(start)}–{to12h(end)})
+                    </span>
+                    <span className="flex items-center gap-1">
+                        <span className="inline-block h-2 w-2 rounded-sm bg-indigo-200"/>
+                        Night (auto)
+                    </span>
+                </div>
+                <span>24:00</span>
+            </div>
+        </div>
+    );
+}
+
 // ── Bank Modal ────────────────────────────────────────────────
 function BankModal({ banks, onClose }) {
     const defaultBankForm = { bank_name: '', bank_code: '', is_active: true };
-    const [showForm, setShowForm]   = useState(false);
-    const [editingId, setEditingId] = useState(null);
+    const [showForm, setShowForm]         = useState(false);
+    const [editingId, setEditingId]       = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
-    const [deleting, setDeleting]   = useState(false);
-    const [bankErrors, setBankErrors] = useState({});
+    const [deleting, setDeleting]         = useState(false);
+    const [bankErrors, setBankErrors]     = useState({});
     const { data, setData, post, put, processing, reset } = useForm(defaultBankForm);
 
     const validate = () => { const errs = {}; if (!data.bank_name.trim()) errs.bank_name = 'Bank name is required.'; return errs; };
@@ -740,6 +872,17 @@ function BankModal({ banks, onClose }) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────
+// Convert "HH:MM" → "h:MM AM/PM"
+function to12h(t) {
+    if (!t) return '—';
+    const [hStr, mStr] = t.substring(0, 5).split(':');
+    const h = parseInt(hStr, 10);
+    const m = mStr ?? '00';
+    const period = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${m} ${period}`;
+}
+
 function SavedCard({ label, value, sub }) {
     return (
         <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
@@ -770,12 +913,11 @@ function Toggle({ label, checked, onChange, disabled }) {
         </label>
     );
 }
-// Rate display helper
 const formatRate = (value) => {
     const num = parseFloat(value);
     return num % 1 === 0 ? num.toLocaleString() : num.toFixed(2);
 };
-function Spinner() { return <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>; }
+function Spinner()   { return <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>; }
 function PlusIcon()  { return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>; }
 function EditIcon()  { return <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>; }
 function TrashIcon() { return <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>; }

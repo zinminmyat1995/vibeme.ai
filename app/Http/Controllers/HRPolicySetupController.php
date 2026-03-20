@@ -139,47 +139,68 @@ class HRPolicySetupController extends Controller
     public function storeOvertimePolicy(Request $request)
     {
         $countryId = $this->getCountryId();
-
+    
         $validated = $request->validate([
-            'title'      => [
-                'required',
-                'string',
-                'max:100',
-                // ဒီ country မှာ title မရှိသေးရဘူး
-                Rule::unique('overtime_policies')
-                    ->where('country_id', $countryId),
-            ],
+            'title'      => 'required|string|max:100',
+            'day_type'   => 'required|in:weekday,weekend,public_holiday',
+            'shift_type' => 'required|in:day,night,both',
             'rate_type'  => 'required|in:multiplier,flat',
             'rate_value' => 'required|numeric|min:0',
             'is_active'  => 'required|boolean',
+        ], [
+            'day_type.required'   => 'Please select Applies To (Weekday / Weekend / Public Holiday).',
+            'shift_type.required' => 'Please select Shift (Day / Night / Both).',
         ]);
-
-        OvertimePolicy::create([...$validated, 'country_id' => $countryId]);
-
+    
+        // Duplicate combination check
+        $exists = \App\Models\OvertimePolicy::where('country_id', $countryId)
+            ->where('day_type',   $validated['day_type'])
+            ->where('shift_type', $validated['shift_type'])
+            ->exists();
+    
+        if ($exists) {
+            $label = ucfirst(str_replace('_', ' ', $validated['day_type']));
+            $shift = ucfirst($validated['shift_type']);
+            return back()->withErrors([
+                'day_type' => "A policy for {$shift} shift + {$label} already exists for this country.",
+            ])->withInput();
+        }
+    
+        \App\Models\OvertimePolicy::create([...$validated, 'country_id' => $countryId]);
+    
         return back()->with('success', 'Overtime rate added.');
     }
-
-    public function updateOvertimePolicy(Request $request, OvertimePolicy $overtimePolicy)
+    
+    public function updateOvertimePolicy(Request $request, \App\Models\OvertimePolicy $overtimePolicy)
     {
         $this->authorizeCountry($overtimePolicy->country_id);
-
+    
         $validated = $request->validate([
-            'title'      => [
-                'required',
-                'string',
-                'max:100',
-                // update မှာ ကိုယ့် id ကိုပဲ ignore လုပ်မယ်
-                Rule::unique('overtime_policies')
-                    ->where('country_id', $overtimePolicy->country_id)
-                    ->ignore($overtimePolicy->id),
-            ],
+            'title'      => 'required|string|max:100',
+            'day_type'   => 'required|in:weekday,weekend,public_holiday',
+            'shift_type' => 'required|in:day,night,both',
             'rate_type'  => 'required|in:multiplier,flat',
             'rate_value' => 'required|numeric|min:0',
             'is_active'  => 'required|boolean',
         ]);
-
+    
+        // Duplicate check — ignore self
+        $exists = \App\Models\OvertimePolicy::where('country_id', $overtimePolicy->country_id)
+            ->where('day_type',   $validated['day_type'])
+            ->where('shift_type', $validated['shift_type'])
+            ->where('id', '!=', $overtimePolicy->id)
+            ->exists();
+    
+        if ($exists) {
+            $label = ucfirst(str_replace('_', ' ', $validated['day_type']));
+            $shift = ucfirst($validated['shift_type']);
+            return back()->withErrors([
+                'day_type' => "A policy for {$shift} shift + {$label} already exists.",
+            ])->withInput();
+        }
+    
         $overtimePolicy->update($validated);
-
+    
         return back()->with('success', 'Overtime rate updated.');
     }
 
@@ -396,27 +417,41 @@ public function destroyBank(PayrollBank $bank)
     public function saveSalaryRule(Request $request)
     {
         $countryId = $this->getCountryId();
-
+    
         $validated = $request->validate([
-            'pay_cycle'                => 'required|in:monthly,semi_monthly,ten_day',
-            'probation_days'           => 'required|integer|min:0',
-            'bonus_during_probation'   => 'required|boolean', // ← ထည့်
-            'bank_id'                  => 'nullable|exists:payroll_banks,id',
-            'working_hours_per_day'    => 'required|integer|min:1|max:24',
-            'working_days_per_week'    => 'required|integer|min:1|max:7',
-            'overtime_base'            => 'required|in:daily_rate,hourly_rate',
-            'late_deduction_unit'      => 'required|in:per_minute,per_hour',
-            'late_deduction_rate'      => 'nullable|numeric|min:0',
-            'currency_id'              => 'nullable|exists:payroll_currencies,id',
+            'pay_cycle'              => 'required|in:monthly,semi_monthly,ten_day',
+            'probation_days'         => 'required|integer|min:0',
+            'bonus_during_probation' => 'required|boolean',
+            'bank_id'                => 'nullable|exists:payroll_banks,id',
+            'working_hours_per_day'  => 'required|integer|min:1|max:24',
+            'working_days_per_week'  => 'required|integer|min:1|max:7',
+            'day_shift_start'        => 'required|date_format:H:i',      // ← အသစ်
+            'day_shift_end'          => 'required|date_format:H:i',      // ← အသစ်
+            'overtime_base'          => 'required|in:daily_rate,hourly_rate',
+            'late_deduction_unit'    => 'required|in:per_minute,per_hour',
+            'late_deduction_rate'    => 'nullable|numeric|min:0',
+            'currency_id'            => 'nullable|exists:payroll_currencies,id',
+        ], [
+            'day_shift_start.required'    => 'Day shift start time is required.',
+            'day_shift_start.date_format' => 'Day shift start must be in HH:MM format.',
+            'day_shift_end.required'      => 'Day shift end time is required.',
+            'day_shift_end.date_format'   => 'Day shift end must be in HH:MM format.',
         ]);
-
+    
+        // day_shift_start === day_shift_end → 24hr day မဖြစ်ချင်တဲ့ warning (optional)
+        if ($validated['day_shift_start'] === $validated['day_shift_end']) {
+            return back()->withErrors([
+                'day_shift_end' => 'Day shift start and end cannot be the same time.',
+            ])->withInput();
+        }
+    
         $validated['late_deduction_rate'] = $validated['late_deduction_rate'] ?? 0;
-
+    
         SalaryRule::updateOrCreate(
             ['country_id' => $countryId],
             $validated
         );
-
+    
         return back()->with('success', 'General settings saved successfully.');
     }
 

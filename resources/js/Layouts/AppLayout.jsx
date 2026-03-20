@@ -114,7 +114,7 @@ const menuItems = [
                     </svg>
                 ),
                 label: 'Overtime Management',
-                route: '/payroll/overtime',
+                route: '/payroll/overtimes',
                 roles: ['admin', 'hr', 'management', 'employee'],
             },
             {

@@ -14,12 +14,10 @@ class OvertimePolicy
 
     public function view(User $user, OvertimeRequest $overtimeRequest): bool
     {
-        // Member can only view own
         if ($user->hasRole('member')) {
             return $overtimeRequest->user_id === $user->id;
         }
 
-        // Management can only view own country
         if ($user->hasRole('management')) {
             return $overtimeRequest->user->country_id === $user->country_id;
         }
@@ -29,24 +27,38 @@ class OvertimePolicy
 
     public function create(User $user): bool
     {
-        // All roles can request overtime
         return $user->hasAnyRole(['hr', 'admin', 'management', 'member']);
     }
 
+    /**
+     * Approve: assigned approver သာ approve လုပ်နိုင်
+     * (Leave Request logic နဲ့ consistent)
+     */
     public function approve(User $user, OvertimeRequest $overtimeRequest): bool
     {
-        return $user->hasAnyRole(['hr', 'admin']);
+        // Admin → always
+        if ($user->hasRole('admin')) return true;
+
+        // Assigned approver → approve ခွင့်ရှိ
+        if ($overtimeRequest->approver_id === $user->id) return true;
+
+        // HR → same country requests
+        if ($user->hasRole('hr')) {
+            return $overtimeRequest->user->country_id === $user->country_id;
+        }
+
+        return false;
     }
 
     public function reject(User $user, OvertimeRequest $overtimeRequest): bool
     {
-        return $user->hasAnyRole(['hr', 'admin']);
+        return $this->approve($user, $overtimeRequest);
     }
 
     public function delete(User $user, OvertimeRequest $overtimeRequest): bool
     {
         if ($overtimeRequest->status !== 'pending') return false;
 
-        return $user->hasRole('hr') || $overtimeRequest->user_id === $user->id;
+        return $user->hasRole('admin') || $overtimeRequest->user_id === $user->id;
     }
 }

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\ProjectAssignmentController;
 use App\Http\Controllers\Payroll\AttendanceRecordController;
 use App\Http\Controllers\Payroll\LeaveRequestController;
+use App\Http\Controllers\Payroll\OvertimeRequestController;
 use App\Http\Controllers\HRPolicySetupController;
 
 Route::get('/', function () {
@@ -144,6 +145,19 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/payroll/leaves/{leaveRequest}/approve', [LeaveRequestController::class, 'approve']);
     Route::patch('/payroll/leaves/{leaveRequest}/reject', [LeaveRequestController::class, 'reject']);
 
+
+    // Overtime Requests
+    Route::get('/payroll/overtimes', [OvertimeRequestController::class, 'index'])
+        ->name('payroll.overtimes.index');
+    
+    Route::post('/payroll/overtimes', [OvertimeRequestController::class, 'store'])
+        ->name('payroll.overtimes.store');
+    
+    Route::patch('/payroll/overtimes/{overtimeRequest}/approve', [OvertimeRequestController::class, 'approve'])
+        ->name('payroll.overtimes.approve');
+    
+    Route::patch('/payroll/overtimes/{overtimeRequest}/reject', [OvertimeRequestController::class, 'reject'])
+        ->name('payroll.overtimes.reject');
 
     // HR Policy
    Route::prefix('payroll/hr-policy')->name('hr-policy.')->group(function () {
