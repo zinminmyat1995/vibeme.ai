@@ -10,6 +10,7 @@ class OvertimeRequestSegment extends Model
     protected $fillable = [
         'overtime_request_id',
         'ot_policy_id',
+        'segment_date',   // ← ဘယ်ရက် segment ဆိုတာ
         'start_time',
         'end_time',
         'hours',
@@ -17,6 +18,7 @@ class OvertimeRequestSegment extends Model
     ];
 
     protected $casts = [
+        'segment_date'   => 'date',
         'hours'          => 'decimal:2',
         'hours_approved' => 'decimal:2',
     ];

@@ -11,11 +11,12 @@ class OvertimeRequest extends Model
     protected $fillable = [
         'user_id',
         'approver_id',
-        'date',
+        'start_date',
+        'end_date',
         'start_time',
         'end_time',
-        'hours_requested',   // total (sum of all segments)
-        'hours_approved',    // total approved (sum of segments hours_approved)
+        'hours_requested',
+        'hours_approved',
         'reason',
         'status',
         'approved_by',
@@ -23,7 +24,8 @@ class OvertimeRequest extends Model
     ];
 
     protected $casts = [
-        'date'            => 'date',
+        'start_date'      => 'date',
+        'end_date'        => 'date',
         'hours_requested' => 'decimal:2',
         'hours_approved'  => 'decimal:2',
         'approved_at'     => 'datetime',

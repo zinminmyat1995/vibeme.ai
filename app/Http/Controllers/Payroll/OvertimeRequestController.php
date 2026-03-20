@@ -22,7 +22,9 @@ class OvertimeRequestController extends Controller
         private ShiftDetectionService $shiftDetection
     ) {}
 
-    // INDEX
+    // ─────────────────────────────────────────────────────────
+    //  INDEX
+    // ─────────────────────────────────────────────────────────
     public function index(Request $request): Response
     {
         $user     = Auth::user();
@@ -37,7 +39,8 @@ class OvertimeRequestController extends Controller
             'segments.overtimePolicy:id,title,rate_type,rate_value',
         ])->latest();
 
-        $query->whereMonth('date', $month)->whereYear('date', $year);
+        // Filter by month/year using start_date
+        $query->whereMonth('start_date', $month)->whereYear('start_date', $year);
 
         if (in_array($roleName, ['management', 'hr', 'admin'])) {
             $query->where(function ($q) use ($user) {
@@ -79,7 +82,9 @@ class OvertimeRequestController extends Controller
         ]);
     }
 
-    // STORE — auto-split into segments
+    // ─────────────────────────────────────────────────────────
+    //  STORE
+    // ─────────────────────────────────────────────────────────
     public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $user      = Auth::user();
@@ -89,59 +94,85 @@ class OvertimeRequestController extends Controller
         $isAdmin   = $roleName === 'admin';
 
         $validated = $request->validate([
-            'date'        => 'required|date',
+            'start_date'  => 'required|date',
             'start_time'  => 'required|date_format:H:i',
+            'end_date'    => 'required|date|after_or_equal:start_date',
             'end_time'    => 'required|date_format:H:i',
             'reason'      => 'required|string|max:500',
             'approver_id' => 'nullable|exists:users,id',
         ], [
-            'start_time.date_format' => 'Start time must be HH:MM format.',
-            'end_time.date_format'   => 'End time must be HH:MM format.',
+            'end_date.after_or_equal' => 'End date must be on or after start date.',
         ]);
 
-        if ($validated['start_time'] === $validated['end_time']) {
+        $startDate = Carbon::parse($validated['start_date'])->format('Y-m-d');
+        $endDate   = Carbon::parse($validated['end_date'])->format('Y-m-d');
+
+        // Same date + same time → invalid
+        if ($startDate === $endDate && $validated['start_time'] === $validated['end_time']) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'end_time' => 'Start and end time cannot be the same.',
+                'end_time' => 'Start and end time cannot be the same on the same date.',
             ]);
         }
 
-        $dateStr = Carbon::parse($validated['date'])->format('Y-m-d');
-
-        // Leave conflict check
-        $leaveOnDate = LeaveRequest::where('user_id', $userId)
-            ->whereDate('start_date', '<=', $dateStr)
-            ->whereDate('end_date',   '>=', $dateStr)
+        // ─────────────────────────────────────────────────────
+        //  Leave conflict check — any leave within date range
+        // ─────────────────────────────────────────────────────
+        $leaveConflict = LeaveRequest::where('user_id', $userId)
             ->whereIn('status', ['pending', 'approved'])
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                  ->orWhereBetween('end_date',  [$startDate, $endDate])
+                  ->orWhere(function ($q2) use ($startDate, $endDate) {
+                      $q2->where('start_date', '<=', $startDate)
+                         ->where('end_date',   '>=', $endDate);
+                  });
+            })
             ->first();
 
-        if ($leaveOnDate) {
-            $label = match ($leaveOnDate->day_type) {
+        if ($leaveConflict) {
+            $label = match ($leaveConflict->day_type ?? '') {
                 'full_day'    => 'Full Day',
                 'half_day_am' => 'AM Half Day',
                 'half_day_pm' => 'PM Half Day',
-                default       => $leaveOnDate->day_type,
+                default       => 'Leave',
             };
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'date' => "You have a {$leaveOnDate->leave_type} leave ({$label}) on {$dateStr}. Cannot submit overtime on a leave day.",
+                'start_date' => "You have a {$leaveConflict->leave_type} leave ({$label}) overlapping this period.",
             ]);
         }
 
-        // Duplicate OT check
-        $existingOT = OvertimeRequest::where('user_id', $userId)
-            ->whereDate('date', $dateStr)
+        // ─────────────────────────────────────────────────────
+        //  Overlap OT check — time-aware exclusive boundary
+        //  e.g. existing: 20-Mar 9:25AM → 27-Mar 9:25AM
+        //       new:       27-Mar 9:25AM → ...  → ALLOWED (starts exactly where previous ended)
+        //       new:       27-Mar 9:24AM → ...  → BLOCKED (overlap)
+        // ─────────────────────────────────────────────────────
+        $startDateTime = $startDate . ' ' . $validated['start_time'] . ':00';
+        $endDateTime   = $endDate   . ' ' . $validated['end_time']   . ':00';
+
+        $otConflict = OvertimeRequest::where('user_id', $userId)
             ->whereIn('status', ['pending', 'approved'])
+            ->where(function ($q) use ($startDateTime, $endDateTime, $startDate, $endDate, $validated) {
+                // Existing request's datetime range overlaps with new request
+                // Overlap exists when: existing_start < new_end AND existing_end > new_start
+                $q->whereRaw("CONCAT(start_date, ' ', start_time, ':00') < ?", [$endDateTime])
+                  ->whereRaw("CONCAT(end_date, ' ', end_time, ':00') > ?", [$startDateTime]);
+            })
             ->first();
 
-        if ($existingOT) {
+        if ($otConflict) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'date' => "You already have an overtime request on {$dateStr}.",
+                'start_date' => "You already have an overtime request overlapping this date range.",
             ]);
         }
 
-        // Auto-detect segments
-        $segments = $this->shiftDetection->detect(
-            $dateStr,
+        // ─────────────────────────────────────────────────────
+        //  Auto-detect segments (multi-day)
+        // ─────────────────────────────────────────────────────
+        $segments = $this->shiftDetection->detectFull(
+            $startDate,
             $validated['start_time'],
+            $endDate,
             $validated['end_time'],
             $countryId
         );
@@ -152,19 +183,20 @@ class OvertimeRequestController extends Controller
             ]);
         }
 
-        $totalHours  = collect($segments)->sum('hours');
-        $status      = $isAdmin ? 'approved' : 'pending';
-        $approvedBy  = $isAdmin ? $userId    : null;
-        $approvedAt  = $isAdmin ? now()      : null;
+        $totalHours = collect($segments)->sum('hours');
+        $status     = $isAdmin ? 'approved' : 'pending';
+        $approvedBy = $isAdmin ? $userId    : null;
+        $approvedAt = $isAdmin ? now()      : null;
 
         DB::transaction(function () use (
-            $userId, $validated, $dateStr, $totalHours,
+            $userId, $validated, $startDate, $endDate, $totalHours,
             $segments, $status, $approvedBy, $approvedAt, $isAdmin
         ) {
             $otRequest = OvertimeRequest::create([
                 'user_id'         => $userId,
                 'approver_id'     => $isAdmin ? $userId : ($validated['approver_id'] ?? null),
-                'date'            => $dateStr,
+                'start_date'      => $startDate,
+                'end_date'        => $endDate,
                 'start_time'      => $validated['start_time'],
                 'end_time'        => $validated['end_time'],
                 'hours_requested' => $totalHours,
@@ -179,6 +211,7 @@ class OvertimeRequestController extends Controller
                 OvertimeRequestSegment::create([
                     'overtime_request_id' => $otRequest->id,
                     'ot_policy_id'        => $seg['ot_policy_id'],
+                    'segment_date'        => $seg['segment_date'],
                     'start_time'          => $seg['start_time'],
                     'end_time'            => $seg['end_time'],
                     'hours'               => $seg['hours'],
@@ -188,17 +221,30 @@ class OvertimeRequestController extends Controller
         });
 
         $segCount = count($segments);
+        $days     = Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate)) + 1;
         $msg = $isAdmin
-            ? "Overtime created & auto-approved. ({$segCount} segment" . ($segCount > 1 ? 's' : '') . ", {$totalHours} hrs)"
-            : "Overtime submitted. ({$segCount} segment" . ($segCount > 1 ? 's' : '') . ", {$totalHours} hrs)";
+            ? "Overtime created & auto-approved. ({$days} day(s), {$segCount} segments, {$totalHours} hrs total)"
+            : "Overtime submitted. ({$days} day(s), {$segCount} segments, {$totalHours} hrs total)";
 
         return back()->with('success', $msg);
     }
 
-    // APPROVE
+    // ─────────────────────────────────────────────────────────
+    //  APPROVE
+    // ─────────────────────────────────────────────────────────
     public function approve(Request $request, OvertimeRequest $overtimeRequest): \Illuminate\Http\RedirectResponse
     {
-        $this->authorize('approve', $overtimeRequest);
+        $user     = Auth::user();
+        $roleName = $user->role?->name;
+
+        // Manual authorization — admin always, assigned approver, or hr same country
+        $canApprove = $roleName === 'admin'
+            || $overtimeRequest->approver_id === $user->id
+            || ($roleName === 'hr' && $overtimeRequest->user->country_id === $user->country_id);
+
+        if (!$canApprove) {
+            abort(403, 'Unauthorized.');
+        }
 
         $validated = $request->validate([
             'segments'                  => 'nullable|array',
@@ -213,13 +259,12 @@ class OvertimeRequestController extends Controller
                 foreach ($validated['segments'] as $seg) {
                     $segment = OvertimeRequestSegment::find($seg['id']);
                     if ($segment && $segment->overtime_request_id === $overtimeRequest->id) {
-                        $approved = min((float)$seg['hours_approved'], (float)$segment->hours);
+                        $approved = min((float) $seg['hours_approved'], (float) $segment->hours);
                         $segment->update(['hours_approved' => $approved]);
                         $totalApproved += $approved;
                     }
                 }
             } else {
-                // Approve all segments at full hours
                 $totalApproved = $overtimeRequest->segments->sum('hours');
                 $overtimeRequest->segments()->update(['hours_approved' => DB::raw('hours')]);
             }
@@ -235,7 +280,9 @@ class OvertimeRequestController extends Controller
         return back()->with('success', 'Overtime request approved.');
     }
 
-    // REJECT
+    // ─────────────────────────────────────────────────────────
+    //  REJECT
+    // ─────────────────────────────────────────────────────────
     public function reject(OvertimeRequest $overtimeRequest): \Illuminate\Http\RedirectResponse
     {
         $this->authorize('reject', $overtimeRequest);
