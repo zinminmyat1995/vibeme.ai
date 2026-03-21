@@ -138,6 +138,7 @@ Route::middleware(['auth'])->group(function () {
     // Attendance
     Route::get('/payroll/attendance', [AttendanceRecordController::class, 'index']);
     Route::post('/payroll/attendance', [AttendanceRecordController::class, 'store']);
+    Route::delete('/payroll/attendance/{attendanceRecord}', [AttendanceRecordController::class, 'destroy']);
 
     // Leave Management
     Route::get('/payroll/leaves', [LeaveRequestController::class, 'index']);

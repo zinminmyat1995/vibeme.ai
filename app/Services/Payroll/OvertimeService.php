@@ -27,8 +27,8 @@ class OvertimeService
     public function getMonthlySummary(int $userId, int $month, int $year): array
     {
         $requests = OvertimeRequest::where('user_id', $userId)
-            ->whereMonth('date', $month)
-            ->whereYear('date', $year)
+            ->whereMonth('start_date', $month)
+            ->whereYear('start_date', $year)
             ->get();
 
         return [

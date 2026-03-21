@@ -431,6 +431,8 @@ public function destroyBank(PayrollBank $bank)
             'late_deduction_unit'    => 'required|in:per_minute,per_hour',
             'late_deduction_rate'    => 'nullable|numeric|min:0',
             'currency_id'            => 'nullable|exists:payroll_currencies,id',
+            'lunch_start' => 'nullable|date_format:H:i',
+            'lunch_end'   => 'nullable|date_format:H:i',
         ], [
             'day_shift_start.required'    => 'Day shift start time is required.',
             'day_shift_start.date_format' => 'Day shift start must be in HH:MM format.',

@@ -109,7 +109,6 @@ export default function OvertimeIndex({ requests, overtimePolicies, employees, f
             <style>{`
                 @keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
                 .ot-row { background: #fff; }
-                .ot-row:hover { background: #f8fafc; }
             `}</style>
 
             {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}

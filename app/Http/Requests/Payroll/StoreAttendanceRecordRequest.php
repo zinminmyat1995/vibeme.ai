@@ -14,14 +14,14 @@ class StoreAttendanceRecordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
-            'date' => 'required|date',
-            'status' => 'required|in:present,absent,half_day,late',
-            'check_in_time' => 'nullable|date_format:H:i',
-            'check_out_time' => 'nullable|date_format:H:i|after:check_in_time',
+            'user_id'           => 'required|exists:users,id',
+            'date'              => 'required|date',
+            'status'            => 'required|in:present,absent,half_day,late',
+            'check_in_time'     => 'required|date_format:H:i,H:i:s',
+            'check_out_time'    => 'required|date_format:H:i,H:i:s',
             'work_hours_actual' => 'nullable|numeric|min:0|max:24',
-            'late_minutes' => 'nullable|integer|min:0',
-            'note' => 'nullable|string|max:500',
+            'late_minutes'      => 'nullable|integer|min:0',
+            'note'              => 'nullable|string|max:500',
         ];
     }
 }

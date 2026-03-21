@@ -2,19 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { usePage, router } from '@inertiajs/react';
 
-function Toast({ message, type, onClose }) {
-    if (!message) return null;
-    const bg    = type === 'success' ? '#d1fae5' : '#fee2e2';
-    const color = type === 'success' ? '#059669' : '#dc2626';
-    return (
-        <div style={{ position:'fixed', top:24, right:24, zIndex:9999, display:'flex', alignItems:'center', gap:12, background:bg, border:`1px solid ${color}`, borderRadius:12, padding:'14px 20px', boxShadow:'0 4px 20px rgba(0,0,0,0.12)', minWidth:280 }}>
-            <span style={{ width:24, height:24, borderRadius:'50%', background:color, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, flexShrink:0 }}>{type === 'success' ? '✓' : '✕'}</span>
-            <span style={{ fontSize:13, fontWeight:600, color, flex:1 }}>{message}</span>
-            <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color, fontSize:18, padding:0 }}>×</button>
-        </div>
-    );
-}
-
 const LEAVE_LABELS = {
     annual:'Annual Leave', medical:'Medical Leave', emergency:'Emergency Leave',
     unpaid:'Unpaid Leave', maternity:'Maternity Leave', paternity:'Paternity Leave',
@@ -27,30 +14,72 @@ function timeToMinutes(t) {
     const [h, min] = t.split(':').map(Number);
     return h * 60 + min;
 }
-function calcWorkHours(checkIn, checkOut, lunchBreakHours) {
+function calcWorkHours(checkIn, checkOut, lunchStart, lunchEnd) {
     if (!checkIn || !checkOut) return '';
-    const diff = (timeToMinutes(checkOut) - timeToMinutes(checkIn)) / 60 - lunchBreakHours;
-    return Math.max(0, Math.round(diff * 2) / 2);
+    const inM  = timeToMinutes(checkIn);
+    const outM = timeToMinutes(checkOut);
+    if (outM <= inM) return '';
+    const ls = timeToMinutes(lunchStart || '12:00');
+    const le = timeToMinutes(lunchEnd   || '13:00');
+    const overlapStart = Math.max(inM, ls);
+    const overlapEnd   = Math.min(outM, le);
+    const lunchDeduct  = Math.max(0, overlapEnd - overlapStart);
+    const workMins = outM - inM - lunchDeduct;
+    return Math.max(0, Math.round((workMins / 60) * 2) / 2);
 }
-function calcLateMinutes(checkIn, workStart) {
+function calcLateMinutes(checkIn, workStart, lunchEnd) {
     if (!checkIn || !workStart) return 0;
-    return Math.max(0, timeToMinutes(checkIn) - timeToMinutes(workStart));
+    const inM  = timeToMinutes(checkIn);
+    const wsM  = timeToMinutes(workStart);
+    const leM  = timeToMinutes(lunchEnd || '13:00');
+    if (inM >= leM) return 0;
+    return Math.max(0, inM - wsM);
 }
-function autoStatus(checkIn, checkOut, workStart) {
+function autoStatus(checkIn, checkOut, workStart, lunchEnd) {
     if (!checkIn || !checkOut) return 'absent';
-    return calcLateMinutes(checkIn, workStart) > 0 ? 'late' : 'present';
-}
-function chip(bg, color) {
-    return { fontSize:8, fontWeight:700, color, background:bg, borderRadius:3, padding:'1px 4px', display:'inline-block', whiteSpace:'nowrap', marginBottom:1 };
+    return calcLateMinutes(checkIn, workStart, lunchEnd) > 0 ? 'late' : 'present';
 }
 function tagStyle(bg, color) {
     return { fontSize:10, fontWeight:700, background:bg, color, borderRadius:6, padding:'2px 8px', display:'inline-block' };
+}
+function to12h(t) {
+    if (!t) return '—';
+    const [hStr, mStr] = t.substring(0, 5).split(':');
+    const h = parseInt(hStr, 10);
+    const m = mStr ?? '00';
+    return `${h % 12 === 0 ? 12 : h % 12}:${m}${h >= 12 ? 'PM' : 'AM'}`;
+}
+
+// ── Tooltip component ──
+function Tip({ text, children }) {
+    const [show, setShow] = useState(false);
+    if (!text) return children;
+    return (
+        <div style={{ position:'relative', display:'inline-block' }}
+            onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+            {children}
+            {show && (
+                <div style={{
+                    position:'absolute', bottom:'110%', left:'50%', transform:'translateX(-50%)',
+                    background:'#1f2937', color:'#fff', fontSize:11, fontWeight:500,
+                    borderRadius:7, padding:'6px 10px', whiteSpace:'pre-wrap', zIndex:999,
+                    maxWidth:200, wordBreak:'break-word', boxShadow:'0 4px 12px rgba(0,0,0,0.25)',
+                    pointerEvents:'none', lineHeight:1.5,
+                }}>
+                    {text}
+                    <div style={{ position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)',
+                        width:0, height:0, borderLeft:'5px solid transparent',
+                        borderRight:'5px solid transparent', borderTop:'5px solid #1f2937' }}/>
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default function AttendanceIndex({
     records = [], employees = [],
     selectedMonth, selectedYear, selectedEmployee,
-    countryConfig = { work_hours_per_day:8, lunch_break_minutes:60, standard_start_time:'09:00' },
+    countryConfig = { work_hours_per_day:8, lunch_break_minutes:60, standard_start_time:'09:00', lunch_start:'12:00', lunch_end:'13:00' },
     publicHolidays = [],
     publicHolidayDetails = [],
     overtimeMap = {},
@@ -62,65 +91,41 @@ export default function AttendanceIndex({
     const canManage  = roleName === 'hr';
     const canViewAll = ['hr','admin'].includes(roleName);
 
-    const [saving, setSaving]           = useState(false);
-    const [month, setMonth]             = useState(selectedMonth || new Date().getMonth() + 1);
-    const [year, setYear]               = useState(selectedYear  || new Date().getFullYear());
-    const [empId, setEmpId]             = useState(selectedEmployee || (employees[0]?.id || ''));
-    const [showModal, setShowModal]     = useState(false);
-    const [selected, setSelected]       = useState(null);
-    const [toast, setToast]             = useState(null);
-    const [selectedDay, setSelectedDay] = useState(null);
+    const [saving, setSaving]               = useState(false);
+    const [deleting, setDeleting]           = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [month, setMonth]                 = useState(selectedMonth || new Date().getMonth() + 1);
+    const [year, setYear]                   = useState(selectedYear  || new Date().getFullYear());
+    const [empId, setEmpId]                 = useState(selectedEmployee || (employees[0]?.id || ''));
+    const [showModal, setShowModal]         = useState(false);
+    const [selected, setSelected]           = useState(null);
+    const [selectedDay, setSelectedDay]     = useState(null);
 
-    function showToast(msg, type='success') {
-        setToast({ message:msg, type });
-        setTimeout(() => setToast(null), 4000);
-    }
-
-    // ── Auto-fetch when employee changes ──
     function fetchData(newEmpId, newMonth, newYear) {
         router.get('/payroll/attendance', {
-            month: newMonth,
-            year: newYear,
-            employee_id: newEmpId,
+            month: newMonth, year: newYear, employee_id: newEmpId,
         }, { preserveState: false });
     }
-
-    function handleEmpChange(e) {
-        const id = e.target.value;
-        setEmpId(id);
-        fetchData(id, month, year);
-    }
-
-    function handleMonthChange(e) {
-        const m = Number(e.target.value);
-        setMonth(m);
-        fetchData(empId, m, year);
-    }
-
-    function handleYearChange(e) {
-        const y = Number(e.target.value);
-        setYear(y);
-        fetchData(empId, month, y);
-    }
-
+    function handleEmpChange(e)   { const id = e.target.value; setEmpId(id); fetchData(id, month, year); }
+    function handleMonthChange(e) { const m = Number(e.target.value); setMonth(m); fetchData(empId, m, year); }
+    function handleYearChange(e)  { const y = Number(e.target.value); setYear(y); fetchData(empId, month, y); }
     function handlePrevMonth() {
         let m = month, y = year;
         if (m === 1) { m = 12; y--; } else { m--; }
-        setMonth(m); setYear(y);
-        fetchData(empId, m, y);
+        setMonth(m); setYear(y); fetchData(empId, m, y);
     }
-
     function handleNextMonth() {
         let m = month, y = year;
         if (m === 12) { m = 1; y++; } else { m++; }
-        setMonth(m); setYear(y);
-        fetchData(empId, m, y);
+        setMonth(m); setYear(y); fetchData(empId, m, y);
     }
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDay    = new Date(year, month - 1, 1).getDay();
     const stdHours    = countryConfig?.work_hours_per_day || 8;
     const workStart   = countryConfig?.standard_start_time || '09:00';
+    const lunchStart  = countryConfig?.lunch_start || '12:00';
+    const lunchEnd    = countryConfig?.lunch_end   || '13:00';
     const today       = new Date().toISOString().split('T')[0];
 
     const recordMap = {};
@@ -128,7 +133,6 @@ export default function AttendanceIndex({
         const dk = r.date ? r.date.split('T')[0] : '';
         if (dk) recordMap[dk] = r;
     });
-
     const holidayMap = {};
     publicHolidayDetails.forEach(h => {
         const dk = h.date ? h.date.split('T')[0] : '';
@@ -136,7 +140,6 @@ export default function AttendanceIndex({
     });
 
     function pad(n) { return String(n).padStart(2, '0'); }
-
     function getDayData(day) {
         const dateStr     = `${year}-${pad(month)}-${pad(day)}`;
         const record      = recordMap[dateStr];
@@ -150,12 +153,10 @@ export default function AttendanceIndex({
         return { dateStr, record, isWeekend, isHoliday, holidayName, dow, otRecord, leaveInfo, isFuture };
     }
 
-    // ── Monthly summary ──
     const monthlySummary = useMemo(() => {
         let workingDays = 0;
         for (let d = 1; d <= daysInMonth; d++) {
             const { isWeekend, isHoliday, isFuture } = getDayData(d);
-            // Count only past + today working days for absent calculation
             if (!isWeekend && !isHoliday && !isFuture) workingDays++;
         }
         const presentDays  = records.filter(r => r.status === 'present' || r.status === 'late').length;
@@ -176,19 +177,47 @@ export default function AttendanceIndex({
 
     function handleSave(formData) {
         setSaving(true);
-        const status = autoStatus(formData.check_in_time, formData.check_out_time, workStart);
+        const status = autoStatus(formData.check_in_time, formData.check_out_time, workStart, lunchEnd);
         router.post('/payroll/attendance', { ...formData, status }, {
-            onSuccess: () => { setShowModal(false); setSaving(false); showToast('Attendance saved!'); },
-            onError:   (errs) => { setSaving(false); showToast(Object.values(errs)[0] || 'Error', 'error'); },
+            onSuccess: () => { setShowModal(false); setSaving(false); },
+            onError: (errs) => {
+                setSaving(false);
+                const firstErr = Object.values(errs)[0] || 'Something went wrong.';
+                const friendly = firstErr
+                    .replace('check_in_time', 'Check In time')
+                    .replace('check_out_time', 'Check Out time')
+                    .replace(/must match the format.*/, 'must be in HH:MM format (e.g. 08:00)');
+                window.dispatchEvent(new CustomEvent('global-toast', {
+                    detail: { message: friendly, type: 'error' }
+                }));
+            },
         });
+    }
+
+    function handleDelete() {
+        if (!selectedDay?.record) return;
+        setDeleting(true);
+        router.delete(`/payroll/attendance/${selectedDay.record.id}`, {
+            onSuccess: () => { setDeleting(false); setShowDeleteConfirm(false); setSelectedDay(null); },
+            onError:   () => { setDeleting(false); },
+        });
+    }
+
+    // ── Cell label row helper ──
+    function CellRow({ label, value, labelColor, valueColor }) {
+        return (
+            <div style={{ display:'flex', alignItems:'baseline', gap:3, lineHeight:1.3 }}>
+                <span style={{ fontSize:9, fontWeight:600, color: labelColor || '#9ca3af', flexShrink:0 }}>{label}</span>
+                <span style={{ fontSize:9, fontWeight:700, color: valueColor || '#374151' }}>{value}</span>
+            </div>
+        );
     }
 
     return (
         <AppLayout title="Attendance">
-            <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
             <div style={s.wrap}>
 
-                {/* ── Filter Row ── */}
+                {/* Filter Row */}
                 <div style={s.filterRow}>
                     {canViewAll && (
                         <select style={s.select} value={empId} onChange={handleEmpChange}>
@@ -209,74 +238,41 @@ export default function AttendanceIndex({
                     )}
                 </div>
 
+                {/* Employee Card */}
                 {selectedEmp && (
                     <div style={s.empCard}>
-                        {/* Avatar */}
                         {selectedEmp.avatar_url ? (
-                            <img
-                                src={`/storage/${selectedEmp.avatar_url}`}
-                                alt={selectedEmp.name}
-                                style={{ width:56, height:56, borderRadius:14, objectFit:'cover', flexShrink:0, border:'2px solid #f3f4f6' }}
-                            />
+                            <img src={`/storage/${selectedEmp.avatar_url}`} alt={selectedEmp.name}
+                                style={{ width:56, height:56, borderRadius:14, objectFit:'cover', flexShrink:0, border:'2px solid #f3f4f6' }}/>
                         ) : (
                             <div style={{ ...s.empAvatar, width:56, height:56, borderRadius:14, fontSize:22 }}>
                                 {selectedEmp.name?.charAt(0).toUpperCase()}
                             </div>
                         )}
-
-                        {/* Info */}
                         <div style={{ flex:1, minWidth:0 }}>
-
-                            {/* Row 1: Name + Role */}
                             <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-                                <span style={{ fontSize:16, fontWeight:800, color:'#111827', letterSpacing:'-0.3px' }}>
-                                    {selectedEmp.name}
-                                </span>
+                                <span style={{ fontSize:16, fontWeight:800, color:'#111827', letterSpacing:'-0.3px' }}>{selectedEmp.name}</span>
                                 {selectedEmp.role?.name && (
                                     <span style={{
-                                        fontSize:11, fontWeight:700,
-                                        color: selectedEmp.role.name === 'hr'         ? '#059669' :
-                                            selectedEmp.role.name === 'admin'      ? '#7c3aed' :
-                                            selectedEmp.role.name === 'management' ? '#2563eb' : '#6b7280',
-                                        textTransform:'uppercase',
-                                        letterSpacing:'0.6px',
-                                    }}>
-                                        {selectedEmp.role.name}
-                                    </span>
+                                        fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px',
+                                        color: selectedEmp.role.name==='hr' ? '#059669' : selectedEmp.role.name==='admin' ? '#7c3aed' : selectedEmp.role.name==='management' ? '#2563eb' : '#6b7280',
+                                    }}>{selectedEmp.role.name}</span>
                                 )}
                             </div>
-
-                            {/* Row 2: Position · Department · Period */}
                             <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:5, flexWrap:'wrap' }}>
-                                {selectedEmp.position && (
-                                    <span style={{ fontSize:12, fontWeight:600, color:'#374151' }}>
-                                        {selectedEmp.position}
-                                    </span>
-                                )}
-                                {selectedEmp.position && selectedEmp.department && (
-                                    <span style={{ color:'#d1d5db', fontSize:12 }}>·</span>
-                                )}
-                                {selectedEmp.department && (
-                                    <span style={{ fontSize:12, fontWeight:500, color:'#6366f1' }}>
-                                        {selectedEmp.department}
-                                    </span>
-                                )}
-                                {(selectedEmp.position || selectedEmp.department) && (
-                                    <span style={{ color:'#d1d5db', fontSize:12 }}>·</span>
-                                )}
-                                <span style={{ fontSize:12, color:'#9ca3af' }}>
-                                    {MONTHS[month-1]} {year}
-                                </span>
+                                {selectedEmp.position && <span style={{ fontSize:12, fontWeight:600, color:'#374151' }}>{selectedEmp.position}</span>}
+                                {selectedEmp.position && selectedEmp.department && <span style={{ color:'#d1d5db', fontSize:12 }}>·</span>}
+                                {selectedEmp.department && <span style={{ fontSize:12, fontWeight:500, color:'#6366f1' }}>{selectedEmp.department}</span>}
+                                {(selectedEmp.position || selectedEmp.department) && <span style={{ color:'#d1d5db', fontSize:12 }}>·</span>}
+                                <span style={{ fontSize:12, color:'#9ca3af' }}>{MONTHS[month-1]} {year}</span>
                                 <span style={{ color:'#d1d5db', fontSize:12 }}>·</span>
-                                <span style={{ fontSize:12, color:'#9ca3af' }}>
-                                    {monthlySummary.workingDays} working days
-                                </span>
+                                <span style={{ fontSize:12, color:'#9ca3af' }}>{monthlySummary.workingDays} working days</span>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* ── Calendar + Detail ── */}
+                {/* Calendar + Detail */}
                 <div style={s.calWrapper}>
                     <div style={s.calCard}>
                         {/* Nav */}
@@ -286,115 +282,104 @@ export default function AttendanceIndex({
                             <button style={s.navBtn} onClick={handleNextMonth}>›</button>
                         </div>
 
+                        {/* Day headers */}
                         <div style={s.calGrid}>
                             {DAYS.map((d,i) => (
-                                <div key={d} style={{ ...s.dayHeader, color:(i===0||i===6)?'#dc2626':'#9ca3af' }}>{d}</div>
+                                <div key={d} style={{ ...s.dayHeader, color:(i===0||i===6)?'#ef4444':'#9ca3af' }}>{d}</div>
                             ))}
+
+                            {/* Empty cells */}
                             {Array.from({ length: firstDay }).map((_,i) => <div key={`e-${i}`} />)}
+
+                            {/* Day cells */}
                             {Array.from({ length: daysInMonth }).map((_,i) => {
                                 const day = i + 1;
                                 const { dateStr, record, isWeekend, isHoliday, holidayName, otRecord, leaveInfo, isFuture } = getDayData(day);
                                 const isToday    = dateStr === today;
                                 const isSelected = selectedDay?.dateStr === dateStr;
                                 const isRed      = isWeekend || isHoliday;
+                                const isAbsent   = !isWeekend && !isHoliday && !isFuture && !record && !leaveInfo;
 
-                                // Absent = past working day with no record & no leave
-                                const isAbsent = !isWeekend && !isHoliday && !isFuture && !record && !leaveInfo;
+                                const cellBg = isSelected ? '#ede9fe'
+                                    : isToday   ? '#fefce8'
+                                    : isRed     ? '#fff5f5'
+                                    : '#fff';
+
+                                const cellBorder = isSelected ? '2px solid #7c3aed'
+                                    : isToday   ? '2px solid #f59e0b'
+                                    : '1px solid #f0f0f0';
 
                                 return (
                                     <div key={day} onClick={() => handleDayClick(day)} style={{
                                         ...s.dayCell,
-                                        background: isRed ? '#fff5f5' : '#fff',
-                                        border: isSelected
-                                            ? '2px solid #7c3aed'
-                                            : isToday
-                                                ? '2px solid #a78bfa'
-                                                : '1px solid #f0f0f0',
+                                        background: cellBg,
+                                        border: cellBorder,
+                                        boxShadow: isSelected ? '0 0 0 3px rgba(124,58,237,0.1)' : isToday ? '0 0 0 2px rgba(245,158,11,0.1)' : 'none',
                                     }}>
+                                        {/* Day number */}
                                         <div style={{
-                                            fontSize:11, fontWeight: isToday ? 800 : 500,
-                                            color: isRed ? '#dc2626' : isToday ? '#7c3aed' : '#374151',
-                                            alignSelf:'flex-start',
+                                            fontSize:11, fontWeight: isToday ? 800 : 600,
+                                            color: isRed ? '#ef4444' : isToday ? '#d97706' : isSelected ? '#7c3aed' : '#374151',
+                                            marginBottom:2,
                                         }}>{day}</div>
 
-                                        {/* Holiday name */}
+                                        {/* Public holiday */}
                                         {isHoliday && holidayName && (
-                                            <div style={s.holidayName}>{holidayName}</div>
-                                        )}
-
-                                        {/* Absent indicator */}
-                                        {isAbsent && (
-                                            <div style={chip('#fee2e2','#dc2626')}>Absent</div>
-                                        )}
-
-                                        {/* Leave */}
-                                        {leaveInfo && !isHoliday && (
                                             <div style={{
-                                                fontSize:8, fontWeight:800,
-                                                borderRadius:3, padding:'2px 4px',
-                                                display:'inline-block', whiteSpace:'nowrap',
-                                                marginBottom:1,
-                                                ...(leaveInfo.is_half
-                                                    ? leaveInfo.day_type === 'half_day_am'
-                                                        ? { background:'#fef3c7', color:'#d97706', border:'1px solid #fde68a' }
-                                                        : { background:'#ede9fe', color:'#7c3aed', border:'1px solid #ddd6fe' }
-                                                    : { background:'#fee2e2', color:'#dc2626', border:'1px solid #fecaca' }
-                                                ),
-                                            }}>
-                                                {leaveInfo.is_half
-                                                    ? leaveInfo.day_type === 'half_day_am'
-                                                        ? 'AM Half'
-                                                        : 'PM Half'
-                                                    : 'Full Leave'
-                                                }
-                                            </div>
+                                                fontSize:10, fontWeight:800, color:'#dc2626',
+                                                textAlign:'center', lineHeight:1.4,
+                                                wordBreak:'break-word', width:'100%',
+                                                background:'#fee2e2', borderRadius:4,
+                                                padding:'2px 3px', marginTop:1,
+                                            }}>{holidayName}</div>
                                         )}
 
-                                        {/* Work record */}
-                                        {record && !isHoliday && !leaveInfo && (
-                                            <>
-                                                {record.work_hours_actual && (
-                                                    <div style={chip('#eef2ff','#4f46e5')}>
-                                                        WH: {record.work_hours_actual}h
-                                                    </div>
-                                                )}
-                                                {record.late_minutes > 0 && (
-                                                    <div style={chip('#fef3c7','#d97706')}>
-                                                        Late: {record.late_minutes}m
-                                                    </div>
-                                                )}
-                                            </>
+                                        {/* Absent */}
+                                        {isAbsent && (
+                                            <div style={{ fontSize:11, color:'#ef4444', fontWeight:700, marginTop:2 }}>Absent</div>
                                         )}
 
-                                        {/* OT */}
-                                        {otRecord && (
-                                            <div style={chip('#fdf4ff','#7c3aed')}>
-                                                OT: {otRecord.hours_approved}h
-                                            </div>
-                                        )}
+                                        {/* Rows: label  :  value — table for alignment */}
+                                        {(() => {
+                                            const rows = [];
+                                            if (record && !isHoliday && record.check_in_time)
+                                                rows.push({ key:'in',    label:'In',    value: to12h(record.check_in_time),  color:'#4f46e5', tip: null });
+                                            if (record && !isHoliday && record.check_out_time)
+                                                rows.push({ key:'out',   label:'Out',   value: to12h(record.check_out_time), color:'#4f46e5', tip: null });
+                                            if (leaveInfo && !isHoliday) {
+                                                const lv = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? 'AM Half' : 'PM Half') : 'Full Day';
+                                                const lc = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? '#d97706' : '#7c3aed') : '#dc2626';
+                                                rows.push({ key:'leave', label:'Leave', value: lv, color: lc, tip: leaveInfo.reason || (LEAVE_LABELS[leaveInfo.type] || leaveInfo.type) });
+                                            }
+                                            if (otRecord) {
+                                                const ov = parseFloat(otRecord.hours_approved) % 1 === 0 ? `${otRecord.hours_approved}h` : `${parseFloat(otRecord.hours_approved).toFixed(1)}h`;
+                                                rows.push({ key:'ot',    label:'OT',    value: ov,  color:'#7c3aed', tip: otRecord.reason || null });
+                                            }
+                                            if (record && !isHoliday && record.late_minutes > 0)
+                                                rows.push({ key:'late',  label:'Late',  value: `${record.late_minutes}m`, color:'#d97706', tip: null });
+                                            if (!rows.length) return null;
+                                            return (
+                                                <table style={{ borderCollapse:'collapse', marginTop:3, tableLayout:'fixed', width:'100%' }}>
+                                                    <tbody>
+                                                        {rows.map(row => (
+                                                            <tr key={row.key} title={row.tip || undefined} style={{ cursor: row.tip ? 'help' : 'default' }}>
+                                                                <td style={{ fontSize:11, fontWeight:600, color:'#9ca3af', width:28, paddingBottom:1, verticalAlign:'top', lineHeight:'17px', whiteSpace:'nowrap' }}>{row.label}</td>
+                                                                <td style={{ fontSize:11, fontWeight:600, color:'#9ca3af', width:10, paddingBottom:1, verticalAlign:'top', lineHeight:'17px', textAlign:'center' }}>:</td>
+                                                                <td style={{ fontSize:11, fontWeight:700, color:row.color,  paddingBottom:1, verticalAlign:'top', lineHeight:'17px' }}>{row.value}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            );
+                                        })()}
                                     </div>
                                 );
                             })}
                         </div>
-
-                        {/* Legend */}
-                        <div style={s.legend}>
-                            {[
-                                { color:'#4f46e5', label:'Work Hours' },
-                                { color:'#d97706', label:'Late' },
-                                { color:'#7c3aed', label:'OT Approved' },
-                                { color:'#059669', label:'Leave' },
-                                { color:'#dc2626', label:'Absent/Weekend/Holiday' },
-                            ].map(item => (
-                                <div key={item.label} style={s.legendItem}>
-                                    <span style={{ ...s.legendDot, background:item.color }} />
-                                    <span style={s.legendLbl}>{item.label}</span>
-                                </div>
-                            ))}
-                        </div>
+                        {/* Legend REMOVED */}
                     </div>
 
-                    {/* Detail Panel */}
+                    {/* ── Detail Panel — DO NOT MODIFY LOGIC ── */}
                     {selectedDay ? (
                         <div style={s.detailPanel}>
                             <div style={s.detailHeader}>
@@ -413,16 +398,27 @@ export default function AttendanceIndex({
                                 {selectedDay.isWeekend && (
                                     <span style={tagStyle('#fee2e2','#f87171')}>Weekend</span>
                                 )}
-                                {selectedDay.leaveInfo && (
-                                    <span style={tagStyle('#d1fae5','#059669')}>
-                                        {selectedDay.leaveInfo.is_half ? 'Half Leave' : 'Full Leave'} — {LEAVE_LABELS[selectedDay.leaveInfo.type] || selectedDay.leaveInfo.type}
-                                    </span>
-                                )}
-                                {selectedDay.otRecord && (
-                                    <span style={tagStyle('#fdf4ff','#7c3aed')}>
-                                        OT: {selectedDay.otRecord.hours_approved}h Approved
-                                    </span>
-                                )}
+                                {selectedDay.leaveInfo && (() => {
+                                    const li = selectedDay.leaveInfo;
+                                    const typeLabel = LEAVE_LABELS[li.type] || li.type;
+                                    const dayLabel  = li.day_type === 'half_day_am' ? 'AM Half Day'
+                                                    : li.day_type === 'half_day_pm' ? 'PM Half Day'
+                                                    : 'Full Day';
+                                    const colors = li.day_type === 'half_day_am'
+                                        ? { bg:'#fefce8', color:'#d97706', border:'#fde047', icon:'🌤️' }
+                                        : li.day_type === 'half_day_pm'
+                                        ? { bg:'#f5f3ff', color:'#7c3aed', border:'#ddd6fe', icon:'🌙' }
+                                        : { bg:'#fee2e2', color:'#dc2626', border:'#fca5a5', icon:'🏖️' };
+                                    return (
+                                        <div style={{ display:'flex', alignItems:'center', gap:8, background:colors.bg, border:`1px solid ${colors.border}`, borderRadius:10, padding:'8px 12px' }}>
+                                            <span style={{ fontSize:16 }}>{colors.icon}</span>
+                                            <div>
+                                                <div style={{ fontSize:12, fontWeight:800, color:colors.color }}>{dayLabel} Leave</div>
+                                                <div style={{ fontSize:11, color:colors.color, opacity:0.8, marginTop:1 }}>{typeLabel}</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                             {selectedDay.record ? (
@@ -445,13 +441,42 @@ export default function AttendanceIndex({
                                             </span>
                                         </DR>
                                     )}
-                                    {selectedDay.otRecord && (
-                                        <DR label="OT Hours">
-                                            <span style={{ color:'#7c3aed', fontWeight:700, fontSize:13 }}>
-                                                {selectedDay.otRecord.hours_approved} hrs
-                                            </span>
-                                        </DR>
-                                    )}
+                                    {selectedDay.otRecord && (() => {
+                                        const ot   = selectedDay.otRecord;
+                                        const h    = parseFloat(ot.hours_approved);
+                                        const hLabel = Number.isInteger(h) ? `${h}h` : `${h}h`;
+                                        const segs = ot.segments || [];
+                                        return (
+                                            <>
+                                                <DR label="OT Hours">
+                                                    <span style={{ color:'#7c3aed', fontWeight:700, fontSize:13 }}>{hLabel}</span>
+                                                </DR>
+                                                {segs.length > 0 && (
+                                                    <div style={{ paddingTop:8, marginTop:2 }}>
+                                                        <div style={{ fontSize:10, color:'#9ca3af', fontWeight:600, marginBottom:8, letterSpacing:'0.04em' }}>OVERTIME DETAIL</div>
+                                                        <div style={{ borderTop:'1px solid #f3f4f6', paddingTop:6, display:'flex', flexDirection:'column', gap:8 }}>
+                                                            {segs.map((seg, i) => {
+                                                                const sh = parseFloat(seg.hours);
+                                                                const shLabel = Number.isInteger(sh) ? `${sh}h` : `${sh}h`;
+                                                                return (
+                                                                    <div key={i}>
+                                                                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                                                                            <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>{seg.title}</span>
+                                                                            <span style={{ fontSize:12, fontWeight:700, color:'#7c3aed' }}>{shLabel}</span>
+                                                                        </div>
+                                                                        <div style={{ fontSize:11, fontWeight:700, color:'#7c3aed', marginTop:2 }}>
+                                                                            {to12h(seg.start_time)} — {to12h(seg.end_time)}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+
                                     {parseFloat(selectedDay.record.work_hours_actual) > stdHours && !selectedDay.otRecord && (
                                         <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:8, padding:'8px 10px', fontSize:11, color:'#92400e', marginTop:6 }}>
                                             ⚠️ Exceeds {stdHours}h standard. Consider OT request.
@@ -465,29 +490,86 @@ export default function AttendanceIndex({
                                             </div>
                                         </div>
                                     )}
+                                    {/* ── Edit + Delete buttons 50/50 ── */}
                                     {canManage && (
-                                        <button style={{ ...s.btnPrimary, marginTop:10, justifyContent:'center', width:'100%' }}
-                                            onClick={() => { setSelected(selectedDay); setShowModal(true); }}>
-                                            ✏️ Edit
-                                        </button>
+                                        <div style={{ display:'flex', gap:8, marginTop:10 }}>
+                                            <button
+                                                style={{ flex:1, background:'#7c3aed', color:'#fff', border:'none', borderRadius:9, padding:'9px 0', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}
+                                                onClick={() => { setSelected(selectedDay); setShowModal(true); }}>
+                                                ✏️ Edit
+                                            </button>
+                                            <button
+                                                style={{ flex:1, background:'#fff', color:'#dc2626', border:'1.5px solid #fca5a5', borderRadius:9, padding:'9px 0', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}
+                                                onClick={() => setShowDeleteConfirm(true)}>
+                                                🗑️ Delete
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             ) : (
-                                <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, padding:'16px 0', color:'#9ca3af', fontSize:12 }}>
-                                    <div style={{ fontSize:24, color:'#d1d5db' }}>—</div>
-                                    {selectedDay.isWeekend || selectedDay.isHoliday
-                                        ? 'No attendance required'
-                                        : selectedDay.isFuture
-                                            ? 'Future date'
-                                            : 'Absent — No record'}
-                                    {canManage && !selectedDay.isWeekend && !selectedDay.isHoliday && !selectedDay.isFuture && (
-                                        <button style={{ ...s.btnPrimary, marginTop:6 }}
-                                            onClick={() => { setSelected(selectedDay); setShowModal(true); }}>
-                                            + Add Record
-                                        </button>
-                                    )}
-                                </div>
+                                !selectedDay.otRecord && !selectedDay.leaveInfo && (
+                                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, padding:'16px 0', color:'#9ca3af', fontSize:12 }}>
+                                        <div style={{ fontSize:24, color:'#d1d5db' }}>—</div>
+                                        {selectedDay.isWeekend || selectedDay.isHoliday
+                                            ? 'No attendance required'
+                                            : selectedDay.isFuture
+                                                ? 'Future date'
+                                                : 'Absent — No record'}
+                                        {canManage && !selectedDay.isWeekend && !selectedDay.isHoliday && !selectedDay.isFuture && (
+                                            <button style={{ ...s.btnPrimary, marginTop:6 }}
+                                                onClick={() => { setSelected(selectedDay); setShowModal(true); }}>
+                                                + Add Record
+                                            </button>
+                                        )}
+                                    </div>
+                                )
                             )}
+
+                            {/* OT — record မရှိရင်လည်း ပြ */}
+                            {!selectedDay.record && selectedDay.otRecord && (() => {
+                                const ot   = selectedDay.otRecord;
+                                const h    = parseFloat(ot.hours_approved);
+                                const hLabel = Number.isInteger(h) ? `${h}h` : `${h}h`;
+                                const segs = ot.segments || [];
+                                return (
+                                    <div>
+                                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid #f9fafb' }}>
+                                            <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>Employee</span>
+                                            <span style={{ fontSize:12, color:'#374151', fontWeight:600 }}>{selectedEmp?.name || '—'}</span>
+                                        </div>
+                                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid #f9fafb' }}>
+                                            <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>Status</span>
+                                            <span style={{ fontSize:11, fontWeight:700, background:'#fdf4ff', color:'#7c3aed', borderRadius:99, padding:'2px 10px' }}>OT Only</span>
+                                        </div>
+                                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid #f9fafb' }}>
+                                            <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>OT Hours</span>
+                                            <span style={{ color:'#7c3aed', fontWeight:700, fontSize:13 }}>{hLabel}</span>
+                                        </div>
+                                        {segs.length > 0 && (
+                                            <div style={{ paddingTop:8, marginTop:2 }}>
+                                                <div style={{ fontSize:10, color:'#9ca3af', fontWeight:600, marginBottom:8, letterSpacing:'0.04em' }}>OVERTIME DETAIL</div>
+                                                <div style={{ borderTop:'1px solid #f3f4f6', paddingTop:6, display:'flex', flexDirection:'column', gap:8 }}>
+                                                    {segs.map((seg, i) => {
+                                                        const sh = parseFloat(seg.hours);
+                                                        const shLabel = Number.isInteger(sh) ? `${sh}h` : `${sh}h`;
+                                                        return (
+                                                            <div key={i}>
+                                                                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                                                                    <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>{seg.title}</span>
+                                                                    <span style={{ fontSize:12, color:'#7c3aed', fontWeight:700 }}>{shLabel}</span>
+                                                                </div>
+                                                                <div style={{ fontSize:11, fontWeight:700, color:'#7c3aed', marginTop:2 }}>
+                                                                    {to12h(seg.start_time)} — {to12h(seg.end_time)}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
                         </div>
                     ) : (
                         <div style={{ ...s.detailPanel, alignItems:'center', justifyContent:'center', color:'#9ca3af', fontSize:12, minHeight:200 }}>
@@ -497,7 +579,7 @@ export default function AttendanceIndex({
                     )}
                 </div>
 
-                {/* ── Monthly Summary ── */}
+                {/* Monthly Summary */}
                 <div style={s.summaryCard}>
                     <div style={s.summaryTitle}>📊 {MONTHS[month-1]} {year} — Monthly Summary</div>
                     <div style={s.summaryGrid}>
@@ -521,12 +603,35 @@ export default function AttendanceIndex({
                 </div>
             </div>
 
+            {/* Delete Confirm Modal */}
+            {showDeleteConfirm && selectedDay?.record && (
+                <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }}>
+                    <div style={{ background:'#fff', borderRadius:16, width:360, padding:'28px 28px 24px', boxShadow:'0 20px 60px rgba(0,0,0,0.2)', textAlign:'center' }}>
+                        <div style={{ width:52, height:52, borderRadius:'50%', background:'#fee2e2', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, margin:'0 auto 14px' }}>🗑️</div>
+                        <div style={{ fontSize:15, fontWeight:800, color:'#111827', marginBottom:6 }}>Delete Attendance?</div>
+                        <div style={{ fontSize:12, color:'#6b7280', marginBottom:20, lineHeight:1.6 }}>
+                            {new Date(selectedDay.dateStr+'T00:00:00').toLocaleDateString('en-US',{ weekday:'long', month:'long', day:'numeric' })}
+                            <br/>{selectedDay.record.user?.name}
+                        </div>
+                        <div style={{ display:'flex', gap:10 }}>
+                            <button style={{ flex:1, background:'#f3f4f6', border:'none', borderRadius:9, padding:'10px', fontSize:13, fontWeight:600, cursor:'pointer', color:'#6b7280' }}
+                                onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>Cancel</button>
+                            <button style={{ flex:1, background:'#dc2626', border:'none', borderRadius:9, padding:'10px', fontSize:13, fontWeight:700, cursor:deleting?'not-allowed':'pointer', color:'#fff', opacity:deleting?0.6:1 }}
+                                onClick={handleDelete} disabled={deleting}>
+                                {deleting ? 'Deleting...' : 'Yes, Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showModal && (
                 <AttendanceModal
                     data={selected}
                     employees={employees}
                     saving={saving}
                     countryConfig={countryConfig}
+                    leaveInfo={selected?.leaveInfo || null}
                     onClose={() => setShowModal(false)}
                     onSave={handleSave}
                 />
@@ -559,9 +664,13 @@ function StatusPill({ status }) {
     );
 }
 
-function AttendanceModal({ data, employees, onClose, onSave, saving, countryConfig }) {
-    const LUNCH_BREAK_HOURS = (countryConfig?.lunch_break_minutes || 60) / 60;
-    const WORK_START        = countryConfig?.standard_start_time || '09:00';
+function AttendanceModal({ data, employees, onClose, onSave, saving, countryConfig, leaveInfo }) {
+    const WORK_START  = countryConfig?.standard_start_time || '09:00';
+    const LUNCH_START = countryConfig?.lunch_start || '12:00';
+    const LUNCH_END   = countryConfig?.lunch_end   || '13:00';
+    const isAmHalf    = leaveInfo?.day_type === 'half_day_am';
+    const isPmHalf    = leaveInfo?.day_type === 'half_day_pm';
+    const isEdit      = !!data?.record;
 
     const [form, setForm] = useState({
         user_id:           data?.record?.user_id           || '',
@@ -575,18 +684,40 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
 
     const [errors, setErrors] = useState({});
 
+    const normalizeTime = (t) => {
+        if (!t) return '';
+        // "08" → "08:00", "08:3" → "08:03", "08:30" → "08:30"
+        if (!t.includes(':')) return t.length >= 2 ? `${t.padStart(2,'0')}:00` : '';
+        const [h, min] = t.split(':');
+        if (!h) return '';
+        return `${h.padStart(2,'0')}:${(min || '00').padEnd(2,'0').substring(0,2)}`;
+    };
+
     const set = (k, v) => {
         setForm(f => {
             const u = { ...f, [k]: v };
             if (k === 'check_in_time' || k === 'check_out_time') {
-                const inT  = k === 'check_in_time'  ? v : f.check_in_time;
-                const outT = k === 'check_out_time' ? v : f.check_out_time;
-                u.work_hours_actual = calcWorkHours(inT, outT, LUNCH_BREAK_HOURS);
-                if (k === 'check_in_time') u.late_minutes = calcLateMinutes(v, WORK_START);
+                const rawIn  = k === 'check_in_time'  ? v : f.check_in_time;
+                const rawOut = k === 'check_out_time' ? v : f.check_out_time;
+                const inT    = normalizeTime(rawIn);
+                const outT   = normalizeTime(rawOut);
+                if (inT && outT) {
+                    const wh = calcWorkHours(inT, outT, LUNCH_START, LUNCH_END);
+                    u.work_hours_actual = wh !== '' ? parseFloat(wh) : '';
+                }
+                if (k === 'check_in_time' && inT) {
+                    u.late_minutes = calcLateMinutes(inT, WORK_START, LUNCH_END);
+                }
             }
             return u;
         });
         if (errors[k]) setErrors(e => ({ ...e, [k]: null }));
+    };
+
+    const fmt12 = (t) => {
+        if (!t) return t;
+        const [h, m] = t.split(':').map(Number);
+        return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
     };
 
     function validate() {
@@ -594,7 +725,13 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
         if (!form.user_id)        e.user_id        = 'Employee is required';
         if (!form.date)           e.date           = 'Date is required';
         if (!form.check_in_time)  e.check_in_time  = 'Check In is required';
+        if (isAmHalf && form.check_in_time && form.check_in_time < LUNCH_END)
+            e.check_in_time = `AM Half Leave — check-in must be ${fmt12(LUNCH_END)} or later`;
+        if (isPmHalf && form.check_in_time && form.check_in_time >= LUNCH_START)
+            e.check_in_time = `PM Half Leave — check-in must be before ${fmt12(LUNCH_START)}`;
         if (!form.check_out_time) e.check_out_time = 'Check Out is required';
+        if (isPmHalf && form.check_out_time && form.check_out_time > LUNCH_START)
+            e.check_out_time = `PM Half Leave — check-out must be ${fmt12(LUNCH_START)} or earlier`;
         if (form.work_hours_actual === '' || form.work_hours_actual === null)
                                   e.work_hours_actual = 'Work Hours is required';
         if (form.late_minutes === '' || form.late_minutes === null)
@@ -608,7 +745,7 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
         <div style={m.overlay}>
             <div style={m.modal}>
                 <div style={m.header}>
-                    <div style={m.title}>{data?.record ? 'Edit Attendance' : 'Add Attendance'}</div>
+                    <div style={m.title}>{isEdit ? 'Edit Attendance' : 'Add Attendance'}</div>
                     <button style={m.closeBtn} onClick={onClose}>✕</button>
                 </div>
                 <div style={m.body}>
@@ -624,8 +761,13 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
 
                     <div style={m.field}>
                         <label style={m.label}>Date <span style={m.req}>*</span></label>
-                        <input style={{ ...m.input, border: errors.date ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
-                            type="date" value={form.date} onChange={e => set('date', e.target.value)} />
+                        <input
+                            style={{ ...m.input, border: errors.date ? '1.5px solid #dc2626' : '1px solid #e5e7eb',
+                                background: isEdit ? '#f3f4f6' : '#f9fafb',
+                                cursor: isEdit ? 'not-allowed' : 'default' }}
+                            type="date" value={form.date}
+                            onChange={e => !isEdit && set('date', e.target.value)}
+                            readOnly={isEdit}/>
                         {errors.date && <span style={m.errMsg}>{errors.date}</span>}
                     </div>
 
@@ -633,14 +775,22 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                         <div style={m.field}>
                             <label style={m.label}>Check In <span style={m.req}>*</span></label>
                             <input style={{ ...m.input, border: errors.check_in_time ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
-                                type="time" value={form.check_in_time} onChange={e => set('check_in_time', e.target.value)} />
+                                type="time"
+                                min={isAmHalf ? LUNCH_END : undefined}
+                                value={form.check_in_time}
+                                onChange={e => set('check_in_time', e.target.value)} />
                             {errors.check_in_time && <span style={m.errMsg}>{errors.check_in_time}</span>}
+                            {isAmHalf && !errors.check_in_time && <span style={{ fontSize:10, color:'#d97706' }}>⚠️ Must be {fmt12(LUNCH_END)} or later</span>}
                         </div>
                         <div style={m.field}>
                             <label style={m.label}>Check Out <span style={m.req}>*</span></label>
                             <input style={{ ...m.input, border: errors.check_out_time ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
-                                type="time" value={form.check_out_time} onChange={e => set('check_out_time', e.target.value)} />
+                                type="time"
+                                max={isPmHalf ? LUNCH_START : undefined}
+                                value={form.check_out_time}
+                                onChange={e => set('check_out_time', e.target.value)} />
                             {errors.check_out_time && <span style={m.errMsg}>{errors.check_out_time}</span>}
+                            {isPmHalf && !errors.check_out_time && <span style={{ fontSize:10, color:'#d97706' }}>⚠️ Must be {fmt12(LUNCH_START)} or earlier</span>}
                         </div>
                     </div>
 
@@ -651,7 +801,7 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                                 type="number" step="0.5" value={form.work_hours_actual}
                                 onChange={e => set('work_hours_actual', e.target.value)} placeholder="Auto" />
                             {errors.work_hours_actual && <span style={m.errMsg}>{errors.work_hours_actual}</span>}
-                            <span style={m.hint}>Minus {countryConfig?.lunch_break_minutes||60}min lunch</span>
+                            <span style={m.hint}>Lunch: {LUNCH_START} — {LUNCH_END}</span>
                         </div>
                         <div style={m.field}>
                             <label style={m.label}>Late (min) <span style={m.req}>*</span> <span style={m.autoTag}>auto</span></label>
@@ -687,13 +837,8 @@ const s = {
     filterRow:     { display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' },
     select:        { background:'#fff', border:'1px solid #e5e7eb', borderRadius:8, padding:'7px 11px', fontSize:13, color:'#374151', cursor:'pointer' },
     btnPrimary:    { background:'#7c3aed', color:'#fff', border:'none', borderRadius:9, padding:'8px 16px', fontSize:13, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 },
-    btnFilter:     { background:'#f3f4f6', border:'1px solid #e5e7eb', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:600, cursor:'pointer', color:'#374151' },
     empCard:       { background:'#fff', borderRadius:12, padding:'14px 18px', boxShadow:'0 1px 3px rgba(0,0,0,0.06)', display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' },
     empAvatar:     { width:46, height:46, borderRadius:12, background:'linear-gradient(135deg,#7c3aed,#a78bfa)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:800, flexShrink:0 },
-    empStats:      { display:'flex', alignItems:'center', background:'#f9fafb', borderRadius:10, padding:'8px 14px' },
-    empStat:       { display:'flex', flexDirection:'column', alignItems:'center', padding:'0 12px' },
-    empStatLbl:    { fontSize:9, color:'#9ca3af', fontWeight:600, marginTop:2 },
-    empStatDivider:{ width:1, height:28, background:'#e5e7eb' },
     calWrapper:    { display:'grid', gridTemplateColumns:'1fr 260px', gap:14 },
     calCard:       { background:'#fff', borderRadius:14, padding:16, boxShadow:'0 1px 3px rgba(0,0,0,0.06)' },
     calHeader:     { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 },
@@ -701,12 +846,7 @@ const s = {
     navBtn:        { background:'#f3f4f6', border:'none', borderRadius:7, width:27, height:27, fontSize:15, cursor:'pointer', color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' },
     calGrid:       { display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:3 },
     dayHeader:     { textAlign:'center', fontSize:10, fontWeight:700, padding:'3px 0', letterSpacing:'0.3px' },
-    dayCell:       { borderRadius:7, padding:'5px 4px', minHeight:66, display:'flex', flexDirection:'column', gap:2, cursor:'pointer', boxSizing:'border-box' },
-    holidayName:   { fontSize:8, fontWeight:800, color:'#dc2626', textAlign:'center', lineHeight:1.3, wordBreak:'break-word', width:'100%', marginTop:2 },
-    legend:        { display:'flex', gap:10, flexWrap:'wrap', marginTop:10, paddingTop:10, borderTop:'1px solid #f3f4f6' },
-    legendItem:    { display:'flex', alignItems:'center', gap:4 },
-    legendDot:     { width:6, height:6, borderRadius:'50%' },
-    legendLbl:     { fontSize:10, color:'#6b7280', fontWeight:600 },
+    dayCell:       { borderRadius:8, padding:'6px 6px 5px', minHeight:92, display:'flex', flexDirection:'column', gap:1, cursor:'pointer', boxSizing:'border-box', transition:'box-shadow 0.1s' },
     detailPanel:   { background:'#fff', borderRadius:14, padding:16, boxShadow:'0 1px 3px rgba(0,0,0,0.06)', display:'flex', flexDirection:'column', gap:10 },
     detailHeader:  { display:'flex', justifyContent:'space-between', alignItems:'flex-start' },
     detailDate:    { fontSize:11, fontWeight:700, color:'#374151', lineHeight:1.5 },

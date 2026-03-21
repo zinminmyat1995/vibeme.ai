@@ -42,6 +42,8 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             // ── Shift times ──
             day_shift_start:         salaryRule.day_shift_start?.substring(0, 5) ?? '08:00',
             day_shift_end:           salaryRule.day_shift_end?.substring(0, 5)   ?? '18:00',
+            lunch_start: salaryRule?.lunch_start?.substring(0, 5) ?? '12:00',
+            lunch_end:   salaryRule?.lunch_end?.substring(0, 5)   ?? '13:00',
             overtime_base:           salaryRule.overtime_base          ?? 'hourly_rate',
             late_deduction_unit:     salaryRule.late_deduction_unit    ?? 'per_minute',
             late_deduction_rate:     salaryRule.late_deduction_rate    ?? 0,
@@ -56,6 +58,8 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             // ── Shift times ──
             day_shift_start:        '08:00',
             day_shift_end:          '18:00',
+            lunch_start:            '12:00',
+            lunch_end:              '13:00', 
             overtime_base:          'hourly_rate',
             late_deduction_unit:    'per_minute',
             late_deduction_rate:    0,
@@ -194,6 +198,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             {/* ── Shift time rows ── */}
                             <ConfirmRow icon="🌤️" label="Day Shift"   value={`${to12h(data.day_shift_start)} – ${to12h(data.day_shift_end)}`}/>
                             <ConfirmRow icon="🌙" label="Night Shift"  value={`${to12h(data.day_shift_end)} – ${to12h(data.day_shift_start)} (auto)`}/>
+                            <ConfirmRow icon="🍽️" label="Lunch Break" value={`${data.lunch_start ?? '12:00'} — ${data.lunch_end ?? '13:00'}`}/>
                             <ConfirmRow icon="⚡" label="OT Base"      value={data.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'}/>
                             <ConfirmRow icon="⚠️" label="Late Deduct"  value={`${data.late_deduction_rate || 0} / ${data.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
                             <ConfirmRow icon="🎁" label="Bonus in Probation" value={data.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'}/>
@@ -417,7 +422,41 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         </p>
                     </div>
                 </div>
-
+                {/* Lunch break */}
+                <div className="rounded-xl border border-gray-200 bg-amber-50/50 p-4 space-y-3 mt-3">
+                    <p className="text-xs font-bold uppercase tracking-wide text-gray-500 flex items-center gap-2">
+                        🍽 Lunch Break
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="label flex items-center gap-1.5">
+                                <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-400"/>
+                                Lunch starts
+                            </label>
+                            <input
+                                type="time"
+                                value={data.lunch_start ?? '12:00'}
+                                onChange={e => setData('lunch_start', e.target.value)}
+                                className="input mt-1"
+                            />
+                        </div>
+                        <div>
+                            <label className="label flex items-center gap-1.5">
+                                <span className="inline-block h-2.5 w-2.5 rounded-full bg-orange-400"/>
+                                Lunch ends
+                            </label>
+                            <input
+                                type="time"
+                                value={data.lunch_end ?? '13:00'}
+                                onChange={e => setData('lunch_end', e.target.value)}
+                                className="input mt-1"
+                            />
+                        </div>
+                    </div>
+                    <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 border border-amber-100">
+                        Work hours will auto-deduct lunch if check-in/out overlaps this period.
+                    </p>
+                </div>
                 {/* Late Deduction */}
                 <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 space-y-3">
                     <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Late Deduction Rule</p>
@@ -627,6 +666,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             {/* ── Shift time saved cards ── */}
                             <SavedCard label="Day Shift"   value={salaryRule.day_shift_start && salaryRule.day_shift_end ? `${to12h(salaryRule.day_shift_start)} – ${to12h(salaryRule.day_shift_end)}` : '—'} sub="Day shift hours"/>
                             <SavedCard label="Night Shift" value={salaryRule.day_shift_end && salaryRule.day_shift_start ? `${to12h(salaryRule.day_shift_end)} – ${to12h(salaryRule.day_shift_start)}` : '—'} sub="Auto-derived"/>
+                            <SavedCard label="Lunch Break" value={salaryRule.lunch_start && salaryRule.lunch_end ? `${salaryRule.lunch_start?.substring(0,5)} — ${salaryRule.lunch_end?.substring(0,5)}` : '12:00 — 13:00'} sub="Auto-deducted from work hours"/>
                             <SavedCard label="OT Base"       value={salaryRule.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'} sub={salaryRule.overtime_base === 'hourly_rate' ? 'Daily ÷ working hrs' : 'Monthly ÷ working days'}/>
                             <SavedCard label="Late Deduct"   value={`${salaryRule.late_deduction_rate ?? 0} / ${salaryRule.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
                             <SavedCard label="Bonus in Probation" value={salaryRule.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'} sub={salaryRule.bonus_during_probation ? 'Probation employees receive bonuses' : 'Bonuses skipped during probation'}/>
