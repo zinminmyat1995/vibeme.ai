@@ -221,6 +221,13 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/bank/{bank}', [HRPolicySetupController::class, 'destroyBank'])
             ->name('bank.destroy');
 
+        // Public Holidays
+        Route::post('/public-holiday', [HRPolicySetupController::class, 'storePublicHoliday'])
+            ->name('public-holiday.store');
+        Route::put('/public-holiday/{publicHoliday}', [HRPolicySetupController::class, 'updatePublicHoliday'])
+            ->name('public-holiday.update');
+        Route::delete('/public-holiday/{publicHoliday}', [HRPolicySetupController::class, 'destroyPublicHoliday'])
+            ->name('public-holiday.destroy');
         
         // Bonus Types
         Route::post('/bonus-type', [HRPolicySetupController::class, 'storeBonusType'])

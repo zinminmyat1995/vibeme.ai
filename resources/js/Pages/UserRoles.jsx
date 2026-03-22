@@ -75,38 +75,6 @@ function CountryFlag({ code, size = 20 }) {
 }
 
 // ─────────────────────────────────────────────────────
-// Toast
-// ─────────────────────────────────────────────────────
-function Toast({ message, type, onClose }) {
-    useEffect(() => {
-        if (!message) return;
-        const t = setTimeout(onClose, 4000);
-        return () => clearTimeout(t);
-    }, [message]);
-
-    if (!message) return null;
-
-    const c = type === 'error'
-        ? { bg: '#fef2f2', border: '#fca5a5', color: '#991b1b', icon: '❌' }
-        : { bg: '#f0fdf4', border: '#86efac', color: '#166534', icon: '✅' };
-
-    return (
-        <div style={{
-            position: 'fixed', top: 24, right: 24, zIndex: 9999,
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '12px 18px', background: c.bg,
-            border: `1px solid ${c.border}`, borderRadius: 12,
-            boxShadow: '0 4px 24px rgba(0,0,0,0.12)', minWidth: 300,
-            animation: 'slideIn 0.2s ease',
-        }}>
-            <span style={{ fontSize: 18 }}>{c.icon}</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: c.color, flex: 1 }}>{message}</span>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.color, fontSize: 18, lineHeight: 1 }}>×</button>
-        </div>
-    );
-}
-
-// ─────────────────────────────────────────────────────
 // Avatar
 // ─────────────────────────────────────────────────────
 function Avatar({ user, size = 36 }) {
@@ -186,7 +154,10 @@ function UserForm({ roles, editUser, onClose, onSuccess }) {
         avatar:        null,
         remove_avatar: false,
         _method:       isEdit ? 'PUT' : 'POST',
-        country:       editUser?.country    || '',
+        country:         editUser?.country         || '',
+        joined_date:     editUser?.joined_date     || new Date().toISOString().split('T')[0],
+        employment_type:    editUser?.employment_type    || 'probation',
+        contract_end_date:  editUser?.contract_end_date  || '',
     });
 
     const [countryOpen, setCountryOpen] = useState(false);
@@ -222,8 +193,21 @@ function UserForm({ roles, editUser, onClose, onSuccess }) {
         form.post(url, {
             forceFormData: true,
             onSuccess: () => {
-                onSuccess(isEdit ? 'User updated successfully!' : 'User created successfully!');
                 onClose();
+                window.dispatchEvent(new CustomEvent('global-toast', {
+                    detail: {
+                        message: isEdit ? 'User updated successfully!' : 'User created successfully!',
+                        type: 'success'
+                    }
+                }));
+            },
+            onError: (errors) => {
+                const firstErr = Object.values(errors)[0];
+                if (firstErr) {
+                    window.dispatchEvent(new CustomEvent('global-toast', {
+                        detail: { message: firstErr, type: 'error' }
+                    }));
+                }
             },
         });
     };
@@ -352,7 +336,48 @@ function UserForm({ roles, editUser, onClose, onSuccess }) {
                     <input value={form.data.phone} onChange={e => form.setData('phone', e.target.value)} placeholder="+855 12 345 678" style={inp('phone')} />
                     <FieldError msg={form.errors.phone} />
                 </div>
+                {/* Joined Date */}
+                <div>
+                    <label style={lbl}>Joined Date</label>
+                    <input type="date"
+                        value={form.data.joined_date || ''}
+                        onChange={e => form.setData('joined_date', e.target.value)}
+                        style={inp('joined_date')}
+                    />
+                    <FieldError msg={form.errors.joined_date} />
+                </div>
 
+                {/* Employment Type */}
+                <div>
+                    <label style={lbl}>Employment Type</label>
+                    <select
+                        value={form.data.employment_type || 'probation'}
+                        onChange={e => form.setData('employment_type', e.target.value)}
+                        style={{ ...inp('employment_type'), cursor:'pointer' }}>
+                        <option value="probation">Probation</option>
+                        <option value="permanent">Permanent</option>
+                        <option value="contract">Contract</option>
+                    </select>
+                    <FieldError msg={form.errors.employment_type} />
+                </div>
+                {/* Contract End Date — contract ရွေးမှ ပေါ်မယ် */}
+                {form.data.employment_type === 'contract' && (
+                    <div style={{ gridColumn: '1/-1' }}>
+                        <label style={lbl}>
+                            Contract End Date <span style={{ color: '#ef4444' }}>*</span>
+                        </label>
+                        <input type="date"
+                            value={form.data.contract_end_date || ''}
+                            onChange={e => form.setData('contract_end_date', e.target.value)}
+                            style={{
+                                ...inp('contract_end_date'),
+                                borderColor: form.errors.contract_end_date ? '#fca5a5' : '#e5e7eb',
+                            }}
+                            min={new Date().toISOString().split('T')[0]}
+                        />
+                        <FieldError msg={form.errors.contract_end_date} />
+                    </div>
+                )}
                 {/* Avatar */}
                 <div style={{ gridColumn: '1/-1' }}>
                     <label style={lbl}>Profile Photo</label>
@@ -453,8 +478,7 @@ function DeleteConfirm({ user, onClose, onConfirm, loading }) {
 // ─────────────────────────────────────────────────────
 export default function UserRoles({ users = [], roles = [] }) {
     const { flash } = usePage().props;
-
-    const [toast, setToast]           = useState(flash?.success ? { msg: flash.success, type: 'success' } : null);
+   
     const [search, setSearch]         = useState('');
     const [filterRole, setFilterRole] = useState('');
     const [showCreate, setShowCreate] = useState(false);
@@ -462,20 +486,17 @@ export default function UserRoles({ users = [], roles = [] }) {
     const [deleteUser, setDeleteUser] = useState(null);
     const [deleting, setDeleting]     = useState(false);
 
-    const showToast = (msg, type = 'success') => setToast({ msg, type });
-    const hideToast = () => setToast(null);
-
     const handleDelete = () => {
         setDeleting(true);
         router.delete(`/users/${deleteUser.id}`, {
-            onSuccess: () => { showToast('User deleted successfully!'); setDeleteUser(null); setDeleting(false); },
-            onError:   () => { showToast('Failed to delete user.', 'error'); setDeleting(false); },
+            onSuccess: () => { window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'User deleted successfully!', type: 'success' }})); setDeleteUser(null); setDeleting(false); },
+            onError:   () => { window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'Failed to delete user.', type: 'error' }})); setDeleting(false); },
         });
     };
 
     const handleToggle = (user) => {
         router.patch(`/users/${user.id}/toggle`, {}, {
-            onSuccess: () => showToast(`${user.name} marked as ${user.is_active ? 'inactive' : 'active'}!`),
+            onSuccess: () => window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: `${user.name} marked as ${user.is_active ? 'inactive' : 'active'}!`, type: 'success' }})),
             onError:   () => showToast('Failed to update status.', 'error'),
         });
     };
@@ -500,8 +521,6 @@ export default function UserRoles({ users = [], roles = [] }) {
                 @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes spin    { to { transform: rotate(360deg); } }
             `}</style>
-
-            <Toast message={toast?.msg} type={toast?.type} onClose={hideToast} />
 
             {/* Role Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
@@ -586,7 +605,7 @@ export default function UserRoles({ users = [], roles = [] }) {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                            {['User', 'Country', 'Role', 'Department', 'Position', 'Phone', 'Status', 'Actions'].map(h => (
+                            {['User', 'Country', 'Role', 'Department', 'Position', 'Phone', 'Employment', 'Joined', 'Status', 'Actions'].map(h => (
                                 <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 800, color: '#6b7280', letterSpacing: '0.5px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
                         </tr>
@@ -635,9 +654,38 @@ export default function UserRoles({ users = [], roles = [] }) {
                                 <td style={{ padding: '12px 16px', fontSize: 12, color: '#6b7280' }}>{user.department || '—'}</td>
                                 <td style={{ padding: '12px 16px', fontSize: 12, color: '#6b7280' }}>{user.position || '—'}</td>
                                 <td style={{ padding: '12px 16px', fontSize: 12, color: '#6b7280' }}>{user.phone || '—'}</td>
+
+                                {/* Employment Type */}
                                 <td style={{ padding: '12px 16px' }}>
-                                    <button
-                                        onClick={() => handleToggle(user)}
+                                    {(() => {
+                                        const cfg = {
+                                            probation: { bg:'#fef3c7', color:'#d97706', label:'Probation' },
+                                            permanent: { bg:'#d1fae5', color:'#059669', label:'Permanent' },
+                                            contract:  { bg:'#dbeafe', color:'#2563eb', label:'Contract' },
+                                        };
+                                        const c = cfg[user.employment_type] || cfg.probation;
+                                        return (
+                                            <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:99, background:c.bg, color:c.color }}>
+                                              {c.label}
+                                            </span>
+                                        );
+                                    })()}
+                                </td>
+
+                                {/* Joined Date */}
+                                <td style={{ padding: '12px 16px', fontSize: 12, color: '#6b7280', whiteSpace:'nowrap' }}>
+                                    {user.joined_date
+                                        ? new Date(user.joined_date + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+                                        : '—'}
+                                    {user.employment_type === 'contract' && user.contract_end_date && (
+                                        <div style={{ fontSize:10, color:'#2563eb', fontWeight:600, marginTop:2 }}>
+                                            ends {new Date(user.contract_end_date + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })}
+                                        </div>
+                                    )}
+                                </td>
+
+                                <td style={{ padding: '12px 16px' }}>
+                                    <button onClick={() => handleToggle(user)}
                                         style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 99, border: 'none', cursor: 'pointer', background: user.is_active ? '#d1fae5' : '#fee2e2', color: user.is_active ? '#065f46' : '#991b1b' }}
                                     >
                                         <span style={{ width: 6, height: 6, borderRadius: '50%', background: user.is_active ? '#059669' : '#ef4444', display: 'inline-block' }} />
@@ -662,7 +710,7 @@ export default function UserRoles({ users = [], roles = [] }) {
 
             {/* Create Modal */}
             <Modal open={showCreate} onClose={() => setShowCreate(false)} title="➕ Add New User">
-                <UserForm roles={roles} onClose={() => setShowCreate(false)} onSuccess={(msg) => { showToast(msg); setShowCreate(false); }} />
+                <UserForm roles={roles} onClose={() => setShowCreate(false)} onSuccess={(msg) => { window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'success' }})); setShowCreate(false); }} />
             </Modal>
 
             {/* Edit Modal */}

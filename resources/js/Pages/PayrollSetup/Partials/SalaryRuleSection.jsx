@@ -35,7 +35,8 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
         salaryRule ? {
             pay_cycle:               salaryRule.pay_cycle              ?? 'monthly',
             probation_days:          salaryRule.probation_days         ?? '',
-            bonus_during_probation:  salaryRule.bonus_during_probation ?? false,
+            bonus_during_probation: salaryRule.bonus_during_probation ?? false,
+            bonus_for_contract:     salaryRule.bonus_for_contract     ?? false,
             bank_id:                 salaryRule.bank_id                ?? '',
             working_hours_per_day:   salaryRule.working_hours_per_day  ?? '',
             working_days_per_week:   salaryRule.working_days_per_week  ?? '',
@@ -54,6 +55,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             pay_cycle:              'monthly',
             probation_days:         '',
             bonus_during_probation: false,
+            bonus_for_contract:     false,
             bank_id:                '',
             working_hours_per_day:  '',
             working_days_per_week:  '',
@@ -213,6 +215,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <ConfirmRow icon="⚡" label="OT Base"      value={data.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'}/>
                             <ConfirmRow icon="⚠️" label="Late Deduct"  value={`${data.late_deduction_rate || 0} / ${data.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
                             <ConfirmRow icon="🎁" label="Bonus in Probation" value={data.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'}/>
+                            <ConfirmRow icon="📋" label="Bonus for Contract" value={data.bonus_for_contract ? 'Yes — pay bonus' : 'No — skip bonus'}/>
                         </div>
                         <div className="border-t border-gray-100 px-8 py-5 flex gap-3">
                             <button onClick={() => setShowConfirm(false)} className="flex-1 rounded-xl border-2 border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
@@ -290,11 +293,16 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                 <p className="text-xs font-semibold text-gray-700">Pay bonus during probation?</p>
                                 <p className="text-xs text-gray-400">If off, bonuses are skipped for probation employees</p>
                             </div>
-                            <Toggle
-                                label=""
-                                checked={data.bonus_during_probation}
-                                onChange={v => setData('bonus_during_probation', v)}
-                            />
+                            <Toggle label="" checked={data.bonus_during_probation} onChange={v => setData('bonus_during_probation', v)} />
+                        </div>
+
+                        {/* Bonus for contract toggle */}
+                        <div className="mt-2 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5">
+                            <div>
+                                <p className="text-xs font-semibold text-gray-700">Pay bonus for contract employees?</p>
+                                <p className="text-xs text-gray-400">If off, bonuses are skipped for contract employees</p>
+                            </div>
+                            <Toggle label="" checked={data.bonus_for_contract} onChange={v => setData('bonus_for_contract', v)} />
                         </div>
                     </div>
 
@@ -707,6 +715,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <SavedCard label="OT Base"       value={salaryRule.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'} sub={salaryRule.overtime_base === 'hourly_rate' ? 'Daily ÷ working hrs' : 'Monthly ÷ working days'}/>
                             <SavedCard label="Late Deduct"   value={`${salaryRule.late_deduction_rate ?? 0} / ${salaryRule.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
                             <SavedCard label="Bonus in Probation" value={salaryRule.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'} sub={salaryRule.bonus_during_probation ? 'Probation employees receive bonuses' : 'Bonuses skipped during probation'}/>
+                            <SavedCard label="Bonus for Contract" value={salaryRule.bonus_for_contract ? 'Yes — pay bonus' : 'No — skip bonus'} sub={salaryRule.bonus_for_contract ? 'Contract employees receive bonuses' : 'Bonuses skipped for contract'}/>
                             
                             {bonusSchedules?.length > 0 && (
                                 <div className="col-span-3 overflow-hidden rounded-xl border border-gray-100">

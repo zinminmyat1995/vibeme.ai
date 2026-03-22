@@ -11,6 +11,7 @@ class SalaryRule extends Model
         'pay_cycle',
         'probation_days',
         'bonus_during_probation',
+        'bonus_for_contract',
         'bank_id',
         'working_hours_per_day',
         'working_days_per_week',

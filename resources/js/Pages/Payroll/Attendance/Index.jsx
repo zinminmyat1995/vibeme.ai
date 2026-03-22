@@ -407,11 +407,11 @@ export default function AttendanceIndex({
                                         {/* Rows: label  :  value — table for alignment */}
                                         {(() => {
                                             const rows = [];
-                                            if (record && !isHoliday && record.check_in_time)
+                                            if (record &&  record.check_in_time)
                                                 rows.push({ key:'in',    label:'In',    value: to12h(record.check_in_time),   color:'#4f46e5', tip: null });
-                                            if (record && !isHoliday && record.check_out_time)
+                                            if (record &&  record.check_out_time)
                                                 rows.push({ key:'out',   label:'Out',   value: to12h(record.check_out_time),  color:'#4f46e5', tip: null });
-                                            if (record && !isHoliday && record.work_hours_actual)
+                                            if (record &&  record.work_hours_actual)
                                                 rows.push({ key:'wh',    label:'WH',    value: hToHM(record.work_hours_actual), color:'#059669', tip: null });
                                             if (leaveInfo && !isHoliday) {
                                                 const lv = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? 'AM Half' : 'PM Half') : 'Full Day';
@@ -424,9 +424,9 @@ export default function AttendanceIndex({
                                                     : hToHM(otRecord.hours_approved);
                                                 rows.push({ key:'ot',    label:'OT',    value: ov,  color:'#7c3aed', tip: otRecord.reason || null });
                                             }
-                                            if (record && !isHoliday && record.late_minutes > 0)
+                                            if (record &&  record.late_minutes > 0)
                                                 rows.push({ key:'late',  label:'Late',  value: `${record.late_minutes}m`, color:'#d97706', tip: null });
-                                            if (record && !isHoliday && parseFloat(record.short_hours) > 0)
+                                            if (record &&  parseFloat(record.short_hours) > 0)
                                                 rows.push({ key:'short', label:'Short', value: hToHM(record.short_hours), color:'#dc2626', tip: null });
                                             if (!rows.length) return null;
                                             return (
@@ -470,7 +470,20 @@ export default function AttendanceIndex({
 
                             <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                                 {selectedDay.isHoliday && (
-                                    <span style={tagStyle('#fee2e2','#dc2626')}>{selectedDay.holidayName || 'Public Holiday'}</span>
+                                    <div style={{
+                                        display:'inline-flex', alignItems:'center', gap:7,
+                                        background:'linear-gradient(135deg,#fef2f2,#fff1f1)',
+                                        border:'1px solid #fecaca',
+                                        borderRadius:10, padding:'7px 12px',
+                                    }}>
+                                        <span style={{ fontSize:15 }}>🎌</span>
+                                        <div>
+                                            <div style={{ fontSize:11, fontWeight:800, color:'#dc2626', letterSpacing:'0.3px' }}>
+                                                {selectedDay.holidayName || 'Public Holiday'}
+                                            </div>
+                                            <div style={{ fontSize:10, color:'#f87171', marginTop:1 }}>Public Holiday</div>
+                                        </div>
+                                    </div>
                                 )}
                                 {selectedDay.isWeekend && (
                                     <span style={tagStyle('#fee2e2','#f87171')}>Weekend</span>

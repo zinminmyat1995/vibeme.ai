@@ -29,6 +29,8 @@ class User extends Authenticatable
         'phone',
         'avatar_url',
         'is_active',
+        'joined_date',
+        'employment_type',
         'country', 
     ];
 

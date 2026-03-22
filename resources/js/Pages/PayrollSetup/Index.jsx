@@ -8,6 +8,7 @@ import DeductionSection from './Partials/DeductionSection';
 import AllowanceSection from './Partials/AllowanceSection';
 import SalaryRuleSection from './Partials/SalaryRuleSection';
 import BonusSection from './Partials/BonusSection';
+import PublicHolidaySection from './Partials/PublicHolidaySection';
 
 const SECTIONS = [
     {
@@ -80,6 +81,20 @@ const SECTIONS = [
         ),
     },
     {
+        key: 'holiday',
+        label: 'Public Holidays',
+        summary: 'National · Recurring · Year filter',
+        icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+            </svg>
+        ),
+    },
+    {
         key: 'salary',
         label: 'General Payroll Settings',
         summary: 'Pay cycle · Probation · Bank export',
@@ -104,6 +119,7 @@ export default function Index({
     bonusSchedules,
     banks,
     completedSections,
+    publicHolidays
 }) {
     const [activeKey, setActiveKey] = useState(null);
 
@@ -137,6 +153,7 @@ export default function Index({
         deduction: <DeductionSection deductions={deductions} />,
         allowance: <AllowanceSection allowances={allowances} />,
         bonus:     <BonusSection bonusTypes={bonusTypes} bonusSchedules={bonusSchedules} />,
+        holiday: <PublicHolidaySection publicHolidays={publicHolidays} />,
         salary:    <SalaryRuleSection salaryRule={salaryRule} banks={banks} currencies={currencies} bonusTypes={bonusTypes} bonusSchedules={bonusSchedules}/>,
     };
 

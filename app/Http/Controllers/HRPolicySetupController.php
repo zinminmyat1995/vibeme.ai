@@ -8,6 +8,7 @@ use App\Models\PayrollCurrency;
 use App\Models\SalaryDeduction;
 use App\Models\PayrollAllowance;
 use App\Models\SalaryRule;
+use App\Models\PublicHoliday;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
@@ -62,7 +63,9 @@ class HRPolicySetupController extends Controller
                 ->orderBy('created_at')
                 ->get(),
             'country' => \App\Models\Country::find(auth()->user()->country_id),
+            'publicHolidays' => PublicHoliday::where('country_id', $countryId)->orderBy('date')->get(),
             'completedSections' => [
+                'holiday' => PublicHoliday::where('country_id', $countryId)->exists(),
                 'leave'     => LeavePolicy::where('country_id', $countryId)->exists(),
                 'overtime'  => OvertimePolicy::where('country_id', $countryId)->exists(),
                 'currency'  => PayrollCurrency::where('country_id', $countryId)->exists(),
@@ -422,6 +425,7 @@ public function destroyBank(PayrollBank $bank)
             'pay_cycle'              => 'required|in:monthly,semi_monthly,ten_day',
             'probation_days'         => 'required|integer|min:0',
             'bonus_during_probation' => 'required|boolean',
+            'bonus_for_contract'     => 'nullable|boolean',
             'bank_id'                => 'nullable|exists:payroll_banks,id',
             'working_hours_per_day'  => 'required|integer|min:1|max:24',
             'working_days_per_week'  => 'required|integer|min:1|max:7',
@@ -595,4 +599,72 @@ public function destroyBank(PayrollBank $bank)
 
         return back()->with('success', 'Bonus schedule updated successfully.');
     }
+public function storePublicHoliday(Request $request): \Illuminate\Http\RedirectResponse
+{
+    $countryId = $this->getCountryId();
+
+    $request->validate([
+        'name'         => 'required|string|max:100',
+        'date'         => 'required|date',
+        'is_recurring' => 'required|boolean',
+    ]);
+
+    // ── Duplicate check: same name + date + country ──
+    $exists = \App\Models\PublicHoliday::where('country_id', $countryId)
+        ->whereDate('date', $request->date)
+        ->where('name', $request->name)
+        ->exists();
+
+    if ($exists) {
+        return back()->withErrors([
+            'date' => "'{$request->name}' on {$request->date} already exists.",
+        ])->withInput();
+    }
+
+    // ── Same date different name → warn but allow ──
+    // (ဥပမာ Khmer New Year 3 ရက်ဆက် — same date မဟုတ်ဘူး)
+
+    \App\Models\PublicHoliday::create([
+        'country_id'   => $countryId,
+        'name'         => $request->name,
+        'date'         => $request->date,
+        'is_recurring' => $request->is_recurring,
+    ]);
+
+    return back()->with('success', 'Public holiday added successfully.');
+}
+
+public function updatePublicHoliday(Request $request, \App\Models\PublicHoliday $publicHoliday): \Illuminate\Http\RedirectResponse
+{
+    $this->authorizeCountry($publicHoliday->country_id);
+
+    $request->validate([
+        'name'         => 'required|string|max:100',
+        'date'         => 'required|date',
+        'is_recurring' => 'required|boolean',
+    ]);
+
+    // ── Duplicate check: same name + date + country (excluding self) ──
+    $exists = \App\Models\PublicHoliday::where('country_id', $publicHoliday->country_id)
+        ->whereDate('date', $request->date)
+        ->where('name', $request->name)
+        ->where('id', '!=', $publicHoliday->id)
+        ->exists();
+
+    if ($exists) {
+        return back()->withErrors([
+            'date' => "'{$request->name}' on {$request->date} already exists.",
+        ])->withInput();
+    }
+
+    $publicHoliday->update($request->only(['name', 'date', 'is_recurring']));
+    return back()->with('success', 'Public holiday updated successfully.');
+}
+
+public function destroyPublicHoliday(\App\Models\PublicHoliday $publicHoliday): \Illuminate\Http\RedirectResponse
+{
+    $this->authorizeCountry($publicHoliday->country_id);
+    $publicHoliday->delete();
+    return back()->with('success', 'Public holiday deleted.');
+}
 }
