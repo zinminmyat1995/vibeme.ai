@@ -16,6 +16,8 @@ class SalaryRule extends Model
         'working_days_per_week',
         'day_shift_start',          // ← အသစ်
         'day_shift_end',            // ← အသစ်
+        'work_start',
+        'work_end',
         'overtime_base',
         'late_deduction_unit',
         'late_deduction_rate',

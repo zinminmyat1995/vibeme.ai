@@ -14,18 +14,24 @@ function timeToMinutes(t) {
     const [h, min] = t.split(':').map(Number);
     return h * 60 + min;
 }
-function calcWorkHours(checkIn, checkOut, lunchStart, lunchEnd) {
+function calcWorkHours(checkIn, checkOut, lunchStart, lunchEnd, workStart, workEnd) {
     if (!checkIn || !checkOut) return '';
     const inM  = timeToMinutes(checkIn);
     const outM = timeToMinutes(checkOut);
     if (outM <= inM) return '';
+
+    // Clamp to work window
+    const wsM = timeToMinutes(workStart || '08:00');
+    const weM = timeToMinutes(workEnd   || '17:00');
+    const effIn  = Math.max(inM, wsM);
+    const effOut = Math.min(outM, weM);
+    if (effOut <= effIn) return 0;
+
     const ls = timeToMinutes(lunchStart || '12:00');
     const le = timeToMinutes(lunchEnd   || '13:00');
-    const overlapStart = Math.max(inM, ls);
-    const overlapEnd   = Math.min(outM, le);
-    const lunchDeduct  = Math.max(0, overlapEnd - overlapStart);
-    const workMins = outM - inM - lunchDeduct;
-    return Math.max(0, Math.round((workMins / 60) * 2) / 2);
+    const lunchDeduct = Math.max(0, Math.min(effOut, le) - Math.max(effIn, ls));
+    const workMins = effOut - effIn - lunchDeduct;
+    return Math.max(0, Math.round((workMins / 60) * 100) / 100);
 }
 function calcLateMinutes(checkIn, workStart, lunchEnd) {
     if (!checkIn || !workStart) return 0;
@@ -50,29 +56,57 @@ function to12h(t) {
     return `${h % 12 === 0 ? 12 : h % 12}:${m}${h >= 12 ? 'PM' : 'AM'}`;
 }
 
-// ── Tooltip component ──
-function Tip({ text, children }) {
+// 7.83h → "7h 50m", 8h → "8h", 0.5h → "30m"
+function hToHM(h) {
+    if (!h) return '—';
+    const total = Math.round(parseFloat(h) * 60);
+    const hrs   = Math.floor(total / 60);
+    const mins  = total % 60;
+    if (hrs === 0) return `${mins}m`;
+    if (mins === 0) return `${hrs}h`;
+    return `${hrs}h ${mins}m`;
+}
+
+function CellTooltip({ text, children }) {
     const [show, setShow] = useState(false);
-    if (!text) return children;
     return (
-        <div style={{ position:'relative', display:'inline-block' }}
-            onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+        <span style={{ position:'relative', display:'inline-block' }}
+            onMouseEnter={() => setShow(true)}
+            onMouseLeave={() => setShow(false)}>
             {children}
-            {show && (
-                <div style={{
-                    position:'absolute', bottom:'110%', left:'50%', transform:'translateX(-50%)',
-                    background:'#1f2937', color:'#fff', fontSize:11, fontWeight:500,
-                    borderRadius:7, padding:'6px 10px', whiteSpace:'pre-wrap', zIndex:999,
-                    maxWidth:200, wordBreak:'break-word', boxShadow:'0 4px 12px rgba(0,0,0,0.25)',
-                    pointerEvents:'none', lineHeight:1.5,
+            {show && text && (
+                <span style={{
+                    position:'absolute',
+                    bottom:'calc(100% + 6px)',
+                    left:'50%',
+                    transform:'translateX(-50%)',
+                    background:'#1e293b',
+                    color:'#f8fafc',
+                    fontSize:11,
+                    fontWeight:600,
+                    borderRadius:8,
+                    padding:'5px 10px',
+                    whiteSpace:'nowrap',
+                    zIndex:9999,
+                    boxShadow:'0 4px 16px rgba(0,0,0,0.22)',
+                    pointerEvents:'none',
+                    lineHeight:1.5,
+                    letterSpacing:'0.01em',
                 }}>
                     {text}
-                    <div style={{ position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)',
-                        width:0, height:0, borderLeft:'5px solid transparent',
-                        borderRight:'5px solid transparent', borderTop:'5px solid #1f2937' }}/>
-                </div>
+                    <span style={{
+                        position:'absolute',
+                        top:'100%',
+                        left:'50%',
+                        transform:'translateX(-50%)',
+                        width:0, height:0,
+                        borderLeft:'5px solid transparent',
+                        borderRight:'5px solid transparent',
+                        borderTop:'5px solid #1e293b',
+                    }}/>
+                </span>
             )}
-        </div>
+        </span>
     );
 }
 
@@ -96,10 +130,26 @@ export default function AttendanceIndex({
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [month, setMonth]                 = useState(selectedMonth || new Date().getMonth() + 1);
     const [year, setYear]                   = useState(selectedYear  || new Date().getFullYear());
-    const [empId, setEmpId]                 = useState(selectedEmployee || (employees[0]?.id || ''));
+    const [empId, setEmpId] = useState(
+        selectedEmployee
+            ? String(selectedEmployee)
+            : (canViewAll
+                ? String(user?.id || employees[0]?.id || '')
+                : String(user?.id || ''))
+    );
     const [showModal, setShowModal]         = useState(false);
     const [selected, setSelected]           = useState(null);
     const [selectedDay, setSelectedDay]     = useState(null);
+
+    // ── Auto-fetch with own ID on first load if HR/Admin ──
+    useEffect(() => {
+        if (canViewAll && !selectedEmployee) {
+            const myId = String(user?.id || '');
+            if (myId && myId !== String(employees[0]?.id || '')) {
+                fetchData(myId, month, year);
+            }
+        }
+    }, []);
 
     function fetchData(newEmpId, newMonth, newYear) {
         router.get('/payroll/attendance', {
@@ -179,7 +229,22 @@ export default function AttendanceIndex({
         setSaving(true);
         const status = autoStatus(formData.check_in_time, formData.check_out_time, workStart, lunchEnd);
         router.post('/payroll/attendance', { ...formData, status }, {
-            onSuccess: () => { setShowModal(false); setSaving(false); },
+            onSuccess: () => {
+                setShowModal(false);
+                setSaving(false);
+                // Detail panel ကို တန်းပြောင်း
+                if (selectedDay) {
+                    setSelectedDay(prev => ({
+                        ...prev,
+                        record: {
+                            ...prev?.record,
+                            ...formData,
+                            status,
+                            user: prev?.record?.user,
+                        }
+                    }));
+                }
+            },
             onError: (errs) => {
                 setSaving(false);
                 const firstErr = Object.values(errs)[0] || 'Something went wrong.';
@@ -343,29 +408,41 @@ export default function AttendanceIndex({
                                         {(() => {
                                             const rows = [];
                                             if (record && !isHoliday && record.check_in_time)
-                                                rows.push({ key:'in',    label:'In',    value: to12h(record.check_in_time),  color:'#4f46e5', tip: null });
+                                                rows.push({ key:'in',    label:'In',    value: to12h(record.check_in_time),   color:'#4f46e5', tip: null });
                                             if (record && !isHoliday && record.check_out_time)
-                                                rows.push({ key:'out',   label:'Out',   value: to12h(record.check_out_time), color:'#4f46e5', tip: null });
+                                                rows.push({ key:'out',   label:'Out',   value: to12h(record.check_out_time),  color:'#4f46e5', tip: null });
+                                            if (record && !isHoliday && record.work_hours_actual)
+                                                rows.push({ key:'wh',    label:'WH',    value: hToHM(record.work_hours_actual), color:'#059669', tip: null });
                                             if (leaveInfo && !isHoliday) {
                                                 const lv = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? 'AM Half' : 'PM Half') : 'Full Day';
                                                 const lc = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? '#d97706' : '#7c3aed') : '#dc2626';
                                                 rows.push({ key:'leave', label:'Leave', value: lv, color: lc, tip: leaveInfo.reason || (LEAVE_LABELS[leaveInfo.type] || leaveInfo.type) });
                                             }
                                             if (otRecord) {
-                                                const ov = parseFloat(otRecord.hours_approved) % 1 === 0 ? `${otRecord.hours_approved}h` : `${parseFloat(otRecord.hours_approved).toFixed(1)}h`;
+                                                const ov = parseFloat(otRecord.hours_approved) % 1 === 0
+                                                    ? `${parseInt(otRecord.hours_approved)}h`
+                                                    : hToHM(otRecord.hours_approved);
                                                 rows.push({ key:'ot',    label:'OT',    value: ov,  color:'#7c3aed', tip: otRecord.reason || null });
                                             }
                                             if (record && !isHoliday && record.late_minutes > 0)
                                                 rows.push({ key:'late',  label:'Late',  value: `${record.late_minutes}m`, color:'#d97706', tip: null });
+                                            if (record && !isHoliday && parseFloat(record.short_hours) > 0)
+                                                rows.push({ key:'short', label:'Short', value: hToHM(record.short_hours), color:'#dc2626', tip: null });
                                             if (!rows.length) return null;
                                             return (
                                                 <table style={{ borderCollapse:'collapse', marginTop:3, tableLayout:'fixed', width:'100%' }}>
                                                     <tbody>
                                                         {rows.map(row => (
-                                                            <tr key={row.key} title={row.tip || undefined} style={{ cursor: row.tip ? 'help' : 'default' }}>
+                                                            <tr key={row.key} style={{ cursor: row.tip ? 'pointer' : 'default', position:'relative' }}>
                                                                 <td style={{ fontSize:11, fontWeight:600, color:'#9ca3af', width:28, paddingBottom:1, verticalAlign:'top', lineHeight:'17px', whiteSpace:'nowrap' }}>{row.label}</td>
                                                                 <td style={{ fontSize:11, fontWeight:600, color:'#9ca3af', width:10, paddingBottom:1, verticalAlign:'top', lineHeight:'17px', textAlign:'center' }}>:</td>
-                                                                <td style={{ fontSize:11, fontWeight:700, color:row.color,  paddingBottom:1, verticalAlign:'top', lineHeight:'17px' }}>{row.value}</td>
+                                                                <td style={{ fontSize:11, fontWeight:700, color:row.color, paddingBottom:1, verticalAlign:'top', lineHeight:'17px', position:'relative' }}>
+                                                                    {row.tip ? (
+                                                                        <CellTooltip text={row.tip}>
+                                                                            <span>{row.value}</span>
+                                                                        </CellTooltip>
+                                                                    ) : row.value}
+                                                                </td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
@@ -427,13 +504,20 @@ export default function AttendanceIndex({
                                     <DR label="Status">
                                         <StatusPill status={selectedDay.record.status} />
                                     </DR>
-                                    <DR label="Check In"  val={selectedDay.record.check_in_time  || '—'} />
-                                    <DR label="Check Out" val={selectedDay.record.check_out_time || '—'} />
+                                    <DR label="Check In"  val={to12h(selectedDay.record.check_in_time)  || '—'} />
+                                    <DR label="Check Out" val={to12h(selectedDay.record.check_out_time) || '—'} />
                                     <DR label="Work Hours">
                                         <span style={{ color:'#4f46e5', fontWeight:700, fontSize:13 }}>
-                                            {selectedDay.record.work_hours_actual ? `${selectedDay.record.work_hours_actual} hrs` : '—'}
+                                            {selectedDay.record.work_hours_actual ? hToHM(selectedDay.record.work_hours_actual) : '—'}
                                         </span>
                                     </DR>
+                                    {parseFloat(selectedDay.record.short_hours) > 0 && (
+                                        <DR label="Short Hours">
+                                            <span style={{ color:'#dc2626', fontWeight:700, fontSize:13 }}>
+                                                {hToHM(selectedDay.record.short_hours)} short
+                                            </span>
+                                        </DR>
+                                    )}
                                     {selectedDay.record.late_minutes > 0 && (
                                         <DR label="Late">
                                             <span style={{ color:'#d97706', fontWeight:700, fontSize:13 }}>
@@ -665,7 +749,8 @@ function StatusPill({ status }) {
 }
 
 function AttendanceModal({ data, employees, onClose, onSave, saving, countryConfig, leaveInfo }) {
-    const WORK_START  = countryConfig?.standard_start_time || '09:00';
+    const WORK_START  = countryConfig?.work_start || countryConfig?.standard_start_time || '08:00';
+    const WORK_END    = countryConfig?.work_end   || '17:00';
     const LUNCH_START = countryConfig?.lunch_start || '12:00';
     const LUNCH_END   = countryConfig?.lunch_end   || '13:00';
     const isAmHalf    = leaveInfo?.day_type === 'half_day_am';
@@ -702,7 +787,7 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                 const inT    = normalizeTime(rawIn);
                 const outT   = normalizeTime(rawOut);
                 if (inT && outT) {
-                    const wh = calcWorkHours(inT, outT, LUNCH_START, LUNCH_END);
+                    const wh = calcWorkHours(inT, outT, LUNCH_START, LUNCH_END, WORK_START, WORK_END);
                     u.work_hours_actual = wh !== '' ? parseFloat(wh) : '';
                 }
                 if (k === 'check_in_time' && inT) {
@@ -797,9 +882,9 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                     <div style={m.row2}>
                         <div style={m.field}>
                             <label style={m.label}>Work Hours <span style={m.req}>*</span> <span style={m.autoTag}>auto</span></label>
-                            <input style={{ ...m.input, border: errors.work_hours_actual ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
-                                type="number" step="0.5" value={form.work_hours_actual}
-                                onChange={e => set('work_hours_actual', e.target.value)} placeholder="Auto" />
+                            <div style={{ ...m.input, border: errors.work_hours_actual ? '1.5px solid #dc2626' : '1px solid #e5e7eb', background:'#f3f4f6', color:'#4f46e5', fontWeight:700 }}>
+                                {form.work_hours_actual !== '' && form.work_hours_actual !== null ? hToHM(form.work_hours_actual) : '—'}
+                            </div>
                             {errors.work_hours_actual && <span style={m.errMsg}>{errors.work_hours_actual}</span>}
                             <span style={m.hint}>Lunch: {LUNCH_START} — {LUNCH_END}</span>
                         </div>

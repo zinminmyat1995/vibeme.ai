@@ -75,12 +75,7 @@ export default function OvertimeIndex({ requests, overtimePolicies, employees, f
     const [showModal, setShowModal]       = useState(false);
     const [confirmModal, setConfirmModal] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
-    const [toast, setToast]               = useState(null);
 
-    function showToast(msg, type = 'success') {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 4000);
-    }
     function handleFilter(status) {
         setStatusFilter(status);
         router.get('/payroll/overtimes', { month, year, status }, { preserveState: true });
@@ -110,8 +105,6 @@ export default function OvertimeIndex({ requests, overtimePolicies, employees, f
                 @keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
                 .ot-row { background: #fff; }
             `}</style>
-
-            {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
             <div style={s.wrap}>
 

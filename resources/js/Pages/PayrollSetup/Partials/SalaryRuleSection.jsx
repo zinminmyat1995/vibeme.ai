@@ -44,6 +44,8 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             day_shift_end:           salaryRule.day_shift_end?.substring(0, 5)   ?? '18:00',
             lunch_start: salaryRule?.lunch_start?.substring(0, 5) ?? '12:00',
             lunch_end:   salaryRule?.lunch_end?.substring(0, 5)   ?? '13:00',
+            work_start:  salaryRule?.work_start?.substring(0, 5)  ?? '08:00',
+            work_end:    salaryRule?.work_end?.substring(0, 5)    ?? '17:00',
             overtime_base:           salaryRule.overtime_base          ?? 'hourly_rate',
             late_deduction_unit:     salaryRule.late_deduction_unit    ?? 'per_minute',
             late_deduction_rate:     salaryRule.late_deduction_rate    ?? 0,
@@ -58,8 +60,10 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             // ── Shift times ──
             day_shift_start:        '08:00',
             day_shift_end:          '18:00',
-            lunch_start:            '12:00',
-            lunch_end:              '13:00', 
+            lunch_start: '12:00',
+            lunch_end:   '13:00',
+            work_start:  '08:00',
+            work_end:    '17:00',
             overtime_base:          'hourly_rate',
             late_deduction_unit:    'per_minute',
             late_deduction_rate:    0,
@@ -188,17 +192,24 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <h3 className="text-xl font-bold text-white">{isEdit ? 'Update Settings?' : 'Save Settings?'}</h3>
                             <p className="mt-1 text-sm text-violet-200">{isEdit ? 'This will overwrite existing settings.' : 'This will save general payroll settings.'}</p>
                         </div>
-                        <div className="px-8 py-6 space-y-1">
+                        <div className="px-8 py-6 space-y-1 max-h-[55vh] overflow-y-auto
+                            [&::-webkit-scrollbar]:w-1.5
+                            [&::-webkit-scrollbar-track]:rounded-full
+                            [&::-webkit-scrollbar-track]:bg-gray-100
+                            [&::-webkit-scrollbar-thumb]:rounded-full
+                            [&::-webkit-scrollbar-thumb]:bg-violet-300
+                            hover:[&::-webkit-scrollbar-thumb]:bg-violet-400">
                             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-gray-400">Review before saving</p>
                             <ConfirmRow icon="📅" label="Pay Cycle"    value={selectedCycle?.label ?? '—'}/>
                             <ConfirmRow icon="⏳" label="Probation"    value={`${data.probation_days} days`}/>
                             <ConfirmRow icon="💱" label="Currency"     value={selectedCurrency ? `${selectedCurrency.currency_name} (${selectedCurrency.currency_code})` : '—'}/>
                             <ConfirmRow icon="🏦" label="Bank"         value={selectedBank?.bank_name ?? '—'}/>
-                            <ConfirmRow icon="🕐" label="Work Hours"   value={`${data.working_hours_per_day}h/day · ${data.working_days_per_week}d/week`}/>
+                            <ConfirmRow icon="🕐" label="Required Hours"   value={`${data.working_hours_per_day}h/day · ${data.working_days_per_week}d/week`}/>
                             {/* ── Shift time rows ── */}
                             <ConfirmRow icon="🌤️" label="Day Shift"   value={`${to12h(data.day_shift_start)} – ${to12h(data.day_shift_end)}`}/>
                             <ConfirmRow icon="🌙" label="Night Shift"  value={`${to12h(data.day_shift_end)} – ${to12h(data.day_shift_start)} (auto)`}/>
-                            <ConfirmRow icon="🍽️" label="Lunch Break" value={`${data.lunch_start ?? '12:00'} — ${data.lunch_end ?? '13:00'}`}/>
+                            <ConfirmRow icon="🍽️" label="Lunch Break"  value={`${data.lunch_start ?? '12:00'} — ${data.lunch_end ?? '13:00'}`}/>
+                            <ConfirmRow icon="💼" label="Work Hours"   value={`${to12h(data.work_start ?? '08:00')} – ${to12h(data.work_end ?? '17:00')}`}/>
                             <ConfirmRow icon="⚡" label="OT Base"      value={data.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'}/>
                             <ConfirmRow icon="⚠️" label="Late Deduct"  value={`${data.late_deduction_rate || 0} / ${data.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
                             <ConfirmRow icon="🎁" label="Bonus in Probation" value={data.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'}/>
@@ -457,6 +468,32 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         Work hours will auto-deduct lunch if check-in/out overlaps this period.
                     </p>
                 </div>
+                {/* ══ WORK HOURS ══ */}
+                <div className="rounded-xl border border-gray-200 bg-green-50/50 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Work Hours</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="label flex items-center gap-1.5">
+                                <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-400"/>
+                                Work starts
+                            </label>
+                            <input type="time" value={data.work_start ?? '08:00'}
+                                onChange={e => setData('work_start', e.target.value)}
+                                className="input mt-1"/>
+                        </div>
+                        <div>
+                            <label className="label flex items-center gap-1.5">
+                                <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-400"/>
+                                Work ends
+                            </label>
+                            <input type="time" value={data.work_end ?? '17:00'}
+                                onChange={e => setData('work_end', e.target.value)}
+                                className="input mt-1"/>
+                        </div>
+                    </div>
+                </div>
                 {/* Late Deduction */}
                 <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 space-y-3">
                     <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Late Deduction Rule</p>
@@ -663,13 +700,14 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <SavedCard label="Bank"          value={banks?.find(b => b.id == salaryRule.bank_id)?.bank_name ?? '—'} sub={banks?.find(b => b.id == salaryRule.bank_id)?.bank_code}/>
                             <SavedCard label="Working Hours" value={`${salaryRule.working_hours_per_day}h / day`}/>
                             <SavedCard label="Working Days"  value={`${salaryRule.working_days_per_week} days / week`}/>
-                            {/* ── Shift time saved cards ── */}
+                            <SavedCard label="Work Hours" value={salaryRule.work_start && salaryRule.work_end ? `${to12h(salaryRule.work_start)} – ${to12h(salaryRule.work_end)}` : '—'} sub="Attendance window"/>
                             <SavedCard label="Day Shift"   value={salaryRule.day_shift_start && salaryRule.day_shift_end ? `${to12h(salaryRule.day_shift_start)} – ${to12h(salaryRule.day_shift_end)}` : '—'} sub="Day shift hours"/>
                             <SavedCard label="Night Shift" value={salaryRule.day_shift_end && salaryRule.day_shift_start ? `${to12h(salaryRule.day_shift_end)} – ${to12h(salaryRule.day_shift_start)}` : '—'} sub="Auto-derived"/>
                             <SavedCard label="Lunch Break" value={salaryRule.lunch_start && salaryRule.lunch_end ? `${salaryRule.lunch_start?.substring(0,5)} — ${salaryRule.lunch_end?.substring(0,5)}` : '12:00 — 13:00'} sub="Auto-deducted from work hours"/>
                             <SavedCard label="OT Base"       value={salaryRule.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'} sub={salaryRule.overtime_base === 'hourly_rate' ? 'Daily ÷ working hrs' : 'Monthly ÷ working days'}/>
                             <SavedCard label="Late Deduct"   value={`${salaryRule.late_deduction_rate ?? 0} / ${salaryRule.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
                             <SavedCard label="Bonus in Probation" value={salaryRule.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'} sub={salaryRule.bonus_during_probation ? 'Probation employees receive bonuses' : 'Bonuses skipped during probation'}/>
+                            
                             {bonusSchedules?.length > 0 && (
                                 <div className="col-span-3 overflow-hidden rounded-xl border border-gray-100">
                                     <div className="border-b border-gray-100 bg-gray-50/80 px-4 py-2.5">
@@ -737,9 +775,12 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
 function ShiftTimeline({ start, end }) {
     const toMin = (t) => {
         if (!t) return null;
-        const [h, m] = t.split(':').map(Number);
+        // Handle both "HH:MM" and "HH:MM AM/PM" formats
+        const clean = t.substring(0, 5); // take first 5 chars = "HH:MM"
+        const [h, m] = clean.split(':').map(Number);
+        if (isNaN(h) || isNaN(m)) return null;
         return h * 60 + m;
-    };
+    }
 
     const startMin  = toMin(start) ?? 8 * 60;
     const endMin    = toMin(end)   ?? 18 * 60;
@@ -765,7 +806,8 @@ function ShiftTimeline({ start, end }) {
                 />
                 {/* Night right portion (normal range only) */}
                 {isNormal && nightWidth > 0 && (
-                    <div className="absolute inset-y-0 right-0 bg-indigo-200" style={{ width: `${nightWidth}%` }}/>
+                    <div className="absolute inset-y-0 bg-indigo-200"
+                        style={{ left: `${dayStart + dayWidth}%`, width: `${nightWidth}%` }}/>
                 )}
             </div>
             <div className="flex items-center justify-between text-xs text-gray-400">

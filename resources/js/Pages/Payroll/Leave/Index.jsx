@@ -2,19 +2,6 @@ import React, { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { usePage, router } from '@inertiajs/react';
 
-function Toast({ message, type, onClose }) {
-    if (!message) return null;
-    const bg    = type === 'success' ? '#d1fae5' : '#fee2e2';
-    const color = type === 'success' ? '#059669' : '#dc2626';
-    return (
-        <div style={{ position:'fixed', top:24, right:24, zIndex:9999, display:'flex', alignItems:'center', gap:12, background:bg, border:`1px solid ${color}`, borderRadius:12, padding:'14px 20px', boxShadow:'0 4px 20px rgba(0,0,0,0.12)', minWidth:300 }}>
-            <span style={{ width:24, height:24, borderRadius:'50%', background:color, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, flexShrink:0 }}>{type === 'success' ? '✓' : '✕'}</span>
-            <span style={{ fontSize:13, fontWeight:600, color, flex:1 }}>{message}</span>
-            <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color, fontSize:18, padding:0 }}>×</button>
-        </div>
-    );
-}
-
 const COLOR_POOL = [
     { color:'#2563eb', bg:'#eff6ff', border:'#bfdbfe' },
     { color:'#dc2626', bg:'#fef2f2', border:'#fecaca' },
@@ -82,7 +69,6 @@ export default function LeaveIndex({ requests, leaveBalances, leavePolicies, emp
     const [showModal, setShowModal]     = useState(false);
     const [saving, setSaving]           = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
-    const [toast, setToast]             = useState(null);
     const [statusFilter, setStatusFilter] = useState(filters?.status || '');
     const [confirmModal, setConfirmModal] = useState(null);
 
@@ -90,10 +76,6 @@ export default function LeaveIndex({ requests, leaveBalances, leavePolicies, emp
         router.get('/payroll/leaves', { month: newMonth, year: newYear, status: statusFilter });
     }
 
-    function showToast(msg, type = 'success') {
-        setToast({ message: msg, type });
-        setTimeout(() => setToast(null), 4000);
-    }
 
     function handleFilter(status) {
         setStatusFilter(status);
@@ -123,7 +105,6 @@ export default function LeaveIndex({ requests, leaveBalances, leavePolicies, emp
 
     return (
         <AppLayout title="Leave Management">
-            <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
             <div style={s.wrap}>
 
                 {/* Header */}
@@ -290,6 +271,12 @@ export default function LeaveIndex({ requests, leaveBalances, leavePolicies, emp
                                     )}
                                     {req.status === 'approved' && <span style={{ fontSize:12, color:'#059669', fontWeight:700 }}>✓ Approved</span>}
                                     {req.status === 'rejected' && <span style={{ fontSize:12, color:'#dc2626', fontWeight:700 }}>✕ Rejected</span>}
+                                    {req.status === 'pending' && !showApproveReject && req.approver && (
+                                        <span style={{ fontSize:11 }}>
+                                            <span style={{ color:'#94a3b8', fontWeight:500, fontStyle:'italic' }}>Awaiting </span>
+                                            <span style={{ color:'#0369a1', fontWeight:800 }}>{req.approver.name}</span>
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -316,8 +303,17 @@ export default function LeaveIndex({ requests, leaveBalances, leavePolicies, emp
                     leaveTypeConfig={LEAVE_TYPE_CONFIG}
                     approvers={employees} roleName={roleName}
                     onClose={() => setShowModal(false)}
-                    onSuccess={() => { setShowModal(false); showToast('Leave request submitted!'); }}
-                    onError={(msg) => showToast(msg, 'error')}
+                    onSuccess={() => {
+                        setShowModal(false);
+                        window.dispatchEvent(new CustomEvent('global-toast', {
+                            detail: { message: 'Leave request submitted successfully!', type: 'success' }
+                        }));
+                    }}
+                    onError={(msg) => {
+                        window.dispatchEvent(new CustomEvent('global-toast', {
+                            detail: { message: msg, type: 'error' }
+                        }));
+                    }}
                 />
             )}
 
@@ -459,57 +455,44 @@ function handleSubmit() {
     if (!validate()) return;
     setSaving(true);
 
-    const formData = new FormData();
-    formData.append('leave_type',  form.leave_type);
-    formData.append('day_type',    form.day_type);
-    formData.append('start_date',  form.start_date);
-    formData.append('end_date',    isHalfDay ? form.start_date : form.end_date);
-    formData.append('note',        form.note);
-    formData.append('approver_id', form.approver_id || '');
-    if (document) formData.append('document', document);
+    const payload = {
+        leave_type:  form.leave_type,
+        day_type:    form.day_type,
+        start_date:  form.start_date,
+        end_date:    isHalfDay ? form.start_date : form.end_date,
+        note:        form.note,
+        approver_id: form.approver_id || '',
+    };
 
-    const csrfToken = window.document.querySelector('meta[name="csrf-token"]')?.content;
+    // document ရှိရင် FormData သုံး မရှိရင် plain object
+    if (document) {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([k, v]) => formData.append(k, v));
+        formData.append('document', document);
 
-    fetch('/payroll/leaves', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN':     csrfToken || '',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept':           'application/json', // ← JSON response ရဖို့
-        },
-        body: formData,
-        redirect: 'manual', // ← redirect follow မလုပ်ဘဲ
-    })
-    .then(async res => {
-        const contentType = res.headers.get('content-type') || '';
-
-        // 302 redirect = success (Laravel redirect()->back())
-        if (res.type === 'opaqueredirect' || res.status === 302 || res.status === 200) {
-            setSaving(false);
-            onSuccess();
-            router.reload({ preserveScroll: true });
-            return;
-        }
-
-        // 422 = validation error
-        if (res.status === 422) {
-            const data = await res.json();
-            setSaving(false);
-            if (data.errors) {
-                setErrors(data.errors);
-                // start_date error ကို frontend မှာ ပြမယ်
-                const firstError = Object.values(data.errors)[0];
-                const msg = Array.isArray(firstError) ? firstError[0] : firstError;
+        router.post('/payroll/leaves', formData, {
+            forceFormData: true,
+            onSuccess: () => { setSaving(false); onSuccess(); },
+            onError: (errs) => {
+                setSaving(false);
+                setErrors(errs);
+                const firstErr = Object.values(errs)[0];
+                const msg = Array.isArray(firstErr) ? firstErr[0] : firstErr;
                 onError(msg || 'Validation error');
-            }
-            return;
-        }
-
-        // Other errors
-        setSaving(false);
-        onError('Something went wrong');
-    })
-    .catch(() => { setSaving(false); onError('Network error'); });
+            },
+        });
+    } else {
+        router.post('/payroll/leaves', payload, {
+            onSuccess: () => { setSaving(false); onSuccess(); },
+            onError: (errs) => {
+                setSaving(false);
+                setErrors(errs);
+                const firstErr = Object.values(errs)[0];
+                const msg = Array.isArray(firstErr) ? firstErr[0] : firstErr;
+                onError(msg || 'Validation error');
+            },
+        });
+    }
 }
 
     const fileIcon = (
@@ -580,26 +563,6 @@ function handleSubmit() {
                         </div>
                     )}
 
-                                       {/* Approver — HR တင်ရင် admin ဆီ auto ပို့ / တခြားသူတွေ ရွေးရမယ် */}
-                    {roleName === 'hr' ? (
-                        approvers.length > 0 && (
-                            <div style={{ background:'#f9fafb', borderRadius:8, padding:'10px 14px', border:'1px solid #e5e7eb' }}>
-                                <div style={{ fontSize:10, color:'#9ca3af', fontWeight:700, marginBottom:4 }}>SENDING APPROVAL TO</div>
-                                <div style={{ fontSize:13, fontWeight:700, color:'#374151' }}>{approvers[0]?.name} (Admin)</div>
-                            </div>
-                        )
-                    ) : !['admin'].includes(roleName) && approvers.length > 0 ? (
-                        <div style={s.field}>
-                            <label style={s.label}>Send Approval To <span style={{ color:'#dc2626' }}>*</span></label>
-                            <select style={{ ...s.input, border: errors.approver_id ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
-                                value={form.approver_id} onChange={e => set('approver_id', e.target.value)}>
-                                <option value="">Select approver</option>
-                                {approvers.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                            </select>
-                            {errors.approver_id && <span style={s.errMsg}>{errors.approver_id}</span>}
-                        </div>
-                    ) : null}
-
                     {/* Dates */}
                     <div style={isHalfDay ? {} : s.row2}>
                         <div style={s.field}>
@@ -617,6 +580,26 @@ function handleSubmit() {
                             </div>
                         )}
                     </div>
+
+                    {/* Approver — HR တင်ရင် admin ဆီ auto ပို့ / တခြားသူတွေ ရွေးရမယ် */}
+                    {roleName === 'hr' ? (
+                        approvers.length > 0 && (
+                            <div style={{ background:'#f9fafb', borderRadius:8, padding:'10px 14px', border:'1px solid #e5e7eb' }}>
+                                <div style={{ fontSize:10, color:'#9ca3af', fontWeight:700, marginBottom:4 }}>SENDING APPROVAL TO</div>
+                                <div style={{ fontSize:13, fontWeight:700, color:'#374151' }}>{approvers[0]?.name} (Admin)</div>
+                            </div>
+                        )
+                    ) : !['admin'].includes(roleName) && approvers.length > 0 ? (
+                        <div style={s.field}>
+                            <label style={s.label}>Approver <span style={{ color:'#dc2626' }}>*</span></label>
+                            <select style={{ ...s.input, border: errors.approver_id ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
+                                value={form.approver_id} onChange={e => set('approver_id', e.target.value)}>
+                                <option value="">Select approver</option>
+                                {approvers.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                            </select>
+                            {errors.approver_id && <span style={s.errMsg}>{errors.approver_id}</span>}
+                        </div>
+                    ) : null}
 
                     {/* Preview */}
                     {form.start_date && (previewDays > 0 || isHalfDay) && (

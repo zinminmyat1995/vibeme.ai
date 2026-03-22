@@ -427,6 +427,8 @@ public function destroyBank(PayrollBank $bank)
             'working_days_per_week'  => 'required|integer|min:1|max:7',
             'day_shift_start'        => 'required|date_format:H:i',      // ← အသစ်
             'day_shift_end'          => 'required|date_format:H:i',      // ← အသစ်
+            'work_start' => 'nullable|date_format:H:i',
+            'work_end'   => 'nullable|date_format:H:i',
             'overtime_base'          => 'required|in:daily_rate,hourly_rate',
             'late_deduction_unit'    => 'required|in:per_minute,per_hour',
             'late_deduction_rate'    => 'nullable|numeric|min:0',
