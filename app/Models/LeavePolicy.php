@@ -15,13 +15,15 @@ class LeavePolicy extends Model
         'carry_over_days',
         'applicable_gender',
         'requires_document',
+        'allow_exceed_balance', // ← NEW
         'is_active',
     ];
 
     protected $casts = [
-        'is_paid' => 'boolean',
-        'is_active'          => 'boolean',
-        'requires_document'  => 'boolean',
+        'is_paid'              => 'boolean',
+        'is_active'            => 'boolean',
+        'requires_document'    => 'boolean',
+        'allow_exceed_balance' => 'boolean', // ← NEW
     ];
 
     public function country(): BelongsTo

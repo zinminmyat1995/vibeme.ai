@@ -14,23 +14,22 @@ class StorePayrollPeriodRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'country_id' => 'required|exists:countries,id',
-            'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2020|max:2100',
+            'country_id'    => 'required|exists:countries,id',
+            'day'           => 'required|integer|min:1|max:31',
+            'period_number' => 'required|integer|min:1|max:3',
         ];
     }
 
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            // Duplicate period check
-            $exists = \App\Models\PayrollPeriod::where('country_id', $this->country_id)
-                ->where('month', $this->month)
-                ->where('year', $this->year)
+            $exists = \App\Models\PayrollPeriod::where('country_id',    $this->country_id)
+                ->where('day',           $this->day)
+                ->where('period_number', $this->period_number ?? 1)
                 ->exists();
 
             if ($exists) {
-                $validator->errors()->add('month', 'Payroll period already exists for this month.');
+                $validator->errors()->add('day', 'This period template already exists.');
             }
         });
     }

@@ -429,24 +429,27 @@ public function destroyBank(PayrollBank $bank)
             'bank_id'                => 'nullable|exists:payroll_banks,id',
             'working_hours_per_day'  => 'required|integer|min:1|max:24',
             'working_days_per_week'  => 'required|integer|min:1|max:7',
-            'day_shift_start'        => 'required|date_format:H:i',      // ← အသစ်
-            'day_shift_end'          => 'required|date_format:H:i',      // ← အသစ်
-            'work_start' => 'nullable|date_format:H:i',
-            'work_end'   => 'nullable|date_format:H:i',
+            'day_shift_start'        => 'required|date_format:H:i',
+            'day_shift_end'          => 'required|date_format:H:i',
+            'work_start'             => 'nullable|date_format:H:i',
+            'work_end'               => 'nullable|date_format:H:i',
             'overtime_base'          => 'required|in:daily_rate,hourly_rate',
             'late_deduction_unit'    => 'required|in:per_minute,per_hour',
             'late_deduction_rate'    => 'nullable|numeric|min:0',
             'currency_id'            => 'nullable|exists:payroll_currencies,id',
-            'lunch_start' => 'nullable|date_format:H:i',
-            'lunch_end'   => 'nullable|date_format:H:i',
+            'lunch_start'            => 'nullable|date_format:H:i',
+            'lunch_end'              => 'nullable|date_format:H:i',
+            'payroll_cutoff_day'     => 'required|integer|min:1|max:31',
         ], [
             'day_shift_start.required'    => 'Day shift start time is required.',
             'day_shift_start.date_format' => 'Day shift start must be in HH:MM format.',
             'day_shift_end.required'      => 'Day shift end time is required.',
             'day_shift_end.date_format'   => 'Day shift end must be in HH:MM format.',
+            'payroll_cutoff_day.required' => 'Payroll cutoff day is required.',
+            'payroll_cutoff_day.min'      => 'Cutoff day must be between 1 and 31.',
+            'payroll_cutoff_day.max'      => 'Cutoff day must be between 1 and 31.',
         ]);
     
-        // day_shift_start === day_shift_end → 24hr day မဖြစ်ချင်တဲ့ warning (optional)
         if ($validated['day_shift_start'] === $validated['day_shift_end']) {
             return back()->withErrors([
                 'day_shift_end' => 'Day shift start and end cannot be the same time.',
@@ -459,10 +462,58 @@ public function destroyBank(PayrollBank $bank)
             ['country_id' => $countryId],
             $validated
         );
-    
+
+        // ── Payroll period templates ──────────────────────────────────────────
+        // Frontend ကနေ period_days ပို့ရင် ဒါကိုသုံး (preview နဲ့ တူညီ)
+        // မပို့ဘူးဆိုရင် backend fallback နဲ့ တွက်
+        // ─────────────────────────────────────────────────────────────────────
+        $cycle  = $validated['pay_cycle'];
+        $cutoff = (int) $validated['payroll_cutoff_day'];
+
+        // Frontend ကနေ period_days receive — e.g. {"1": 10, "2": 24}
+        $frontendPeriodDays = $request->input('period_days');
+
+        if (!empty($frontendPeriodDays) && is_array($frontendPeriodDays)) {
+            // Frontend ကနေ ပို့တဲ့ days သုံး — preview နဲ့ exact match ✅
+            $periodDays = [];
+            foreach ($frontendPeriodDays as $num => $day) {
+                $periodDays[(int) $num] = (int) $day;
+            }
+            ksort($periodDays); // period_number order အတိုင်း စီ
+        } else {
+            // Fallback — backend တွက် (frontend မပို့တဲ့ edge case)
+            $periodDays = match($cycle) {
+                'semi_monthly' => [
+                    1 => (int) round($cutoff / 2),
+                    2 => $cutoff,
+                ],
+                'ten_day' => [
+                    1 => (int) round($cutoff / 3),
+                    2 => (int) round(($cutoff / 3) * 2),
+                    3 => $cutoff,
+                ],
+                default => [
+                    1 => $cutoff,
+                ],
+            };
+        }
+
+        // Cycle ပြောင်းရင် old templates delete ပြီး new templates create
+        \App\Models\PayrollPeriod::where('country_id', $countryId)->delete();
+
+        foreach ($periodDays as $periodNumber => $day) {
+            \App\Models\PayrollPeriod::create([
+                'country_id'    => $countryId,
+                'day'           => $day,
+                'period_number' => $periodNumber,
+                'status'        => 'draft',
+                'generated_by'  => auth()->id(),
+            ]);
+        }
+
         return back()->with('success', 'General settings saved successfully.');
     }
-
+    
     // ── Helper ────────────────────────────────────────────────
     private function authorizeCountry(int $resourceCountryId): void
     {

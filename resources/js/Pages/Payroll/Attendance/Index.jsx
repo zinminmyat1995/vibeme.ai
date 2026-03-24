@@ -459,11 +459,25 @@ export default function AttendanceIndex({
                     {/* ── Detail Panel — DO NOT MODIFY LOGIC ── */}
                     {selectedDay ? (
                         <div style={s.detailPanel}>
+                        
                             <div style={s.detailHeader}>
-                                <div style={s.detailDate}>
-                                    {new Date(selectedDay.dateStr+'T00:00:00').toLocaleDateString('en-US',{
-                                        weekday:'long', year:'numeric', month:'long', day:'numeric'
-                                    })}
+                                <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                                    <div style={s.detailDate}>
+                                        {new Date(selectedDay.dateStr+'T00:00:00').toLocaleDateString('en-US',{
+                                            weekday:'long', year:'numeric', month:'long', day:'numeric'
+                                        })}
+                                    </div>
+                                    {selectedDay.isWeekend && (
+                                        <span style={{
+                                            fontSize: 10, fontWeight: 700,
+                                            color: '#dc2626',
+                                            background: '#fef2f2',
+                                            border: '1px solid #fecaca',
+                                            borderRadius: 6,
+                                            padding: '2px 8px',
+                                            letterSpacing: '0.3px',
+                                        }}>Weekend</span>
+                                    )}
                                 </div>
                                 <button style={s.detailClose} onClick={() => setSelectedDay(null)}>✕</button>
                             </div>
@@ -485,9 +499,7 @@ export default function AttendanceIndex({
                                         </div>
                                     </div>
                                 )}
-                                {selectedDay.isWeekend && (
-                                    <span style={tagStyle('#fee2e2','#f87171')}>Weekend</span>
-                                )}
+
                                 {selectedDay.leaveInfo && (() => {
                                     const li = selectedDay.leaveInfo;
                                     const typeLabel = LEAVE_LABELS[li.type] || li.type;

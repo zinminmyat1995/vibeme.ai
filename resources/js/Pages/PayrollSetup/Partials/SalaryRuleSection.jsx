@@ -51,6 +51,8 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             late_deduction_unit:     salaryRule.late_deduction_unit    ?? 'per_minute',
             late_deduction_rate:     salaryRule.late_deduction_rate    ?? 0,
             currency_id:             salaryRule.currency_id            ?? '',
+            payroll_cutoff_day:      salaryRule.payroll_cutoff_day ?? 25,
+            period_days: salaryRule.period_days ?? {},
         } : {
             pay_cycle:              'monthly',
             probation_days:         '',
@@ -70,6 +72,8 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             late_deduction_unit:    'per_minute',
             late_deduction_rate:    0,
             currency_id:            '',
+            payroll_cutoff_day: 25,
+            period_days: {},
         }
     );
 
@@ -108,9 +112,55 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
         setShowConfirm(true);
     };
 
+
     const handleConfirmedSave = () => {
         setShowConfirm(false);
-        post('/payroll/hr-policy/salary-rule', { preserveScroll: true });
+
+        // ── Period end days တွက် (Preview formula နဲ့ တူညီ) ──
+        const d     = parseInt(data.payroll_cutoff_day) || 25;
+        const cycle = data.pay_cycle;
+        const now   = new Date();
+        const y     = now.getFullYear();
+        const m     = now.getMonth(); // 0-based
+
+        const lastDay     = new Date(y, m + 1, 0).getDate();
+        const cutoff      = Math.min(d, lastDay);
+        const prevLastDay = new Date(y, m, 0).getDate();
+        const prevCutoff  = Math.min(d, prevLastDay);
+
+        let pS, pE;
+        if (d >= lastDay) {
+            pS = new Date(y, m, 1);
+            pE = new Date(y, m, cutoff);
+        } else {
+            pS = new Date(y, m - 1, prevCutoff + 1);
+            pE = new Date(y, m, cutoff);
+        }
+
+        const total = Math.round((pE - pS) / 86400000) + 1;
+
+        let periodDays = {};
+        if (cycle === 'semi_monthly') {
+            const mid = Math.floor(total / 2);
+            const p1E = new Date(pS.getTime() + (mid - 1) * 86400000);
+            periodDays = { 1: p1E.getDate(), 2: pE.getDate() };
+        } else if (cycle === 'ten_day') {
+            const c   = Math.floor(total / 3);
+            const p1E = new Date(pS.getTime() + (c - 1) * 86400000);
+            const p2E = new Date(pS.getTime() + (c * 2 - 1) * 86400000);
+            periodDays = { 1: p1E.getDate(), 2: p2E.getDate(), 3: pE.getDate() };
+        } else {
+            periodDays = { 1: pE.getDate() };
+        }
+
+        // ── router.post တိုက်ရိုက်သုံး — period_days ပါ တစ်ခါတည်း ပို့ ──
+        // useForm post() မသုံးဘဲ router.post သုံးတဲ့အတွက် period_days ပါသွားမယ် ✅
+        router.post('/payroll/hr-policy/salary-rule', {
+            ...data,
+            period_days: periodDays,
+        }, {
+            preserveScroll: true,
+        });
     };
 
     // ── Bonus schedule handlers ──
@@ -216,6 +266,43 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <ConfirmRow icon="⚠️" label="Late Deduct"  value={`${data.late_deduction_rate || 0} / ${data.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
                             <ConfirmRow icon="🎁" label="Bonus in Probation" value={data.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'}/>
                             <ConfirmRow icon="📋" label="Bonus for Contract" value={data.bonus_for_contract ? 'Yes — pay bonus' : 'No — skip bonus'}/>
+                            <ConfirmRow
+                                icon="📆"
+                                label="Payment Date"
+                                value={(() => {
+                                    const d     = parseInt(data.payroll_cutoff_day);
+                                    if (!d) return '—';
+                                    const cycle = data.pay_cycle;
+                                    const now   = new Date();
+                                    const y     = now.getFullYear();
+                                    const m     = now.getMonth();
+
+                                    const lastDay     = new Date(y, m + 1, 0).getDate();
+                                    const cutoff      = Math.min(d, lastDay);
+                                    const prevLastDay = new Date(y, m, 0).getDate();
+                                    const prevCutoff  = Math.min(d, prevLastDay);
+
+                                    let pS, pE;
+                                    if (d >= lastDay) { pS = new Date(y, m, 1); pE = new Date(y, m, cutoff); }
+                                    else { pS = new Date(y, m - 1, prevCutoff + 1); pE = new Date(y, m, cutoff); }
+
+                                    const total = Math.round((pE - pS) / 86400000) + 1;
+
+                                    if (cycle === 'semi_monthly') {
+                                        const mid = Math.floor(total / 2);
+                                        const p1E = new Date(pS.getTime() + (mid - 1) * 86400000);
+                                        return `${p1E.getDate()} & ${pE.getDate()} of each month`;
+                                    }
+                                    if (cycle === 'ten_day') {
+                                        const c   = Math.floor(total / 3);
+                                        const p1E = new Date(pS.getTime() + (c - 1) * 86400000);
+                                        const p2E = new Date(pS.getTime() + (c * 2 - 1) * 86400000);
+                                        return `${p1E.getDate()}, ${p2E.getDate()} & ${pE.getDate()} of each month`;
+                                    }
+                                    return `${pE.getDate()} of each month`;
+                                })()}
+                            />
+                        
                         </div>
                         <div className="border-t border-gray-100 px-8 py-5 flex gap-3">
                             <button onClick={() => setShowConfirm(false)} className="flex-1 rounded-xl border-2 border-gray-200 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
@@ -527,6 +614,131 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                     </div>
                 </div>
 
+                {/* ══ PAYROLL CUTOFF DAY ══ */}
+                <div className="rounded-xl border border-gray-200 bg-violet-50/40 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold uppercase tracking-wide text-gray-500">Salary Payment Date</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="label">Payment Date <span className="text-red-400">*</span></label>
+                            <div className="relative mt-1">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="31"
+                                    value={data.payroll_cutoff_day ?? ''}
+                                    onChange={e => {
+                                        const raw = e.target.value;
+                                        if (raw === '') {
+                                            setData('payroll_cutoff_day', '');
+                                        } else {
+                                            const val = parseInt(raw);
+                                            if (!isNaN(val)) setData('payroll_cutoff_day', Math.min(31, Math.max(1, val)));
+                                        }
+                                        if (formErrors.payroll_cutoff_day) setFormErrors(p => ({...p, payroll_cutoff_day: null}));
+                                    }}
+                                    className={`input pr-14 ${formErrors.payroll_cutoff_day ? 'border-red-400' : ''}`}
+                                    placeholder="e.g. 25"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">/ 31</span>
+                            </div>
+                            {formErrors.payroll_cutoff_day && (
+                                <p className="text-xs text-red-500 mt-1">{formErrors.payroll_cutoff_day}</p>
+                            )}
+                            
+                        </div>
+                
+                        {/* Preview */}
+                        <div className="flex flex-col justify-center gap-2 rounded-xl border border-violet-100 bg-white px-4 py-3">
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Preview</p>
+                            {(() => {
+                                const d        = parseInt(data.payroll_cutoff_day) || 25;
+                                const cycle    = data.pay_cycle || 'monthly';
+                                const now      = new Date();
+                                const y        = now.getFullYear();
+                                const m        = now.getMonth(); // 0-based
+                                const fmt      = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                                // last day of current month
+                                const lastDay  = new Date(y, m + 1, 0).getDate();
+                                const cutoff   = Math.min(d, lastDay);
+                
+                                // last day of previous month
+                                const prevLastDay = new Date(y, m, 0).getDate();
+                                const prevCutoff  = Math.min(d, prevLastDay);
+                
+                                // period start/end
+                                let periodStart, periodEnd;
+                                if (d >= lastDay) {
+                                    // month-end mode
+                                    periodStart = new Date(y, m, 1);
+                                    periodEnd   = new Date(y, m, cutoff);
+                                } else {
+                                    // mid-month mode
+                                    periodStart = new Date(y, m - 1, prevCutoff + 1);
+                                    periodEnd   = new Date(y, m, cutoff);
+                                }
+                
+                                const totalDays = Math.round((periodEnd - periodStart) / (1000 * 60 * 60 * 24)) + 1;
+                
+                                if (cycle === 'monthly') {
+                                    return (
+                                        <div>
+                                            <p className="text-sm font-semibold text-violet-700">
+                                                {fmt(periodStart)} → {fmt(periodEnd)}
+                                            </p>
+                                        </div>
+                                    );
+                                }
+                
+                                if (cycle === 'semi_monthly') {
+                                    // Split period into 2 halves
+                                    const midPoint = Math.floor(totalDays / 2);
+                                    const p1End    = new Date(periodStart.getTime() + (midPoint - 1) * 86400000);
+                                    const p2Start  = new Date(p1End.getTime() + 86400000);
+                                    return (
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-semibold text-gray-500">2 periods / month</p>
+                                            <p className="text-xs text-violet-700 font-semibold">
+                                                Period 1: {fmt(periodStart)} → {fmt(p1End)}
+                                            </p>
+                                            <p className="text-xs text-violet-700 font-semibold">
+                                                Period 2: {fmt(p2Start)} → {fmt(periodEnd)}
+                                            </p>
+                                        </div>
+                                    );
+                                }
+                
+                                if (cycle === 'ten_day') {
+                                    // Split into 3 roughly equal 10-day chunks
+                                    const chunk = Math.floor(totalDays / 3);
+                                    const p1End   = new Date(periodStart.getTime() + (chunk - 1) * 86400000);
+                                    const p2Start = new Date(p1End.getTime() + 86400000);
+                                    const p2End   = new Date(p2Start.getTime() + (chunk - 1) * 86400000);
+                                    const p3Start = new Date(p2End.getTime() + 86400000);
+                                    return (
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-semibold text-gray-500">3 periods / month</p>
+                                            <p className="text-xs text-violet-700 font-semibold">
+                                                P1: {fmt(periodStart)} → {fmt(p1End)}
+                                            </p>
+                                            <p className="text-xs text-violet-700 font-semibold">
+                                                P2: {fmt(p2Start)} → {fmt(p2End)}
+                                            </p>
+                                            <p className="text-xs text-violet-700 font-semibold">
+                                                P3: {fmt(p3Start)} → {fmt(periodEnd)}
+                                            </p>
+                                        </div>
+                                    );
+                                }
+                
+                                return null;
+                            })()}
+                        </div>
+                    </div>
+                </div>
+
                 {/* ══ BONUS SCHEDULE ══ */}
                 <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 space-y-4">
                     <div className="flex items-center justify-between">
@@ -714,6 +926,40 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <SavedCard label="Lunch Break" value={salaryRule.lunch_start && salaryRule.lunch_end ? `${salaryRule.lunch_start?.substring(0,5)} — ${salaryRule.lunch_end?.substring(0,5)}` : '12:00 — 13:00'} sub="Auto-deducted from work hours"/>
                             <SavedCard label="OT Base"       value={salaryRule.overtime_base === 'hourly_rate' ? 'Hourly Rate' : 'Daily Rate'} sub={salaryRule.overtime_base === 'hourly_rate' ? 'Daily ÷ working hrs' : 'Monthly ÷ working days'}/>
                             <SavedCard label="Late Deduct"   value={`${salaryRule.late_deduction_rate ?? 0} / ${salaryRule.late_deduction_unit === 'per_minute' ? 'min' : 'hr'}`}/>
+                            <SavedCard
+                                label="Payment Date"
+                                value={(() => {
+                                    const d     = salaryRule?.payroll_cutoff_day ?? 25;
+                                    const cycle = salaryRule?.pay_cycle ?? 'monthly';
+                                    const now   = new Date();
+                                    const y     = now.getFullYear();
+                                    const m     = now.getMonth();
+
+                                    const lastDay     = new Date(y, m + 1, 0).getDate();
+                                    const cutoff      = Math.min(d, lastDay);
+                                    const prevLastDay = new Date(y, m, 0).getDate();
+                                    const prevCutoff  = Math.min(d, prevLastDay);
+
+                                    let pS, pE;
+                                    if (d >= lastDay) { pS = new Date(y, m, 1); pE = new Date(y, m, cutoff); }
+                                    else { pS = new Date(y, m - 1, prevCutoff + 1); pE = new Date(y, m, cutoff); }
+
+                                    const total = Math.round((pE - pS) / 86400000) + 1;
+
+                                    if (cycle === 'semi_monthly') {
+                                        const mid = Math.floor(total / 2);
+                                        const p1E = new Date(pS.getTime() + (mid - 1) * 86400000);
+                                        return `${p1E.getDate()} & ${pE.getDate()} of each month`;
+                                    }
+                                    if (cycle === 'ten_day') {
+                                        const c   = Math.floor(total / 3);
+                                        const p1E = new Date(pS.getTime() + (c - 1) * 86400000);
+                                        const p2E = new Date(pS.getTime() + (c * 2 - 1) * 86400000);
+                                        return `${p1E.getDate()}, ${p2E.getDate()} & ${pE.getDate()} of each month`;
+                                    }
+                                    return `${pE.getDate()} of each month`;
+                                })()}
+                            />
                             <SavedCard label="Bonus in Probation" value={salaryRule.bonus_during_probation ? 'Yes — pay bonus' : 'No — skip bonus'} sub={salaryRule.bonus_during_probation ? 'Probation employees receive bonuses' : 'Bonuses skipped during probation'}/>
                             <SavedCard label="Bonus for Contract" value={salaryRule.bonus_for_contract ? 'Yes — pay bonus' : 'No — skip bonus'} sub={salaryRule.bonus_for_contract ? 'Contract employees receive bonuses' : 'Bonuses skipped for contract'}/>
                             

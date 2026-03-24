@@ -10,10 +10,15 @@ class PayrollPeriod extends Model
 {
     protected $fillable = [
         'country_id',
-        'month',
-        'year',
+        'day',           // period end day (e.g. 12, 24, 31) — month/year မသိမ်းဘဲ template
+        'period_number', // monthly=1, semi=1or2, ten_day=1,2,or3
         'status',
         'generated_by',
+    ];
+
+    protected $casts = [
+        'day'           => 'integer',
+        'period_number' => 'integer',
     ];
 
     public function country(): BelongsTo

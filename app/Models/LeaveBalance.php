@@ -9,7 +9,7 @@ class LeaveBalance extends Model
 {
     protected $fillable = [
         'user_id',
-        'leave_type',
+        'leave_type',    // string(100) — enum မဟုတ်တော့ဘူး
         'year',
         'entitled_days',
         'used_days',
@@ -17,8 +17,8 @@ class LeaveBalance extends Model
     ];
 
     protected $casts = [
-        'entitled_days' => 'decimal:1',
-        'used_days' => 'decimal:1',
+        'entitled_days'  => 'decimal:1',
+        'used_days'      => 'decimal:1',
         'remaining_days' => 'decimal:1',
     ];
 

@@ -412,13 +412,15 @@ function LeaveRequestModal({ saving, setSaving, policyMap, balanceMap, leaveType
     };
 
     function calcDays() {
-        if (form.day_type === 'half_day_am' || form.day_type === 'half_day_pm') return form.start_date ? 0.5 : 0;
+        if (form.day_type === 'half_day_am' || form.day_type === 'half_day_pm') {
+            return form.start_date ? 0.5 : 0;
+        }
         if (!form.start_date || !form.end_date) return 0;
-        let days = 0;
-        const cur = new Date(form.start_date + 'T00:00:00');
-        const end = new Date(form.end_date   + 'T00:00:00');
-        while (cur <= end) { if (cur.getDay() !== 0 && cur.getDay() !== 6) days++; cur.setDate(cur.getDate() + 1); }
-        return days;
+        const start = new Date(form.start_date + 'T00:00:00');
+        const end   = new Date(form.end_date   + 'T00:00:00');
+        if (end < start) return 0;
+        // Calendar days — weekend မ skip (backend နဲ့ တူညီ)
+        return Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
     }
 
     const previewDays  = calcDays();
@@ -437,19 +439,28 @@ function LeaveRequestModal({ saving, setSaving, policyMap, balanceMap, leaveType
         setErrors(e => ({...e, document: null}));
     }
 
-    function validate() {
-        const e = {};
-        if (!form.leave_type) e.leave_type = 'Leave type is required';
-        if (!form.start_date) e.start_date = 'Start date is required';
-        if (!isHalfDay && !form.end_date) e.end_date = 'End date is required';
-        if (!form.note) e.note = 'Reason is required';
-        if (!['hr','admin'].includes(roleName) && !form.approver_id) e.approver_id = 'Please select an approver';
-        if (!isHalfDay && form.start_date && form.end_date && form.end_date < form.start_date) e.end_date = 'End date must be after start date';
-        if (pol?.is_paid && bal && previewDays > bal.remaining_days) e.end_date = `Insufficient balance. Available: ${bal.remaining_days} days`;
-        if (requiresDoc && !document) e.document = 'Supporting document is required for this leave type.';
-        setErrors(e);
-        return Object.keys(e).length === 0;
-    }
+function validate() {
+    const e = {};
+    if (!form.leave_type) e.leave_type = 'Leave type is required';
+    if (!form.start_date) e.start_date = 'Start date is required';
+    if (!isHalfDay && !form.end_date) e.end_date = 'End date is required';
+    if (!form.note) e.note = 'Reason is required';
+    if (!['hr', 'admin'].includes(roleName) && !form.approver_id)
+        e.approver_id = 'Please select an approver';
+    if (!isHalfDay && form.start_date && form.end_date && form.end_date < form.start_date)
+        e.end_date = 'End date must be after start date';
+
+    // ── Balance check ──
+    // is_paid && balance exceeded → warning ပဲပြ၊ submit ခွင့်ပြု (backend မှာ auto-split)
+    // unpaid leave → balance check မလုပ်
+    // (hard block လုံးဝဖြုတ်လိုက်တယ် — always submit ခွင့်ပြု)
+
+    if (requiresDoc && !document)
+        e.document = 'Supporting document is required for this leave type.';
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
+}
 
 function handleSubmit() {
     if (!validate()) return;
@@ -601,17 +612,58 @@ function handleSubmit() {
                         </div>
                     ) : null}
 
-                    {/* Preview */}
-                    {form.start_date && (previewDays > 0 || isHalfDay) && (
-                        <div style={{ background:'#ede9fe', border:'1px solid #ddd6fe', borderRadius:8, padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                            <span style={{ fontSize:12, color:'#7c3aed', fontWeight:600 }}>
-                                {isHalfDay ? `${DAY_TYPE_CONFIG[form.day_type].label} — ${formatDate(form.start_date)}` : 'Total working days:'}
+                {/* Preview */}
+                {form.start_date && (previewDays > 0 || isHalfDay) && (
+                    <div>
+                        {/* Total leave days */}
+                        <div style={{
+                            background: '#ede9fe', border: '1px solid #ddd6fe',
+                            borderRadius: 8, padding: '10px 14px',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        }}>
+                            <span style={{ fontSize: 12, color: '#7c3aed', fontWeight: 600 }}>
+                                {isHalfDay
+                                    ? `${DAY_TYPE_CONFIG[form.day_type].label} — ${formatDate(form.start_date)}`
+                                    : 'Total leave days:'}
                             </span>
-                            <span style={{ fontSize:16, fontWeight:800, color:'#7c3aed' }}>
-                                {previewDays} {previewDays===0.5?'half day':previewDays===1?'day':'days'}
+                            <span style={{ fontSize: 16, fontWeight: 800, color: '#7c3aed' }}>
+                                {previewDays} {previewDays === 0.5 ? 'half day' : previewDays === 1 ? 'day' : 'days'}
                             </span>
                         </div>
-                    )}
+                
+                        {/* Split warning — balance ရှိသေးပြီး ကျော်မယ် */}
+                        {pol?.is_paid && !isHalfDay && (() => {
+                            const avail = bal ? (bal.remaining_days ?? 0) : (pol?.days_per_year ?? 0);
+                            return avail > 0 && previewDays > avail ? (
+                                <div style={{ marginTop:6, background:'#fff7ed', border:'1px solid #fed7aa', borderRadius:8, padding:'10px 14px' }}>
+                                    <div style={{ fontSize:12, fontWeight:700, color:'#c2410c', marginBottom:4 }}>
+                                        ⚠ Balance exceeded — will be split automatically
+                                    </div>
+                                    <div style={{ fontSize:11, color:'#9a3412', lineHeight:1.8 }}>
+                                        <span style={{ fontWeight:600 }}>{avail} day(s)</span>
+                                        {' → '}<span style={{ fontWeight:600 }}>{form.leave_type}</span> (paid)
+                                        <br />
+                                        <span style={{ fontWeight:600 }}>{previewDays - avail} day(s)</span>
+                                        {' → '}<span style={{ fontWeight:600 }}>Absent</span> (unpaid)
+                                    </div>
+                                </div>
+                            ) : null;
+                        })()}
+                
+                        {/* No balance warning */}
+                        {pol?.is_paid && !isHalfDay && bal && (bal.remaining_days ?? 0) <= 0 && previewDays > 0 && (
+                            <div style={{ marginTop:6, background:'#fff7ed', border:'1px solid #fed7aa', borderRadius:8, padding:'10px 14px' }}>
+                                <div style={{ fontSize:12, fontWeight:700, color:'#c2410c', marginBottom:4 }}>
+                                    ⚠ No {form.leave_type} balance remaining
+                                </div>
+                                <div style={{ fontSize:11, color:'#9a3412' }}>
+                                    All <span style={{ fontWeight:600 }}>{previewDays} day(s)</span> will be submitted as{' '}
+                                    <span style={{ fontWeight:600 }}>Absent</span> (unpaid).
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Document Upload */}
                 {(requiresDoc || pol) && (
