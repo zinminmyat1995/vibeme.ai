@@ -120,6 +120,19 @@ const menuItems = [
             {
                 icon: (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                        <line x1="17" y1="11" x2="22" y2="11"/>
+                        <line x1="19.5" y1="8.5" x2="19.5" y2="13.5"/>
+                    </svg>
+                ),
+                label: 'Employee Salary',
+                route: '/payroll/employee-salary',
+                roles: ['hr', 'admin'],
+            },
+            {
+                icon: (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                     </svg>
                 ),

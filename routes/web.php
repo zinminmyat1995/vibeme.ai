@@ -17,6 +17,7 @@ use App\Http\Controllers\Payroll\AttendanceRecordController;
 use App\Http\Controllers\Payroll\LeaveRequestController;
 use App\Http\Controllers\Payroll\OvertimeRequestController;
 use App\Http\Controllers\HRPolicySetupController;
+use App\Http\Controllers\Payroll\EmployeePayrollProfileController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -273,4 +274,16 @@ Route::middleware(['auth', 'role:admin,management'])->prefix('admin')->name('adm
 // Employee — ကိုယ့် assignments သာကြည့်နိုင်
 Route::middleware(['auth', 'role:employee'])->group(function () {
     Route::get('/my-assignments', [ProjectAssignmentController::class, 'myAssignments'])->name('my.assignments');
+});
+
+
+Route::middleware(['auth', 'role:hr'])->group(function () {
+    Route::get('/payroll/employee-salary', [EmployeePayrollProfileController::class, 'page'])
+        ->name('payroll.employee-salary');
+    Route::post('/payroll/employee-profiles', [EmployeePayrollProfileController::class, 'store'])
+        ->name('payroll.employee-profiles.store');
+    Route::put('/payroll/employee-profiles/{employeePayrollProfile}', [EmployeePayrollProfileController::class, 'update'])
+        ->name('payroll.employee-profiles.update');
+    Route::delete('/payroll/employee-profiles/{employeePayrollProfile}', [EmployeePayrollProfileController::class, 'destroy'])
+        ->name('payroll.employee-profiles.destroy');
 });

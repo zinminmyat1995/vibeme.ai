@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SalaryRule extends Model
 {
@@ -23,30 +26,60 @@ class SalaryRule extends Model
         'late_deduction_unit',
         'late_deduction_rate',
         'currency_id',
-        'payroll_cutoff_day',   // ← NEW: လစာတွက်မဲ့ ရက် (default 25)
+        'payroll_cutoff_day',
+        'lunch_start',
+        'lunch_end',
     ];
 
     protected $casts = [
         'late_deduction_rate'    => 'decimal:2',
         'bonus_during_probation' => 'boolean',
         'bonus_for_contract'     => 'boolean',
-        'payroll_cutoff_day'     => 'integer', // ← NEW
+        'payroll_cutoff_day'     => 'integer',
     ];
 
-    public function country()
+    // ── Belongs To ────────────────────────────────────────────────────────────
+
+    public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
     }
 
-    public function bank()
+    public function bank(): BelongsTo
     {
         return $this->belongsTo(PayrollBank::class, 'bank_id');
     }
 
-    public function currency()
+    public function currency(): BelongsTo
     {
         return $this->belongsTo(PayrollCurrency::class, 'currency_id');
     }
+
+    // ── Has Many ──────────────────────────────────────────────────────────────
+
+    public function allowances(): HasMany
+    {
+        return $this->hasMany(SalaryAllowance::class);
+    }
+
+    public function deductions(): HasMany
+    {
+        return $this->hasMany(SalaryDeduction::class);
+    }
+
+    public function taxBrackets(): HasMany
+    {
+        return $this->hasMany(TaxBracket::class);
+    }
+
+    // ── Has One ───────────────────────────────────────────────────────────────
+
+    public function socialSecurityRule(): HasOne
+    {
+        return $this->hasOne(SocialSecurityRule::class);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     public function isDayShift(string $time): bool
     {
@@ -60,27 +93,20 @@ class SalaryRule extends Model
 
     /**
      * လစာ period ရဲ့ start/end date တွက်ပေး
-     * cutoff_day=25 ဆိုရင်: prev_month_26 → this_month_25
-     * cutoff_day=31 ဆိုရင်: this_month_1  → this_month_last
      */
     public function getPayrollPeriod(int $year, int $month): array
     {
-        $cutoff = $this->payroll_cutoff_day ?? 25;
-
-        // month ရဲ့ actual last day (Feb=28/29, Apr=30 etc.)
+        $cutoff  = $this->payroll_cutoff_day ?? 25;
         $lastDay = \Carbon\Carbon::create($year, $month, 1)->daysInMonth;
         $effectiveCutoff = min($cutoff, $lastDay);
 
         if ($cutoff >= $lastDay) {
-            // month-end mode: 1st → last day
             $start = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
             $end   = \Carbon\Carbon::create($year, $month, $effectiveCutoff)->endOfDay();
         } else {
-            // mid-month mode: prev_month_(cutoff+1) → this_month_cutoff
-            $prevMonth = \Carbon\Carbon::create($year, $month, 1)->subMonth();
+            $prevMonth   = \Carbon\Carbon::create($year, $month, 1)->subMonth();
             $prevLastDay = $prevMonth->daysInMonth;
             $prevCutoff  = min($cutoff, $prevLastDay);
-
             $start = \Carbon\Carbon::create($prevMonth->year, $prevMonth->month, $prevCutoff + 1)->startOfDay();
             $end   = \Carbon\Carbon::create($year, $month, $effectiveCutoff)->endOfDay();
         }

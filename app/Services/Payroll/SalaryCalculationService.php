@@ -12,7 +12,6 @@ use App\Models\PayrollRecord;
 use App\Models\PublicHoliday;
 use App\Models\SalaryRule;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class SalaryCalculationService
 {
@@ -20,10 +19,11 @@ class SalaryCalculationService
     {
         $profiles = EmployeePayrollProfile::with([
             'user',
-            'salaryRule.allowances',
+            'selectedAllowances',              // ← per-employee allowances (ပြင်ပြီ)
             'salaryRule.deductions',
             'salaryRule.taxBrackets',
             'salaryRule.socialSecurityRule',
+            'salaryRule.country',
         ])
             ->where('country_id', $period->country_id)
             ->where('is_active', true)
@@ -44,9 +44,6 @@ class SalaryCalculationService
 
     public function calculateForEmployee(PayrollPeriod $period, EmployeePayrollProfile $profile, int $year = 0, int $month = 0): PayrollRecord
     {
-        // ── Day-based period range ─────────────────────────────────────────
-        // PayrollPeriod မှာ month/year မရှိတော့ — caller ကနေ pass လုပ်ရမယ်
-        // default: current month
         if (!$year || !$month) {
             $year  = now()->year;
             $month = now()->month;
@@ -61,7 +58,6 @@ class SalaryCalculationService
         [$startDate, $endDate] = $this->getPeriodRange(
             $year, $month, $cutoff, $cycle, $periodNumber, $endDay
         );
-        // ──────────────────────────────────────────────────────────────────
 
         // 1. Attendance summary
         $attendance = $this->getAttendanceSummary($profile->user_id, $startDate, $endDate, $period->country_id);
@@ -79,8 +75,8 @@ class SalaryCalculationService
             $attendance['present_days'] + $leave['paid_days']
         );
 
-        // 5. Allowances
-        $totalAllowances = $this->calculateAllowances($profile->salaryRule, $profile->base_salary);
+        // 5. Allowances — profile မှာ select လုပ်ထားတာဘဲ တွက် (ပြင်ပြီ)
+        $totalAllowances = $this->calculateAllowances($profile);
 
         // 6. Overtime amount
         $overtimeAmount = $this->calculateOvertimeAmount(
@@ -105,7 +101,6 @@ class SalaryCalculationService
         // 10. Net Salary
         $netSalary = $grossSalary - $totalDeductions - $taxAmount - $socialSecurityAmount;
 
-        // Save or update payroll record
         $record = PayrollRecord::updateOrCreate(
             [
                 'payroll_period_id' => $period->id,
@@ -116,7 +111,7 @@ class SalaryCalculationService
                 'total_allowances'       => $totalAllowances,
                 'total_deductions'       => $totalDeductions,
                 'overtime_amount'        => $overtimeAmount,
-                'bonus_amount'           => 0, // Bonus added separately
+                'bonus_amount'           => 0,
                 'tax_amount'             => $taxAmount,
                 'social_security_amount' => $socialSecurityAmount,
                 'net_salary'             => $netSalary,
@@ -137,21 +132,6 @@ class SalaryCalculationService
     // ─────────────────────────────────────────────────────────────────────────
     //  Day-based Period Range
     // ─────────────────────────────────────────────────────────────────────────
-    //
-    // PayrollPeriod မှာ day (end day) ဘဲ သိမ်း — month/year မသိမ်း
-    // calculate လုပ်ချင်တဲ့ month/year ကို pass လုပ်ပြီး range တွက်
-    //
-    // cutoff=24, semi_monthly, March 2026
-    //   P1 (endDay=12): Feb 25 → Mar 12
-    //   P2 (endDay=24): Mar 13 → Mar 24
-    //
-    // cutoff=31, semi_monthly, February 2026 (28 days)
-    //   P1 (endDay=15): Feb 1  → Feb 15
-    //   P2 (endDay=31): effectiveEnd=min(31,28)=28 → Feb 16 → Feb 28
-    //
-    // cutoff=24, monthly, March 2026
-    //   P1 (endDay=24): Feb 25 → Mar 24
-    // ─────────────────────────────────────────────────────────────────────────
     private function getPeriodRange(
         int    $year,
         int    $month,
@@ -161,25 +141,20 @@ class SalaryCalculationService
         int    $endDay
     ): array {
         $lastDay         = Carbon::create($year, $month, 1)->daysInMonth;
-        $effectiveEndDay = min($endDay, $lastDay); // Feb: min(31,28)=28 ✅
+        $effectiveEndDay = min($endDay, $lastDay);
 
-        // Period end date
         $periodEnd = Carbon::create($year, $month, $effectiveEndDay)->endOfDay();
 
         if ($periodNumber === 1) {
-            // First period start
             if ($cutoff >= $lastDay) {
-                // month-end mode → start = 1st of this month
                 $periodStart = Carbon::create($year, $month, 1)->startOfDay();
             } else {
-                // mid-month mode → start = prev_month_(cutoff+1)
                 $prev        = Carbon::create($year, $month, 1)->subMonth();
                 $prevLastDay = $prev->daysInMonth;
                 $prevCutoff  = min($cutoff, $prevLastDay);
                 $periodStart = Carbon::create($prev->year, $prev->month, $prevCutoff + 1)->startOfDay();
             }
         } else {
-            // P2, P3 → start = prev period end day + 1
             $fullCutoff = min($cutoff, $lastDay);
 
             $prevEndDay = match($cycle) {
@@ -206,14 +181,12 @@ class SalaryCalculationService
             ->whereBetween('date', [$start, $end])
             ->get();
 
-        // Get public holidays for this country & month
         $holidays = PublicHoliday::where('country_id', $countryId)
             ->whereBetween('date', [$start, $end])
             ->pluck('date')
             ->map(fn($d) => Carbon::parse($d)->toDateString())
             ->toArray();
 
-        // Count working days (exclude weekends & public holidays)
         $workingDays = 0;
         $current     = $start->copy();
         while ($current <= $end) {
@@ -236,22 +209,14 @@ class SalaryCalculationService
         ];
     }
 
-    // ── FIX #2 ──────────────────────────────────────────────────────────────
-    // Bug: whereBetween('start_date', ...) ဘဲ စစ်တဲ့အတွက်
-    //      Leave က Mar 29 – Apr 2 ဆိုရင် April payroll မှာ
-    //      start_date=Mar 29 က April range ထဲ မဝင်လို့ paid_days=0 ဖြစ်ကာ
-    //      Apr 1, 2 ကို absent ထဲ ထည့်တွက်ပြီး လစာဖြတ်သွားတယ်
-    //
-    // Fix: overlap ၃ မျိုးလုံး ဖမ်း၊ period ထဲ ကျတဲ့ ရက်ကိုဘဲ proportion ဖြတ်မယ်
-    // ────────────────────────────────────────────────────────────────────────
     private function getLeaveSummary(int $userId, Carbon $start, Carbon $end): array
     {
         $leaves = LeaveRequest::where('user_id', $userId)
             ->where('status', 'approved')
             ->where(function ($q) use ($start, $end) {
-                $q->whereBetween('start_date', [$start, $end])       // leave start က period ထဲ
-                  ->orWhereBetween('end_date',  [$start, $end])       // leave end   က period ထဲ
-                  ->orWhere(function ($q2) use ($start, $end) {       // leave က period ကိုလုံးဝခြုံနေ
+                $q->whereBetween('start_date', [$start, $end])
+                  ->orWhereBetween('end_date',  [$start, $end])
+                  ->orWhere(function ($q2) use ($start, $end) {
                       $q2->where('start_date', '<=', $start)
                          ->where('end_date',   '>=', $end);
                   });
@@ -263,12 +228,10 @@ class SalaryCalculationService
         $unpaidDays = 0;
 
         foreach ($leaves as $leave) {
-            // Period နဲ့ overlap ဖြစ်တဲ့ ရက်ကိုဘဲ clamp လုပ်ပြီး count
             $leaveStart   = Carbon::parse($leave->start_date)->max($start);
             $leaveEnd     = Carbon::parse($leave->end_date)->min($end);
             $daysInPeriod = $leaveStart->diffInDays($leaveEnd) + 1;
 
-            // total_days နဲ့ proportion ဖြတ် (half-day safe)
             $totalDays   = (float) $leave->total_days ?: 1;
             $fullSpan    = Carbon::parse($leave->start_date)->diffInDays(Carbon::parse($leave->end_date)) + 1;
             $proportion  = $daysInPeriod / $fullSpan;
@@ -287,16 +250,8 @@ class SalaryCalculationService
         ];
     }
 
-    // ── FIX #1 ──────────────────────────────────────────────────────────────
-    // Bug: whereBetween('date', ...) → migration မှာ 'date' column ကို
-    //      'start_date' rename လုပ်ပြီး multi-day OT ထည့်တဲ့အတွက် SQL crash
-    //
-    // Fix: segment-level sum သုံး (multi-day OT accurate)
-    //      + legacy single-day OT (segment မရှိတာ) fallback
-    // ────────────────────────────────────────────────────────────────────────
     private function getOvertimeHours(int $userId, Carbon $start, Carbon $end): float
     {
-        // ① Segment ရှိတဲ့ OT — segment_date ကို period နဲ့ filter
         $fromSegments = OvertimeRequestSegment::whereHas('overtimeRequest', function ($q) use ($userId, $start, $end) {
                 $q->where('user_id', $userId)
                   ->where('status', 'approved')
@@ -310,12 +265,11 @@ class SalaryCalculationService
                   });
             })
             ->where(function ($q) use ($start, $end) {
-                $q->whereNull('segment_date')                         // segment_date မရှိ → ဖမ်းထည့်
-                  ->orWhereBetween('segment_date', [$start, $end]);   // ဒီ period ထဲ ကျတဲ့ segment သာ
+                $q->whereNull('segment_date')
+                  ->orWhereBetween('segment_date', [$start, $end]);
             })
             ->sum('hours_approved');
 
-        // ② Segment မရှိတဲ့ legacy OT — hours_approved direct sum
         $fromLegacy = OvertimeRequest::where('user_id', $userId)
             ->where('status', 'approved')
             ->doesntHave('segments')
@@ -329,7 +283,7 @@ class SalaryCalculationService
     }
 
     // ─────────────────────────────────────────
-    // Calculation helpers — original အတိုင်း မပြင်
+    // Calculation helpers
     // ─────────────────────────────────────────
 
     private function calculateProRatedSalary(float $baseSalary, int $workingDays, float $actualDays): float
@@ -338,16 +292,23 @@ class SalaryCalculationService
         return round(($baseSalary / $workingDays) * $actualDays, 2);
     }
 
-    private function calculateAllowances(SalaryRule $rule, float $baseSalary): float
+    /**
+     * Employee ရဲ့ profile မှာ select လုပ်ထားတဲ့ allowances ဘဲ တွက်
+     * (salary_rule ထဲက allowance အကုန် မတွက်တော့)
+     */
+    private function calculateAllowances(EmployeePayrollProfile $profile): float
     {
-        $total = 0;
-        foreach ($rule->allowances->where('is_active', true) as $allowance) {
+        $baseSalary = (float) $profile->base_salary;
+        $total      = 0;
+
+        foreach ($profile->selectedAllowances as $allowance) {
             if ($allowance->is_percentage) {
                 $total += $baseSalary * ($allowance->amount / 100);
             } else {
-                $total += $allowance->amount;
+                $total += (float) $allowance->amount;
             }
         }
+
         return round($total, 2);
     }
 
