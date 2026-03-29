@@ -109,7 +109,6 @@ function MiniModal({ title, subtitle, icon, onClose, children }) {
     return (
         <div style={{ position:'fixed', inset:0, background:'rgba(17,7,46,0.55)', zIndex:10000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
             <div style={{ background:'#fff', borderRadius:18, width:'100%', maxWidth:420, maxHeight:'80vh', display:'flex', flexDirection:'column', boxShadow:'0 32px 80px rgba(0,0,0,0.3)', overflow:'hidden' }}>
-                {/* Styled header */}
                 <div style={{ background:'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', padding:'16px 18px 14px', flexShrink:0 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                         <div>
@@ -121,8 +120,190 @@ function MiniModal({ title, subtitle, icon, onClose, children }) {
                         <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:8, width:30, height:30, cursor:'pointer', color:'#fff', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>×</button>
                     </div>
                 </div>
-                {/* Body */}
                 <div style={{ overflowY:'auto', padding:'14px 18px 18px', flex:1 }}>{children}</div>
+            </div>
+        </div>
+    );
+}
+
+function ConfirmActionModal({
+    open,
+    title = 'Confirm Action',
+    message,
+    confirmText = 'Confirm',
+    cancelText = 'Cancel',
+    tone = 'success',
+    loading = false,
+    onConfirm,
+    onClose,
+}) {
+    if (!open) return null;
+
+    const tones = {
+        success: {
+            grad: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+            soft: '#ecfdf5',
+            border: '#a7f3d0',
+            iconBg: 'rgba(255,255,255,0.18)',
+            confirmBg: '#059669',
+        },
+        danger: {
+            grad: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+            soft: '#fef2f2',
+            border: '#fecaca',
+            iconBg: 'rgba(255,255,255,0.18)',
+            confirmBg: '#dc2626',
+        },
+        purple: {
+            grad: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+            soft: '#faf5ff',
+            border: '#ddd6fe',
+            iconBg: 'rgba(255,255,255,0.18)',
+            confirmBg: '#7c3aed',
+        },
+    };
+
+    const ui = tones[tone] || tones.success;
+
+    return (
+        <div style={{
+            position:'fixed',
+            inset:0,
+            background:'rgba(17,24,39,0.55)',
+            backdropFilter:'blur(4px)',
+            zIndex:11000,
+            display:'flex',
+            alignItems:'center',
+            justifyContent:'center',
+            padding:16,
+        }}>
+            <div style={{
+                width:'100%',
+                maxWidth:460,
+                background:'#fff',
+                borderRadius:22,
+                overflow:'hidden',
+                boxShadow:'0 30px 90px rgba(0,0,0,0.28)',
+                animation:'fadeIn 0.18s ease',
+            }}>
+                <div style={{ background:ui.grad, padding:'22px 22px 18px' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12 }}>
+                        <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+                            <div style={{
+                                width:42,
+                                height:42,
+                                borderRadius:12,
+                                background:ui.iconBg,
+                                display:'flex',
+                                alignItems:'center',
+                                justifyContent:'center',
+                                color:'#fff',
+                                fontSize:20,
+                                flexShrink:0,
+                            }}>
+                                ✓
+                            </div>
+                            <div>
+                                <div style={{
+                                    fontSize:11,
+                                    color:'rgba(255,255,255,0.68)',
+                                    fontWeight:700,
+                                    letterSpacing:'0.9px',
+                                    textTransform:'uppercase',
+                                    marginBottom:4,
+                                }}>
+                                    Payroll Confirmation
+                                </div>
+                                <div style={{
+                                    fontSize:18,
+                                    fontWeight:900,
+                                    color:'#fff',
+                                    letterSpacing:'-0.2px',
+                                }}>
+                                    {title}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={onClose}
+                            disabled={loading}
+                            style={{
+                                background:'rgba(255,255,255,0.14)',
+                                border:'none',
+                                borderRadius:10,
+                                width:32,
+                                height:32,
+                                cursor:'pointer',
+                                color:'#fff',
+                                fontSize:18,
+                                lineHeight:1,
+                                flexShrink:0,
+                            }}
+                        >
+                            ×
+                        </button>
+                    </div>
+                </div>
+
+                <div style={{ padding:'20px 22px 22px' }}>
+                    <div style={{
+                        background:ui.soft,
+                        border:`1px solid ${ui.border}`,
+                        borderRadius:16,
+                        padding:'14px 16px',
+                        marginBottom:18,
+                    }}>
+                        <div style={{ fontSize:13, color:'#374151', lineHeight:1.7, fontWeight:500 }}>
+                            {message}
+                        </div>
+                    </div>
+
+                    <div style={{
+                        display:'flex',
+                        justifyContent:'flex-end',
+                        gap:10,
+                    }}>
+                        <button
+                            onClick={onClose}
+                            disabled={loading}
+                            style={{
+                                padding:'10px 18px',
+                                borderRadius:12,
+                                border:'1.5px solid #e5e7eb',
+                                background:'#fff',
+                                color:'#374151',
+                                fontSize:13,
+                                fontWeight:700,
+                                cursor:'pointer',
+                            }}
+                        >
+                            {cancelText}
+                        </button>
+
+                        <button
+                            onClick={onConfirm}
+                            disabled={loading}
+                            style={{
+                                padding:'10px 18px',
+                                borderRadius:12,
+                                border:'none',
+                                background:ui.confirmBg,
+                                color:'#fff',
+                                fontSize:13,
+                                fontWeight:800,
+                                cursor:'pointer',
+                                display:'inline-flex',
+                                alignItems:'center',
+                                gap:8,
+                                boxShadow:'0 10px 24px rgba(0,0,0,0.14)',
+                            }}
+                        >
+                            {loading && <Spinner color="#fff" size={13} />}
+                            {loading ? 'Processing...' : confirmText}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -133,21 +314,19 @@ function SalaryDetailModal({ detail, curr, onApprove, onClose }) {
     return (
         <div style={{ position:'fixed', inset:0, background:'rgba(17,7,46,0.55)', zIndex:9000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
             <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:520, maxHeight:'92vh', display:'flex', flexDirection:'column', boxShadow:'0 32px 80px rgba(0,0,0,0.3)', overflow:'hidden' }}>
-                {/* Purple header */}
                 <div style={{ background:'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', padding:'20px 22px 16px', flexShrink:0 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                         <div>
                             <div style={{ fontSize:11, color:'rgba(255,255,255,0.6)', fontWeight:600, letterSpacing:'0.5px', marginBottom:3 }}>SALARY DETAIL</div>
-                            <div style={{ fontSize:18, fontWeight:900, color:'#fff', letterSpacing:'-0.3px' }}>{detail.name}</div>
                             <div style={{ fontSize:11, color:'rgba(255,255,255,0.65)', marginTop:4 }}>
-                                {detail.position && <span>{detail.position}</span>}
+                                <span style={{ fontSize:18, fontWeight:900, color:'#fff', letterSpacing:'-0.3px' }}>{detail.name}</span>
+                                {detail.position && <span> · {detail.position}</span>}
                                 {detail.department && <span> · {detail.department}</span>}
                             </div>
                         </div>
                         <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:8, width:32, height:32, cursor:'pointer', color:'#fff', fontSize:18, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>×</button>
                     </div>
-                    {/* Period badge */}
-                    <div style={{ marginTop:14, display:'flex', alignItems:'center', gap:8 }}>
+                    <div style={{ marginTop:7, display:'flex', alignItems:'center', gap:8 }}>
                         <span style={{ fontSize:11, background:'rgba(255,255,255,0.18)', color:'#fff', borderRadius:99, padding:'3px 12px', fontWeight:700 }}>
                             {detail.period_start} — {detail.period_end}
                         </span>
@@ -157,7 +336,6 @@ function SalaryDetailModal({ detail, curr, onApprove, onClose }) {
                     </div>
                 </div>
 
-                {/* Scrollable body */}
                 <div style={{ overflowY:'auto', flex:1, padding:'16px 20px 20px' }}>
                     <DetailModalContent detail={detail} curr={curr} onApprove={onApprove} onClose={onClose} />
                 </div>
@@ -166,7 +344,6 @@ function SalaryDetailModal({ detail, curr, onApprove, onClose }) {
     );
 }
 
-// ── Detail card section ────────────────────────────────────────────────────────
 function DetailCard({ icon, title, color, titleColor, children }) {
     return (
         <div style={{ borderRadius:12, overflow:'hidden', border:`1.5px solid ${color}`, marginBottom:12 }}>
@@ -181,7 +358,6 @@ function DetailCard({ icon, title, color, titleColor, children }) {
     );
 }
 
-// ── Single data row ────────────────────────────────────────────────────────────
 function DetailRow({ label, val, color, bold }) {
     return (
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:'1px solid #f3f4f6', background:'#fff' }}>
@@ -191,7 +367,6 @@ function DetailRow({ label, val, color, bold }) {
     );
 }
 
-// ── Short hour deduction row ───────────────────────────────────────────────────
 function ShortHourRow({ detail, curr }) {
     const [popup, setPopup] = React.useState(false);
     const shortAmt = detail.short_hour_deduction ?? 0;
@@ -219,7 +394,7 @@ function ShortHourRow({ detail, curr }) {
                                 <div style={{ fontSize:11, color:'#6b7280', display:'flex', gap:14 }}>
                                     <span>In: <b>{fmtTime(a.check_in+':00')}</b></span>
                                     <span>Out: <b>{fmtTime(a.check_out+':00')}</b></span>
-                                    <span style={{ color:'#dc2626' }}>Short: <b>{fmtHours(sh)}</b></span>
+                                    <span style={{ color:'#dc2626' }}>Missing: <b>{fmtHours(sh)}</b></span>
                                 </div>
                             </div>
                         );
@@ -230,7 +405,6 @@ function ShortHourRow({ detail, curr }) {
     );
 }
 
-// ── Late arrival row ───────────────────────────────────────────────────────────
 function LateArrivalRow({ detail, curr }) {
     const [popup, setPopup] = React.useState(false);
     const lateAmt  = detail.late_deduction ?? 0;
@@ -264,7 +438,6 @@ function LateArrivalRow({ detail, curr }) {
     );
 }
 
-// ── Detail modal body ──────────────────────────────────────────────────────────
 function DetailModalContent({ detail, curr, onApprove, onClose }) {
     const [leavePop,  setLeavePop]  = React.useState(false);
     const [otPop,     setOtPop]     = React.useState(false);
@@ -278,7 +451,6 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
 
     return (
         <div>
-            {/* ATTENDANCE */}
             <DetailCard icon="📅" title="Attendance" color="#ede9fe" titleColor="#7c3aed">
                 <DetailRow label="Working Days" val={`${detail.working_days} days`} />
                 <DetailRow label="Present"      val={`${detail.present_days} days`} color={detail.present_days>0?'#059669':null} />
@@ -305,7 +477,6 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
                 )}
             </DetailCard>
 
-            {/* EARNINGS */}
             <DetailCard icon="💰" title="Earnings" color="#d1fae5" titleColor="#059669">
                 <DetailRow label="Base Salary" val={fmt(detail.base_salary, curr)} bold />
                 {(detail.total_allowances??0)>0 && (
@@ -327,7 +498,6 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
                 </div>
             </DetailCard>
 
-            {/* DEDUCTIONS */}
             {((detail.late_deduction??0)+(detail.short_hour_deduction??0)+(detail.unpaid_leave_deduction??0)+((detail.salary_deduction_breakdown??[]).reduce((s,d)=>s+d.amount,0)))>0 && (
                 <DetailCard icon="✂️" title="Deductions" color="#fee2e2" titleColor="#dc2626">
                     {(detail.late_deduction??0)>0       && <LateArrivalRow detail={detail} curr={curr} />}
@@ -346,7 +516,6 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
                 </DetailCard>
             )}
 
-            {/* NET */}
             <div style={{ background:'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)', borderRadius:14, padding:'18px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
                 <div>
                     <div style={{ fontSize:10, color:'rgba(255,255,255,0.65)', fontWeight:700, letterSpacing:'1px', marginBottom:2 }}>NET SALARY</div>
@@ -357,8 +526,20 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
 
             <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
                 {detail.status!=='approved' && (
-                    <button onClick={()=>{ if(window.confirm(`Approve salary for ${detail.name}?\n\nThis action cannot be undone.`)){onApprove(detail);onClose();} }} style={{ padding:'10px 22px', borderRadius:10, border:'none', background:'#059669', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
-                        ✅ Approve
+                    <button
+                        onClick={() => onApprove(detail)}
+                        style={{
+                            padding:'10px 22px',
+                            borderRadius:10,
+                            border:'none',
+                            background:'#059669',
+                            color:'#fff',
+                            fontSize:13,
+                            fontWeight:700,
+                            cursor:'pointer'
+                        }}
+                    >
+                        Approve
                     </button>
                 )}
                 <button onClick={onClose} style={{ padding:'10px 22px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:13, fontWeight:700, cursor:'pointer' }}>
@@ -366,7 +547,6 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
                 </button>
             </div>
 
-            {/* Leave popup */}
             {leavePop && (
                 <MiniModal
                     title={leavePop==='paid' ? 'Paid Leave' : 'Unpaid Leave'}
@@ -396,7 +576,6 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
                 </MiniModal>
             )}
 
-            {/* OT popup */}
             {otPop && (
                 <MiniModal title="Overtime" subtitle="OT Records" icon="⚡" onClose={()=>setOtPop(false)}>
                     {(detail.ot_details??[]).length===0
@@ -424,7 +603,6 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
                 </MiniModal>
             )}
 
-            {/* Allowance popup */}
             {allowPop && (
                 <MiniModal title="Allowances" subtitle="Breakdown" icon="💰" onClose={()=>setAllowPop(false)}>
                     {(detail.allowance_details??[]).length===0
@@ -449,9 +627,6 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
     );
 }
 
-
-
-// ── Period Bar ────────────────────────────────────────────────────────────────
 function PeriodBar({ salaryRule, periodTemplates, value, onChange }) {
     const cycle = salaryRule?.pay_cycle ?? 'monthly';
     const count = cycle==='semi_monthly'?2:cycle==='ten_day'?3:1;
@@ -472,7 +647,6 @@ function PeriodBar({ salaryRule, periodTemplates, value, onChange }) {
     );
 }
 
-// ── Step 1 ────────────────────────────────────────────────────────────────────
 function AttendanceStep({ period, onToast, onDone }) {
     const [downloading, setDownloading] = useState(false);
     const [uploading,   setUploading]   = useState(false);
@@ -511,7 +685,6 @@ function AttendanceStep({ period, onToast, onDone }) {
 
     return (
         <div>
-            {/* How-to steps — horizontal, compact */}
             <div style={{ display:'flex', gap:8, marginBottom:20 }}>
                 {[
                     ['⬇️','Download','Get the Excel template pre-filled with employees & dates'],
@@ -528,7 +701,6 @@ function AttendanceStep({ period, onToast, onDone }) {
                 ))}
             </div>
 
-            {/* Buttons */}
             <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom: result ? 16 : 0 }}>
                 <button onClick={download} disabled={downloading} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'9px 18px', borderRadius:8, border:'none', background:downloading?'#ddd6fe':'#7c3aed', color:'#fff', fontSize:13, fontWeight:700, cursor:downloading?'not-allowed':'pointer' }}>
                     {downloading ? <><Spinner color="#fff" size={13}/>Downloading...</> : <>⬇️ Download Template</>}
@@ -539,7 +711,6 @@ function AttendanceStep({ period, onToast, onDone }) {
                 </label>
             </div>
 
-            {/* Result */}
             {result && (
                 <div style={{ padding:'12px 14px', borderRadius:8, background:result.errors?.length?'#fffbeb':'#f0fdf4', border:`1px solid ${result.errors?.length?'#fde68a':'#86efac'}` }}>
                     <div style={{ display:'flex', gap:20, fontSize:13, marginBottom:result.errors?.length?8:0 }}>
@@ -553,7 +724,6 @@ function AttendanceStep({ period, onToast, onDone }) {
     );
 }
 
-// ── Step 2 ────────────────────────────────────────────────────────────────────
 function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast, onDone }) {
     const [mode,    setMode]    = useState('all');
     const [selEmp,  setSelEmp]  = useState('');
@@ -659,13 +829,18 @@ function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast
     );
 }
 
-// ── Step 3 ────────────────────────────────────────────────────────────────────
 function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
     const [loading,  setLoading]  = useState(false);
     const [records,  setRecords]  = useState([]);
     const [summary,  setSummary]  = useState(null);
     const [detail,   setDetail]   = useState(null);
     const [approving,setApproving]= useState(false);
+    const [confirmState, setConfirmState] = useState({
+        open: false,
+        type: null,
+        record: null,
+    });
+
     const tmpl = periodTemplates.find(p=>p.period_number===period.period_number);
     const curr = salaryRule?.currency_code ?? '';
 
@@ -676,29 +851,95 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
             const params = new URLSearchParams({period_id:tmpl.id,year:period.year,month:period.month});
             const res    = await fetch(`/payroll/records/preview?${params}`);
             const data   = await res.json();
-            setRecords(data.records??[]); setSummary(data.summary??null);
-        } catch{onToast('Failed to load records','error');}
-        finally{setLoading(false);}
-    },[tmpl?.id,period.year,period.month]);
+            setRecords(data.records??[]);
+            setSummary(data.summary??null);
+        } catch {
+            onToast('Failed to load records','error');
+        } finally {
+            setLoading(false);
+        }
+    },[tmpl?.id,period.year,period.month,onToast]);
 
     useEffect(()=>{load();},[load]);
 
-    const approveAll = async()=>{
-        if(!tmpl?.id) return;
-        if(!window.confirm(`Approve all ${records.length} employees for ${MONTHS_SHORT[period.month-1]} ${period.year} Period ${period.period_number}?\n\nThis action cannot be undone.`)) return;
-        setApproving(true);
-        try{const res=await fetch('/payroll/records/approve-all',{method:'PATCH',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf()},body:JSON.stringify({period_id:tmpl.id,year:period.year,month:period.month})});const data=await res.json();if(!res.ok)throw new Error(data.message);onToast(data.message,'success');load();}catch(e){onToast(e.message,'error');}finally{setApproving(false);}
-    };
-    const approveOne = async(r)=>{
-        if(!window.confirm(`Approve salary for ${r.name}?\n\nThis action cannot be undone.`)) return;
-        try{const res=await fetch(`/payroll/records/${r.id}/approve`,{method:'PATCH',headers:{'X-CSRF-TOKEN':csrf()}});const data=await res.json();if(!res.ok)throw new Error(data.message);onToast(`${r.name} approved.`,'success');load();}catch(e){onToast(e.message,'error');}
+    const openApproveAllConfirm = () => {
+        if (!tmpl?.id || records.length === 0) return;
+        setConfirmState({
+            open: true,
+            type: 'all',
+            record: null,
+        });
     };
 
-    const td = { padding:'9px 10px', whiteSpace:'nowrap', verticalAlign:'middle' };
+    const openApproveOneConfirm = (r) => {
+        setConfirmState({
+            open: true,
+            type: 'single',
+            record: r,
+        });
+    };
+
+    const handleConfirmApprove = async () => {
+        if (!confirmState.open) return;
+
+        if (confirmState.type === 'all') {
+            if (!tmpl?.id) return;
+
+            setApproving(true);
+            try {
+                const res = await fetch('/payroll/records/approve-all', {
+                    method:'PATCH',
+                    headers:{
+                        'Content-Type':'application/json',
+                        'X-CSRF-TOKEN':csrf()
+                    },
+                    body:JSON.stringify({
+                        period_id:tmpl.id,
+                        year:period.year,
+                        month:period.month
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message ?? 'Approve all failed');
+
+                onToast(data.message, 'success');
+                setConfirmState({ open:false, type:null, record:null });
+                load();
+            } catch (e) {
+                onToast(e.message, 'error');
+            } finally {
+                setApproving(false);
+            }
+            return;
+        }
+
+        if (confirmState.type === 'single' && confirmState.record) {
+            setApproving(true);
+            try {
+                const r = confirmState.record;
+                const res = await fetch(`/payroll/records/${r.id}/approve`, {
+                    method:'PATCH',
+                    headers:{ 'X-CSRF-TOKEN':csrf() }
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message ?? 'Approve failed');
+
+                onToast(`${r.name} approved.`, 'success');
+                setConfirmState({ open:false, type:null, record:null });
+                setDetail(null);
+                load();
+            } catch (e) {
+                onToast(e.message, 'error');
+            } finally {
+                setApproving(false);
+            }
+        }
+    };
 
     return (
         <div>
-            {/* Top bar */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16, flexWrap:'wrap', gap:8 }}>
                 <span style={{ fontSize:12, color:'#9ca3af', fontWeight:600 }}>
                     {records.length} employees · {MONTHS_SHORT[period.month-1]} {period.year}
@@ -708,7 +949,7 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
                         🔄 Refresh
                     </button>
                     {records.some(r=>r.status!=='approved')&&records.length>0&&(
-                        <button onClick={approveAll} disabled={approving} style={{ padding:'7px 16px', borderRadius:8, border:'none', background:'#059669', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 }}>
+                        <button onClick={openApproveAllConfirm} disabled={approving} style={{ padding:'7px 16px', borderRadius:8, border:'none', background:'#059669', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 }}>
                             {approving?<><Spinner color="#fff" size={12}/>Approving...</>:'✅ Approve All'}
                         </button>
                     )}
@@ -766,7 +1007,7 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
                                             <td style={{ padding:'10px 12px', whiteSpace:'nowrap', verticalAlign:'middle' }}>
                                                 <div style={{ display:'flex', gap:4 }}>
                                                     <button onClick={()=>setDetail(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:'#ede9fe', color:'#7c3aed', fontSize:11, fontWeight:700, cursor:'pointer' }}>Detail</button>
-                                                    {r.status!=='approved'&&<button onClick={()=>approveOne(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:'#d1fae5', color:'#059669', fontSize:11, fontWeight:700, cursor:'pointer' }}>Approve</button>}
+                                                    {r.status!=='approved'&&<button onClick={()=>openApproveOneConfirm(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:'#d1fae5', color:'#059669', fontSize:11, fontWeight:700, cursor:'pointer' }}>Approve</button>}
                                                 </div>
                                             </td>
                                         </tr>
@@ -777,13 +1018,46 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
                     )
             }
 
-            {detail&&<SalaryDetailModal detail={detail} curr={curr} onApprove={approveOne} onClose={()=>setDetail(null)} />}
+            {detail && (
+                <SalaryDetailModal
+                    detail={detail}
+                    curr={curr}
+                    onApprove={openApproveOneConfirm}
+                    onClose={() => setDetail(null)}
+                />
+            )}
+
+            <ConfirmActionModal
+                open={confirmState.open}
+                tone="success"
+                loading={approving}
+                title={
+                    confirmState.type === 'all'
+                        ? 'Approve All Payroll Records'
+                        : 'Approve Employee Salary'
+                }
+                message={
+                    confirmState.type === 'all'
+                        ? `Are you sure you want to approve all ${records.length} payroll records for ${MONTHS_SHORT[period.month - 1]} ${period.year} Period ${period.period_number}? This action cannot be undone.`
+                        : `Are you sure you want to approve salary for ${confirmState.record?.name || 'this employee'}? This action cannot be undone.`
+                }
+                confirmText={
+                    confirmState.type === 'all'
+                        ? 'Yes, Approve All'
+                        : 'Yes, Approve'
+                }
+                cancelText="Cancel"
+                onClose={() => {
+                    if (!approving) {
+                        setConfirmState({ open:false, type:null, record:null });
+                    }
+                }}
+                onConfirm={handleConfirmApprove}
+            />
         </div>
     );
 }
 
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function PayrollRecordsIndex({ salaryRule, periodTemplates, employees }) {
     const now = new Date();
     const [period,    setPeriod]    = useState({ year:now.getFullYear(), month:now.getMonth()+1, period_number:1 });
@@ -820,28 +1094,21 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                 <div className=" pb-8">
                     <div className="mx-auto">
 
-                        {/* ── Period selector bar ── */}
                         <div style={{ background:'#fff', borderRadius:14, padding:'14px 20px', border:'1px solid #e5e7eb', marginBottom:16, boxShadow:'0 1px 3px rgba(0,0,0,.04)', display:'flex', alignItems:'center', gap:16, flexWrap:'wrap' }}>
                             <span style={{ fontSize:11, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'0.8px', flexShrink:0 }}>Pay Period</span>
                             <PeriodBar salaryRule={salaryRule} periodTemplates={periodTemplates} value={period} onChange={setPeriod} />
                         </div>
 
-                        {/* ── Main workflow layout: left sidebar steps + right content ── */}
                         <div style={{ display:'flex', gap:16, alignItems:'flex-start' }}>
-
-                            {/* Left sidebar — step navigation */}
                             <div style={{ width:220, flexShrink:0, background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', boxShadow:'0 1px 3px rgba(0,0,0,.04)', overflow:'hidden' }}>
-                                {/* Sidebar header */}
                                 <div style={{ padding:'14px 16px 10px', borderBottom:'1px solid #f3f4f6' }}>
                                     <div style={{ fontSize:10, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:2 }}>Workflow</div>
                                     <div style={{ fontSize:11, color:'#6b7280' }}>{completed.size}/{STEPS.length} steps done</div>
                                 </div>
 
-                                {/* Step items */}
                                 {STEPS.map((step, idx) => {
                                     const isActive = activeKey === step.key;
                                     const isDone   = completed.has(step.key);
-                                    const isNext   = !isDone && !isActive && STEPS.findIndex(s=>s.key===activeKey)===idx-1;
                                     return (
                                         <button key={step.key} className="step-btn"
                                             onClick={() => setActiveKey(step.key)}
@@ -853,7 +1120,6 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                                                 background: isActive ? '#faf5ff' : '#fff',
                                                 transition:'all 0.15s',
                                             }}>
-                                            {/* Icon circle */}
                                             <div style={{
                                                 width:34, height:34, borderRadius:'50%', flexShrink:0,
                                                 display:'flex', alignItems:'center', justifyContent:'center',
@@ -866,7 +1132,6 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                                                     : <span style={{ width:14, height:14, display:'block', color: isActive?'#7c3aed':'#9ca3af' }}>{step.icon}</span>
                                                 }
                                             </div>
-                                            {/* Text */}
                                             <div>
                                                 <div style={{ fontSize:12, fontWeight:700, color: isActive?'#7c3aed': isDone?'#059669':'#374151', marginBottom:1 }}>
                                                     {idx+1}. {step.label}
@@ -879,7 +1144,6 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                                     );
                                 })}
 
-                                {/* Progress bar */}
                                 <div style={{ padding:'12px 16px', borderTop:'1px solid #f3f4f6' }}>
                                     <div style={{ height:4, background:'#f3f4f6', borderRadius:99, overflow:'hidden' }}>
                                         <div style={{ height:'100%', borderRadius:99, background:'linear-gradient(90deg,#7c3aed,#059669)', width:`${(completed.size/STEPS.length)*100}%`, transition:'width 0.4s ease' }}/>
@@ -887,9 +1151,7 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                                 </div>
                             </div>
 
-                            {/* Right content area */}
                             <div style={{ flex:1, minWidth:0, background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', boxShadow:'0 1px 3px rgba(0,0,0,.04)', overflow:'hidden' }}>
-                                {/* Content header */}
                                 <div style={{ padding:'16px 24px 14px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:14 }}>
                                     <div style={{ width:36, height:36, borderRadius:10, background:'#ede9fe', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                                         <span style={{ width:18, height:18, display:'block', color:'#7c3aed' }}>{STEPS.find(s=>s.key===activeKey)?.icon}</span>
@@ -899,12 +1161,10 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                                         <div style={{ fontSize:11, color:'#9ca3af', marginTop:1 }}>{STEPS.find(s=>s.key===activeKey)?.summary}</div>
                                     </div>
                                 </div>
-                                {/* Step body */}
                                 <div style={{ padding:24, animation:'fadeIn 0.2s ease' }}>
                                     {stepContent[activeKey]}
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
