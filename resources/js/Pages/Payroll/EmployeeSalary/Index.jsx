@@ -555,7 +555,7 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
             <Head title="Employee Salary" />
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-            <div style={{ maxWidth: 1320, margin: '0 auto' }}>
+            <div style={{ margin: '0 auto' }}>
 
                 {/* ── Page header ── */}
                 <div style={{ display: 'flex', justifyContent: 'space-between',

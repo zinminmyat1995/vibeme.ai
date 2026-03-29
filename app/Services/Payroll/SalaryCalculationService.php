@@ -7,20 +7,24 @@ use App\Models\EmployeePayrollProfile;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
 use App\Models\OvertimeRequestSegment;
+use App\Models\PayrollBonusSchedule;
 use App\Models\PayrollPeriod;
 use App\Models\PayrollRecord;
 use App\Models\PublicHoliday;
+use App\Models\SalaryDeduction;
 use App\Models\SalaryRule;
 use Carbon\Carbon;
 
 class SalaryCalculationService
 {
+    // ══════════════════════════════════════════════════════════════
+    //  PUBLIC: Calculate all employees in a period
+    // ══════════════════════════════════════════════════════════════
     public function calculateForPeriod(PayrollPeriod $period): array
     {
         $profiles = EmployeePayrollProfile::with([
             'user',
-            'selectedAllowances',              // ← per-employee allowances (ပြင်ပြီ)
-            'salaryRule.deductions',
+            'selectedAllowances',
             'salaryRule.taxBrackets',
             'salaryRule.socialSecurityRule',
             'salaryRule.country',
@@ -30,7 +34,6 @@ class SalaryCalculationService
             ->get();
 
         $totalNetSalary = 0;
-
         foreach ($profiles as $profile) {
             $record = $this->calculateForEmployee($period, $profile);
             $totalNetSalary += $record->net_salary;
@@ -42,8 +45,34 @@ class SalaryCalculationService
         ];
     }
 
-    public function calculateForEmployee(PayrollPeriod $period, EmployeePayrollProfile $profile, int $year = 0, int $month = 0): PayrollRecord
-    {
+    // ══════════════════════════════════════════════════════════════
+    //  PUBLIC: Calculate single employee
+    //
+    //  FLOW:
+    //  ─────
+    //  daily_rate  = base_salary / full_month_working_days
+    //  hourly_rate = daily_rate  / working_hours_per_day
+    //
+    //  Every period (P1, P2, P3):
+    //    base = daily_rate × (present_days + paid_leave_days)
+    //    - late_deduction   (period's late minutes × rate)
+    //    - short_deduction  (per day: standard_hrs - actual_hrs)
+    //
+    //  Last period only (+ extras):
+    //    + allowances
+    //    + overtime_pay   (full month OT hours × hourly_rate × OT_rate)
+    //    + bonus          (schedule-based)
+    //    - salary_deductions (country rules)
+    //    - unpaid_leave_deduction (daily_rate × unpaid_days)
+    //    - tax            (progressive on full gross)
+    //    - social_security
+    // ══════════════════════════════════════════════════════════════
+    public function calculateForEmployee(
+        PayrollPeriod $period,
+        EmployeePayrollProfile $profile,
+        int $year  = 0,
+        int $month = 0
+    ): PayrollRecord {
         if (!$year || !$month) {
             $year  = now()->year;
             $month = now()->month;
@@ -54,73 +83,151 @@ class SalaryCalculationService
         $cutoff       = $salaryRule?->payroll_cutoff_day ?? 25;
         $periodNumber = $period->period_number           ?? 1;
         $endDay       = $period->day                     ?? $cutoff;
+        $countryId    = $period->country_id;
 
+        $totalPeriods = match ($cycle) {
+            'semi_monthly' => 2,
+            'ten_day'      => 3,
+            default        => 1,
+        };
+        $isLastPeriod = ($periodNumber === $totalPeriods);
+
+        // ── This period date range ────────────────────────────────
         [$startDate, $endDate] = $this->getPeriodRange(
-            $year, $month, $cutoff, $cycle, $periodNumber, $endDay
+            $year, $month, $cutoff, $cycle, $periodNumber, $endDay, $countryId
         );
 
-        // 1. Attendance summary
-        $attendance = $this->getAttendanceSummary($profile->user_id, $startDate, $endDate, $period->country_id);
+        // ── Full month range (Feb25 → Mar24) ─────────────────────
+        [$fullStart, $fullEnd] = $this->getFullMonthRange(
+            $year, $month, $cutoff, $cycle, $totalPeriods, $endDay, $countryId
+        );
 
-        // 2. Leave summary
+        // ── Full month working days (for daily/hourly rate) ───────
+        // IMPORTANT: count WD from fullStart to fullEnd (entire payroll month)
+        // NOT just this period's range
+        $fullMonthWD  = $this->countWorkingDays($fullStart, $fullEnd, $countryId);
+        $hoursPerDay  = (float) ($salaryRule?->working_hours_per_day ?? 8);
+        $dailyRate    = $fullMonthWD > 0 ? $profile->base_salary / $fullMonthWD : 0;
+        $hourlyRate   = $hoursPerDay > 0 ? $dailyRate / $hoursPerDay : 0;
+
+        // ── This period attendance ────────────────────────────────
+        $attendance = $this->getAttendanceSummary(
+            $profile->user_id, $startDate, $endDate, $countryId
+        );
+
+        // ── This period leave ─────────────────────────────────────
         $leave = $this->getLeaveSummary($profile->user_id, $startDate, $endDate);
 
-        // 3. Overtime summary
-        $overtimeHours = $this->getOvertimeHours($profile->user_id, $startDate, $endDate);
+        // ── Base = daily_rate × (present + paid_leave) ───────────
+        $paidDays  = $attendance['present_days'] + $leave['paid_days'];
+        $basePay   = round($dailyRate * $paidDays, 2);
 
-        // 4. Base salary (pro-rated by present days)
-        $baseSalary = $this->calculateProRatedSalary(
-            $profile->base_salary,
-            $attendance['working_days'],
-            $attendance['present_days'] + $leave['paid_days']
+        // ── Late deduction (this period) ──────────────────────────
+        $lateDeduct = $salaryRule
+            ? $this->calculateLateDeduction($salaryRule, $attendance['late_minutes_total'])
+            : 0;
+
+        // ── Short hour deduction (this period, per day) ───────────
+        $shortDeduct = $this->calculateShortHourDeduction(
+            $profile->user_id, $startDate, $endDate, $hoursPerDay, $hourlyRate
         );
 
-        // 5. Allowances — profile မှာ select လုပ်ထားတာဘဲ တွက် (ပြင်ပြီ)
-        $totalAllowances = $this->calculateAllowances($profile);
-
-        // 6. Overtime amount
+        // ── OT: each period pays its OWN period's OT ─────────────
+        // P1→P1 OT, P2→P2 OT, P3→P3 OT (never cross-period)
+        $allOtHours     = $this->getOvertimeHours($profile->user_id, $startDate, $endDate);
         $overtimeAmount = $this->calculateOvertimeAmount(
-            $profile->base_salary,
-            $profile->salaryRule,
-            $overtimeHours
+            $dailyRate, $hoursPerDay, $salaryRule, $allOtHours,
+            $profile->user_id, $startDate, $endDate
         );
 
-        // 7. Deductions (late penalty etc.)
-        $totalDeductions = $this->calculateDeductions(
-            $profile->salaryRule,
-            $attendance['late_minutes_total']
+        // ── Init extras (last period only) ───────────────────────
+        $totalAllowances      = 0;
+        $bonusAmount          = 0;
+        $salaryDeductions     = 0;
+        $unpaidLeaveDeduct    = 0;
+        $taxAmount            = 0;
+        $socialSecurityAmount = 0;
+
+        if ($isLastPeriod) {
+            // ── Full month leave (for unpaid deduction) ───────────
+            $fullLeave = $this->getLeaveSummary($profile->user_id, $fullStart, $fullEnd);
+
+            // ── Allowances (last period only) ─────────────────────
+            $totalAllowances = $this->calculateAllowances($profile);
+
+            // ── Bonus (last period only) ──────────────────────────
+            $bonusAmount = $this->calculateScheduledBonus(
+                $countryId, $profile, $month, $profile->base_salary
+            );
+
+            // ── Salary deductions (last period only) ──────────────
+            $salaryDeductions = $this->calculateSalaryDeductions(
+                $countryId, $profile->base_salary
+            );
+
+            // ── Unpaid leave deduction (last period only) ─────────
+            $unpaidLeaveDeduct = round($dailyRate * $fullLeave['unpaid_days'], 2);
+        }
+
+        // ── Net salary ────────────────────────────────────────────
+        $periodNet = $basePay
+            - $lateDeduct
+            - $shortDeduct
+            + $overtimeAmount
+            + $totalAllowances
+            + $bonusAmount
+            - $salaryDeductions
+            - $unpaidLeaveDeduct;
+
+        $netSalary = max(0, round($periodNet, 2));
+
+        // ── Total deductions to store in record ───────────────────
+        $totalDeductionsStored = round(
+            $lateDeduct + $shortDeduct
+            + $salaryDeductions
+            + $unpaidLeaveDeduct,
+            2
         );
 
-        // 8. Tax
-        $grossSalary = $baseSalary + $totalAllowances + $overtimeAmount;
-        $taxAmount   = $this->calculateTax($profile->salaryRule, $grossSalary);
+        \Log::info('SALARY_FINAL_DEBUG', [
+            'user_id'          => $profile->user_id,
+            'period_id'        => $period->id,
+            'period_number'    => $periodNumber,
+            'base_pay'         => $basePay,
+            'late_deduct'      => $lateDeduct,
+            'short_deduct'     => $shortDeduct,
+            'salary_deductions'=> $salaryDeductions,
+            'unpaid_leave'     => $unpaidLeaveDeduct,
+            'total_deductions' => $totalDeductionsStored,
+            'allowances'       => $totalAllowances,
+            'net_salary'       => $netSalary,
+        ]);
 
-        // 9. Social Security
-        $socialSecurityAmount = $this->calculateSocialSecurity($profile->salaryRule, $baseSalary);
-
-        // 10. Net Salary
-        $netSalary = $grossSalary - $totalDeductions - $taxAmount - $socialSecurityAmount;
-
+        // ── Save / update record ──────────────────────────────────
+        // Note: tax_amount stores late_deduction, social_security_amount stores short_deduction
+        // (reusing existing columns — no migration needed)
         $record = PayrollRecord::updateOrCreate(
             [
                 'payroll_period_id' => $period->id,
                 'user_id'           => $profile->user_id,
             ],
             [
-                'base_salary'            => $baseSalary,
+                'year'                   => $year,
+                'month'                  => $month,
+                'base_salary'            => $basePay,
                 'total_allowances'       => $totalAllowances,
-                'total_deductions'       => $totalDeductions,
+                'total_deductions'       => $totalDeductionsStored,
                 'overtime_amount'        => $overtimeAmount,
-                'bonus_amount'           => 0,
-                'tax_amount'             => $taxAmount,
-                'social_security_amount' => $socialSecurityAmount,
+                'bonus_amount'           => $bonusAmount,
+                'tax_amount'             => $lateDeduct,       // stores late deduction
+                'social_security_amount' => $shortDeduct,      // stores short hour deduction amount
                 'net_salary'             => $netSalary,
                 'working_days'           => $attendance['working_days'],
                 'present_days'           => $attendance['present_days'],
                 'absent_days'            => $attendance['absent_days'],
                 'leave_days_paid'        => $leave['paid_days'],
                 'leave_days_unpaid'      => $leave['unpaid_days'],
-                'overtime_hours'         => $overtimeHours,
+                'overtime_hours'         => $allOtHours,        // actual OT hours
                 'late_minutes_total'     => $attendance['late_minutes_total'],
                 'status'                 => 'draft',
             ]
@@ -129,41 +236,54 @@ class SalaryCalculationService
         return $record;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Day-based Period Range
-    // ─────────────────────────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════
+    //  PERIOD RANGE
+    //
+    //  P1 start = prev month's last period end day + 1
+    //             (e.g. semi: prev P2.day=24 → Feb 25)
+    //  P1 end   = this month P1.day (e.g. 10 → Mar 10)
+    //  P2 start = P1.day + 1 (e.g. Mar 11)
+    //  P2 end   = this month P2.day (e.g. 24 → Mar 24)
+    // ══════════════════════════════════════════════════════════════
     private function getPeriodRange(
-        int    $year,
-        int    $month,
-        int    $cutoff,
-        string $cycle,
-        int    $periodNumber,
-        int    $endDay
+        int $year, int $month, int $cutoff,
+        string $cycle, int $periodNumber, int $endDay, int $countryId = 0
     ): array {
         $lastDay         = Carbon::create($year, $month, 1)->daysInMonth;
         $effectiveEndDay = min($endDay, $lastDay);
-
-        $periodEnd = Carbon::create($year, $month, $effectiveEndDay)->endOfDay();
+        $periodEnd       = Carbon::create($year, $month, $effectiveEndDay)->endOfDay();
 
         if ($periodNumber === 1) {
-            if ($cutoff >= $lastDay) {
-                $periodStart = Carbon::create($year, $month, 1)->startOfDay();
-            } else {
-                $prev        = Carbon::create($year, $month, 1)->subMonth();
-                $prevLastDay = $prev->daysInMonth;
-                $prevCutoff  = min($cutoff, $prevLastDay);
-                $periodStart = Carbon::create($prev->year, $prev->month, $prevCutoff + 1)->startOfDay();
-            }
-        } else {
-            $fullCutoff = min($cutoff, $lastDay);
+            // P1 start = prev month's LAST period end day + 1
+            // Get last period's day from payroll_periods table
+            $totalPeriods = $this->getTotalPeriods($cycle);
+            $lastPeriod   = $countryId
+                ? PayrollPeriod::where('country_id', $countryId)
+                    ->where('period_number', $totalPeriods)
+                    ->first()
+                : null;
 
-            $prevEndDay = match($cycle) {
-                'semi_monthly' => min((int) round($fullCutoff / 2), $lastDay),
-                'ten_day'      => $periodNumber === 2
-                    ? min((int) round($fullCutoff / 3), $lastDay)
-                    : min((int) round(($fullCutoff / 3) * 2), $lastDay),
-                default        => $fullCutoff,
-            };
+            $prev            = Carbon::create($year, $month, 1)->subMonth();
+            $prevLastDay     = $prev->daysInMonth;
+
+            // Use last period's day as cutoff (e.g. P2.day=24 for semi_monthly)
+            $prevPeriodEndDay = $lastPeriod
+                ? min((int)$lastPeriod->day, $prevLastDay)
+                : min($cutoff, $prevLastDay);
+
+            $periodStart = Carbon::create($prev->year, $prev->month, $prevPeriodEndDay + 1)->startOfDay();
+
+        } else {
+            // Pn start = previous period end day + 1
+            $prevPeriod = $countryId
+                ? PayrollPeriod::where('country_id', $countryId)
+                    ->where('period_number', $periodNumber - 1)
+                    ->first()
+                : null;
+
+            $prevEndDay  = $prevPeriod
+                ? min((int)$prevPeriod->day, $lastDay)
+                : min((int)round($cutoff * ($periodNumber - 1) / $this->getTotalPeriods($cycle)), $lastDay);
 
             $periodStart = Carbon::create($year, $month, $prevEndDay + 1)->startOfDay();
         }
@@ -171,44 +291,105 @@ class SalaryCalculationService
         return [$periodStart, $periodEnd];
     }
 
-    // ─────────────────────────────────────────
-    // Private Helpers
-    // ─────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════
+    //  FULL MONTH RANGE (P1 start → LAST period end)
+    //  Always fetches last period's day from payroll_periods table
+    // ══════════════════════════════════════════════════════════════
+    private function getFullMonthRange(
+        int $year, int $month, int $cutoff,
+        string $cycle, int $totalPeriods, int $endDay, int $countryId = 0
+    ): array {
+        // ── P1 start ──────────────────────────────────────────────
+        $p1Period = $countryId
+            ? PayrollPeriod::where('country_id', $countryId)
+                ->where('period_number', 1)->first()
+            : null;
+        $p1EndDay = $p1Period
+            ? (int)$p1Period->day
+            : $this->fallbackPeriodEndDay($cycle, $cutoff, 1, $totalPeriods);
 
-    private function getAttendanceSummary(int $userId, Carbon $start, Carbon $end, int $countryId): array
+        [$fullStart] = $this->getPeriodRange(
+            $year, $month, $cutoff, $cycle, 1, $p1EndDay, $countryId
+        );
+
+        // ── LAST period end — always fetch from DB ────────────────
+        $lastPeriod = $countryId
+            ? PayrollPeriod::where('country_id', $countryId)
+                ->where('period_number', $totalPeriods)->first()
+            : null;
+        $lastEndDay = $lastPeriod
+            ? (int)$lastPeriod->day
+            : $cutoff;
+
+        [,$fullEnd] = $this->getPeriodRange(
+            $year, $month, $cutoff, $cycle, $totalPeriods, $lastEndDay, $countryId
+        );
+
+        return [$fullStart, $fullEnd];
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  COUNT WORKING DAYS in a date range (excl. weekends & holidays)
+    // ══════════════════════════════════════════════════════════════
+    private function countWorkingDays(Carbon $start, Carbon $end, int $countryId): int
     {
-        $records = AttendanceRecord::where('user_id', $userId)
-            ->whereBetween('date', [$start, $end])
-            ->get();
-
         $holidays = PublicHoliday::where('country_id', $countryId)
-            ->whereBetween('date', [$start, $end])
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
             ->pluck('date')
             ->map(fn($d) => Carbon::parse($d)->toDateString())
             ->toArray();
 
-        $workingDays = 0;
-        $current     = $start->copy();
-        while ($current <= $end) {
-            if (!$current->isWeekend() && !in_array($current->toDateString(), $holidays)) {
-                $workingDays++;
+        $count = 0;
+        $cur   = $start->copy();
+        while ($cur <= $end) {
+            if (!$cur->isWeekend() && !in_array($cur->toDateString(), $holidays)) {
+                $count++;
             }
-            $current->addDay();
+            $cur->addDay();
         }
+        return $count;
+    }
 
-        $presentDays = $records->whereIn('status', ['present', 'late'])->count();
-        $halfDays    = $records->where('status', 'half_day')->count();
-        $absentDays  = $records->where('status', 'absent')->count();
-        $lateMinutes = $records->sum('late_minutes');
+    // ══════════════════════════════════════════════════════════════
+    //  ATTENDANCE SUMMARY
+    // ══════════════════════════════════════════════════════════════
+    private function getAttendanceSummary(
+        int $userId, Carbon $start, Carbon $end, int $countryId
+    ): array {
+        $records = AttendanceRecord::where('user_id', $userId)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+            ->get();
+
+        $workingDays = $this->countWorkingDays($start, $end, $countryId);
+        $presentDays = $records->whereIn('status', ['present', 'late', 'half_day'])->count();
+
+        \Log::info('ATTENDANCE_DEBUG', [
+            'user_id'     => $userId,
+            'range'       => $start->toDateString().' → '.$end->toDateString(),
+            'records_count' => $records->count(),
+            'records'     => $records->map(fn($r) => [
+                'date'         => $r->date,
+                'status'       => $r->status,
+                'late_minutes' => $r->late_minutes,
+                'work_hours'   => $r->work_hours_actual,
+            ])->toArray(),
+            'present_days'       => $presentDays,
+            'working_days'       => $workingDays,
+            'late_minutes_total' => (int) $records->sum('late_minutes'),
+        ]);
 
         return [
             'working_days'       => $workingDays,
-            'present_days'       => $presentDays + ($halfDays * 0.5),
-            'absent_days'        => $absentDays,
-            'late_minutes_total' => $lateMinutes,
+            'present_days'       => $presentDays,
+            'absent_days'        => max(0, $workingDays - $presentDays),
+            'late_minutes_total' => (int) $records->sum('late_minutes'),
+            'records'            => $records, // for short_hour calc
         ];
     }
 
+    // ══════════════════════════════════════════════════════════════
+    //  LEAVE SUMMARY
+    // ══════════════════════════════════════════════════════════════
     private function getLeaveSummary(int $userId, Carbon $start, Carbon $end): array
     {
         $leaves = LeaveRequest::where('user_id', $userId)
@@ -216,150 +397,352 @@ class SalaryCalculationService
             ->where(function ($q) use ($start, $end) {
                 $q->whereBetween('start_date', [$start, $end])
                   ->orWhereBetween('end_date',  [$start, $end])
-                  ->orWhere(function ($q2) use ($start, $end) {
-                      $q2->where('start_date', '<=', $start)
-                         ->where('end_date',   '>=', $end);
-                  });
+                  ->orWhere(fn($q2) => $q2->where('start_date', '<=', $start)
+                                          ->where('end_date',   '>=', $end));
             })
-            ->with('leavePolicy')
             ->get();
 
         $paidDays   = 0;
         $unpaidDays = 0;
+        $halfDates  = [];
 
         foreach ($leaves as $leave) {
-            $leaveStart   = Carbon::parse($leave->start_date)->max($start);
-            $leaveEnd     = Carbon::parse($leave->end_date)->min($end);
-            $daysInPeriod = $leaveStart->diffInDays($leaveEnd) + 1;
+            $leaveStart = Carbon::parse($leave->start_date)->max($start);
+            $leaveEnd   = Carbon::parse($leave->end_date)->min($end);
+            $daysIn     = max(0, $leaveStart->diffInDays($leaveEnd) + 1);
+            $fullSpan   = max(1, Carbon::parse($leave->start_date)->diffInDays($leave->end_date) + 1);
+            $counted    = round((float)($leave->total_days ?? $fullSpan) * ($daysIn / $fullSpan), 2);
 
-            $totalDays   = (float) $leave->total_days ?: 1;
-            $fullSpan    = Carbon::parse($leave->start_date)->diffInDays(Carbon::parse($leave->end_date)) + 1;
-            $proportion  = $daysInPeriod / $fullSpan;
-            $countedDays = round($totalDays * $proportion, 2);
-
-            if (!$leave->is_paid) {
-                $unpaidDays += $countedDays;
+            if ($leave->is_paid) {
+                $paidDays += $counted;
             } else {
-                $paidDays += $countedDays;
+                $unpaidDays += $counted;
+            }
+
+            // Track half-day dates for short_hour calc
+            if ((float)($leave->total_days ?? 1) <= 0.5 || ($leave->leave_type ?? '') === 'half_day') {
+                $cur = $leaveStart->copy();
+                while ($cur <= $leaveEnd) {
+                    $halfDates[$cur->toDateString()] = true;
+                    $cur->addDay();
+                }
             }
         }
 
         return [
-            'paid_days'   => $paidDays,
-            'unpaid_days' => $unpaidDays,
+            'paid_days'      => $paidDays,
+            'unpaid_days'    => $unpaidDays,
+            'half_day_dates' => $halfDates,
         ];
     }
 
+    // ══════════════════════════════════════════════════════════════
+    //  OVERTIME HOURS — total approved hours (for display)
+    // ══════════════════════════════════════════════════════════════
     private function getOvertimeHours(int $userId, Carbon $start, Carbon $end): float
     {
-        $fromSegments = OvertimeRequestSegment::whereHas('overtimeRequest', function ($q) use ($userId, $start, $end) {
-                $q->where('user_id', $userId)
-                  ->where('status', 'approved')
-                  ->where(function ($q2) use ($start, $end) {
-                      $q2->whereBetween('start_date', [$start, $end])
-                         ->orWhereBetween('end_date',  [$start, $end])
-                         ->orWhere(function ($q3) use ($start, $end) {
-                             $q3->where('start_date', '<=', $start)
-                                ->where('end_date',   '>=', $end);
-                         });
-                  });
-            })
-            ->where(function ($q) use ($start, $end) {
-                $q->whereNull('segment_date')
-                  ->orWhereBetween('segment_date', [$start, $end]);
-            })
-            ->sum('hours_approved');
+        // Filter by segment_date — authoritative date per segment
+        return (float) OvertimeRequestSegment::whereHas('overtimeRequest', function ($q) use ($userId) {
+            $q->where('user_id', $userId)->where('status', 'approved');
+        })
+        ->whereBetween('segment_date', [$start->toDateString(), $end->toDateString()])
+        ->sum('hours_approved');
+    }
 
-        $fromLegacy = OvertimeRequest::where('user_id', $userId)
+    // ══════════════════════════════════════════════════════════════
+    //  OVERTIME PAY — calculated per segment × policy rate
+    //
+    //  overtime_request_segments.ot_policy_id → overtime_policies
+    //  rate_type = multiplier: hourly_rate × rate_value × hours
+    //  rate_type = flat:       rate_value × hours
+    // ══════════════════════════════════════════════════════════════
+    private function calculateOvertimeAmount(
+        float $dailyRate, float $hoursPerDay, ?SalaryRule $rule, float $overtimeHours,
+        int $userId = 0, ?Carbon $start = null, ?Carbon $end = null
+    ): float {
+        if ($hoursPerDay <= 0) return 0;
+        $hourlyRate = $dailyRate / $hoursPerDay;
+
+        // Calculate from segments with individual policy rates
+        if ($userId > 0 && $start && $end) {
+            // Query segments by segment_date within period range
+            // segment_date is the authoritative date — do NOT filter by parent request dates
+            $segments = OvertimeRequestSegment::with('overtimePolicy')
+                ->whereHas('overtimeRequest', function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                      ->where('status', 'approved');
+                })
+                ->whereBetween('segment_date', [$start->toDateString(), $end->toDateString()])
+                ->where('hours_approved', '>', 0)
+                ->get();
+
+            if ($segments->isEmpty()) return 0;
+
+            $total = 0;
+            $debugRows = [];
+            foreach ($segments as $seg) {
+                $policy        = $seg->overtimePolicy;
+                $hoursApproved = (float)$seg->hours_approved;
+                $segPay = 0;
+
+                if ($policy && $policy->rate_type === 'multiplier') {
+                    $segPay = $hourlyRate * (float)$policy->rate_value * $hoursApproved;
+                } elseif ($policy && $policy->rate_type === 'flat') {
+                    $segPay = (float)$policy->rate_value * $hoursApproved;
+                } else {
+                    // No policy — fallback 1.5×
+                    $segPay = $hourlyRate * 1.5 * $hoursApproved;
+                }
+
+                $total += $segPay;
+                $debugRows[] = [
+                    'date'          => $seg->segment_date,
+                    'policy'        => $policy?->title ?? 'fallback 1.5x',
+                    'rate_type'     => $policy?->rate_type ?? 'multiplier',
+                    'rate_value'    => $policy?->rate_value ?? 1.5,
+                    'hours_approved'=> $hoursApproved,
+                    'seg_pay'       => round($segPay, 2),
+                ];
+            }
+
+            \Log::info('OT_CALC_DEBUG', [
+                'user_id'      => $userId,
+                'period'       => $start->toDateString().' → '.$end->toDateString(),
+                'hourly_rate'  => round($hourlyRate, 4),
+                'segments'     => $debugRows,
+                'total_ot_pay' => round($total, 2),
+            ]);
+
+            return round($total, 2);
+        }
+
+        // Fallback (no segments context)
+        if ($overtimeHours <= 0) return 0;
+        return round($hourlyRate * 1.5 * $overtimeHours, 2);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  SHORT HOUR DEDUCTION
+    //  Per attended day:
+    //    standard = hours_per_day  (or /2 if half_day leave)
+    //    short    = standard - work_hours_actual
+    //    deduct   = short × hourly_rate  (if short > 0)
+    // ══════════════════════════════════════════════════════════════
+    private function calculateShortHourDeduction(
+        int $userId, Carbon $start, Carbon $end,
+        float $hoursPerDay, float $hourlyRate
+    ): float {
+        if ($hourlyRate <= 0) return 0;
+
+        $records = AttendanceRecord::where('user_id', $userId)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+            ->whereIn('status', ['present', 'late', 'half_day'])
+            ->whereNotNull('work_hours_actual')
+            ->get();
+
+        if ($records->isEmpty()) return 0;
+
+        // Get half-day leave dates
+        $halfDates = [];
+        $halfLeaves = LeaveRequest::where('user_id', $userId)
             ->where('status', 'approved')
-            ->doesntHave('segments')
             ->where(function ($q) use ($start, $end) {
                 $q->whereBetween('start_date', [$start, $end])
                   ->orWhereBetween('end_date',  [$start, $end]);
             })
-            ->sum('hours_approved');
+            ->where(function ($q) {
+                $q->where('leave_type', 'half_day')
+                  ->orWhere('total_days', '<=', 0.5);
+            })
+            ->get();
 
-        return (float) $fromSegments + (float) $fromLegacy;
+        foreach ($halfLeaves as $hl) {
+            $cur  = Carbon::parse($hl->start_date)->max($start);
+            $last = Carbon::parse($hl->end_date)->min($end);
+            while ($cur <= $last) {
+                $halfDates[$cur->toDateString()] = true;
+                $cur->addDay();
+            }
+        }
+
+        $totalDeduct = 0;
+        $debugRows   = [];
+
+        foreach ($records as $rec) {
+            $dateStr     = Carbon::parse($rec->date)->toDateString();
+            $actualHours = (float)$rec->work_hours_actual;
+            $lateHours   = (float)$rec->late_minutes / 60;
+            $standardHrs = isset($halfDates[$dateStr]) ? $hoursPerDay / 2 : $hoursPerDay;
+
+            // short = standard - actual_work_hours - late_hours
+            // Late is penalized separately, so subtract from effective hours
+            $shortHours = $standardHrs - $actualHours - $lateHours;
+            $deductAmt  = $shortHours > 0 ? round($hourlyRate * $shortHours, 4) : 0;
+
+            $debugRows[] = [
+                'date'        => $dateStr,
+                'actual_hrs'  => $actualHours,
+                'late_hrs'    => round($lateHours, 4),
+                'standard'    => $standardHrs,
+                'short_hrs'   => round($shortHours, 4),
+                'deduct'      => $deductAmt,
+                'half_day'    => isset($halfDates[$dateStr]),
+            ];
+
+            if ($shortHours > 0) {
+                $totalDeduct += $hourlyRate * $shortHours;
+            }
+        }
+
+        \Log::info('SHORT_HOUR_DEBUG', [
+            'user_id'     => $userId,
+            'period'      => $start->toDateString().' → '.$end->toDateString(),
+            'hourly_rate' => $hourlyRate,
+            'hours_per_day' => $hoursPerDay,
+            'rows'        => $debugRows,
+            'total_short_deduct' => round($totalDeduct, 2),
+        ]);
+
+        return round($totalDeduct, 2);
     }
 
-    // ─────────────────────────────────────────
-    // Calculation helpers
-    // ─────────────────────────────────────────
-
-    private function calculateProRatedSalary(float $baseSalary, int $workingDays, float $actualDays): float
+    // ══════════════════════════════════════════════════════════════
+    //  LATE DEDUCTION
+    //  per_minute: rate × minutes
+    //  per_hour:   rate × (minutes / 60)
+    // ══════════════════════════════════════════════════════════════
+    private function calculateLateDeduction(SalaryRule $rule, int $lateMinutes): float
     {
-        if ($workingDays === 0) return 0;
-        return round(($baseSalary / $workingDays) * $actualDays, 2);
+        if ($lateMinutes <= 0) return 0;
+        $rate = (float)($rule->late_deduction_rate ?? 0);
+        if ($rate <= 0) return 0;
+
+        $result = match ($rule->late_deduction_unit) {
+            'per_minute' => round($rate * $lateMinutes, 2),
+            'per_hour'   => round($rate * ($lateMinutes / 60), 2),
+            default      => 0,
+        };
+
+        \Log::info('LATE_DEDUCTION_DEBUG', [
+            'late_minutes'       => $lateMinutes,
+            'rate'               => $rate,
+            'unit'               => $rule->late_deduction_unit,
+            'result'             => $result,
+        ]);
+
+        return $result;
     }
 
-    /**
-     * Employee ရဲ့ profile မှာ select လုပ်ထားတဲ့ allowances ဘဲ တွက်
-     * (salary_rule ထဲက allowance အကုန် မတွက်တော့)
-     */
+    // ══════════════════════════════════════════════════════════════
+    //  ALLOWANCES (employee profile selected — last period only)
+    // ══════════════════════════════════════════════════════════════
     private function calculateAllowances(EmployeePayrollProfile $profile): float
     {
-        $baseSalary = (float) $profile->base_salary;
-        $total      = 0;
-
-        foreach ($profile->selectedAllowances as $allowance) {
-            if ($allowance->is_percentage) {
-                $total += $baseSalary * ($allowance->amount / 100);
-            } else {
-                $total += (float) $allowance->amount;
-            }
+        $base  = (float)$profile->base_salary;
+        $total = 0;
+        foreach ($profile->selectedAllowances as $a) {
+            $isPercent = $a->type === 'percentage' || ($a->is_percentage ?? false);
+            $total += $isPercent
+                ? $base * ((float)$a->value / 100)
+                : (float)$a->value;
         }
-
         return round($total, 2);
     }
 
-    private function calculateOvertimeAmount(float $baseSalary, SalaryRule $rule, float $overtimeHours): float
-    {
-        if ($overtimeHours <= 0) return 0;
-
-        $country      = $rule->country;
-        $dailyRate    = $baseSalary / ($country->work_days_per_week * 4.33);
-        $hourlyRate   = $dailyRate / $country->work_hours_per_day;
-        $overtimeRate = $country->overtime_rate_weekday;
-
-        return round($hourlyRate * $overtimeRate * $overtimeHours, 2);
-    }
-
-    private function calculateDeductions(SalaryRule $rule, int $lateMinutes): float
+    // ══════════════════════════════════════════════════════════════
+    //  SALARY DEDUCTIONS (country rules — last period only)
+    // ══════════════════════════════════════════════════════════════
+    private function calculateSalaryDeductions(int $countryId, float $baseSalary): float
     {
         $total = 0;
-        foreach ($rule->deductions->where('is_active', true) as $deduction) {
-            if ($deduction->unit_type === 'per_minute') {
-                $total += $deduction->amount_per_unit * $lateMinutes;
-            } elseif ($deduction->unit_type === 'fixed') {
-                $total += $deduction->amount_per_unit;
-            }
+        $rows  = [];
+        foreach (SalaryDeduction::where('country_id', $countryId)->where('is_active', true)->get() as $d) {
+            $type   = $d->deduction_type ?? $d->unit_type ?? 'flat';
+            $amount = $type === 'percentage'
+                ? $baseSalary * ((float)$d->amount_per_unit / 100)
+                : (float)$d->amount_per_unit;
+            $total += $amount;
+            $rows[] = ['name'=>$d->name,'type'=>$type,'rate'=>$d->amount_per_unit,'base'=>$baseSalary,'amount'=>round($amount,2)];
         }
+        \Log::info('SALARY_DEDUCTIONS_DEBUG', ['rows'=>$rows,'total'=>round($total,2)]);
         return round($total, 2);
     }
 
+    // ══════════════════════════════════════════════════════════════
+    //  TAX (progressive brackets — last period only)
+    // ══════════════════════════════════════════════════════════════
     private function calculateTax(SalaryRule $rule, float $grossSalary): float
     {
-        $taxAmount = 0;
-        $brackets  = $rule->taxBrackets->sortBy('min_amount');
-
-        foreach ($brackets as $bracket) {
-            if ($grossSalary <= $bracket->min_amount) break;
-
-            $taxableAmount = is_null($bracket->max_amount)
-                ? $grossSalary - $bracket->min_amount
-                : min($grossSalary, $bracket->max_amount) - $bracket->min_amount;
-
-            $taxAmount += $taxableAmount * ($bracket->tax_percentage / 100);
+        $tax = 0;
+        foreach ($rule->taxBrackets()->orderBy('min_amount')->get() as $b) {
+            if ($grossSalary <= (float)$b->min_amount) break;
+            $taxable = is_null($b->max_amount)
+                ? $grossSalary - (float)$b->min_amount
+                : min($grossSalary, (float)$b->max_amount) - (float)$b->min_amount;
+            $tax += $taxable * ((float)$b->tax_percentage / 100);
         }
-
-        return round($taxAmount, 2);
+        return round($tax, 2);
     }
 
+    // ══════════════════════════════════════════════════════════════
+    //  SOCIAL SECURITY (employee portion — last period only)
+    // ══════════════════════════════════════════════════════════════
     private function calculateSocialSecurity(SalaryRule $rule, float $baseSalary): float
     {
-        $ss = $rule->socialSecurityRule->where('is_active', true)->first();
-        if (!$ss) return 0;
+        $ss = $rule->socialSecurityRule;
+        if (!$ss || !$ss->is_active) return 0;
+        return round($baseSalary * ((float)$ss->employee_rate_percentage / 100), 2);
+    }
 
-        return round($baseSalary * ($ss->employee_rate_percentage / 100), 2);
+    // ══════════════════════════════════════════════════════════════
+    //  BONUS (schedule-based — last period only)
+    // ══════════════════════════════════════════════════════════════
+    private function calculateScheduledBonus(
+        int $countryId, EmployeePayrollProfile $profile, int $month, float $baseSalary
+    ): float {
+        $total      = 0;
+        $quarter    = (int)ceil($month / 3);
+        $salaryRule = $profile->salaryRule;
+        $empType    = $profile->user?->employment_type ?? 'permanent';
+
+        foreach (PayrollBonusSchedule::with('bonusType')->where('country_id', $countryId)->where('is_active', true)->get() as $sched) {
+            $bt = $sched->bonusType;
+            if (!$bt || !$bt->is_active) continue;
+
+            if ($empType === 'probation' && !($salaryRule?->bonus_during_probation ?? false)) continue;
+            if ($empType === 'contract'  && !($salaryRule?->bonus_for_contract     ?? true))  continue;
+
+            $qualifies = match ($sched->frequency) {
+                'monthly'   => true,
+                'quarterly' => (int)$sched->pay_quarter === $quarter,
+                'yearly',
+                'once'      => (int)$sched->pay_month === $month,
+                default     => false,
+            };
+            if (!$qualifies) continue;
+
+            $total += $bt->calculation_type === 'percentage'
+                ? $baseSalary * ((float)$bt->value / 100)
+                : (float)$bt->value;
+        }
+
+        return round($total, 2);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  HELPERS
+    // ══════════════════════════════════════════════════════════════
+    private function getTotalPeriods(string $cycle): int
+    {
+        return match ($cycle) { 'semi_monthly' => 2, 'ten_day' => 3, default => 1 };
+    }
+
+    private function fallbackPeriodEndDay(string $cycle, int $cutoff, int $pNum, int $total): int
+    {
+        return match ($cycle) {
+            'semi_monthly' => $pNum === 1 ? (int)round($cutoff / 2) : $cutoff,
+            'ten_day'      => (int)round($cutoff * $pNum / $total),
+            default        => $cutoff,
+        };
     }
 }

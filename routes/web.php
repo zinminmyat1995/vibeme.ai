@@ -18,6 +18,9 @@ use App\Http\Controllers\Payroll\LeaveRequestController;
 use App\Http\Controllers\Payroll\OvertimeRequestController;
 use App\Http\Controllers\HRPolicySetupController;
 use App\Http\Controllers\Payroll\EmployeePayrollProfileController;
+use App\Http\Controllers\Payroll\AttendanceImportController;
+use App\Http\Controllers\Payroll\PayrollRecordController;
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -287,3 +290,42 @@ Route::middleware(['auth', 'role:hr'])->group(function () {
     Route::delete('/payroll/employee-profiles/{employeePayrollProfile}', [EmployeePayrollProfileController::class, 'destroy'])
         ->name('payroll.employee-profiles.destroy');
 });
+
+
+Route::middleware(['auth', 'role:hr'])->group(function () {
+ 
+    // Payroll Records Page (Inertia)
+    Route::get('/payroll/records', [PayrollRecordController::class, 'page'])
+        ->name('payroll.records.index');
+ 
+    // Calculate
+    Route::post('/payroll/records/calculate-single', [PayrollRecordController::class, 'calculateSingle'])
+        ->name('payroll.records.calculate-single');
+    Route::get('/payroll/records/calculate-all', [PayrollRecordController::class, 'calculateAll'])
+        ->name('payroll.records.calculate-all');
+ 
+    // Preview
+    Route::get('/payroll/records/preview', [PayrollRecordController::class, 'preview'])
+        ->name('payroll.records.preview');
+ 
+    // Approve
+    Route::patch('/payroll/records/approve-all', [PayrollRecordController::class, 'approveAll'])
+        ->name('payroll.records.approve-all');
+    Route::patch('/payroll/records/{payrollRecord}/approve', [PayrollRecordController::class, 'approve'])
+        ->name('payroll.records.approve');
+ 
+    // Bonus
+    Route::post('/payroll/records/{payrollRecord}/bonus', [PayrollRecordController::class, 'addBonus'])
+        ->name('payroll.records.add-bonus');
+    Route::delete('/payroll/records/{payrollRecord}/bonuses/{payrollBonus}', [PayrollRecordController::class, 'removeBonus'])
+        ->name('payroll.records.remove-bonus');
+ 
+    // Attendance Import
+    Route::get('/payroll/attendance/template', [AttendanceImportController::class, 'downloadTemplate'])
+        ->name('payroll.attendance.template');
+    Route::post('/payroll/attendance/import', [AttendanceImportController::class, 'import'])
+        ->name('payroll.attendance.import');
+    Route::get('/payroll/attendance/period-info', [AttendanceImportController::class, 'periodInfo'])
+        ->name('payroll.attendance.period-info');
+});
+ 
