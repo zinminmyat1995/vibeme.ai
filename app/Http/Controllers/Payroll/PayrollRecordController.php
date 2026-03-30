@@ -353,6 +353,64 @@ class PayrollRecordController extends Controller
         ]);
     }
 
+// ──────────────────────────────────────────────────────────────
+// PATCH /payroll/records/{id}/confirm
+// Confirm (lock) a single approved record
+// ──────────────────────────────────────────────────────────────
+public function confirm(PayrollRecord $payrollRecord): JsonResponse
+{
+    if ($payrollRecord->status !== 'approved') {
+        return response()->json(['message' => 'Only approved records can be confirmed.'], 422);
+    }
+
+    $payrollRecord->update(['status' => 'confirmed']);
+
+    return response()->json([
+        'message' => 'Record confirmed.',
+        'record'  => $this->formatRecord($payrollRecord->fresh(['user', 'payrollPeriod', 'bonuses'])),
+    ]);
+}
+
+// ──────────────────────────────────────────────────────────────
+// PATCH /payroll/records/confirm-all
+// Confirm all approved records for a period
+// ──────────────────────────────────────────────────────────────
+public function confirmAll(Request $request): JsonResponse
+{
+    $request->validate([
+        'period_id' => 'required|exists:payroll_periods,id',
+        'year'      => 'required|integer',
+        'month'     => 'required|integer',
+    ]);
+
+    $total = PayrollRecord::where('payroll_period_id', $request->period_id)
+        ->where('year',  $request->year)
+        ->where('month', $request->month)
+        ->count();
+
+    $approvedCount = PayrollRecord::where('payroll_period_id', $request->period_id)
+        ->where('year',  $request->year)
+        ->where('month', $request->month)
+        ->where('status', 'approved')
+        ->count();
+
+    if ($approvedCount < $total) {
+        return response()->json([
+            'message' => "Cannot confirm — {$approvedCount} of {$total} records are approved. Please approve all records first.",
+        ], 422);
+    }
+
+    $updated = PayrollRecord::where('payroll_period_id', $request->period_id)
+        ->where('year',  $request->year)
+        ->where('month', $request->month)
+        ->where('status', 'approved')
+        ->update(['status' => 'confirmed']);
+
+    return response()->json([
+        'message' => "{$updated} records confirmed and locked.",
+        'updated' => $updated,
+    ]);
+}
     // ──────────────────────────────────────────────────────────────
     // PATCH /payroll/records/{id}/add-bonus
     // Add / update bonus amount for a record
@@ -515,9 +573,7 @@ class PayrollRecordController extends Controller
             ? collect($salaryDeductionBreakdown)->sum('amount')
             : 0;
 
-        $unpaidLeaveDeduct = (float)$r->leave_days_unpaid > 0
-            ? round(($r->base_salary / max(1, $r->working_days)) * $r->leave_days_unpaid, 2)
-            : 0;
+        $unpaidLeaveDeduct = 0;
 
         $lateAndShort = max(0, round((float)$r->total_deductions - $salaryDeductTotal - $unpaidLeaveDeduct, 2));
 
@@ -657,7 +713,7 @@ class PayrollRecordController extends Controller
             'late_deduction'              => $lateDeductStored,
             'short_hour_deduction'        => $shortDeductStored,
             'salary_deduction_breakdown'  => $isLastPeriod ? $salaryDeductionBreakdown : [],
-            'unpaid_leave_deduction'      => $isLastPeriod ? $unpaidLeaveDeduct : 0,
+            'unpaid_leave_deduction'      =>  0,
             // Detail data for click-to-expand
             'leave_details'          => $leaveDetails,
             'ot_details'             => $otDetails,

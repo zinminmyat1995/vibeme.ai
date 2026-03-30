@@ -166,7 +166,7 @@ class SalaryCalculationService
             );
 
             // ── Unpaid leave deduction (last period only) ─────────
-            $unpaidLeaveDeduct = round($dailyRate * $fullLeave['unpaid_days'], 2);
+            $unpaidLeaveDeduct = 0;
         }
 
         // ── Net salary ────────────────────────────────────────────
@@ -176,16 +176,15 @@ class SalaryCalculationService
             + $overtimeAmount
             + $totalAllowances
             + $bonusAmount
-            - $salaryDeductions
-            - $unpaidLeaveDeduct;
+            - $salaryDeductions;
 
+            
         $netSalary = max(0, round($periodNet, 2));
 
         // ── Total deductions to store in record ───────────────────
         $totalDeductionsStored = round(
             $lateDeduct + $shortDeduct
-            + $salaryDeductions
-            + $unpaidLeaveDeduct,
+            + $salaryDeductions,
             2
         );
 

@@ -40,8 +40,15 @@ function Spinner({ color='#7c3aed', size=14 }) {
     return <div style={{ width:size, height:size, border:`2px solid ${color}33`, borderTopColor:color, borderRadius:'50%', animation:'spin 0.7s linear infinite', flexShrink:0 }} />;
 }
 
+// FIX 2: confirmed case ထည့်
 function StatusPill({ status }) {
-    const c = { draft:{label:'Draft',bg:'#f3f4f6',color:'#6b7280'}, calculated:{label:'Calculated',bg:'#dbeafe',color:'#1d4ed8'}, approved:{label:'Approved',bg:'#d1fae5',color:'#059669'}, paid:{label:'Paid',bg:'#fef3c7',color:'#d97706'} }[status] ?? {label:'Draft',bg:'#f3f4f6',color:'#6b7280'};
+    const c = {
+        draft:      { label:'Draft',      bg:'#f3f4f6', color:'#6b7280' },
+        calculated: { label:'Calculated', bg:'#dbeafe', color:'#1d4ed8' },
+        approved:   { label:'Approved',   bg:'#d1fae5', color:'#059669' },
+        confirmed:  { label:'Confirmed',  bg:'#ede9fe', color:'#7c3aed' },
+        paid:       { label:'Paid',       bg:'#fef3c7', color:'#d97706' },
+    }[status] ?? { label:'Draft', bg:'#f3f4f6', color:'#6b7280' };
     return <span style={{ fontSize:10, fontWeight:700, background:c.bg, color:c.color, borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>{c.label}</span>;
 }
 
@@ -70,8 +77,6 @@ function Row({ label, val, color }) {
         </div>
     );
 }
-
-
 
 // ── Helper: decimal hours → "Xh Ymin" ─────────────────────────────────────────
 function fmtHours(h) {
@@ -225,6 +230,7 @@ function ConfirmActionModal({
                             </div>
                         </div>
 
+                        {/* FIX 4: disabled during loading */}
                         <button
                             onClick={onClose}
                             disabled={loading}
@@ -234,11 +240,12 @@ function ConfirmActionModal({
                                 borderRadius:10,
                                 width:32,
                                 height:32,
-                                cursor:'pointer',
+                                cursor: loading ? 'not-allowed' : 'pointer',
                                 color:'#fff',
                                 fontSize:18,
                                 lineHeight:1,
                                 flexShrink:0,
+                                opacity: loading ? 0.5 : 1,
                             }}
                         >
                             ×
@@ -264,6 +271,7 @@ function ConfirmActionModal({
                         justifyContent:'flex-end',
                         gap:10,
                     }}>
+                        {/* FIX 4: Cancel button disabled during loading */}
                         <button
                             onClick={onClose}
                             disabled={loading}
@@ -272,15 +280,17 @@ function ConfirmActionModal({
                                 borderRadius:12,
                                 border:'1.5px solid #e5e7eb',
                                 background:'#fff',
-                                color:'#374151',
+                                color: loading ? '#9ca3af' : '#374151',
                                 fontSize:13,
                                 fontWeight:700,
-                                cursor:'pointer',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                opacity: loading ? 0.6 : 1,
                             }}
                         >
                             {cancelText}
                         </button>
 
+                        {/* FIX 4: Confirm button disabled + spinner during loading */}
                         <button
                             onClick={onConfirm}
                             disabled={loading}
@@ -288,11 +298,11 @@ function ConfirmActionModal({
                                 padding:'10px 18px',
                                 borderRadius:12,
                                 border:'none',
-                                background:ui.confirmBg,
+                                background: loading ? `${ui.confirmBg}99` : ui.confirmBg,
                                 color:'#fff',
                                 fontSize:13,
                                 fontWeight:800,
-                                cursor:'pointer',
+                                cursor: loading ? 'not-allowed' : 'pointer',
                                 display:'inline-flex',
                                 alignItems:'center',
                                 gap:8,
@@ -330,7 +340,7 @@ function SalaryDetailModal({ detail, curr, onApprove, onClose }) {
                         <span style={{ fontSize:11, background:'rgba(255,255,255,0.18)', color:'#fff', borderRadius:99, padding:'3px 12px', fontWeight:700 }}>
                             {detail.period_start} — {detail.period_end}
                         </span>
-                        <span style={{ fontSize:11, background: detail.status==='approved'?'rgba(16,185,129,0.3)':'rgba(255,255,255,0.12)', color:'#fff', borderRadius:99, padding:'3px 10px', fontWeight:700 }}>
+                        <span style={{ fontSize:11, background: detail.status==='approved'?'rgba(16,185,129,0.3)':detail.status==='confirmed'?'rgba(124,58,237,0.3)':'rgba(255,255,255,0.12)', color:'#fff', borderRadius:99, padding:'3px 10px', fontWeight:700 }}>
                             {detail.status?.toUpperCase()}
                         </span>
                     </div>
@@ -502,7 +512,6 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
                 <DetailCard icon="✂️" title="Deductions" color="#fee2e2" titleColor="#dc2626">
                     {(detail.late_deduction??0)>0       && <LateArrivalRow detail={detail} curr={curr} />}
                     {(detail.short_hour_deduction??0)>0 && <ShortHourRow   detail={detail} curr={curr} />}
-                    {(detail.unpaid_leave_deduction??0)>0 && <DetailRow label="Unpaid Leave" val={`− ${fmt(detail.unpaid_leave_deduction, curr)}`} color="#dc2626" />}
                     {(detail.salary_deduction_breakdown??[]).map((d,i)=>(
                         <DetailRow key={i}
                             label={<span>{d.name} <span style={{ fontSize:10, color:'#9ca3af' }}>{d.type==='percentage'?`(${d.rate}%)`:'(flat)'}</span></span>}
@@ -525,7 +534,8 @@ function DetailModalContent({ detail, curr, onApprove, onClose }) {
             </div>
 
             <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
-                {detail.status!=='approved' && (
+                {/* FIX 1: hide Approve button if confirmed */}
+                {detail.status !== 'approved' && detail.status !== 'confirmed' && (
                     <button
                         onClick={() => onApprove(detail)}
                         style={{
@@ -830,11 +840,12 @@ function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast
 }
 
 function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
-    const [loading,  setLoading]  = useState(false);
-    const [records,  setRecords]  = useState([]);
-    const [summary,  setSummary]  = useState(null);
-    const [detail,   setDetail]   = useState(null);
-    const [approving,setApproving]= useState(false);
+    const [loading,    setLoading]    = useState(false);
+    const [records,    setRecords]    = useState([]);
+    const [summary,    setSummary]    = useState(null);
+    const [detail,     setDetail]     = useState(null);
+    const [approving,  setApproving]  = useState(false);
+    const [confirming, setConfirming] = useState(false);
     const [confirmState, setConfirmState] = useState({
         open: false,
         type: null,
@@ -843,6 +854,9 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
 
     const tmpl = periodTemplates.find(p=>p.period_number===period.period_number);
     const curr = salaryRule?.currency_code ?? '';
+
+    // FIX 1: check if all records are confirmed
+    const allConfirmed = records.length > 0 && records.every(r => r.status === 'confirmed');
 
     const load = useCallback(async()=>{
         if(!tmpl?.id) return;
@@ -858,51 +872,34 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
         } finally {
             setLoading(false);
         }
-    },[tmpl?.id,period.year,period.month,onToast]);
+    },[tmpl?.id, period.year, period.month]);
 
     useEffect(()=>{load();},[load]);
 
     const openApproveAllConfirm = () => {
         if (!tmpl?.id || records.length === 0) return;
-        setConfirmState({
-            open: true,
-            type: 'all',
-            record: null,
-        });
+        setConfirmState({ open:true, type:'all', record:null });
     };
 
     const openApproveOneConfirm = (r) => {
-        setConfirmState({
-            open: true,
-            type: 'single',
-            record: r,
-        });
+        setConfirmState({ open:true, type:'single', record:r });
     };
 
     const handleConfirmApprove = async () => {
         if (!confirmState.open) return;
 
+        // ── Approve All ──
         if (confirmState.type === 'all') {
             if (!tmpl?.id) return;
-
             setApproving(true);
             try {
                 const res = await fetch('/payroll/records/approve-all', {
                     method:'PATCH',
-                    headers:{
-                        'Content-Type':'application/json',
-                        'X-CSRF-TOKEN':csrf()
-                    },
-                    body:JSON.stringify({
-                        period_id:tmpl.id,
-                        year:period.year,
-                        month:period.month
-                    })
+                    headers:{ 'Content-Type':'application/json', 'X-CSRF-TOKEN':csrf() },
+                    body:JSON.stringify({ period_id:tmpl.id, year:period.year, month:period.month })
                 });
-
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message ?? 'Approve all failed');
-
                 onToast(data.message, 'success');
                 setConfirmState({ open:false, type:null, record:null });
                 load();
@@ -914,6 +911,30 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
             return;
         }
 
+        // ── Confirm & Finalize ──
+        if (confirmState.type === 'finalize') {
+            if (!tmpl?.id) return;
+            setConfirming(true);
+            try {
+                const res = await fetch('/payroll/records/confirm-all', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN':csrf() },
+                    body: JSON.stringify({ period_id:tmpl.id, year:period.year, month:period.month })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message ?? 'Confirm failed');
+                onToast(data.message, 'success');
+                setConfirmState({ open:false, type:null, record:null });
+                load(); // FIX 3: တစ်ကြိမ်တည်းပဲ load ခေါ်
+            } catch (e) {
+                onToast(e.message, 'error');
+            } finally {
+                setConfirming(false);
+            }
+            return;
+        }
+
+        // ── Approve Single ──
         if (confirmState.type === 'single' && confirmState.record) {
             setApproving(true);
             try {
@@ -922,10 +943,8 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
                     method:'PATCH',
                     headers:{ 'X-CSRF-TOKEN':csrf() }
                 });
-
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message ?? 'Approve failed');
-
                 onToast(`${r.name} approved.`, 'success');
                 setConfirmState({ open:false, type:null, record:null });
                 setDetail(null);
@@ -948,9 +967,22 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
                     <button onClick={load} disabled={loading} style={{ padding:'7px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:12, fontWeight:600, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 }}>
                         🔄 Refresh
                     </button>
-                    {records.some(r=>r.status!=='approved')&&records.length>0&&(
+
+                    {/* FIX 1: Approve All — hide if all confirmed */}
+                    {!allConfirmed && records.some(r=>r.status!=='approved') && records.length>0 && (
                         <button onClick={openApproveAllConfirm} disabled={approving} style={{ padding:'7px 16px', borderRadius:8, border:'none', background:'#059669', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 }}>
                             {approving?<><Spinner color="#fff" size={12}/>Approving...</>:'✅ Approve All'}
+                        </button>
+                    )}
+
+                    {/* Confirm & Finalize — show only when all approved */}
+                    {records.length>0 && records.every(r=>r.status==='approved') && (
+                        <button
+                            onClick={()=>{ setConfirmState({ open:true, type:'finalize', record:null }); }}
+                            disabled={confirming}
+                            style={{ padding:'7px 16px', borderRadius:8, border:'none', background:'#7c3aed', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 }}
+                        >
+                            {confirming?<><Spinner color="#fff" size={12}/>Confirming...</>:'🔒 Confirm & Finalize'}
                         </button>
                     )}
                 </div>
@@ -1007,7 +1039,10 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
                                             <td style={{ padding:'10px 12px', whiteSpace:'nowrap', verticalAlign:'middle' }}>
                                                 <div style={{ display:'flex', gap:4 }}>
                                                     <button onClick={()=>setDetail(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:'#ede9fe', color:'#7c3aed', fontSize:11, fontWeight:700, cursor:'pointer' }}>Detail</button>
-                                                    {r.status!=='approved'&&<button onClick={()=>openApproveOneConfirm(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:'#d1fae5', color:'#059669', fontSize:11, fontWeight:700, cursor:'pointer' }}>Approve</button>}
+                                                    {/* FIX 1: hide Approve button if confirmed */}
+                                                    {r.status !== 'approved' && r.status !== 'confirmed' && (
+                                                        <button onClick={()=>openApproveOneConfirm(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:'#d1fae5', color:'#059669', fontSize:11, fontWeight:700, cursor:'pointer' }}>Approve</button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -1027,28 +1062,35 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast }) {
                 />
             )}
 
+            {/* FIX 4: loading prop — finalize uses confirming, others use approving */}
             <ConfirmActionModal
                 open={confirmState.open}
-                tone="success"
-                loading={approving}
+                tone={confirmState.type === 'finalize' ? 'purple' : 'success'}
+                loading={confirmState.type === 'finalize' ? confirming : approving}
                 title={
                     confirmState.type === 'all'
                         ? 'Approve All Payroll Records'
-                        : 'Approve Employee Salary'
+                        : confirmState.type === 'finalize'
+                            ? 'Confirm & Finalize Payroll'
+                            : 'Approve Employee Salary'
                 }
                 message={
                     confirmState.type === 'all'
                         ? `Are you sure you want to approve all ${records.length} payroll records for ${MONTHS_SHORT[period.month - 1]} ${period.year} Period ${period.period_number}? This action cannot be undone.`
-                        : `Are you sure you want to approve salary for ${confirmState.record?.name || 'this employee'}? This action cannot be undone.`
+                        : confirmState.type === 'finalize'
+                            ? `This will lock all ${records.length} payroll records for ${MONTHS_SHORT[period.month - 1]} ${period.year} Period ${period.period_number}. Employees will be able to view their payslips. This action cannot be undone.`
+                            : `Are you sure you want to approve salary for ${confirmState.record?.name || 'this employee'}? This action cannot be undone.`
                 }
                 confirmText={
                     confirmState.type === 'all'
                         ? 'Yes, Approve All'
-                        : 'Yes, Approve'
+                        : confirmState.type === 'finalize'
+                            ? '🔒 Yes, Confirm & Lock'
+                            : 'Yes, Approve'
                 }
                 cancelText="Cancel"
                 onClose={() => {
-                    if (!approving) {
+                    if (!approving && !confirming) {
                         setConfirmState({ open:false, type:null, record:null });
                     }
                 }}

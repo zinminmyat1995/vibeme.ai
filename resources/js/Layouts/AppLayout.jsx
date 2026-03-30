@@ -138,7 +138,7 @@ const menuItems = [
                 ),
                 label: 'Payroll',
                 route: '/payroll/records',
-                roles: ['admin', 'hr', 'management', 'employee'],
+                roles: ['admin', 'hr'],
             },
             {
                 icon: (

@@ -20,7 +20,7 @@ use App\Http\Controllers\HRPolicySetupController;
 use App\Http\Controllers\Payroll\EmployeePayrollProfileController;
 use App\Http\Controllers\Payroll\AttendanceImportController;
 use App\Http\Controllers\Payroll\PayrollRecordController;
-
+use App\Http\Controllers\Payroll\PayslipController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -165,7 +165,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('payroll.overtimes.reject');
 
     // HR Policy
-   Route::prefix('payroll/hr-policy')->name('hr-policy.')->group(function () {
+    Route::prefix('payroll/hr-policy')->name('hr-policy.')->group(function () {
 
         // Index
         Route::get('/', [HRPolicySetupController::class, 'index'])
@@ -249,6 +249,20 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/bonus-schedule/{bonusSchedule}', [HRPolicySetupController::class, 'destroyBonusSchedule'])
             ->name('bonus-schedule.destroy');
     });
+
+        // Payslip
+    Route::get('/payroll/payslip', [PayslipController::class, 'index'])
+        ->name('payroll.payslip.index');
+    Route::get('/payroll/payslip/records', [PayslipController::class, 'records'])
+        ->name('payroll.payslip.records');
+    Route::get('/payroll/payslip/bulk/pdf', [PayslipController::class, 'bulkPdf'])
+        ->name('payroll.payslip.bulk-pdf');
+    Route::get('/payroll/payslip/bulk/excel', [PayslipController::class, 'bulkExcel'])
+        ->name('payroll.payslip.bulk-excel');
+    Route::get('/payroll/payslip/{payrollRecord}/pdf', [PayslipController::class, 'downloadPdf'])
+        ->name('payroll.payslip.pdf');
+    Route::get('/payroll/payslip/{payrollRecord}/excel', [PayslipController::class, 'downloadExcel'])
+        ->name('payroll.payslip.excel');
                     
 });
 
@@ -327,5 +341,11 @@ Route::middleware(['auth', 'role:hr'])->group(function () {
         ->name('payroll.attendance.import');
     Route::get('/payroll/attendance/period-info', [AttendanceImportController::class, 'periodInfo'])
         ->name('payroll.attendance.period-info');
+
+    Route::patch('/payroll/records/confirm-all', [PayrollRecordController::class, 'confirmAll'])
+        ->name('payroll.records.confirm-all');
+    Route::patch('/payroll/records/{payrollRecord}/confirm', [PayrollRecordController::class, 'confirm'])
+        ->name('payroll.records.confirm');
+
 });
  
