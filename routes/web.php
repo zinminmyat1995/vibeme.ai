@@ -21,6 +21,7 @@ use App\Http\Controllers\Payroll\EmployeePayrollProfileController;
 use App\Http\Controllers\Payroll\AttendanceImportController;
 use App\Http\Controllers\Payroll\PayrollRecordController;
 use App\Http\Controllers\Payroll\PayslipController;
+use App\Http\Controllers\Payroll\BankExportController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -346,6 +347,17 @@ Route::middleware(['auth', 'role:hr'])->group(function () {
         ->name('payroll.records.confirm-all');
     Route::patch('/payroll/records/{payrollRecord}/confirm', [PayrollRecordController::class, 'confirm'])
         ->name('payroll.records.confirm');
+
+
+    Route::get('/payroll/export',         [BankExportController::class, 'index']);
+    Route::get('/payroll/export/preview', [BankExportController::class, 'preview']);
+    Route::get('/payroll/export/excel',   [BankExportController::class, 'exportExcel']);
+    Route::get('/payroll/export/pdf',     [BankExportController::class, 'exportPdf']);
+    Route::patch('/payroll/export/mark-paid/{record}',  [BankExportController::class, 'markAsPaid'])
+        ->name('payroll.export.mark-paid');
+    
+    Route::patch('/payroll/export/mark-all-paid',        [BankExportController::class, 'markAllPaid'])
+        ->name('payroll.export.mark-all-paid');
 
 });
  

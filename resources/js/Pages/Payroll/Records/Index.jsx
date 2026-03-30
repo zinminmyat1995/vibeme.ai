@@ -767,7 +767,7 @@ function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast
         else if (evt.type==='done') setProg(prev=>prev.map(p=>p.user_id===evt.user_id?{...p,status:'done',net_salary:evt.net_salary}:p));
         else if (evt.type==='error') setProg(prev=>prev.map(p=>p.user_id===evt.user_id?{...p,status:'error',error:evt.message}:p));
         else if (evt.type==='stopped') { setStopped({resume_from:evt.resume_from,done:evt.done,total:evt.total}); onToast(`Stopped. ${evt.done}/${evt.total} done. Click Continue.`,'error'); }
-        else if (evt.type==='complete') { onToast(`✅ All ${evt.done} employees calculated!`,'success'); onDone('calculate'); }
+        else if (evt.type==='complete') { onToast(`All ${evt.done} employees calculated!`,'success'); onDone('calculate'); }
     };
 
     const handleSingle = async () => {
@@ -793,17 +793,17 @@ function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast
                 ))}
             </div>
 
-            {mode==='single'&&(
-                <div style={{ display:'flex', gap:10, marginBottom:16, flexWrap:'wrap' }}>
-                    <select value={selEmp} onChange={e=>setSelEmp(e.target.value)} style={{ flex:1, minWidth:200, padding:'9px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontWeight:600, color:'#374151', background:'#fff', cursor:'pointer' }}>
-                        <option value="">— Select Employee —</option>
-                        {employees.map(e=><option key={e.id} value={e.id}>{e.name}{e.department?` (${e.department})`:''}</option>)}
-                    </select>
-                    <button onClick={handleSingle} disabled={loading||!selEmp} style={{ ...btnBase, background:selEmp?'#7c3aed':'#e5e7eb', color:selEmp?'#fff':'#9ca3af', cursor:selEmp?'pointer':'not-allowed' }}>
-                        {loading?<><Spinner color="#fff"/>Calculating...</>:'▶ Calculate'}
-                    </button>
-                </div>
-            )}
+{mode==='single'&&(
+    <div style={{ display:'flex', gap:10, marginBottom:16, alignItems:'center' }}>
+        <select value={selEmp} onChange={e=>setSelEmp(e.target.value)} style={{ width:220, padding:'8px 12px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:13, fontWeight:500, color:'#374151', background:'#fff', cursor:'pointer', outline:'none' }}>
+            <option value="">— Select Employee —</option>
+            {employees.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}
+        </select>
+        <button onClick={handleSingle} disabled={loading||!selEmp} style={{ ...btnBase, background:selEmp?'#7c3aed':'#e5e7eb', color:selEmp?'#fff':'#9ca3af', cursor:selEmp?'pointer':'not-allowed', flexShrink:0 }}>
+            {loading?<><Spinner color="#fff"/>Calculating...</>:'▶ Calculate'}
+        </button>
+    </div>
+)}
 
             {mode==='all'&&(
                 <div style={{ marginBottom:16 }}>
