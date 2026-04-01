@@ -13,21 +13,39 @@ use App\Mail\UserCreatedMail;
 use App\Mail\UserUpdatedMail;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with('role')
-                ->select('id','name','email','role_id','department',
-                         'position','phone','is_active','country','avatar_url',
-                         'joined_date','employment_type')
-                ->get();
+        $user     = Auth::user();
+        $roleName = $user->role?->name;
+
+        $query = User::with('role')
+            ->select('id','name','email','role_id','department',
+                    'position','phone','is_active','country','avatar_url',
+                    'joined_date','employment_type','contract_end_date');
+
+        // HR → own country only
+        if ($roleName === 'hr') {
+            $query->where('country', $user->country);
+        }
+
+        // Country filter (admin only)
+        if ($roleName === 'admin' && request()->filled('country')) {
+            $query->where('country', request('country'));
+        }
+
+        $users = $query->get();
 
         return Inertia::render('UserRoles', [
-            'users' => $users,
-            'roles' => Role::all(),
+            'users'    => $users,
+            'roles'    => Role::all(),
+            'roleName' => $roleName,
         ]);
+
+
     }
 
     // ── Resolve employment type based on probation period ──

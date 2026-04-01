@@ -22,6 +22,7 @@ use App\Http\Controllers\Payroll\AttendanceImportController;
 use App\Http\Controllers\Payroll\PayrollRecordController;
 use App\Http\Controllers\Payroll\PayslipController;
 use App\Http\Controllers\Payroll\BankExportController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -36,7 +37,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Dashboard Routes (middleware protected)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', fn() => inertia('Dashboard'))->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/announcements', [DashboardController::class, 'storeAnnouncement']);
+    Route::delete('/dashboard/announcements/{announcement}', [DashboardController::class, 'deleteAnnouncement']);   
+
+
     Route::get('/hr/dashboard', fn() => inertia('HR/Dashboard'))->name('hr.dashboard');
     Route::get('/management/dashboard', fn() => inertia('Management/Dashboard'))->name('management.dashboard');
     Route::get('/employee/dashboard', fn() => inertia('Employee/Dashboard'))->name('employee.dashboard');

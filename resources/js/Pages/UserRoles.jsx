@@ -108,17 +108,33 @@ function RoleBadge({ role }) {
 // ─────────────────────────────────────────────────────
 // Modal
 // ─────────────────────────────────────────────────────
-function Modal({ open, onClose, title, children }) {
+function Modal({ open, onClose, title, subtitle, icon, children }) {
     if (!open) return null;
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }} />
-            <div style={{ position: 'relative', background: '#fff', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.18)', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 16px', borderBottom: '1px solid #f3f4f6' }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: 0 }}>{title}</h3>
-                    <button onClick={onClose} style={{ background: '#f3f4f6', border: 'none', width: 30, height: 30, borderRadius: 8, cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>×</button>
+        <div style={{ position:'fixed', inset:0, zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+            <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(15,10,40,0.5)', backdropFilter:'blur(6px)' }} />
+            <div style={{ position:'relative', background:'#fff', borderRadius:22, boxShadow:'0 32px 80px rgba(0,0,0,0.28)', width:'100%', maxWidth:520, maxHeight:'92vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+
+                {/* Gradient Header */}
+                <div style={{ background:'linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%)', padding:'20px 24px 18px', flexShrink:0 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                        <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+                            <div style={{ width:42, height:42, borderRadius:12, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
+                                {icon || '👤'}
+                            </div>
+                            <div>
+                                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', marginBottom:3 }}>
+                                    {subtitle || 'User Management'}
+                                </div>
+                                <div style={{ fontSize:16, fontWeight:900, color:'#fff', letterSpacing:'-0.2px' }}>{title}</div>
+                            </div>
+                        </div>
+                        <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:10, width:32, height:32, cursor:'pointer', color:'#fff', fontSize:18, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>×</button>
+                    </div>
                 </div>
-                <div style={{ padding: '20px 24px 24px' }}>{children}</div>
+
+                {/* Content */}
+                <div style={{ overflowY:'auto', flex:1, padding:'20px 24px 24px' }}>{children}</div>
             </div>
         </div>
     );
@@ -155,9 +171,13 @@ function UserForm({ roles, editUser, onClose, onSuccess }) {
         remove_avatar: false,
         _method:       isEdit ? 'PUT' : 'POST',
         country:         editUser?.country         || '',
-        joined_date:     editUser?.joined_date     || new Date().toISOString().split('T')[0],
+        joined_date: editUser?.joined_date
+            ? String(editUser.joined_date).split('T')[0]
+            : new Date().toISOString().split('T')[0],
         employment_type:    editUser?.employment_type    || 'probation',
-        contract_end_date:  editUser?.contract_end_date  || '',
+        contract_end_date: editUser?.contract_end_date
+            ? String(editUser.contract_end_date).split('T')[0]
+            : '',
     });
 
     const [countryOpen, setCountryOpen] = useState(false);
@@ -476,7 +496,7 @@ function DeleteConfirm({ user, onClose, onConfirm, loading }) {
 // ─────────────────────────────────────────────────────
 // Main Page
 // ─────────────────────────────────────────────────────
-export default function UserRoles({ users = [], roles = [] }) {
+export default function UserRoles({ users = [], roles = [], roleName = '' }) {
     const { flash } = usePage().props;
    
     const [search, setSearch]         = useState('');
@@ -514,7 +534,7 @@ export default function UserRoles({ users = [], roles = [] }) {
         management: { bg: '#dbeafe', color: '#2563eb' },
         employee:   { bg: '#fef3c7', color: '#d97706' },
     };
-
+console.log("filtered",filtered)
     return (
         <AppLayout title="User & Roles">
             <style>{`
@@ -561,6 +581,19 @@ export default function UserRoles({ users = [], roles = [] }) {
                     )}
                 </div>
 
+                {/* Country Filter — admin only */}
+                {roleName === 'admin' && (
+                    <select
+                        onChange={e => router.get('/users', { country: e.target.value }, { preserveState: true })}
+                        style={{ padding:'8px 14px', border:'1px solid #e5e7eb', borderRadius:10, fontSize:13, color:'#374151', background:'#fff', cursor:'pointer', outline:'none', height:38 }}
+                    >
+                        <option value="">All Countries</option>
+                        {['cambodia','myanmar','vietnam','korea','japan'].map(c => (
+                            <option key={c} value={c}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>
+                        ))}
+                    </select>
+                )}
+
                 {/* Role Filter */}
                 <select
                     value={filterRole}
@@ -601,7 +634,7 @@ export default function UserRoles({ users = [], roles = [] }) {
 
 
             {/* Table */}
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflowX: 'auto', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
@@ -675,11 +708,14 @@ export default function UserRoles({ users = [], roles = [] }) {
                                 {/* Joined Date */}
                                 <td style={{ padding: '12px 16px', fontSize: 12, color: '#6b7280', whiteSpace:'nowrap' }}>
                                     {user.joined_date
-                                        ? new Date(user.joined_date + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+                                        ? new Date(String(user.joined_date).split('T')[0] + 'T00:00:00')
+                                            .toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
                                         : '—'}
                                     {user.employment_type === 'contract' && user.contract_end_date && (
                                         <div style={{ fontSize:10, color:'#2563eb', fontWeight:600, marginTop:2 }}>
-                                            ends {new Date(user.contract_end_date + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })}
+                                            ends {new Date(String(user.contract_end_date).split('T')[0] + 'T00:00:00')
+                                                    .toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+                                                }
                                         </div>
                                     )}
                                 </td>
@@ -695,7 +731,7 @@ export default function UserRoles({ users = [], roles = [] }) {
                                 <td style={{ padding: '12px 16px' }}>
                                     <div style={{ display: 'flex', gap: 6 }}>
                                         <button onClick={() => setEditUser(user)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                                            ✏️ Edit
+                                            ✏️
                                         </button>
                                         <button onClick={() => setDeleteUser(user)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #fee2e2', background: '#fef2f2', color: '#ef4444', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                                             🗑️
@@ -709,19 +745,19 @@ export default function UserRoles({ users = [], roles = [] }) {
             </div>
 
             {/* Create Modal */}
-            <Modal open={showCreate} onClose={() => setShowCreate(false)} title="➕ Add New User">
+            <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add New User" subtitle="User Management" icon="➕">
                 <UserForm roles={roles} onClose={() => setShowCreate(false)} onSuccess={(msg) => { window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'success' }})); setShowCreate(false); }} />
             </Modal>
 
             {/* Edit Modal */}
-            <Modal open={!!editUser} onClose={() => setEditUser(null)} title="✏️ Edit User">
+            <Modal open={!!editUser} onClose={() => setEditUser(null)} title="Edit User" subtitle="Update Profile" icon="✏️">
                 {editUser && (
                     <UserForm key={editUser.id} roles={roles} editUser={editUser} onClose={() => setEditUser(null)} onSuccess={(msg) => { showToast(msg); setEditUser(null); }} />
                 )}
             </Modal>
 
             {/* Delete Modal */}
-            <Modal open={!!deleteUser} onClose={() => setDeleteUser(null)} title="⚠️ Confirm Delete">
+            <Modal open={!!deleteUser} onClose={() => setDeleteUser(null)} title="Confirm Delete" subtitle="Danger Zone" icon="🗑️">
                 <DeleteConfirm user={deleteUser} onClose={() => setDeleteUser(null)} onConfirm={handleDelete} loading={deleting} />
             </Modal>
 

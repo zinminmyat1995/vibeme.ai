@@ -128,7 +128,7 @@ const menuItems = [
                 ),
                 label: 'Employee Salary',
                 route: '/payroll/employee-salary',
-                roles: ['hr', 'admin'],
+                roles: ['hr'],
             },
             {
                 icon: (
@@ -138,7 +138,7 @@ const menuItems = [
                 ),
                 label: 'Payroll',
                 route: '/payroll/records',
-                roles: ['admin', 'hr'],
+                roles: [ 'hr'],
             },
             {
                 icon: (
@@ -168,7 +168,7 @@ const menuItems = [
                 ),
                 label: 'HR Policy',
                 route: '/payroll/hr-policy',
-                roles: ['hr', 'admin'],
+                roles: ['hr'],
             },
         ]
     },
@@ -282,7 +282,9 @@ export default function AppLayout({ children, title = 'Dashboard' }) {
                 <nav style={s.nav}>
                     {menuItems.map(group => (
                         <div key={group.group}>
-                            {!collapsed && <div style={s.groupLbl}>{group.group}</div>}
+                            {!collapsed && group.items.some(item => item.roles.includes(roleName)) && (
+                                <div style={s.groupLbl}>{group.group}</div>
+                            )}
                             {group.items
                                 .filter(item => item.roles.includes(roleName))
                                 .map(item => {

@@ -516,8 +516,16 @@ function handleSubmit() {
         <div style={s.overlay}>
             <div style={s.modal}>
                 <div style={s.modalHeader}>
-                    <div style={{ fontSize:15, fontWeight:800, color:'#111827' }}>Request Leave</div>
-                    <button style={s.closeBtn} onClick={onClose}>✕</button>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                        <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+                            <div style={{ width:42, height:42, borderRadius:12, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>🏖️</div>
+                            <div>
+                                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', marginBottom:3 }}>Leave Management</div>
+                                <div style={{ fontSize:16, fontWeight:900, color:'#fff', letterSpacing:'-0.2px' }}>Request Leave</div>
+                            </div>
+                        </div>
+                        <button style={s.closeBtn} onClick={onClose}>×</button>
+                    </div>
                 </div>
                 <div style={s.modalBody}>
 
@@ -808,11 +816,11 @@ const s = {
     listCard:    { background:'#fff', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,0.06)' },
     empty:       { padding:'48px', textAlign:'center', color:'#9ca3af', fontSize:13 },
     overlay:     { position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 },
-    modal:       { background:'#fff', borderRadius:16, width:540, maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' },
-    modalHeader: { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'18px 22px 14px', borderBottom:'1px solid #f3f4f6' },
-    modalBody:   { padding:'18px 22px', display:'flex', flexDirection:'column', gap:14 },
-    modalFooter: { display:'flex', justifyContent:'flex-end', gap:8, padding:'14px 22px', borderTop:'1px solid #f3f4f6' },
-    closeBtn:    { background:'#f3f4f6', border:'none', borderRadius:7, width:27, height:27, cursor:'pointer', fontSize:12, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' },
+    modal:       { background:'#fff', borderRadius:20, width:540, maxHeight:'90vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 32px 80px rgba(0,0,0,0.28)' },
+    modalHeader: { background:'linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%)', padding:'18px 22px 16px', flexShrink:0 },
+    modalBody:   { padding:'18px 22px', display:'flex', flexDirection:'column', gap:14, overflowY:'auto', flex:1 },
+    modalFooter: { display:'flex', justifyContent:'flex-end', gap:8, padding:'14px 22px', borderTop:'1px solid #f3f4f6', flexShrink:0, background:'#fff' },
+    closeBtn:    { background:'rgba(255,255,255,0.15)', border:'none', borderRadius:9, width:30, height:30, cursor:'pointer', fontSize:15, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 },
     field:       { display:'flex', flexDirection:'column', gap:5 },
     label:       { fontSize:11, fontWeight:700, color:'#374151' },
     input:       { background:'#f9fafb', border:'1px solid #e5e7eb', borderRadius:8, padding:'8px 11px', fontSize:13, color:'#374151', outline:'none', width:'100%', boxSizing:'border-box' },
