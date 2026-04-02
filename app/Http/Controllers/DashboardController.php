@@ -25,9 +25,14 @@ class DashboardController extends Controller
         $countryId = $user->countryRecord?->id;
 
         // ── Announcements ──────────────────────────────────────────────────
+        // Use now() without timezone conversion — compare raw datetime values
+        // This works regardless of whether DB stores UTC or local time,
+        // as long as both sides use the same reference (Laravel's now()).
+        $nowStr = now()->toDateTimeString();
+
         $announcementsQuery = Announcement::with('creator:id,name')
-            ->where(fn($q) => $q->whereNull('start_at')->orWhere('start_at', '<=', now()))
-            ->where(fn($q) => $q->whereNull('end_at')->orWhere('end_at', '>=', now()));
+            ->where(fn($q) => $q->whereNull('start_at')->orWhere('start_at', '<=', $nowStr))
+            ->where(fn($q) => $q->whereNull('end_at')->orWhere('end_at', '>=', $nowStr));
 
         if ($role !== 'admin') {
             $announcementsQuery->where(function ($q) use ($country) {
@@ -156,23 +161,19 @@ class DashboardController extends Controller
             ->whereYear('date', now()->year)
             ->whereIn('status', ['present', 'late'])->count();
 
-        // Pending leave approvals (where I am approver)
         $pendingLeaveApprovals = LeaveRequest::where('approver_id', $user->id)
-            ->where('status', 'pending')
-            ->count();
+            ->where('status', 'pending')->count();
 
-        // Pending OT approvals (where I am approver)  
         $pendingOtApprovals = OvertimeRequest::where('approver_id', $user->id)
-            ->where('status', 'pending')
-            ->count();
-    
+            ->where('status', 'pending')->count();
+
         $myStats = [
-            'pending_leaves'  => $pendingLeaves,
-            'approved_leaves' => $approvedLeaves,
-            'ot_hours_month'  => round((float) $otHours, 1),
-            'payslip_status'  => $latestPayroll?->status ?? null,
-            'net_salary'      => $latestPayroll?->net_salary ?? null,
-            'present_days'    => $presentDays,
+            'pending_leaves'          => $pendingLeaves,
+            'approved_leaves'         => $approvedLeaves,
+            'ot_hours_month'          => round((float) $otHours, 1),
+            'payslip_status'          => $latestPayroll?->status ?? null,
+            'net_salary'              => $latestPayroll?->net_salary ?? null,
+            'present_days'            => $presentDays,
             'pending_leave_approvals' => $pendingLeaveApprovals,
             'pending_ot_approvals'    => $pendingOtApprovals,
         ];

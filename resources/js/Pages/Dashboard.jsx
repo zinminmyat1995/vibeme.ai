@@ -57,13 +57,38 @@ function DonutChart({ data, size=120 }) {
 }
 
 // ── Announcement Banner ────────────────────────────────────────────────────────
-function AnnouncementBanner({ announcements, roleName, onCreated }) {
+function AnnouncementBanner({ announcements, roleName, onCreated, onDeleted }) {
     const [showModal, setShowModal] = useState(false);
-    const canCreate = ['admin','hr'].includes(roleName);
+    const [deletingId, setDeletingId] = useState(null);
+    const canManage = ['admin','hr'].includes(roleName);
+
+    const handleDelete = async (id) => {
+        setDeletingId(id);
+        try {
+            const res = await fetch(`/dashboard/announcements/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': csrf(),
+                    'Accept': 'application/json',
+                    'X-Inertia': 'true',
+                },
+            });
+            if (res.ok) {
+                window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'Announcement deleted.', type: 'success' } }));
+                onDeleted();
+            } else {
+                window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'Failed to delete.', type: 'error' } }));
+            }
+        } catch {
+            window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'Failed to delete.', type: 'error' } }));
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     return (
         <>
-            {/* New Announcement button — always outside, top right of section */}
-            {canCreate && (
+            {canManage && (
                 <div style={{ display:'flex', justifyContent:'flex-end', marginBottom: announcements.length > 0 ? 8 : 16 }}>
                     <button onClick={()=>setShowModal(true)} style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:99, border:'none', background:'#7c3aed', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', boxShadow:'0 2px 8px rgba(124,58,237,0.3)' }}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -73,20 +98,43 @@ function AnnouncementBanner({ announcements, roleName, onCreated }) {
             )}
             {announcements.length > 0 && (
                 <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 }}>
-                    {announcements.map(a=>(
+                    {announcements.map(a => (
                         <div key={a.id} style={{ background:'#fff', borderRadius:12, border:'1.5px solid #e0e7ff', overflow:'hidden', boxShadow:'0 1px 6px rgba(99,102,241,0.08)' }}>
                             <div style={{ background:'linear-gradient(90deg,#6366f1,#8b5cf6)', height:3 }}/>
                             <div style={{ padding:'12px 16px', display:'flex', alignItems:'flex-start', gap:12 }}>
                                 <div style={{ width:34, height:34, borderRadius:9, background:'#eef2ff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>📢</div>
-                                <div style={{ flex:1 }}>
-                                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                                        <span style={{ fontSize:9, fontWeight:800, color:'#6366f1', textTransform:'uppercase', letterSpacing:'0.8px', background:'#eef2ff', borderRadius:99, padding:'2px 8px' }}>Announcement</span>
-                                        <span style={{ fontSize:10, color:'#9ca3af' }}>Until {new Date(a.end_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span>
+                                <div style={{ flex:1, minWidth:0 }}>
+                                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
+                                        <span style={{ fontSize:9, fontWeight:800, color:'#6366f1', textTransform:'uppercase', letterSpacing:'0.8px', background:'#eef2ff', borderRadius:99, padding:'2px 8px', flexShrink:0 }}>Announcement</span>
                                     </div>
                                     <div style={{ fontSize:13, fontWeight:800, color:'#111827', marginBottom:3 }}>{a.title}</div>
                                     <div style={{ fontSize:12, color:'#4b5563', lineHeight:1.6 }}>{a.content}</div>
                                     <div style={{ fontSize:10, color:'#9ca3af', marginTop:4 }}>By {a.created_by}{a.country ? ` · ${a.country}` : ' · All countries'}</div>
                                 </div>
+                                {/* Delete button — admin/hr only */}
+                                {canManage && (
+                                    <button
+                                        onClick={() => handleDelete(a.id)}
+                                        disabled={deletingId === a.id}
+                                        title="Delete announcement"
+                                        style={{
+                                            flexShrink:0, width:28, height:28,
+                                            borderRadius:8, border:'1px solid #fee2e2',
+                                            background:'#fef2f2', color:'#ef4444',
+                                            display:'flex', alignItems:'center', justifyContent:'center',
+                                            cursor: deletingId === a.id ? 'not-allowed' : 'pointer',
+                                            fontSize:13, transition:'all 0.15s',
+                                            opacity: deletingId === a.id ? 0.6 : 1,
+                                        }}
+                                        onMouseEnter={e => { if(deletingId!==a.id){e.currentTarget.style.background='#fee2e2';e.currentTarget.style.borderColor='#fca5a5';}}}
+                                        onMouseLeave={e => { e.currentTarget.style.background='#fef2f2';e.currentTarget.style.borderColor='#fee2e2'; }}
+                                    >
+                                        {deletingId === a.id
+                                            ? <Spinner size={11} color="#ef4444"/>
+                                            : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                                        }
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -113,7 +161,7 @@ function AnnouncementModal({ onClose, onCreated }) {
         if(Object.keys(e).length){setErrors(e);return;}
         setSaving(true);
         try {
-            const res=await fetch('/dashboard/announcements',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf(),'Accept':'application/json','X-Inertia':'true'},body:JSON.stringify(form)});
+            const res=await fetch('/dashboard/announcements',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf(),'Accept':'application/json','X-Inertia':'true'},body:JSON.stringify({...form,start_at:form.start_at?new Date(form.start_at).toISOString():'',end_at:form.end_at?new Date(form.end_at).toISOString():''})});
             if(!res.ok){const d=await res.json().catch(()=>{}); if(d?.errors) setErrors(d.errors); return;}
             window.dispatchEvent(new CustomEvent('global-toast',{detail:{message:'Announcement created!',type:'success'}}));
             onCreated();
@@ -246,13 +294,17 @@ export default function Dashboard({
                     </div>
                 </div>
 
-                {/* ── Announcements (button outside, cards below) ── */}
-                <AnnouncementBanner announcements={announcements} roleName={roleName} onCreated={()=>router.reload()}/>
+                {/* ── Announcements ── */}
+                <AnnouncementBanner
+                    announcements={announcements}
+                    roleName={roleName}
+                    onCreated={() => router.reload()}
+                    onDeleted={() => router.reload()}
+                />
 
                 {/* ── HR/Admin: Employee Overview ── */}
                 {isHRAdmin && employeeStats && (
                     <>
-                        {/* Row 1: 4 stat cards */}
                         <div style={{ fontSize:10, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'1px', marginBottom:10 }}>Employee Overview</div>
                         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:16 }}>
                             <StatCard icon="👥" label="Total" value={employeeStats.total} color="#1e3a5f" bg="#eef2ff" accent="#1e3a5f"/>
@@ -263,14 +315,11 @@ export default function Dashboard({
                             <StatCard icon="✅" label="Permanent" value={employeeStats.permanent} color="#059669" bg="#d1fae5" accent="#10b981"/>
                         </div>
 
-                        {/* Row 2: Donut chart (left) + Payroll Trend bar chart (right) */}
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:14, marginBottom:16 }}>
-                            {/* Donut */}
                             <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
                                 <div style={{ fontSize:12, fontWeight:800, color:'#374151', marginBottom:14 }}>Employment Mix</div>
                                 <DonutChart data={employmentChart} size={120}/>
                             </div>
-                            {/* Payroll Trend */}
                             <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
                                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
                                     <div style={{ fontSize:12, fontWeight:800, color:'#374151' }}>📊 Payroll Trend — Last 6 Months</div>
@@ -280,9 +329,7 @@ export default function Dashboard({
                             </div>
                         </div>
 
-                        {/* Row 3: Probation + Contract alerts — always equal 2 columns */}
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:20 }}>
-                            {/* Probation Alerts */}
                             <div style={{ background:'#fff', borderRadius:14, border:`1.5px solid ${probationAlerts.length>0?'#fde68a':'#e5e7eb'}`, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
                                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
                                     <div style={{ width:32, height:32, borderRadius:9, background:'#fef3c7', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15 }}>⏳</div>
@@ -302,7 +349,6 @@ export default function Dashboard({
                                 ))}
                             </div>
 
-                            {/* Contract Alerts */}
                             <div style={{ background:'#fff', borderRadius:14, border:`1.5px solid ${contractAlerts.length>0?'#bfdbfe':'#e5e7eb'}`, padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
                                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
                                     <div style={{ width:32, height:32, borderRadius:9, background:'#dbeafe', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15 }}>📋</div>
@@ -350,7 +396,6 @@ export default function Dashboard({
 
                 {/* ── Bottom: Holidays + Quick Actions ── */}
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-                    {/* Holidays */}
                     <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
                             <div style={{ width:30, height:30, borderRadius:8, background:'#fef3c7', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>🎌</div>
@@ -366,7 +411,6 @@ export default function Dashboard({
                         ))}
                     </div>
 
-                    {/* Quick Actions */}
                     <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px', boxShadow:'0 1px 4px rgba(0,0,0,0.04)' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
                             <div style={{ width:30, height:30, borderRadius:8, background:'#ede9fe', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>⚡</div>
@@ -374,10 +418,10 @@ export default function Dashboard({
                         </div>
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                             {[
-                                {icon:'📅',label:'Attendance',href:'/payroll/attendance',color:'#2563eb',bg:'#dbeafe', count:null},
-                                {icon:'🏖️',label:'Leave',href:'/payroll/leaves',color:'#d97706',bg:'#fef3c7', count:myStats.pending_leave_approvals||0},
-                                {icon:'⏰',label:'Overtime',href:'/payroll/overtimes',color:'#7c3aed',bg:'#ede9fe', count:myStats.pending_ot_approvals||0},
-                                {icon:'📄',label:'Payslip',href:'/payroll/payslip',color:'#059669',bg:'#d1fae5', count:null},
+                                {icon:'📅',label:'Attendance',href:'/payroll/attendance',color:'#2563eb',bg:'#dbeafe',count:null},
+                                {icon:'🏖️',label:'Leave',href:'/payroll/leaves',color:'#d97706',bg:'#fef3c7',count:myStats.pending_leave_approvals||0},
+                                {icon:'⏰',label:'Overtime',href:'/payroll/overtimes',color:'#7c3aed',bg:'#ede9fe',count:myStats.pending_ot_approvals||0},
+                                {icon:'📄',label:'Payslip',href:'/payroll/payslip',color:'#059669',bg:'#d1fae5',count:null},
                             ].map((item,i)=>(
                                 <a key={i} href={item.href} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:10, border:'1px solid #f3f4f6', background:'#f9fafb', textDecoration:'none', transition:'all 0.12s' }}
                                     onMouseEnter={e=>{ e.currentTarget.style.background=item.bg; e.currentTarget.style.borderColor=item.color+'44'; }}

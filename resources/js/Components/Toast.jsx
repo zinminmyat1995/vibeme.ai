@@ -5,14 +5,24 @@ export default function GlobalToast() {
     const { flash } = usePage().props;
     const [toasts, setToasts] = useState([]);
 
+    // ── Flash prop (Inertia redirect messages) ──
     useEffect(() => {
-        console.log('Flash props:', flash);
         if (flash?.success) addToast('success', flash.success);
         if (flash?.error)   addToast('error',   flash.error);
     }, [flash]);
 
+    // ── Custom event (window.dispatchEvent 'global-toast') ──
+    useEffect(() => {
+        const handler = (e) => {
+            const { message, type = 'success' } = e.detail || {};
+            if (message) addToast(type, message);
+        };
+        window.addEventListener('global-toast', handler);
+        return () => window.removeEventListener('global-toast', handler);
+    }, []);
+
     const addToast = (type, message) => {
-        const id = Date.now();
+        const id = Date.now() + Math.random();
         setToasts(prev => [...prev, { id, type, message }]);
         setTimeout(() => removeToast(id), 4000);
     };
