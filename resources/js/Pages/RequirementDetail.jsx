@@ -30,6 +30,16 @@ const BUDGET_MAP = {
     over:   { label: 'Over Budget',   color: '#dc2626', bg: '#fee2e2', icon: '⚠️' },
 };
 
+// ── Purple theme ───────────────────────────────────
+const PURPLE = {
+    main:  '#7c3aed',
+    hover: '#6d28d9',
+    light: '#ede9fe',
+    border:'#c4b5fd',
+    text:  '#5b21b6',
+    grad:  'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+};
+
 // ── Sub-components ─────────────────────────────────
 function SectionCard({ icon, title, children, accent = '#111827' }) {
     return (
@@ -129,8 +139,10 @@ function ModuleCard({ mod, idx }) {
             onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = '#fafafa'; e.currentTarget.style.borderColor = '#f0f0f0'; e.currentTarget.style.transform = 'none'; }}
         >
+            {/* ── Number badge → purple ── */}
             <div style={{
-                width: 32, height: 32, borderRadius: 10, background: '#111827',
+                width: 32, height: 32, borderRadius: 10,
+                background: PURPLE.grad,
                 color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 12, fontWeight: 900, flexShrink: 0,
             }}>{idx + 1}</div>
@@ -154,11 +166,12 @@ function PhaseTimeline({ phases }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {phases.map((p, i) => (
                 <div key={i} style={{ display: 'flex', gap: 0 }}>
-                    {/* Line + dot */}
+                    {/* Line + dot → purple */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 32, flexShrink: 0 }}>
                         <div style={{
                             width: 28, height: 28, borderRadius: '50%',
-                            background: '#111827', color: '#fff',
+                            background: PURPLE.grad,
+                            color: '#fff',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: 11, fontWeight: 800, flexShrink: 0, zIndex: 1,
                         }}>{i + 1}</div>
@@ -196,8 +209,10 @@ function TeamCard({ member }) {
             padding: '12px 14px', borderRadius: 12, border: '1.5px solid #f0f0f0',
             background: '#fafafa', display: 'flex', alignItems: 'center', gap: 12,
         }}>
+            {/* Team count badge → purple */}
             <div style={{
-                width: 38, height: 38, borderRadius: 12, background: '#111827',
+                width: 38, height: 38, borderRadius: 12,
+                background: PURPLE.grad,
                 color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 16, fontWeight: 900, flexShrink: 0,
             }}>
@@ -264,14 +279,30 @@ export default function RequirementDetail({ analysis }) {
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                     {analysis.status === 'completed' && (
                         <button onClick={handleReanalyze} disabled={reanalyzing}
-                            style={{ padding: '9px 16px', borderRadius: 10, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            {reanalyzing ? <span style={{ width: 13, height: 13, border: '2px solid #ddd', borderTopColor: '#374151', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} /> : '🔄'}
+                            style={{
+                                padding: '9px 16px', borderRadius: 10,
+                                border: `1.5px solid ${PURPLE.border}`,
+                                background: PURPLE.light, color: PURPLE.text,
+                                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: 6,
+                            }}>
+                            {reanalyzing
+                                ? <span style={{ width: 13, height: 13, border: `2px solid ${PURPLE.border}`, borderTopColor: PURPLE.main, borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                                : '🔄'}
                             Re-analyze
                         </button>
                     )}
-                    <a href={`/requirement-analysis`}
-                        onClick={(e) => { e.preventDefault(); router.visit(`/proposals/create?from=${analysis.id}`); }}
-                        style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: '#111827', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {/* Generate Proposal → purple */}
+                    <a href={`/proposals?from=${analysis.id}`}
+                        onClick={(e) => { e.preventDefault(); router.visit(`/proposals?from=${analysis.id}`); }}
+                        style={{
+                            padding: '9px 18px', borderRadius: 10, border: 'none',
+                            background: PURPLE.grad,
+                            color: '#fff', fontSize: 12, fontWeight: 700,
+                            cursor: 'pointer', textDecoration: 'none',
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
+                        }}>
                         📄 Generate Proposal
                     </a>
                 </div>
@@ -291,7 +322,13 @@ export default function RequirementDetail({ analysis }) {
                             <div style={{ fontSize: 56, marginBottom: 16 }}>❌</div>
                             <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 8px' }}>Analysis Failed</h3>
                             <p style={{ color: '#9ca3af', fontSize: 14, marginBottom: 20 }}>Something went wrong. Please try again.</p>
-                            <button onClick={handleReanalyze} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#111827', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                            {/* Retry → purple */}
+                            <button onClick={handleReanalyze} style={{
+                                padding: '10px 24px', borderRadius: 10, border: 'none',
+                                background: PURPLE.grad, color: '#fff',
+                                fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                                boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
+                            }}>
                                 🔄 Retry Analysis
                             </button>
                         </>
@@ -357,7 +394,13 @@ export default function RequirementDetail({ analysis }) {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                         {ai.recommendations.map((r, i) => (
                                             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                                                <div style={{ width: 22, height: 22, borderRadius: 6, background: '#f0fdf4', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
+                                                {/* Recommendation number → purple */}
+                                                <div style={{
+                                                    width: 22, height: 22, borderRadius: 6,
+                                                    background: PURPLE.light, color: PURPLE.main,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontSize: 12, fontWeight: 800, flexShrink: 0, marginTop: 1,
+                                                }}>{i + 1}</div>
                                                 <p style={{ margin: 0, fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{r}</p>
                                             </div>
                                         ))}

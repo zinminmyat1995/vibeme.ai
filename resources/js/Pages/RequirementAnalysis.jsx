@@ -27,6 +27,16 @@ const COMMON_FEATURES = [
     'Mobile Responsive', 'Real-time Updates', 'Search & Filter',
 ];
 
+// ── Purple theme colors ────────────────────────────
+const PURPLE = {
+    main:   '#7c3aed',
+    hover:  '#6d28d9',
+    light:  '#ede9fe',
+    border: '#c4b5fd',
+    text:   '#5b21b6',
+    grad:   'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+};
+
 // ── Toast ──────────────────────────────────────────
 function Toast({ message, type, onClose }) {
     if (!message) return null;
@@ -128,11 +138,9 @@ function NewRequirementModal({ onClose, onSuccess }) {
     const toggleFeature = (f) => {
         const arr = form.data.core_features;
         form.setData('core_features', arr.includes(f) ? arr.filter(x => x !== f) : [...arr, f]);
-        // clear feature error when user selects one
         if (stepErrors.core_features) setStepErrors(e => ({ ...e, core_features: '' }));
     };
 
-    // ── Validate per step ──────────────────────────
     const validateStep = (s) => {
         const errs = {};
         if (s === 1) {
@@ -158,10 +166,7 @@ function NewRequirementModal({ onClose, onSuccess }) {
 
     const handleNext = () => {
         const errs = validateStep(step);
-        if (Object.keys(errs).length > 0) {
-            setStepErrors(errs);
-            return;
-        }
+        if (Object.keys(errs).length > 0) { setStepErrors(errs); return; }
         setStepErrors({});
         setStep(s => s + 1);
     };
@@ -169,10 +174,7 @@ function NewRequirementModal({ onClose, onSuccess }) {
     const submit = (e) => {
         e.preventDefault();
         const errs = validateStep(3);
-        if (Object.keys(errs).length > 0) {
-            setStepErrors(errs);
-            return;
-        }
+        if (Object.keys(errs).length > 0) { setStepErrors(errs); return; }
         form.post('/requirement-analysis', {
             onSuccess: () => { onSuccess('Requirement submitted & AI analysis started! 🚀'); onClose(); },
         });
@@ -181,54 +183,95 @@ function NewRequirementModal({ onClose, onSuccess }) {
     const inp = (field) => ({
         width: '100%', padding: '10px 13px', borderRadius: 10, fontSize: 13,
         border: `1.5px solid ${(stepErrors[field] || form.errors[field]) ? '#fca5a5' : '#e5e7eb'}`,
-        background: '#fafafa', color: '#111827', outline: 'none',
+        background: '#f8f7ff', color: '#111827', outline: 'none',
         boxSizing: 'border-box', fontFamily: 'inherit',
         transition: 'border-color 0.15s',
     });
-    const lbl = { fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.4px' };
+    const lbl = {
+        fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block',
+        marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.4px',
+    };
+
+    const stepLabels = ['Client Info', 'Project Details', 'Requirements'];
 
     return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(6px)' }} />
+            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }} />
             <div style={{
                 position: 'relative', background: '#fff', borderRadius: 24,
-                boxShadow: '0 32px 80px rgba(0,0,0,0.2)', width: '100%', maxWidth: 640,
+                boxShadow: '0 32px 80px rgba(124,58,237,0.18)', width: '100%', maxWidth: 640,
                 maxHeight: '92vh', overflowY: 'auto', animation: 'popIn 0.25s ease',
+                overflow: 'hidden',
             }}>
-                {/* Modal Header */}
-                <div style={{ padding: '24px 28px 0', borderBottom: '1px solid #f3f4f6', paddingBottom: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                {/* ── Purple Gradient Header ── */}
+                <div style={{
+                    background: PURPLE.grad,
+                    padding: '24px 28px 20px',
+                    position: 'relative',
+                }}>
+                    {/* Icon */}
+                    <div style={{
+                        width: 44, height: 44, borderRadius: 14,
+                        background: 'rgba(255,255,255,0.2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 22, marginBottom: 12,
+                    }}>🧠</div>
+
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                         <div>
-                            <h2 style={{ fontSize: 18, fontWeight: 900, color: '#111827', margin: 0 }}>
+                            <h2 style={{ fontSize: 18, fontWeight: 900, color: '#fff', margin: 0 }}>
                                 New Requirement Analysis
                             </h2>
-                            <p style={{ fontSize: 12, color: '#9ca3af', margin: '4px 0 0' }}>AI will analyze and provide insights automatically</p>
+                            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', margin: '4px 0 0' }}>
+                                AI will analyze and provide insights automatically
+                            </p>
                         </div>
-                        <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 10, border: 'none', background: '#f3f4f6', cursor: 'pointer', fontSize: 18, color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                        <button onClick={onClose} style={{
+                            width: 32, height: 32, borderRadius: 10,
+                            border: 'none', background: 'rgba(255,255,255,0.2)',
+                            cursor: 'pointer', fontSize: 18, color: '#fff',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0,
+                        }}>×</button>
                     </div>
 
                     {/* Step indicator */}
-                    <div style={{ display: 'flex', gap: 6, marginTop: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginTop: 18 }}>
                         {[1, 2, 3].map(s => (
-                            <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <div style={{
-                                    width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: 12, fontWeight: 800,
-                                    background: step >= s ? '#111827' : '#f3f4f6',
-                                    color: step >= s ? '#fff' : '#9ca3af',
-                                    transition: 'all 0.2s',
-                                }}>{s}</div>
-                                <span style={{ fontSize: 11, fontWeight: 600, color: step >= s ? '#111827' : '#9ca3af' }}>
-                                    {s === 1 ? 'Client Info' : s === 2 ? 'Project Details' : 'Requirements'}
-                                </span>
-                                {s < 3 && <div style={{ width: 20, height: 1, background: step > s ? '#111827' : '#e5e7eb' }} />}
+                            <div key={s} style={{ display: 'flex', alignItems: 'center', flex: s < 3 ? 1 : 'none' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{
+                                        width: 28, height: 28, borderRadius: '50%',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: 12, fontWeight: 800, flexShrink: 0,
+                                        background: step >= s ? '#fff' : 'rgba(255,255,255,0.25)',
+                                        color: step >= s ? PURPLE.main : 'rgba(255,255,255,0.6)',
+                                        transition: 'all 0.2s',
+                                    }}>
+                                        {step > s ? '✓' : s}
+                                    </div>
+                                    <span style={{
+                                        fontSize: 11, fontWeight: 700,
+                                        color: step >= s ? '#fff' : 'rgba(255,255,255,0.55)',
+                                        whiteSpace: 'nowrap',
+                                    }}>
+                                        {stepLabels[s - 1]}
+                                    </span>
+                                </div>
+                                {s < 3 && (
+                                    <div style={{
+                                        flex: 1, height: 1, margin: '0 10px',
+                                        background: step > s ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)',
+                                        transition: 'background 0.3s',
+                                    }} />
+                                )}
                             </div>
                         ))}
                     </div>
                 </div>
 
                 <form onSubmit={submit}>
-                    <div style={{ padding: '24px 28px' }}>
+                    <div style={{ padding: '24px 28px', overflowY: 'auto', maxHeight: 'calc(92vh - 220px)' }}>
 
                         {/* Step 1 — Client Info */}
                         {step === 1 && (
@@ -334,15 +377,18 @@ function NewRequirementModal({ onClose, onSuccess }) {
                         {step === 3 && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                                 <div>
-                                    <label style={lbl}>Core Features <span style={{ color: '#ef4444' }}>*</span> <span style={{ fontSize: 10, color: '#9ca3af', textTransform: 'none', fontWeight: 500 }}>(select at least one)</span></label>
+                                    <label style={lbl}>
+                                        Core Features <span style={{ color: '#ef4444' }}>*</span>{' '}
+                                        <span style={{ fontSize: 10, color: '#9ca3af', textTransform: 'none', fontWeight: 500 }}>(select at least one)</span>
+                                    </label>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
                                         {COMMON_FEATURES.map(f => {
                                             const selected = form.data.core_features.includes(f);
                                             return (
                                                 <button key={f} type="button" onClick={() => toggleFeature(f)} style={{
                                                     padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                                                    border: `1.5px solid ${selected ? '#111827' : stepErrors.core_features ? '#fca5a5' : '#e5e7eb'}`,
-                                                    background: selected ? '#111827' : '#fff',
+                                                    border: `1.5px solid ${selected ? PURPLE.main : stepErrors.core_features ? '#fca5a5' : '#e5e7eb'}`,
+                                                    background: selected ? PURPLE.main : '#fff',
                                                     color: selected ? '#fff' : '#6b7280',
                                                     transition: 'all 0.15s',
                                                 }}>
@@ -369,22 +415,64 @@ function NewRequirementModal({ onClose, onSuccess }) {
                         )}
                     </div>
 
-                    {/* Modal Footer */}
-                    <div style={{ padding: '0 28px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <button type="button" onClick={() => { if (step > 1) { setStep(s => s - 1); setStepErrors({}); } else onClose(); }}
-                            style={{ padding: '10px 22px', borderRadius: 10, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                    {/* ── Modal Footer ── */}
+                    <div style={{
+                        padding: '16px 28px 24px',
+                        borderTop: '1px solid #f3f4f6',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        background: '#fafafa',
+                    }}>
+                        <button
+                            type="button"
+                            onClick={() => { if (step > 1) { setStep(s => s - 1); setStepErrors({}); } else onClose(); }}
+                            style={{
+                                padding: '10px 22px', borderRadius: 10,
+                                border: '1.5px solid #e5e7eb', background: '#fff',
+                                color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                            }}
+                        >
                             {step === 1 ? 'Cancel' : '← Back'}
                         </button>
                         {step < 3 ? (
-                            <button type="button" onClick={handleNext}
-                                style={{ padding: '10px 28px', borderRadius: 10, border: 'none', background: '#111827', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                            <button
+                                type="button"
+                                onClick={handleNext}
+                                style={{
+                                    padding: '10px 28px', borderRadius: 10, border: 'none',
+                                    background: PURPLE.grad, color: '#fff',
+                                    fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                                    boxShadow: '0 4px 14px rgba(124,58,237,0.35)',
+                                    transition: 'all 0.15s',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = PURPLE.hover}
+                                onMouseLeave={e => e.currentTarget.style.background = PURPLE.grad}
+                            >
                                 Next →
                             </button>
                         ) : (
-                            <button type="submit" disabled={form.processing}
-                                style={{ padding: '10px 28px', borderRadius: 10, border: 'none', background: form.processing ? '#6b7280' : '#111827', color: '#fff', fontSize: 13, fontWeight: 700, cursor: form.processing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <button
+                                type="submit"
+                                disabled={form.processing}
+                                style={{
+                                    padding: '10px 28px', borderRadius: 10, border: 'none',
+                                    background: form.processing ? '#9ca3af' : PURPLE.grad,
+                                    color: '#fff', fontSize: 13, fontWeight: 700,
+                                    cursor: form.processing ? 'not-allowed' : 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: 8,
+                                    boxShadow: form.processing ? 'none' : '0 4px 14px rgba(124,58,237,0.35)',
+                                    transition: 'all 0.15s',
+                                }}
+                            >
                                 {form.processing ? (
-                                    <><span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} /> Analyzing...</>
+                                    <>
+                                        <span style={{
+                                            width: 14, height: 14,
+                                            border: '2px solid rgba(255,255,255,0.4)',
+                                            borderTopColor: '#fff', borderRadius: '50%',
+                                            display: 'inline-block', animation: 'spin 0.7s linear infinite',
+                                        }} />
+                                        Analyzing...
+                                    </>
                                 ) : '🚀 Submit & Analyze'}
                             </button>
                         )}
@@ -432,11 +520,11 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
             {/* ── Stats Row ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 12, marginBottom: 24 }}>
                 {[
-                    { label: 'Total', value: stats.total ?? 0, icon: '📋', color: '#111827', bg: '#f9fafb' },
-                    { label: 'Pending', value: stats.pending ?? 0, icon: '⏳', color: '#d97706', bg: '#fffbeb' },
+                    { label: 'Total',     value: stats.total     ?? 0, icon: '📋', color: '#111827', bg: '#f9fafb' },
+                    { label: 'Pending',   value: stats.pending   ?? 0, icon: '⏳', color: '#d97706', bg: '#fffbeb' },
                     { label: 'Analyzing', value: stats.analyzing ?? 0, icon: '🤖', color: '#2563eb', bg: '#eff6ff' },
                     { label: 'Completed', value: stats.completed ?? 0, icon: '✅', color: '#059669', bg: '#f0fdf4' },
-                    { label: 'Failed', value: stats.failed ?? 0, icon: '❌', color: '#dc2626', bg: '#fef2f2' },
+                    { label: 'Failed',    value: stats.failed    ?? 0, icon: '❌', color: '#dc2626', bg: '#fef2f2' },
                 ].map((s, i) => (
                     <div key={s.label} style={{
                         background: s.bg, border: `1px solid ${s.color}18`,
@@ -466,14 +554,18 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                     {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
                 <div style={{ width: 1, height: 28, background: '#e5e7eb' }} />
-                <button onClick={() => setShowNew(true)} style={{
-                    display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px',
-                    background: '#111827', color: '#fff', border: 'none', borderRadius: 10,
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)', transition: 'all 0.15s',
-                }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#1f2937'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#111827'}
+                <button
+                    onClick={() => setShowNew(true)}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: 7,
+                        padding: '9px 18px',
+                        background: PURPLE.grad,
+                        color: '#fff', border: 'none', borderRadius: 10,
+                        fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+                        boxShadow: '0 4px 14px rgba(124,58,237,0.35)', transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                 >
                     <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 1V13M1 7H13" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
                     New Analysis
@@ -540,7 +632,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                                         </a>
                                         {a.status === 'failed' && (
                                             <button onClick={() => router.post(`/requirement-analysis/${a.id}/reanalyze`)}
-                                                style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#2563eb', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                                                style={{ padding: '5px 10px', borderRadius: 8, border: `1px solid ${PURPLE.border}`, background: PURPLE.light, color: PURPLE.text, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                                                 🔄
                                             </button>
                                         )}
