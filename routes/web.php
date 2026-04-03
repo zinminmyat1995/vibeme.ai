@@ -23,9 +23,63 @@ use App\Http\Controllers\Payroll\PayrollRecordController;
 use App\Http\Controllers\Payroll\PayslipController;
 use App\Http\Controllers\Payroll\BankExportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RecruitmentController;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
+// Home page (existing route ကို replace)
+Route::get('/', [RecruitmentController::class, 'home']);
+
+// Country detail
+Route::get('/brycen/{countryKey}', [RecruitmentController::class, 'show'])
+    ->name('brycen.show');
+
+// Job detail
+Route::get('/brycen/{countryKey}/jobs/{job}', [RecruitmentController::class, 'jobDetail'])
+    ->name('brycen.job');
+
+// Apply (CV submit)
+Route::post('/brycen/{countryKey}/jobs/{job}/apply', [RecruitmentController::class, 'apply'])
+    ->name('brycen.apply');
+
+Route::get('/track/{code}', [RecruitmentController::class, 'track'])
+    ->name('application.track');
+
+// ── HR routes (login + role required) ──────────────────────────
+
+Route::middleware(['auth', 'role:hr,admin'])->group(function () {
+
+    // Recruitment dashboard
+    Route::get('/recruitment', [RecruitmentController::class, 'hrIndex'])
+        ->name('recruitment.index');
+
+    // Job Posting CRUD
+    Route::post('/recruitment/jobs', [RecruitmentController::class, 'storeJob'])
+        ->name('recruitment.jobs.store');
+    Route::put('/recruitment/jobs/{job}', [RecruitmentController::class, 'updateJob'])
+        ->name('recruitment.jobs.update');
+    Route::delete('/recruitment/jobs/{job}', [RecruitmentController::class, 'destroyJob'])
+        ->name('recruitment.jobs.destroy');
+
+    // Applications
+    Route::get('/recruitment/jobs/{job}/applications', [RecruitmentController::class, 'applications'])
+        ->name('recruitment.applications');
+    Route::patch('/recruitment/applications/{application}', [RecruitmentController::class, 'updateApplication'])
+        ->name('recruitment.application.update');
+    Route::post('/recruitment/applications/{application}/interview',
+        [RecruitmentController::class, 'scheduleInterview'])
+        ->name('recruitment.interview.schedule');
+ 
+    Route::post('/recruitment/applications/{application}/score',
+        [RecruitmentController::class, 'saveScore'])
+        ->name('recruitment.interview.score');
+
+    Route::post('/recruitment/applications/bulk-update',
+        [RecruitmentController::class, 'bulkUpdateApplications'])
+        ->name('recruitment.applications.bulk-update');
+
+    Route::delete('/recruitment/applications/{application}',
+        [RecruitmentController::class, 'deleteApplication'])
+        ->name('recruitment.application.delete');
+
 });
 
 
