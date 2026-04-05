@@ -1,191 +1,516 @@
-// resources/js/Pages/UserRoles.jsx
-
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
-import { useForm, usePage, router } from '@inertiajs/react';
+import { useForm, router } from '@inertiajs/react';
 
-// ─────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────
 const COUNTRIES = [
-    { code: 'myanmar',  label: 'Myanmar'  },
-    { code: 'vietnam',  label: 'Vietnam'  },
-    { code: 'korea',    label: 'Korea'    },
+    { code: 'myanmar', label: 'Myanmar' },
+    { code: 'vietnam', label: 'Vietnam' },
+    { code: 'korea', label: 'Korea' },
     { code: 'cambodia', label: 'Cambodia' },
-    { code: 'japan',    label: 'Japan'    },
+    { code: 'japan', label: 'Japan' },
 ];
 
-// ─────────────────────────────────────────────────────
-// CountryFlag
-// ─────────────────────────────────────────────────────
+function useReactiveTheme() {
+    const getDark = () => {
+        if (typeof window === 'undefined') return false;
+        return document.documentElement.getAttribute('data-theme') === 'dark'
+            || localStorage.getItem('vibeme-theme') === 'dark';
+    };
+
+    const [darkMode, setDarkMode] = useState(getDark);
+
+    useEffect(() => {
+        const sync = () => setDarkMode(getDark());
+        window.addEventListener('vibeme-theme-change', sync);
+        window.addEventListener('storage', sync);
+        return () => {
+            window.removeEventListener('vibeme-theme-change', sync);
+            window.removeEventListener('storage', sync);
+        };
+    }, []);
+
+    return darkMode;
+}
+
+function getTheme(darkMode) {
+    if (darkMode) {
+        return {
+            pageBg: 'transparent',
+            panel: 'linear-gradient(180deg, rgba(10,18,36,0.96) 0%, rgba(9,16,32,0.92) 100%)',
+            panelSolid: '#0b1324',
+            panelSoft: 'rgba(255,255,255,0.035)',
+            panelSofter: 'rgba(255,255,255,0.055)',
+            border: 'rgba(148,163,184,0.12)',
+            borderStrong: 'rgba(148,163,184,0.2)',
+            text: '#f8fafc',
+            textSoft: '#cbd5e1',
+            textMute: '#8da0b8',
+            shadow: '0 28px 80px rgba(0,0,0,0.42)',
+            shadowSoft: '0 16px 36px rgba(0,0,0,0.28)',
+            overlay: 'rgba(2, 8, 23, 0.72)',
+            primary: '#7c3aed',
+            primaryHover: '#6d28d9',
+            primarySoft: 'rgba(124,58,237,0.16)',
+            secondary: '#2563eb',
+            secondaryHover: '#1d4ed8',
+            secondarySoft: 'rgba(37,99,235,0.14)',
+            success: '#10b981',
+            successSoft: 'rgba(16,185,129,0.16)',
+            warning: '#f59e0b',
+            warningSoft: 'rgba(245,158,11,0.16)',
+            danger: '#f87171',
+            dangerHover: '#ef4444',
+            dangerSoft: 'rgba(248,113,113,0.14)',
+            inputBg: 'rgba(255,255,255,0.035)',
+            inputBorder: 'rgba(148,163,184,0.16)',
+            tableHead: 'rgba(255,255,255,0.028)',
+            modalHeader: 'linear-gradient(135deg, rgba(76,29,149,0.96) 0%, rgba(30,64,175,0.96) 100%)',
+            rowHover: 'rgba(255,255,255,0.03)',
+            glass: 'radial-gradient(circle at top right, rgba(124,58,237,0.22), transparent 42%), radial-gradient(circle at bottom left, rgba(37,99,235,0.16), transparent 38%)',
+            chipShadow: '0 10px 24px rgba(0,0,0,0.16)',
+        };
+    }
+
+    return {
+        pageBg: 'transparent',
+        panel: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(250,251,255,0.96) 100%)',
+        panelSolid: '#ffffff',
+        panelSoft: '#f8fafc',
+        panelSofter: '#f1f5f9',
+        border: 'rgba(15,23,42,0.08)',
+        borderStrong: 'rgba(15,23,42,0.12)',
+        text: '#0f172a',
+        textSoft: '#475569',
+        textMute: '#94a3b8',
+        shadow: '0 24px 70px rgba(15,23,42,0.08)',
+        shadowSoft: '0 14px 30px rgba(15,23,42,0.06)',
+        overlay: 'rgba(15,23,42,0.36)',
+        primary: '#7c3aed',
+        primaryHover: '#6d28d9',
+        primarySoft: '#f3e8ff',
+        secondary: '#2563eb',
+        secondaryHover: '#1d4ed8',
+        secondarySoft: '#dbeafe',
+        success: '#059669',
+        successSoft: '#d1fae5',
+        warning: '#d97706',
+        warningSoft: '#fef3c7',
+        danger: '#ef4444',
+        dangerHover: '#dc2626',
+        dangerSoft: '#fee2e2',
+        inputBg: '#f8fafc',
+        inputBorder: '#e5e7eb',
+        tableHead: '#f8fafc',
+        modalHeader: 'linear-gradient(135deg, #6d28d9 0%, #1d4ed8 100%)',
+        rowHover: '#fbfbfe',
+        glass: 'radial-gradient(circle at top right, rgba(124,58,237,0.08), transparent 44%), radial-gradient(circle at bottom left, rgba(37,99,235,0.07), transparent 40%)',
+        chipShadow: '0 10px 24px rgba(15,23,42,0.05)',
+    };
+}
+
+function card(theme, extra = {}) {
+    return {
+        background: theme.panel,
+        border: `1px solid ${theme.border}`,
+        borderRadius: 24,
+        boxShadow: theme.shadowSoft,
+        backdropFilter: 'blur(16px)',
+        ...extra,
+    };
+}
+
+function inputStyle(theme, hasError = false) {
+    return {
+        width: '100%',
+        padding: '13px 15px',
+        borderRadius: 16,
+        fontSize: 13,
+        outline: 'none',
+        boxSizing: 'border-box',
+        fontFamily: 'inherit',
+        border: `1px solid ${hasError ? '#fca5a5' : theme.inputBorder}`,
+        background: hasError
+            ? (theme.panelSolid === '#0b1324' ? 'rgba(127,29,29,0.12)' : '#fef2f2')
+            : theme.inputBg,
+        color: theme.text,
+        transition: 'all 0.18s ease',
+        boxShadow: hasError ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.02)',
+    };
+}
+
+function SectionTitle({ eyebrow, title, desc, theme, action = null }) {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div>
+                {eyebrow && (
+                    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: theme.primary, marginBottom: 6 }}>
+                        {eyebrow}
+                    </div>
+                )}
+                <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', color: theme.text }}>
+                    {title}
+                </div>
+                {desc && (
+                    <div style={{ marginTop: 6, fontSize: 13, color: theme.textMute, lineHeight: 1.6 }}>
+                        {desc}
+                    </div>
+                )}
+            </div>
+            {action}
+        </div>
+    );
+}
+
+function UIButton({ children, onClick, type = 'button', variant = 'primary', disabled = false, theme, style = {} }) {
+    const cfg = {
+        primary: {
+            bg: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
+            color: '#fff',
+            border: 'none',
+            hoverBg: `linear-gradient(135deg, ${theme.primaryHover} 0%, ${theme.secondaryHover} 100%)`,
+            shadow: `0 14px 32px ${theme.primary}30`,
+        },
+        ghost: {
+            bg: theme.panelSoft,
+            color: theme.textSoft,
+            border: `1px solid ${theme.border}`,
+            hoverBg: theme.panelSofter,
+            shadow: 'none',
+        },
+        danger: {
+            bg: theme.danger,
+            color: '#fff',
+            border: 'none',
+            hoverBg: theme.dangerHover,
+            shadow: `0 14px 32px ${theme.danger}30`,
+        },
+        softDanger: {
+            bg: theme.dangerSoft,
+            color: theme.danger,
+            border: `1px solid ${theme.border}`,
+            hoverBg: theme.dangerSoft,
+            shadow: 'none',
+        },
+    }[variant];
+
+    return (
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                height: 46,
+                padding: '0 18px',
+                borderRadius: 16,
+                border: cfg.border,
+                background: disabled ? theme.textMute : cfg.bg,
+                color: cfg.color,
+                fontSize: 13,
+                fontWeight: 900,
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                whiteSpace: 'nowrap',
+                boxShadow: disabled ? 'none' : cfg.shadow,
+                transition: 'all 0.18s ease',
+                ...style,
+            }}
+            onMouseEnter={(e) => {
+                if (disabled) return;
+                e.currentTarget.style.background = cfg.hoverBg;
+                e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+                if (disabled) return;
+                e.currentTarget.style.background = cfg.bg;
+                e.currentTarget.style.transform = 'translateY(0)';
+            }}
+        >
+            {children}
+        </button>
+    );
+}
+
 function CountryFlag({ code, size = 20 }) {
     const h = Math.round(size * 0.6);
     const flags = {
         myanmar: (
-            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 2, display: 'block' }}>
-                <rect width="900" height="200" y="0"   fill="#FECB00"/>
+            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 3, display: 'block' }}>
+                <rect width="900" height="200" y="0" fill="#FECB00"/>
                 <rect width="900" height="200" y="200" fill="#34B233"/>
                 <rect width="900" height="200" y="400" fill="#EA2839"/>
                 <polygon points="450,30 480,140 600,140 505,210 540,320 450,250 360,320 395,210 300,140 420,140" fill="white"/>
             </svg>
         ),
         vietnam: (
-            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 2, display: 'block' }}>
+            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 3, display: 'block' }}>
                 <rect width="900" height="600" fill="#DA251D"/>
                 <polygon points="450,120 492,250 630,250 518,330 560,460 450,380 340,460 382,330 270,250 408,250" fill="#FFFF00"/>
             </svg>
         ),
         korea: (
-            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 2, display: 'block' }}>
+            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 3, display: 'block' }}>
                 <rect width="900" height="600" fill="#ffffff"/>
                 <circle cx="450" cy="300" r="150" fill="#C60C30"/>
                 <path d="M450,150 A150,150 0 0,1 450,450" fill="#003478"/>
                 <circle cx="450" cy="225" r="75" fill="#C60C30"/>
                 <circle cx="450" cy="375" r="75" fill="#003478"/>
-                <g stroke="#000" strokeWidth="20">
-                    <line x1="170" y1="155" x2="265" y2="120"/><line x1="180" y1="185" x2="275" y2="150"/><line x1="190" y1="215" x2="285" y2="180"/>
-                    <line x1="615" y1="120" x2="710" y2="155"/><line x1="605" y1="150" x2="700" y2="185"/><line x1="595" y1="180" x2="690" y2="215"/>
-                    <line x1="170" y1="445" x2="265" y2="480"/><line x1="180" y1="415" x2="275" y2="450"/><line x1="190" y1="385" x2="285" y2="420"/>
-                    <line x1="615" y1="480" x2="710" y2="445"/><line x1="605" y1="450" x2="700" y2="415"/><line x1="595" y1="420" x2="690" y2="385"/>
-                </g>
             </svg>
         ),
         cambodia: (
-            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 2, display: 'block' }}>
+            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 3, display: 'block' }}>
                 <rect width="900" height="600" fill="#032EA1"/>
                 <rect width="900" height="300" y="150" fill="#E00025"/>
                 <g fill="white">
                     <rect x="375" y="215" width="150" height="170"/>
-                    <rect x="363" y="195" width="40"  height="25"/>
-                    <rect x="430" y="175" width="40"  height="45"/>
-                    <rect x="497" y="195" width="40"  height="25"/>
-                    <rect x="330" y="235" width="48"  height="150"/>
-                    <rect x="522" y="235" width="48"  height="150"/>
+                    <rect x="363" y="195" width="40" height="25"/>
+                    <rect x="430" y="175" width="40" height="45"/>
+                    <rect x="497" y="195" width="40" height="25"/>
+                    <rect x="330" y="235" width="48" height="150"/>
+                    <rect x="522" y="235" width="48" height="150"/>
                 </g>
             </svg>
         ),
         japan: (
-            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 2, display: 'block' }}>
+            <svg width={size} height={h} viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 3, display: 'block' }}>
                 <rect width="900" height="600" fill="#ffffff"/>
                 <circle cx="450" cy="300" r="180" fill="#BC002D"/>
             </svg>
         ),
     };
-    return flags[code] || <span>🌏</span>;
+    return flags[code] || <span style={{ fontSize: size * 0.7 }}>•</span>;
 }
 
-// ─────────────────────────────────────────────────────
-// Avatar
-// ─────────────────────────────────────────────────────
-function Avatar({ user, size = 36 }) {
+function Avatar({ user, size = 42, darkMode = false }) {
     const colors = { admin: '#7c3aed', hr: '#059669', management: '#2563eb', employee: '#d97706' };
     const color = colors[user?.role?.name] || '#6b7280';
     const initials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
+
     if (user?.avatar_url) {
-        return <img src={`/storage/${user.avatar_url}`} alt={user.name} style={{ width: size, height: size, borderRadius: size / 3, objectFit: 'cover', flexShrink: 0 }} />;
+        return (
+            <img
+                src={`/storage/${user.avatar_url}`}
+                alt={user.name}
+                style={{
+                    width: size,
+                    height: size,
+                    borderRadius: 16,
+                    objectFit: 'cover',
+                    flexShrink: 0,
+                    border: darkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(15,23,42,0.06)',
+                    boxShadow: '0 12px 24px rgba(15,23,42,0.12)',
+                }}
+            />
+        );
     }
+
     return (
-        <div style={{ width: size, height: size, borderRadius: size / 3, background: `${color}20`, color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: size * 0.35, flexShrink: 0 }}>
+        <div
+            style={{
+                width: size,
+                height: size,
+                borderRadius: 16,
+                background: darkMode
+                    ? `linear-gradient(135deg, ${color}38, rgba(255,255,255,0.06))`
+                    : `linear-gradient(135deg, ${color}20, rgba(255,255,255,0.9))`,
+                color,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 900,
+                fontSize: size * 0.34,
+                flexShrink: 0,
+                border: darkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(15,23,42,0.05)',
+            }}
+        >
             {initials}
         </div>
     );
 }
 
-// ─────────────────────────────────────────────────────
-// Role Badge
-// ─────────────────────────────────────────────────────
-function RoleBadge({ role }) {
-    const map = { admin: { bg: '#ede9fe', color: '#7c3aed' }, hr: { bg: '#d1fae5', color: '#059669' }, management: { bg: '#dbeafe', color: '#2563eb' }, employee: { bg: '#fef3c7', color: '#d97706' } };
-    const c = map[role?.name] || { bg: '#f3f4f6', color: '#6b7280' };
+function RoleBadge({ role, darkMode = false }) {
+    const map = {
+        admin: { bg: darkMode ? 'rgba(124,58,237,0.16)' : '#ede9fe', color: '#7c3aed' },
+        hr: { bg: darkMode ? 'rgba(5,150,105,0.16)' : '#d1fae5', color: '#059669' },
+        management: { bg: darkMode ? 'rgba(37,99,235,0.16)' : '#dbeafe', color: '#2563eb' },
+        employee: { bg: darkMode ? 'rgba(217,119,6,0.16)' : '#fef3c7', color: '#d97706' },
+    };
+    const c = map[role?.name] || { bg: darkMode ? 'rgba(255,255,255,0.06)' : '#f3f4f6', color: '#6b7280' };
+
     return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 99, background: c.bg, color: c.color, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-            <span style={{ width: 5, height: 5, borderRadius: '50%', background: c.color, display: 'inline-block' }} />
+        <span
+            style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 10,
+                fontWeight: 900,
+                padding: '6px 11px',
+                borderRadius: 999,
+                background: c.bg,
+                color: c.color,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                boxShadow: darkMode ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.7)',
+            }}
+        >
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.color, display: 'inline-block' }} />
             {role?.display_name || 'No Role'}
         </span>
     );
 }
 
-// ─────────────────────────────────────────────────────
-// Modal
-// ─────────────────────────────────────────────────────
-function Modal({ open, onClose, title, subtitle, icon, children }) {
-    if (!open) return null;
-    return (
-        <div style={{ position:'fixed', inset:0, zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-            <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(15,10,40,0.5)', backdropFilter:'blur(6px)' }} />
-            <div style={{ position:'relative', background:'#fff', borderRadius:22, boxShadow:'0 32px 80px rgba(0,0,0,0.28)', width:'100%', maxWidth:520, maxHeight:'92vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+function ActionGlyph({ type, color }) {
+    if (type === 'edit') {
+        return (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+            </svg>
+        );
+    }
 
-                {/* Gradient Header */}
-                <div style={{ background:'linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%)', padding:'20px 24px 18px', flexShrink:0 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-                        <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-                            <div style={{ width:42, height:42, borderRadius:12, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
-                                {icon || '👤'}
+    if (type === 'delete') {
+        return (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+        );
+    }
+
+    return null;
+}
+
+function Modal({ open, onClose, title, subtitle, children, darkMode = false }) {
+    if (!open) return null;
+    const theme = getTheme(darkMode);
+
+    return (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div
+                onClick={onClose}
+                style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: theme.overlay,
+                    backdropFilter: 'blur(12px)',
+                }}
+            />
+            <div
+                style={{
+                    position: 'relative',
+                    width: '100%',
+                    maxWidth: 620,
+                    maxHeight: '90vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    borderRadius: 30,
+                    background: theme.panel,
+                    border: `1px solid ${theme.borderStrong}`,
+                    boxShadow: theme.shadow,
+                    backdropFilter: 'blur(18px)',
+                    animation: 'modalIn 0.2s ease',
+                }}
+            >
+                <div
+                    style={{
+                        position: 'relative',
+                        padding: '24px 24px 18px',
+                        background: theme.modalHeader,
+                        overflow: 'hidden',
+                    }}
+                >
+                    <div
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.16), transparent 58%)',
+                            pointerEvents: 'none',
+                        }}
+                    />
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
+                        <div>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.74)', fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                                {subtitle || 'Workspace'}
                             </div>
-                            <div>
-                                <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase', marginBottom:3 }}>
-                                    {subtitle || 'User Management'}
-                                </div>
-                                <div style={{ fontSize:16, fontWeight:900, color:'#fff', letterSpacing:'-0.2px' }}>{title}</div>
+                            <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', marginTop: 5 }}>
+                                {title}
                             </div>
                         </div>
-                        <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:10, width:32, height:32, cursor:'pointer', color:'#fff', fontSize:18, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>×</button>
+
+                        <button
+                            onClick={onClose}
+                            style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 14,
+                                border: '1px solid rgba(255,255,255,0.16)',
+                                background: 'rgba(255,255,255,0.14)',
+                                color: '#fff',
+                                cursor: 'pointer',
+                                fontSize: 20,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            ×
+                        </button>
                     </div>
                 </div>
 
-                {/* Content */}
-                <div style={{ overflowY:'auto', flex:1, padding:'20px 24px 24px' }}>{children}</div>
+                <div style={{ overflowY: 'auto', padding: '24px' }}>
+                    {children}
+                </div>
             </div>
         </div>
     );
 }
 
-// ─────────────────────────────────────────────────────
-// Field Error
-// ─────────────────────────────────────────────────────
-function FieldError({ msg }) {
+function FieldError({ msg, darkMode = false }) {
+    const theme = getTheme(darkMode);
     if (!msg) return null;
+
     return (
-        <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4, marginBottom: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span>⚠</span> {msg}
+        <p style={{ fontSize: 11, color: theme.danger, marginTop: 7, fontWeight: 700 }}>
+            {msg}
         </p>
     );
 }
 
-// ─────────────────────────────────────────────────────
-// UserForm
-// ─────────────────────────────────────────────────────
-function UserForm({ roles, editUser, onClose, onSuccess }) {
+function UserForm({ roles, editUser, onClose, darkMode = false }) {
+    const theme = getTheme(darkMode);
     const isEdit = !!editUser;
 
     const form = useForm({
-        name:          editUser?.name       || '',
-        email:         editUser?.email      || '',
-        password:      '',
-        role_id:       editUser?.role?.id   ? String(editUser.role.id) : '',
-        department:    editUser?.department || '',
-        position:      editUser?.position   || '',
-        phone:         editUser?.phone      || '',
-        is_active:     editUser?.is_active  ?? true,
-        avatar:        null,
+        name: editUser?.name || '',
+        email: editUser?.email || '',
+        password: '',
+        role_id: editUser?.role?.id ? String(editUser.role.id) : '',
+        department: editUser?.department || '',
+        position: editUser?.position || '',
+        phone: editUser?.phone || '',
+        is_active: editUser?.is_active ?? true,
+        avatar: null,
         remove_avatar: false,
-        _method:       isEdit ? 'PUT' : 'POST',
-        country:         editUser?.country         || '',
-        joined_date: editUser?.joined_date
-            ? String(editUser.joined_date).split('T')[0]
-            : new Date().toISOString().split('T')[0],
-        employment_type:    editUser?.employment_type    || 'probation',
-        contract_end_date: editUser?.contract_end_date
-            ? String(editUser.contract_end_date).split('T')[0]
-            : '',
+        _method: isEdit ? 'PUT' : 'POST',
+        country: editUser?.country || '',
+        joined_date: editUser?.joined_date ? String(editUser.joined_date).split('T')[0] : new Date().toISOString().split('T')[0],
+        employment_type: editUser?.employment_type || 'probation',
+        contract_end_date: editUser?.contract_end_date ? String(editUser.contract_end_date).split('T')[0] : '',
     });
 
     const [countryOpen, setCountryOpen] = useState(false);
-    const dropdownRef  = useRef(null);
+    const dropdownRef = useRef(null);
     const fileInputRef = useRef(null);
-    const [previewUrl, setPreviewUrl] = useState(
-        editUser?.avatar_url ? `/storage/${editUser.avatar_url}` : null
-    );
+    const [previewUrl, setPreviewUrl] = useState(editUser?.avatar_url ? `/storage/${editUser.avatar_url}` : null);
 
     useEffect(() => {
         const handler = (e) => {
@@ -197,19 +522,18 @@ function UserForm({ roles, editUser, onClose, onSuccess }) {
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    const inp = (field) => ({
-        width: '100%', padding: '9px 12px', borderRadius: 10, fontSize: 13,
-        outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
-        border: `1px solid ${form.errors[field] ? '#fca5a5' : '#e5e7eb'}`,
-        background: form.errors[field] ? '#fef9f9' : '#f9fafb',
-        color: '#111827',
-    });
-
-    const lbl = { fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 5 };
+    const lbl = {
+        fontSize: 12,
+        fontWeight: 800,
+        color: theme.textSoft,
+        display: 'block',
+        marginBottom: 7,
+    };
 
     const submit = (e) => {
         e.preventDefault();
         const url = isEdit ? `/users/${editUser.id}` : '/users';
+
         form.post(url, {
             forceFormData: true,
             onSuccess: () => {
@@ -234,533 +558,730 @@ function UserForm({ roles, editUser, onClose, onSuccess }) {
 
     return (
         <form onSubmit={submit} encType="multipart/form-data">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-
-                {/* Full Name */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
                 <div style={{ gridColumn: '1/-1' }}>
-                    <label style={lbl}>Full Name <span style={{ color: '#ef4444' }}>*</span></label>
-                    <input value={form.data.name} onChange={e => form.setData('name', e.target.value)} placeholder="John Doe" style={inp('name')} />
-                    <FieldError msg={form.errors.name} />
+                    <label style={lbl}>Full Name <span style={{ color: theme.danger }}>*</span></label>
+                    <input value={form.data.name} onChange={e => form.setData('name', e.target.value)} placeholder="John Doe" style={inputStyle(theme, !!form.errors.name)} />
+                    <FieldError msg={form.errors.name} darkMode={darkMode} />
                 </div>
 
-                {/* Email */}
                 <div style={{ gridColumn: '1/-1' }}>
-                    <label style={lbl}>Email Address <span style={{ color: '#ef4444' }}>*</span></label>
-                    <input type="email" value={form.data.email} onChange={e => form.setData('email', e.target.value)} placeholder="john@vibeme.ai" style={inp('email')} />
-                    <FieldError msg={form.errors.email} />
+                    <label style={lbl}>Email Address <span style={{ color: theme.danger }}>*</span></label>
+                    <input type="email" value={form.data.email} onChange={e => form.setData('email', e.target.value)} placeholder="john@vibeme.ai" style={inputStyle(theme, !!form.errors.email)} />
+                    <FieldError msg={form.errors.email} darkMode={darkMode} />
                 </div>
 
-                {/* Country Dropdown */}
                 <div style={{ gridColumn: '1/-1', position: 'relative' }} ref={dropdownRef}>
-                    <label style={lbl}>Country <span style={{ color: '#ef4444' }}>*</span></label>
+                    <label style={lbl}>Country <span style={{ color: theme.danger }}>*</span></label>
                     <div
                         onClick={() => setCountryOpen(o => !o)}
                         style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            padding: '9px 12px', borderRadius: 10, cursor: 'pointer',
-                            border: `1px solid ${form.errors.country ? '#fca5a5' : '#e5e7eb'}`,
-                            background: form.errors.country ? '#fef9f9' : '#f9fafb',
-                            userSelect: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '13px 15px',
+                            borderRadius: 16,
+                            cursor: 'pointer',
+                            border: `1px solid ${form.errors.country ? '#fca5a5' : theme.inputBorder}`,
+                            background: form.errors.country ? (darkMode ? 'rgba(127,29,29,0.12)' : '#fef2f2') : theme.inputBg,
                         }}
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             {form.data.country ? (
                                 <>
-                                    <CountryFlag code={form.data.country} size={20} />
-                                    <span style={{ fontSize: 13, color: '#111827', fontWeight: 600 }}>
+                                    <CountryFlag code={form.data.country} size={22} />
+                                    <span style={{ fontSize: 13, color: theme.text, fontWeight: 700 }}>
                                         {COUNTRIES.find(c => c.code === form.data.country)?.label}
                                     </span>
                                 </>
                             ) : (
-                                <span style={{ fontSize: 13, color: '#9ca3af' }}>Select country...</span>
+                                <span style={{ fontSize: 13, color: theme.textMute }}>Select country...</span>
                             )}
                         </div>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
-                            style={{ transform: countryOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}>
-                            <path d="M2 4L6 8L10 4" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ transform: countryOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                            <path d="M2 4L6 8L10 4" stroke={theme.textMute} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                     </div>
 
                     {countryOpen && (
-                        <div style={{
-                            position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12,
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)', overflow: 'hidden', marginTop: 4,
-                        }}>
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                zIndex: 100,
+                                background: theme.panelSolid,
+                                border: `1px solid ${theme.borderStrong}`,
+                                borderRadius: 18,
+                                boxShadow: theme.shadowSoft,
+                                overflow: 'hidden',
+                                marginTop: 8,
+                            }}
+                        >
                             {COUNTRIES.map((c, i) => (
                                 <div
                                     key={c.code}
-                                    onClick={() => { form.setData('country', c.code); setCountryOpen(false); }}
-                                    style={{
-                                        display: 'flex', alignItems: 'center', gap: 10,
-                                        padding: '10px 14px', cursor: 'pointer',
-                                        background: form.data.country === c.code ? '#ede9fe' : '#fff',
-                                        borderBottom: i < COUNTRIES.length - 1 ? '1px solid #f3f4f6' : 'none',
+                                    onClick={() => {
+                                        form.setData('country', c.code);
+                                        setCountryOpen(false);
                                     }}
-                                    onMouseEnter={e => { if (form.data.country !== c.code) e.currentTarget.style.background = '#f9fafb'; }}
-                                    onMouseLeave={e => { if (form.data.country !== c.code) e.currentTarget.style.background = '#fff'; }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 10,
+                                        padding: '12px 15px',
+                                        cursor: 'pointer',
+                                        background: form.data.country === c.code ? (darkMode ? theme.primarySoft : '#f5f3ff') : theme.panelSolid,
+                                        borderBottom: i < COUNTRIES.length - 1 ? `1px solid ${theme.border}` : 'none',
+                                    }}
                                 >
                                     <CountryFlag code={c.code} size={22} />
-                                    <span style={{ fontSize: 13, fontWeight: form.data.country === c.code ? 700 : 500, color: form.data.country === c.code ? '#7c3aed' : '#374151', flex: 1 }}>
+                                    <span style={{ fontSize: 13, fontWeight: form.data.country === c.code ? 800 : 600, color: form.data.country === c.code ? theme.primary : theme.textSoft, flex: 1 }}>
                                         {c.label}
                                     </span>
-                                    {form.data.country === c.code && (
-                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                            <path d="M2 7L5.5 10.5L12 3.5" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                        </svg>
-                                    )}
                                 </div>
                             ))}
                         </div>
                     )}
-                    <FieldError msg={form.errors.country} />
+                    <FieldError msg={form.errors.country} darkMode={darkMode} />
                 </div>
 
-                {/* Password */}
                 <div style={{ gridColumn: '1/-1' }}>
-                    <label style={lbl}>
-                        {isEdit ? 'New Password' : 'Password'} {!isEdit && <span style={{ color: '#ef4444' }}>*</span>}
-                        {isEdit && <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 500 }}> (leave blank to keep)</span>}
-                    </label>
-                    <input type="password" value={form.data.password} onChange={e => form.setData('password', e.target.value)} placeholder="••••••••" style={inp('password')} />
-                    <FieldError msg={form.errors.password} />
+                    <label style={lbl}>{isEdit ? 'New Password' : 'Password'} {!isEdit && <span style={{ color: theme.danger }}>*</span>}</label>
+                    <input type="password" value={form.data.password} onChange={e => form.setData('password', e.target.value)} placeholder="••••••••" style={inputStyle(theme, !!form.errors.password)} />
+                    <FieldError msg={form.errors.password} darkMode={darkMode} />
                 </div>
 
-                {/* Role */}
                 <div>
-                    <label style={lbl}>Role <span style={{ color: '#ef4444' }}>*</span></label>
-                    <select value={form.data.role_id} onChange={e => form.setData('role_id', e.target.value)} style={{ ...inp('role_id'), cursor: 'pointer' }}>
+                    <label style={lbl}>Role <span style={{ color: theme.danger }}>*</span></label>
+                    <select value={form.data.role_id} onChange={e => form.setData('role_id', e.target.value)} style={{ ...inputStyle(theme, !!form.errors.role_id), cursor: 'pointer' }}>
                         <option value="">Select role...</option>
                         {roles.map(r => <option key={r.id} value={String(r.id)}>{r.display_name}</option>)}
                     </select>
-                    <FieldError msg={form.errors.role_id} />
+                    <FieldError msg={form.errors.role_id} darkMode={darkMode} />
                 </div>
 
-                {/* Department */}
                 <div>
                     <label style={lbl}>Department</label>
-                    <input value={form.data.department} onChange={e => form.setData('department', e.target.value)} placeholder="Engineering" style={inp('department')} />
-                    <FieldError msg={form.errors.department} />
+                    <input value={form.data.department} onChange={e => form.setData('department', e.target.value)} placeholder="Engineering" style={inputStyle(theme, !!form.errors.department)} />
+                    <FieldError msg={form.errors.department} darkMode={darkMode} />
                 </div>
 
-                {/* Position */}
                 <div>
                     <label style={lbl}>Position</label>
-                    <input value={form.data.position} onChange={e => form.setData('position', e.target.value)} placeholder="Senior Developer" style={inp('position')} />
-                    <FieldError msg={form.errors.position} />
+                    <input value={form.data.position} onChange={e => form.setData('position', e.target.value)} placeholder="Senior Developer" style={inputStyle(theme, !!form.errors.position)} />
+                    <FieldError msg={form.errors.position} darkMode={darkMode} />
                 </div>
 
-                {/* Phone */}
                 <div>
                     <label style={lbl}>Phone</label>
-                    <input value={form.data.phone} onChange={e => form.setData('phone', e.target.value)} placeholder="+855 12 345 678" style={inp('phone')} />
-                    <FieldError msg={form.errors.phone} />
-                </div>
-                {/* Joined Date */}
-                <div>
-                    <label style={lbl}>Joined Date</label>
-                    <input type="date"
-                        value={form.data.joined_date || ''}
-                        onChange={e => form.setData('joined_date', e.target.value)}
-                        style={inp('joined_date')}
-                    />
-                    <FieldError msg={form.errors.joined_date} />
+                    <input value={form.data.phone} onChange={e => form.setData('phone', e.target.value)} placeholder="+855 12 345 678" style={inputStyle(theme, !!form.errors.phone)} />
+                    <FieldError msg={form.errors.phone} darkMode={darkMode} />
                 </div>
 
-                {/* Employment Type */}
+                <div>
+                    <label style={lbl}>Joined Date</label>
+                    <input type="date" value={form.data.joined_date || ''} onChange={e => form.setData('joined_date', e.target.value)} style={inputStyle(theme, !!form.errors.joined_date)} />
+                    <FieldError msg={form.errors.joined_date} darkMode={darkMode} />
+                </div>
+
                 <div>
                     <label style={lbl}>Employment Type</label>
-                    <select
-                        value={form.data.employment_type || 'probation'}
-                        onChange={e => form.setData('employment_type', e.target.value)}
-                        style={{ ...inp('employment_type'), cursor:'pointer' }}>
+                    <select value={form.data.employment_type || 'probation'} onChange={e => form.setData('employment_type', e.target.value)} style={{ ...inputStyle(theme, !!form.errors.employment_type), cursor: 'pointer' }}>
                         <option value="probation">Probation</option>
                         <option value="permanent">Permanent</option>
                         <option value="contract">Contract</option>
                     </select>
-                    <FieldError msg={form.errors.employment_type} />
+                    <FieldError msg={form.errors.employment_type} darkMode={darkMode} />
                 </div>
-                {/* Contract End Date — contract ရွေးမှ ပေါ်မယ် */}
+
                 {form.data.employment_type === 'contract' && (
                     <div style={{ gridColumn: '1/-1' }}>
-                        <label style={lbl}>
-                            Contract End Date <span style={{ color: '#ef4444' }}>*</span>
-                        </label>
-                        <input type="date"
-                            value={form.data.contract_end_date || ''}
-                            onChange={e => form.setData('contract_end_date', e.target.value)}
-                            style={{
-                                ...inp('contract_end_date'),
-                                borderColor: form.errors.contract_end_date ? '#fca5a5' : '#e5e7eb',
-                            }}
-                            min={new Date().toISOString().split('T')[0]}
-                        />
-                        <FieldError msg={form.errors.contract_end_date} />
+                        <label style={lbl}>Contract End Date <span style={{ color: theme.danger }}>*</span></label>
+                        <input type="date" value={form.data.contract_end_date || ''} onChange={e => form.setData('contract_end_date', e.target.value)} style={inputStyle(theme, !!form.errors.contract_end_date)} min={new Date().toISOString().split('T')[0]} />
+                        <FieldError msg={form.errors.contract_end_date} darkMode={darkMode} />
                     </div>
                 )}
-                {/* Avatar */}
+
                 <div style={{ gridColumn: '1/-1' }}>
                     <label style={lbl}>Profile Photo</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', background: '#f9fafb' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ flex: 1, border: `1px solid ${theme.inputBorder}`, borderRadius: 16, padding: '10px 12px', background: theme.inputBg }}>
                             <input
                                 ref={fileInputRef}
                                 type="file"
                                 accept="image/*"
                                 onChange={e => {
                                     const file = e.target.files[0];
-                                    if (file) { form.setData('avatar', file); setPreviewUrl(URL.createObjectURL(file)); }
+                                    if (file) {
+                                        form.setData('avatar', file);
+                                        setPreviewUrl(URL.createObjectURL(file));
+                                    }
                                 }}
-                                style={{ fontSize: 13, color: '#374151', width: '100%' }}
+                                style={{ fontSize: 13, color: theme.textSoft, width: '100%' }}
                             />
                         </div>
+
                         {previewUrl && (
                             <button
                                 type="button"
-                                onClick={() => { setPreviewUrl(null); form.setData('avatar', null); form.setData('remove_avatar', true); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10, flexShrink: 0, border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', padding: 0 }}
-                                onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#f87171'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca'; }}
+                                onClick={() => {
+                                    setPreviewUrl(null);
+                                    form.setData('avatar', null);
+                                    form.setData('remove_avatar', true);
+                                    if (fileInputRef.current) fileInputRef.current.value = '';
+                                }}
+                                style={{
+                                    width: 42,
+                                    height: 42,
+                                    borderRadius: 14,
+                                    border: `1px solid ${theme.border}`,
+                                    background: theme.dangerSoft,
+                                    cursor: 'pointer',
+                                    color: theme.danger,
+                                    fontSize: 18,
+                                }}
                             >
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                    <path d="M1 1L13 13M13 1L1 13" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
-                                </svg>
+                                ×
                             </button>
                         )}
                     </div>
+
                     {previewUrl && (
-                        <div style={{ marginTop: 10 }}>
-                            <img src={previewUrl} alt="preview" style={{ width: 72, height: 72, borderRadius: 14, objectFit: 'cover', border: '2px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', display: 'block' }} />
+                        <div style={{ marginTop: 14 }}>
+                            <img src={previewUrl} alt="preview" style={{ width: 86, height: 86, borderRadius: 20, objectFit: 'cover', border: `1px solid ${theme.borderStrong}`, boxShadow: theme.shadowSoft }} />
                         </div>
                     )}
-                    <FieldError msg={form.errors.avatar} />
+
+                    <FieldError msg={form.errors.avatar} darkMode={darkMode} />
                 </div>
 
-                {/* Active Status — edit only */}
                 {isEdit && (
-                    <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', background: '#f9fafb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 0, flex: 1 }}>Active Status</label>
+                    <div
+                        style={{
+                            gridColumn: '1/-1',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            padding: '13px 15px',
+                            background: theme.panelSoft,
+                            borderRadius: 18,
+                            border: `1px solid ${theme.border}`,
+                        }}
+                    >
+                        <label style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, flex: 1 }}>
+                            Active Status
+                        </label>
+
                         <button
                             type="button"
                             onClick={() => form.setData('is_active', !form.data.is_active)}
-                            style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', background: form.data.is_active ? '#7c3aed' : '#d1d5db', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
+                            style={{
+                                width: 50,
+                                height: 28,
+                                borderRadius: 999,
+                                border: 'none',
+                                cursor: 'pointer',
+                                background: form.data.is_active ? `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})` : '#cbd5e1',
+                                position: 'relative',
+                            }}
                         >
-                            <span style={{ position: 'absolute', top: 2, left: form.data.is_active ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                            <span
+                                style={{
+                                    position: 'absolute',
+                                    top: 3,
+                                    left: form.data.is_active ? 25 : 3,
+                                    width: 22,
+                                    height: 22,
+                                    borderRadius: '50%',
+                                    background: '#fff',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                                    transition: 'left 0.2s ease',
+                                }}
+                            />
                         </button>
-                        <span style={{ fontSize: 12, color: form.data.is_active ? '#059669' : '#9ca3af', fontWeight: 700, minWidth: 50 }}>
+
+                        <span style={{ fontSize: 12, color: form.data.is_active ? theme.success : theme.textMute, fontWeight: 900, minWidth: 55 }}>
                             {form.data.is_active ? 'Active' : 'Inactive'}
                         </span>
                     </div>
                 )}
             </div>
 
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'flex-end' }}>
-                <button type="button" onClick={onClose} style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 26, justifyContent: 'flex-end' }}>
+                <UIButton type="button" onClick={onClose} variant="ghost" theme={theme}>
                     Cancel
-                </button>
-                <button
-                    type="submit"
-                    disabled={form.processing}
-                    style={{ padding: '9px 28px', borderRadius: 10, border: 'none', background: form.processing ? '#c4b5fd' : '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, cursor: form.processing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
-                >
-                    {form.processing && <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />}
+                </UIButton>
+
+                <UIButton type="submit" disabled={form.processing} variant="primary" theme={theme}>
+                    {form.processing && (
+                        <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                    )}
                     {form.processing ? 'Saving...' : isEdit ? 'Update User' : 'Create User'}
-                </button>
+                </UIButton>
             </div>
         </form>
     );
 }
 
-// ─────────────────────────────────────────────────────
-// Delete Confirm
-// ─────────────────────────────────────────────────────
-function DeleteConfirm({ user, onClose, onConfirm, loading }) {
+function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) {
+    const theme = getTheme(darkMode);
+
     return (
-        <div style={{ textAlign: 'center', padding: '8px 0' }}>
-            <div style={{ fontSize: 52, marginBottom: 12 }}>🗑️</div>
-            <h4 style={{ fontSize: 16, fontWeight: 800, color: '#111827', marginBottom: 8 }}>Delete User?</h4>
-            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 24, lineHeight: 1.5 }}>
-                Are you sure you want to delete <strong style={{ color: '#111827' }}>{user?.name}</strong>?<br />This action cannot be undone.
+        <div style={{ textAlign: 'center', padding: '8px 0 2px' }}>
+            <div
+                style={{
+                    width: 78,
+                    height: 78,
+                    margin: '0 auto 18px',
+                    borderRadius: 24,
+                    background: theme.dangerSoft,
+                    color: theme.danger,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: `1px solid ${theme.border}`,
+                }}
+            >
+                <ActionGlyph type="delete" color={theme.danger} />
+            </div>
+
+            <h4 style={{ fontSize: 22, fontWeight: 900, color: theme.text, marginBottom: 8 }}>
+                Delete User?
+            </h4>
+
+            <p style={{ fontSize: 13, color: theme.textMute, marginBottom: 24, lineHeight: 1.7 }}>
+                Are you sure you want to delete <strong style={{ color: theme.text }}>{user?.name}</strong>?<br />
+                This action cannot be undone.
             </p>
+
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                <button onClick={onClose} style={{ padding: '9px 24px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                <button onClick={onConfirm} disabled={loading} style={{ padding: '9px 24px', borderRadius: 10, border: 'none', background: loading ? '#fca5a5' : '#ef4444', color: '#fff', fontSize: 13, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                <UIButton onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
+                <UIButton onClick={onConfirm} disabled={loading} variant="danger" theme={theme}>
                     {loading ? 'Deleting...' : 'Yes, Delete'}
-                </button>
+                </UIButton>
             </div>
         </div>
     );
 }
 
-// ─────────────────────────────────────────────────────
-// Main Page
-// ─────────────────────────────────────────────────────
 export default function UserRoles({ users = [], roles = [], roleName = '' }) {
-    const { flash } = usePage().props;
-   
-    const [search, setSearch]         = useState('');
+    const darkMode = useReactiveTheme();
+    const theme = useMemo(() => getTheme(darkMode), [darkMode]);
+
+    const [search, setSearch] = useState('');
     const [filterRole, setFilterRole] = useState('');
     const [showCreate, setShowCreate] = useState(false);
-    const [editUser, setEditUser]     = useState(null);
+    const [editUser, setEditUser] = useState(null);
     const [deleteUser, setDeleteUser] = useState(null);
-    const [deleting, setDeleting]     = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const handleDelete = () => {
         setDeleting(true);
         router.delete(`/users/${deleteUser.id}`, {
-            onSuccess: () => { window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'User deleted successfully!', type: 'success' }})); setDeleteUser(null); setDeleting(false); },
-            onError:   () => { window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'Failed to delete user.', type: 'error' }})); setDeleting(false); },
+            onSuccess: () => {
+                window.dispatchEvent(new CustomEvent('global-toast', {
+                    detail: { message: 'User deleted successfully!', type: 'success' }
+                }));
+                setDeleteUser(null);
+                setDeleting(false);
+            },
+            onError: () => {
+                window.dispatchEvent(new CustomEvent('global-toast', {
+                    detail: { message: 'Failed to delete user.', type: 'error' }
+                }));
+                setDeleting(false);
+            },
         });
     };
 
     const handleToggle = (user) => {
         router.patch(`/users/${user.id}/toggle`, {}, {
-            onSuccess: () => window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: `${user.name} marked as ${user.is_active ? 'inactive' : 'active'}!`, type: 'success' }})),
-            onError:   () => showToast('Failed to update status.', 'error'),
+            onSuccess: () => {
+                window.dispatchEvent(new CustomEvent('global-toast', {
+                    detail: {
+                        message: `${user.name} marked as ${user.is_active ? 'inactive' : 'active'}!`,
+                        type: 'success'
+                    }
+                }));
+            },
+            onError: () => {
+                window.dispatchEvent(new CustomEvent('global-toast', {
+                    detail: { message: 'Failed to update status.', type: 'error' }
+                }));
+            },
         });
     };
 
     const filtered = users.filter(u => {
         const s = search.toLowerCase();
         const matchSearch = u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s);
-        const matchRole   = filterRole ? u.role?.name === filterRole : true;
+        const matchRole = filterRole ? u.role?.name === filterRole : true;
         return matchSearch && matchRole;
     });
 
     const roleMap = {
-        admin:      { bg: '#ede9fe', color: '#7c3aed' },
-        hr:         { bg: '#d1fae5', color: '#059669' },
-        management: { bg: '#dbeafe', color: '#2563eb' },
-        employee:   { bg: '#fef3c7', color: '#d97706' },
+        admin: { bg: darkMode ? 'rgba(124,58,237,0.16)' : '#ede9fe', color: '#7c3aed', line: 'System control' },
+        hr: { bg: darkMode ? 'rgba(5,150,105,0.16)' : '#d1fae5', color: '#059669', line: 'People operations' },
+        management: { bg: darkMode ? 'rgba(37,99,235,0.16)' : '#dbeafe', color: '#2563eb', line: 'Team leadership' },
+        employee: { bg: darkMode ? 'rgba(217,119,6,0.16)' : '#fef3c7', color: '#d97706', line: 'Workspace members' },
     };
-console.log("filtered",filtered)
+
+    const totalActive = users.filter(u => u.is_active).length;
+
     return (
         <AppLayout title="User & Roles">
             <style>{`
-                @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-                @keyframes spin    { to { transform: rotate(360deg); } }
+                @keyframes spin { to { transform: rotate(360deg); } }
+                @keyframes modalIn {
+                    from { opacity:0; transform:translateY(10px) scale(0.98); }
+                    to { opacity:1; transform:translateY(0) scale(1); }
+                }
             `}</style>
 
-            {/* Role Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 20 }}>
-                {roles.map(role => {
-                    const count = users.filter(u => u.role?.name === role.name).length;
-                    const c = roleMap[role.name] || { bg: '#f3f4f6', color: '#6b7280' };
-                    const icons = { admin: '👑', hr: '🧑‍💼', management: '📊', employee: '👤' };
-                    return (
-                        <div key={role.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                            <div style={{ width: 42, height: 42, borderRadius: 11, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
-                                {icons[role.name] || '👤'}
+            <div style={{ display: 'grid', gap: 18 }}>
+                <div style={{ ...card(theme), padding: 24, position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: theme.glass, pointerEvents: 'none' }} />
+                    <div style={{ position: 'relative' }}>
+                        <SectionTitle
+                            eyebrow="User Management"
+                            title="Premium workspace overview"
+                            desc="Same flow and same logic, upgraded with a cleaner, more professional interface."
+                            theme={theme}
+                            action={
+                                <UIButton onClick={() => setShowCreate(true)} variant="primary" theme={theme}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M12 5v14" />
+                                        <path d="M5 12h14" />
+                                    </svg>
+                                    Add New User
+                                </UIButton>
+                            }
+                        />
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr repeat(4, 1fr)', gap: 14, marginTop: 22 }}>
+                            <div style={{ ...card(theme, { padding: 18, minHeight: 112, position: 'relative', overflow: 'hidden' }) }}>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Members</div>
+                                <div style={{ marginTop: 12, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10 }}>
+                                    <div>
+                                        <div style={{ fontSize: 32, lineHeight: 1, fontWeight: 900, color: theme.text }}>{users.length}</div>
+                                        <div style={{ marginTop: 7, fontSize: 12, color: theme.textMute }}>Total registered users</div>
+                                    </div>
+                                    <div style={{ padding: '7px 11px', borderRadius: 999, background: theme.successSoft, color: theme.success, fontSize: 11, fontWeight: 900 }}>
+                                        {totalActive} active
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <div style={{ fontSize: 22, fontWeight: 900, color: c.color, lineHeight: 1 }}>{count}</div>
-                                <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500, marginTop: 2 }}>{role.display_name}</div>
-                            </div>
+
+                            {roles.map(role => {
+                                const count = users.filter(u => u.role?.name === role.name).length;
+                                const c = roleMap[role.name] || { bg: theme.panelSoft, color: theme.textMute, line: 'Team members' };
+
+                                return (
+                                    <div
+                                        key={role.id}
+                                        style={{
+                                            ...card(theme),
+                                            padding: 18,
+                                            position: 'relative',
+                                            overflow: 'hidden',
+                                            minHeight: 112,
+                                        }}
+                                    >
+                                        <div style={{ position: 'absolute', inset: 0, background: theme.glass, opacity: 0.55, pointerEvents: 'none' }} />
+                                        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                                                <div style={{ width: 12, height: 12, borderRadius: '50%', background: c.color, boxShadow: `0 0 0 6px ${c.bg}` }} />
+                                                <div style={{ fontSize: 11, color: theme.textMute, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                                    {role.display_name}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1, color: c.color }}>{count}</div>
+                                                <div style={{ marginTop: 8, fontSize: 12, color: theme.textMute }}>{c.line}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    );
-                })}
-            </div>
-
-            {/* Search + Filter + Add Button — တစ်တန်းတည်း */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'center' }}>
-
-                {/* Search */}
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 14px' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                    <input
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder="Search by name or email..."
-                        style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: '#374151', flex: 1 }}
-                    />
-                    {search && (
-                        <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 16 }}>×</button>
-                    )}
+                    </div>
                 </div>
 
-                {/* Country Filter — admin only */}
-                {roleName === 'admin' && (
-                    <select
-                        onChange={e => router.get('/users', { country: e.target.value }, { preserveState: true })}
-                        style={{ padding:'8px 14px', border:'1px solid #e5e7eb', borderRadius:10, fontSize:13, color:'#374151', background:'#fff', cursor:'pointer', outline:'none', height:38 }}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div
+                        style={{
+                            ...card(theme),
+                            flex: 1,
+                            minWidth: 270,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            padding: '11px 14px',
+                            borderRadius: 18,
+                        }}
                     >
-                        <option value="">All Countries</option>
-                        {['cambodia','myanmar','vietnam','korea','japan'].map(c => (
-                            <option key={c} value={c}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>
-                        ))}
-                    </select>
-                )}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
 
-                {/* Role Filter */}
-                <select
-                    value={filterRole}
-                    onChange={e => setFilterRole(e.target.value)}
-                    style={{ padding: '8px 14px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#374151', background: '#fff', cursor: 'pointer', outline: 'none', height: 38 }}
-                >
-                    <option value="">All Roles</option>
-                    {roles.map(r => <option key={r.id} value={r.name}>{r.display_name}</option>)}
-                </select>
+                        <input
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="Search by name or email..."
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                outline: 'none',
+                                fontSize: 13,
+                                color: theme.text,
+                                flex: 1,
+                            }}
+                        />
 
-                {/* Divider */}
-                <div style={{ width: 1, height: 28, background: '#e5e7eb', flexShrink: 0 }} />
+                        {search && (
+                            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.textMute, fontSize: 16 }}>
+                                ×
+                            </button>
+                        )}
+                    </div>
 
-                {/* Add New User Button */}
-                <button
-                    onClick={() => setShowCreate(true)}
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: 7,
-                        padding: '8px 18px', height: 38,
-                        background: '#7c3aed', color: '#fff',
-                        border: 'none', borderRadius: 10,
-                        fontSize: 13, fontWeight: 700,
-                        cursor: 'pointer', flexShrink: 0,
-                        boxShadow: '0 2px 8px rgba(124,58,237,0.25)',
-                        transition: 'all 0.15s',
-                        whiteSpace: 'nowrap',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#6d28d9'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(124,58,237,0.35)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#7c3aed'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(124,58,237,0.25)'; }}
-                >
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M7 1V13M1 7H13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                    Add New User
-                </button>
-            </div>
-
-
-
-            {/* Table */}
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, overflowX: 'auto', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                            {['User', 'Country', 'Role', 'Department', 'Position', 'Phone', 'Employment', 'Joined', 'Status', 'Actions'].map(h => (
-                                <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 800, color: '#6b7280', letterSpacing: '0.5px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                    {roleName === 'admin' && (
+                        <select
+                            onChange={e => router.get('/users', { country: e.target.value }, { preserveState: true })}
+                            style={{ ...inputStyle(theme, false), minWidth: 160, width: 'auto', height: 46, cursor: 'pointer' }}
+                        >
+                            <option value="">All Countries</option>
+                            {['cambodia', 'myanmar', 'vietnam', 'korea', 'japan'].map(c => (
+                                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
                             ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filtered.length === 0 ? (
-                            <tr>
-                                <td colSpan={8} style={{ padding: 48, textAlign: 'center' }}>
-                                    <div style={{ fontSize: 32, marginBottom: 8 }}>🔍</div>
-                                    <div style={{ fontSize: 13, color: '#9ca3af' }}>No users found.</div>
-                                </td>
-                            </tr>
-                        ) : filtered.map((user, i) => (
-                            <tr
-                                key={user.id}
-                                style={{ borderBottom: i < filtered.length - 1 ? '1px solid #f3f4f6' : 'none', transition: 'background 0.1s' }}
-                                onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                            >
-                                {/* User */}
-                                <td style={{ padding: '12px 16px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                        <Avatar user={user} size={36} />
-                                        <div>
-                                            <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{user.name}</div>
-                                            <div style={{ fontSize: 11, color: '#9ca3af' }}>{user.email}</div>
-                                        </div>
-                                    </div>
-                                </td>
+                        </select>
+                    )}
 
-                                {/* Country */}
-                                <td style={{ padding: '12px 16px' }}>
-                                    {user.country ? (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                                            <CountryFlag code={user.country} size={20} />
-                                            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>
-                                                {user.country.charAt(0).toUpperCase() + user.country.slice(1)}
-                                            </span>
-                                        </div>
-                                    ) : (
-                                        <span style={{ fontSize: 12, color: '#d1d5db' }}>—</span>
-                                    )}
-                                </td>
+                    <select
+                        value={filterRole}
+                        onChange={e => setFilterRole(e.target.value)}
+                        style={{ ...inputStyle(theme, false), minWidth: 150, width: 'auto', height: 46, cursor: 'pointer' }}
+                    >
+                        <option value="">All Roles</option>
+                        {roles.map(r => <option key={r.id} value={r.name}>{r.display_name}</option>)}
+                    </select>
+                </div>
 
-                                <td style={{ padding: '12px 16px' }}><RoleBadge role={user.role} /></td>
-                                <td style={{ padding: '12px 16px', fontSize: 12, color: '#6b7280' }}>{user.department || '—'}</td>
-                                <td style={{ padding: '12px 16px', fontSize: 12, color: '#6b7280' }}>{user.position || '—'}</td>
-                                <td style={{ padding: '12px 16px', fontSize: 12, color: '#6b7280' }}>{user.phone || '—'}</td>
+                <div style={{ ...card(theme), overflow: 'hidden' }}>
+                    <div style={{ padding: '18px 20px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        <div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: theme.text }}>Team members</div>
+                            <div style={{ marginTop: 4, fontSize: 12, color: theme.textMute }}>
+                                {filtered.length} result{filtered.length !== 1 ? 's' : ''} found
+                            </div>
+                        </div>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 999, background: theme.panelSoft, color: theme.textSoft, fontSize: 11, fontWeight: 900, boxShadow: theme.chipShadow }}>
+                            Live directory
+                        </div>
+                    </div>
 
-                                {/* Employment Type */}
-                                <td style={{ padding: '12px 16px' }}>
-                                    {(() => {
-                                        const cfg = {
-                                            probation: { bg:'#fef3c7', color:'#d97706', label:'Probation' },
-                                            permanent: { bg:'#d1fae5', color:'#059669', label:'Permanent' },
-                                            contract:  { bg:'#dbeafe', color:'#2563eb', label:'Contract' },
-                                        };
-                                        const c = cfg[user.employment_type] || cfg.probation;
-                                        return (
-                                            <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:99, background:c.bg, color:c.color }}>
-                                              {c.label}
-                                            </span>
-                                        );
-                                    })()}
-                                </td>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
+                                    {['User', 'Country', 'Role', 'Department', 'Position', 'Phone', 'Employment', 'Joined', 'Status', 'Actions'].map(h => (
+                                        <th
+                                            key={h}
+                                            style={{
+                                                padding: '16px 18px',
+                                                textAlign: 'left',
+                                                fontSize: 11,
+                                                fontWeight: 900,
+                                                color: theme.textMute,
+                                                letterSpacing: '0.08em',
+                                                textTransform: 'uppercase',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            {h}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
 
-                                {/* Joined Date */}
-                                <td style={{ padding: '12px 16px', fontSize: 12, color: '#6b7280', whiteSpace:'nowrap' }}>
-                                    {user.joined_date
-                                        ? new Date(String(user.joined_date).split('T')[0] + 'T00:00:00')
-                                            .toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
-                                        : '—'}
-                                    {user.employment_type === 'contract' && user.contract_end_date && (
-                                        <div style={{ fontSize:10, color:'#2563eb', fontWeight:600, marginTop:2 }}>
-                                            ends {new Date(String(user.contract_end_date).split('T')[0] + 'T00:00:00')
-                                                    .toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
-                                                }
-                                        </div>
-                                    )}
-                                </td>
-
-                                <td style={{ padding: '12px 16px' }}>
-                                    <button onClick={() => handleToggle(user)}
-                                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 99, border: 'none', cursor: 'pointer', background: user.is_active ? '#d1fae5' : '#fee2e2', color: user.is_active ? '#065f46' : '#991b1b' }}
+                            <tbody>
+                                {filtered.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={10} style={{ padding: 56, textAlign: 'center' }}>
+                                            <div style={{ width: 64, height: 64, margin: '0 auto 14px', borderRadius: 20, border: `1px solid ${theme.border}`, background: theme.panelSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2">
+                                                    <circle cx="11" cy="11" r="8" />
+                                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                                </svg>
+                                            </div>
+                                            <div style={{ fontSize: 15, color: theme.text, fontWeight: 900 }}>No users found</div>
+                                            <div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>Try adjusting search or filters.</div>
+                                        </td>
+                                    </tr>
+                                ) : filtered.map((user, i) => (
+                                    <tr
+                                        key={user.id}
+                                        style={{
+                                            borderBottom: i < filtered.length - 1 ? `1px solid ${theme.border}` : 'none',
+                                            transition: 'background 0.15s ease'
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                     >
-                                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: user.is_active ? '#059669' : '#ef4444', display: 'inline-block' }} />
-                                        {user.is_active ? 'Active' : 'Inactive'}
-                                    </button>
-                                </td>
-                                <td style={{ padding: '12px 16px' }}>
-                                    <div style={{ display: 'flex', gap: 6 }}>
-                                        <button onClick={() => setEditUser(user)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#f9fafb', color: '#374151', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                                            ✏️
-                                        </button>
-                                        <button onClick={() => setDeleteUser(user)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #fee2e2', background: '#fef2f2', color: '#ef4444', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                                            🗑️
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                        <td style={{ padding: '16px 18px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                <Avatar user={user} size={42} darkMode={darkMode} />
+                                                <div>
+                                                    <div style={{ fontSize: 13.5, fontWeight: 900, color: theme.text }}>{user.name}</div>
+                                                    <div style={{ fontSize: 11, color: theme.textMute }}>{user.email}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td style={{ padding: '16px 18px' }}>
+                                            {user.country ? (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <CountryFlag code={user.country} size={20} />
+                                                    <span style={{ fontSize: 13, color: theme.textSoft, fontWeight: 700 }}>
+                                                        {user.country.charAt(0).toUpperCase() + user.country.slice(1)}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span style={{ fontSize: 12, color: theme.textMute }}>—</span>
+                                            )}
+                                        </td>
+
+                                        <td style={{ padding: '16px 18px' }}>
+                                            <RoleBadge role={user.role} darkMode={darkMode} />
+                                        </td>
+
+                                        <td style={{ padding: '16px 18px', fontSize: 12.5, color: theme.textSoft }}>
+                                            {user.department || '—'}
+                                        </td>
+
+                                        <td style={{ padding: '16px 18px', fontSize: 12.5, color: theme.textSoft }}>
+                                            {user.position || '—'}
+                                        </td>
+
+                                        <td style={{ padding: '16px 18px', fontSize: 12.5, color: theme.textSoft }}>
+                                            {user.phone || '—'}
+                                        </td>
+
+                                        <td style={{ padding: '16px 18px' }}>
+                                            {(() => {
+                                                const cfg = {
+                                                    probation: { bg: darkMode ? 'rgba(245,158,11,0.16)' : '#fef3c7', color: '#d97706', label: 'Probation' },
+                                                    permanent: { bg: darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5', color: '#059669', label: 'Permanent' },
+                                                    contract: { bg: darkMode ? 'rgba(59,130,246,0.16)' : '#dbeafe', color: '#2563eb', label: 'Contract' },
+                                                };
+                                                const c = cfg[user.employment_type] || cfg.probation;
+
+                                                return (
+                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 900, padding: '6px 10px', borderRadius: 999, background: c.bg, color: c.color }}>
+                                                        {c.label}
+                                                    </span>
+                                                );
+                                            })()}
+                                        </td>
+
+                                        <td style={{ padding: '16px 18px', fontSize: 12, color: theme.textSoft, whiteSpace: 'nowrap' }}>
+                                            {user.joined_date
+                                                ? new Date(String(user.joined_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                                : '—'}
+
+                                            {user.employment_type === 'contract' && user.contract_end_date && (
+                                                <div style={{ fontSize: 10, color: theme.secondary, fontWeight: 800, marginTop: 4 }}>
+                                                    ends {new Date(String(user.contract_end_date).split('T')[0] + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </div>
+                                            )}
+                                        </td>
+
+                                        <td style={{ padding: '16px 18px' }}>
+                                            <button
+                                                onClick={() => handleToggle(user)}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: 7,
+                                                    fontSize: 11,
+                                                    fontWeight: 900,
+                                                    padding: '6px 12px',
+                                                    borderRadius: 999,
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    background: user.is_active ? (darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5') : (darkMode ? 'rgba(248,113,113,0.16)' : '#fee2e2'),
+                                                    color: user.is_active ? theme.success : theme.danger
+                                                }}
+                                            >
+                                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: user.is_active ? theme.success : theme.danger, display: 'inline-block' }} />
+                                                {user.is_active ? 'Active' : 'Inactive'}
+                                            </button>
+                                        </td>
+
+                                        <td style={{ padding: '16px 18px' }}>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <button
+                                                    onClick={() => setEditUser(user)}
+                                                    style={{
+                                                        width: 40,
+                                                        height: 40,
+                                                        borderRadius: 14,
+                                                        border: `1px solid ${theme.border}`,
+                                                        background: theme.panelSoft,
+                                                        color: theme.textSoft,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                    }}
+                                                >
+                                                    <ActionGlyph type="edit" color={theme.textSoft} />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => setDeleteUser(user)}
+                                                    style={{
+                                                        width: 40,
+                                                        height: 40,
+                                                        borderRadius: 14,
+                                                        border: `1px solid ${theme.border}`,
+                                                        background: theme.dangerSoft,
+                                                        color: theme.danger,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                    }}
+                                                >
+                                                    <ActionGlyph type="delete" color={theme.danger} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            {/* Create Modal */}
-            <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add New User" subtitle="User Management" icon="➕">
-                <UserForm roles={roles} onClose={() => setShowCreate(false)} onSuccess={(msg) => { window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'success' }})); setShowCreate(false); }} />
+            <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add New User" subtitle="User Management" darkMode={darkMode}>
+                <UserForm roles={roles} onClose={() => setShowCreate(false)} darkMode={darkMode} />
             </Modal>
 
-            {/* Edit Modal */}
-            <Modal open={!!editUser} onClose={() => setEditUser(null)} title="Edit User" subtitle="Update Profile" icon="✏️">
+            <Modal open={!!editUser} onClose={() => setEditUser(null)} title="Edit User" subtitle="Update Profile" darkMode={darkMode}>
                 {editUser && (
-                    <UserForm key={editUser.id} roles={roles} editUser={editUser} onClose={() => setEditUser(null)} onSuccess={(msg) => { showToast(msg); setEditUser(null); }} />
+                    <UserForm key={editUser.id} roles={roles} editUser={editUser} onClose={() => setEditUser(null)} darkMode={darkMode} />
                 )}
             </Modal>
 
-            {/* Delete Modal */}
-            <Modal open={!!deleteUser} onClose={() => setDeleteUser(null)} title="Confirm Delete" subtitle="Danger Zone" icon="🗑️">
-                <DeleteConfirm user={deleteUser} onClose={() => setDeleteUser(null)} onConfirm={handleDelete} loading={deleting} />
+            <Modal open={!!deleteUser} onClose={() => setDeleteUser(null)} title="Confirm Delete" subtitle="Danger Zone" darkMode={darkMode}>
+                <DeleteConfirm user={deleteUser} onClose={() => setDeleteUser(null)} onConfirm={handleDelete} loading={deleting} darkMode={darkMode} />
             </Modal>
-
         </AppLayout>
     );
 }

@@ -1,7 +1,5 @@
-// resources/js/Layouts/AppLayout.jsx
-
-import { useState } from 'react';
-import { Link, usePage, router } from '@inertiajs/react';
+import { useMemo, useState, useEffect } from 'react';
+import { Link, usePage } from '@inertiajs/react';
 import GlobalToast from '@/Components/Toast';
 
 const roleConfig = {
@@ -11,7 +9,6 @@ const roleConfig = {
     employee:   { label: 'Employee',      color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
 };
 
-// All 8 features + Dashboard — route field ထည့်ထားတယ်
 const menuItems = [
     {
         group: 'MAIN',
@@ -25,12 +22,12 @@ const menuItems = [
                 ),
                 label: 'Dashboard',
                 route: '/dashboard',
-                roles: ['admin','hr','management','employee'],
+                roles: ['admin', 'hr', 'management', 'employee'],
             },
         ]
     },
     {
-        group: 'AI FEATURES',
+        group: 'AI WORKSPACE',
         items: [
             {
                 icon: (
@@ -40,7 +37,7 @@ const menuItems = [
                 ),
                 label: 'Requirement Analysis',
                 route: '/requirement-analysis',
-                roles: ['admin','hr','management'],
+                roles: ['admin', 'hr', 'management'],
             },
             {
                 icon: (
@@ -50,7 +47,7 @@ const menuItems = [
                 ),
                 label: 'Proposal Generator',
                 route: '/proposals',
-                roles: ['admin','hr','management'],
+                roles: ['admin', 'hr', 'management'],
             },
             {
                 icon: (
@@ -60,7 +57,7 @@ const menuItems = [
                 ),
                 label: 'Document Translation',
                 route: '/document-translation',
-                roles: ['admin','hr','management','employee'],
+                roles: ['admin', 'hr', 'management', 'employee'],
             },
             {
                 icon: (
@@ -70,7 +67,7 @@ const menuItems = [
                 ),
                 label: 'Smart Mail',
                 route: '/smart-mail',
-                roles: ['admin','hr','management','employee'],
+                roles: ['admin', 'hr', 'management', 'employee'],
             },
             {
                 icon: (
@@ -80,7 +77,69 @@ const menuItems = [
                 ),
                 label: 'AI Chat',
                 route: '/ai-chat',
-                roles: ['admin','hr','management','employee'],
+                roles: ['admin', 'hr', 'management', 'employee'],
+            },
+        ]
+    },
+    {
+        group: 'PEOPLE & HR',
+        items: [
+            {
+                icon: (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 20V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/>
+                        <path d="M8 6h4"/>
+                        <path d="M8 10h4"/>
+                        <path d="M8 14h3"/>
+                        <path d="M18 9v6"/>
+                        <path d="M15 12h6"/>
+                    </svg>
+                ),
+                label: 'Recruitment',
+                route: '/recruitment',
+                roles: ['admin', 'hr'],
+            },
+            {
+                icon: (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                        <circle cx="18" cy="9" r="2.5"/>
+                        <path d="M18 6.5v5"/>
+                    </svg>
+                ),
+                label: 'User & Roles',
+                route: '/users',
+                roles: ['admin', 'hr'],
+            },
+            {
+                icon: (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+                    </svg>
+                ),
+                label: 'HR Policy',
+                route: '/payroll/hr-policy',
+                roles: ['hr'],
+            },
+        ]
+    },
+    {
+        group: 'WORK MANAGEMENT',
+        items: [
+            {
+                icon: (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                ),
+                label: 'Project Assignment',
+                route: '/admin/assignments',
+                roles: ['admin', 'management'],
             },
         ]
     },
@@ -138,7 +197,7 @@ const menuItems = [
                 ),
                 label: 'Payroll',
                 route: '/payroll/records',
-                roles: [ 'hr'],
+                roles: ['hr'],
             },
             {
                 icon: (
@@ -153,60 +212,14 @@ const menuItems = [
             {
                 icon: (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
                 ),
                 label: 'Bank Export',
                 route: '/payroll/export',
                 roles: ['hr'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-                    </svg>
-                ),
-                label: 'HR Policy',
-                route: '/payroll/hr-policy',
-                roles: ['hr'],
-            },
-        ]
-    },
-    {
-        group: 'MANAGEMENT',
-        items: [
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                ),
-                label: 'Project Assignment',
-                route: '/admin/assignments',
-                roles: ['admin','management'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <line x1="19" y1="8" x2="19" y2="14"/>
-                        <line x1="22" y1="11" x2="16" y2="11"/>
-                    </svg>
-                ),
-                label: 'Recruitment',
-                route: '/recruitment',
-                roles: ['admin', 'hr'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><circle cx="18" cy="9" r="2.5"/><path d="M18 6.5v5"/>
-                    </svg>
-                ),
-                label: 'User & Roles',
-                route: '/users',
-                roles: ['admin','hr'],
             },
         ]
     }
@@ -222,195 +235,587 @@ function DefaultAvatar({ size = 40, color = '#9ca3af' }) {
 }
 
 export default function AppLayout({ children, title = 'Dashboard' }) {
-    const { auth, url } = usePage().props;
-    const currentUrl = usePage().url; // current URL စစ်ဖို့
+    const { auth } = usePage().props;
+    const currentUrl = usePage().url;
     const user = auth?.user;
     const roleName = user?.role?.name || 'employee';
     const role = roleConfig[roleName] || roleConfig.employee;
+
     const [collapsed, setCollapsed] = useState(false);
+    const [darkMode, setDarkMode] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return localStorage.getItem('vibeme-theme') === 'dark';
+    });
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('vibeme-theme', darkMode ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+            window.dispatchEvent(new CustomEvent('vibeme-theme-change', {
+                detail: { darkMode }
+            }));
+        }
+    }, [darkMode]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !document.documentElement.getAttribute('data-theme')) {
+            document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+        }
+    }, []);
 
     const avatarUrl = user?.avatar_url ? `/storage/${user.avatar_url}` : null;
 
-    function AvatarComp({ size = 40, borderRadius = 12 }) {
+    function AvatarComp({ size = 40, borderRadius = 16 }) {
         if (avatarUrl) {
             return (
-                <img src={avatarUrl} alt={user?.name}
-                    style={{ width:size, height:size, borderRadius, objectFit:'cover', flexShrink:0 }} />
+                <img
+                    src={avatarUrl}
+                    alt={user?.name}
+                    style={{
+                        width: size,
+                        height: size,
+                        borderRadius,
+                        objectFit: 'cover',
+                        flexShrink: 0,
+                        border: darkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(15,23,42,0.06)',
+                        boxShadow: '0 10px 24px rgba(0,0,0,0.10)',
+                    }}
+                />
             );
         }
+
         return (
-            <div style={{ width:size, height:size, borderRadius, background:role.bg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden' }}>
-                <DefaultAvatar size={size * 0.85} color={role.color} />
+            <div
+                style={{
+                    width: size,
+                    height: size,
+                    borderRadius,
+                    background: darkMode
+                        ? 'linear-gradient(135deg, rgba(59,130,246,0.20), rgba(124,58,237,0.22))'
+                        : role.bg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    overflow: 'hidden',
+                    border: darkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(15,23,42,0.05)',
+                }}
+            >
+                <DefaultAvatar size={size * 0.85} color={darkMode ? '#93c5fd' : role.color} />
             </div>
         );
     }
 
-    // Current page စစ်တာ — route နဲ့ current URL တိုက်စစ်
     const isActive = (itemRoute) => {
         if (itemRoute === '/dashboard') return currentUrl === '/dashboard';
         return currentUrl.startsWith(itemRoute);
     };
 
+    const theme = useMemo(() => {
+        if (darkMode) {
+            return {
+                rootBg: '#07111f',
+                sidebarBg: 'linear-gradient(180deg, rgba(8,20,40,0.98) 0%, rgba(5,13,28,0.98) 100%)',
+                sidebarBorder: 'rgba(148,163,184,0.12)',
+                sidebarShadow: '0 24px 70px rgba(0,0,0,0.36)',
+                headerBg: 'rgba(8, 20, 40, 0.74)',
+                headerBorder: 'rgba(148,163,184,0.10)',
+                cardBg: 'rgba(255,255,255,0.05)',
+                cardBgSoft: 'rgba(255,255,255,0.04)',
+                cardBorder: 'rgba(148,163,184,0.12)',
+                textPrimary: '#f8fafc',
+                textMuted: '#94a3b8',
+                navText: '#cbd5e1',
+                navTextActive: '#ffffff',
+                navIcon: '#94a3b8',
+                activeBg: 'linear-gradient(135deg, rgba(59,130,246,0.20), rgba(124,58,237,0.18))',
+                contentBg: 'radial-gradient(circle at top right, rgba(59,130,246,0.10), transparent 22%), linear-gradient(180deg, #091223 0%, #0a1427 100%)',
+                iconBtnBg: 'rgba(255,255,255,0.05)',
+                iconBtnBorder: 'rgba(148,163,184,0.14)',
+                iconBtnColor: '#e2e8f0',
+                subtleGlow: '0 14px 34px rgba(37,99,235,0.18)',
+                signOut: '#fca5a5',
+                signOutBg: 'linear-gradient(135deg, rgba(127,29,29,0.28), rgba(190,24,93,0.10))',
+                signOutBorder: 'rgba(248,113,113,0.24)',
+            };
+        }
+
+        return {
+            rootBg: '#eef4fb',
+            sidebarBg: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(246,249,255,0.96) 100%)',
+            sidebarBorder: 'rgba(15,23,42,0.06)',
+            sidebarShadow: '0 24px 70px rgba(15,23,42,0.08)',
+            headerBg: 'rgba(255,255,255,0.78)',
+            headerBorder: 'rgba(15,23,42,0.07)',
+            cardBg: 'rgba(255,255,255,0.92)',
+            cardBgSoft: '#ffffff',
+            cardBorder: 'rgba(15,23,42,0.06)',
+            textPrimary: '#0f172a',
+            textMuted: '#94a3b8',
+            navText: '#475569',
+            navTextActive: '#0f172a',
+            navIcon: '#94a3b8',
+            activeBg: 'linear-gradient(135deg, rgba(124,58,237,0.12), rgba(59,130,246,0.09))',
+            contentBg: 'radial-gradient(circle at top right, rgba(124,58,237,0.07), transparent 20%), linear-gradient(180deg, #f9fbff 0%, #eef4fb 100%)',
+            iconBtnBg: '#ffffff',
+            iconBtnBorder: 'rgba(15,23,42,0.06)',
+            iconBtnColor: '#334155',
+            subtleGlow: '0 14px 34px rgba(124,58,237,0.10)',
+            signOut: '#ef4444',
+            signOutBg: 'linear-gradient(135deg, #fff1f2, #ffffff)',
+            signOutBorder: 'rgba(239,68,68,0.14)',
+        };
+    }, [darkMode]);
+
     return (
-        <div style={s.root}>
+        <div
+            style={{
+                minHeight: '100vh',
+                display: 'flex',
+                background: theme.rootBg,
+                fontFamily: "'Outfit','Segoe UI',sans-serif",
+                color: theme.textPrimary,
+            }}
+        >
+            <style>{`
+                .vibeme-nav-scroll {
+                    overflow-y: auto;
+                    scrollbar-width: none;
+                    -ms-overflow-style: none;
+                }
+                .vibeme-nav-scroll::-webkit-scrollbar {
+                    width: 0;
+                    height: 0;
+                    display: none;
+                }
+            `}</style>
+
             <GlobalToast />
-            {/* SIDEBAR */}
-            <aside style={{ ...s.sidebar, width: collapsed ? 68 : 256 }}>
 
-                {/* Logo */}
-                <div style={s.logoRow}>
-                    <div style={s.logoMark}>🤖</div>
-                    {!collapsed && (
-                        <div style={s.logoText}>
-                            <span style={s.logoName}>VibeMe.AI</span>
-                            <span style={s.logoSub}>BRYCEN CAMBODIA</span>
-                        </div>
-                    )}
-                    <button style={s.toggleBtn} onClick={() => setCollapsed(!collapsed)}>
-                        {collapsed ? '›' : '‹'}
-                    </button>
-                </div>
-
-                {/* User Card */}
-                {!collapsed ? (
-                    <div style={s.userCard}>
-                        <AvatarComp size={40} borderRadius={12} />
-                        <div style={s.userMeta}>
-                            <div style={s.uName}>{user?.name || 'Unknown'}</div>
-                            <span style={{ ...s.rolePill, background:role.bg, color:role.color }}>
-                                <span style={{ ...s.roleDot, background:role.dot }} />
-                                {role.label}
-                            </span>
-                        </div>
-                    </div>
-                ) : (
-                    <div style={{ display:'flex', justifyContent:'center', padding:'10px 0' }}>
-                        <AvatarComp size={36} borderRadius={10} />
-                    </div>
-                )}
-
-                <div style={s.hr} />
-
-                {/* Nav */}
-                <nav style={s.nav}>
-                    {menuItems.map(group => (
-                        <div key={group.group}>
-                            {!collapsed && group.items.some(item => item.roles.includes(roleName)) && (
-                                <div style={s.groupLbl}>{group.group}</div>
-                            )}
-                            {group.items
-                                .filter(item => item.roles.includes(roleName))
-                                .map(item => {
-                                    const active = isActive(item.route);
-                                    return (
-                                        <Link
-                                            key={item.label}
-                                            href={item.route}
-                                            title={collapsed ? item.label : ''}
-                                            style={{
-                                                ...s.navItem,
-                                                background: active ? role.bg : 'transparent',
-                                                justifyContent: collapsed ? 'center' : 'flex-start',
-                                                padding: collapsed ? '10px 0' : '9px 16px',
-                                                textDecoration: 'none',
-                                            }}
-                                        >
-                                            <span style={{ color: active ? role.color : '#9ca3af', display:'flex', flexShrink:0 }}>
-                                                {item.icon}
-                                            </span>
-                                            {!collapsed && (
-                                                <span style={{ fontSize:13, color: active ? '#111827' : '#6b7280', fontWeight: active ? 700 : 500, flex:1, textAlign:'left' }}>
-                                                    {item.label}
-                                                </span>
-                                            )}
-                                            {active && !collapsed && (
-                                                <span style={{ ...s.activeBar, background:role.color }} />
-                                            )}
-                                        </Link>
-                                    );
-                                })}
-                        </div>
-                    ))}
-                </nav>
-
-                {/* Sign Out */}
-                <div style={s.sideFooter}>
-                    <div style={s.hr} />
-                    <Link
-                        href="/logout" method="post" as="button"
+            <aside
+                style={{
+                    width: collapsed ? 92 : 300,
+                    flexShrink: 0,
+                    transition: 'width 0.25s ease',
+                    background: theme.sidebarBg,
+                    borderRight: `1px solid ${theme.sidebarBorder}`,
+                    boxShadow: theme.sidebarShadow,
+                    position: 'sticky',
+                    top: 0,
+                    height: '100vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    backdropFilter: 'blur(16px)',
+                }}
+            >
+                <div style={{ padding: collapsed ? '18px 12px 10px' : '18px 16px 12px', position: 'relative' }}>
+                    <div
                         style={{
-                            ...s.signOutBtn,
-                            justifyContent: collapsed ? 'center' : 'flex-start',
-                            padding: collapsed ? '10px 0' : '9px 16px',
+                            background: theme.cardBg,
+                            border: `1px solid ${theme.cardBorder}`,
+                            borderRadius: 26,
+                            padding: collapsed ? '14px 10px' : '18px',
+                            boxShadow: theme.subtleGlow,
+                            position: 'relative',
+                            overflow: 'hidden',
                         }}
                     >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                            <polyline points="16 17 21 12 16 7"/>
-                            <line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
-                        {!collapsed && <span style={{ fontSize:13, color:'#ef4444', fontWeight:600 }}>Sign Out</span>}
+                        <div
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: darkMode
+                                    ? 'linear-gradient(135deg, rgba(59,130,246,0.14), rgba(124,58,237,0.10))'
+                                    : 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(59,130,246,0.06))',
+                                pointerEvents: 'none',
+                            }}
+                        />
+
+                        <button
+                            onClick={() => setCollapsed(!collapsed)}
+                            style={{
+                                position: 'absolute',
+                                top: 12,
+                                right: 12,
+                                width: 32,
+                                height: 32,
+                                borderRadius: 999,
+                                border: `1px solid ${theme.cardBorder}`,
+                                background: theme.iconBtnBg,
+                                color: theme.iconBtnColor,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                zIndex: 2,
+                                boxShadow: '0 8px 20px rgba(0,0,0,0.10)',
+                            }}
+                        >
+                            {collapsed ? '›' : '‹'}
+                        </button>
+
+                        <div
+                            style={{
+                                position: 'relative',
+                                zIndex: 1,
+                                display: 'flex',
+                                alignItems: collapsed ? 'center' : 'flex-start',
+                                justifyContent: collapsed ? 'center' : 'flex-start',
+                                flexDirection: collapsed ? 'column' : 'row',
+                                gap: collapsed ? 10 : 14,
+                                minHeight: 74,
+                            }}
+                        >
+                            <AvatarComp size={collapsed ? 50 : 60} borderRadius={18} />
+
+                            {!collapsed && (
+                                <div style={{ minWidth: 0, paddingRight: 30 }}>
+                                    <div
+                                        style={{
+                                            fontSize: 18,
+                                            fontWeight: 900,
+                                            color: theme.textPrimary,
+                                            lineHeight: 1.2,
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                        }}
+                                    >
+                                        {user?.name || 'Unknown User'}
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            marginTop: 8,
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 7,
+                                            padding: '7px 13px',
+                                            borderRadius: 999,
+                                            background: darkMode ? 'rgba(255,255,255,0.05)' : '#ffffff',
+                                            border: `1px solid ${theme.cardBorder}`,
+                                            color: darkMode ? '#bfdbfe' : role.color,
+                                            fontSize: 11,
+                                            fontWeight: 900,
+                                            letterSpacing: '0.7px',
+                                            textTransform: 'uppercase',
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                width: 7,
+                                                height: 7,
+                                                borderRadius: '50%',
+                                                background: role.dot,
+                                            }}
+                                        />
+                                        {role.label}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{ height: 1, background: theme.sidebarBorder, margin: collapsed ? '0 12px 8px' : '0 16px 8px' }} />
+
+                <nav
+                    className="vibeme-nav-scroll"
+                    style={{
+                        flex: 1,
+                        padding: collapsed ? '4px 10px 12px' : '6px 12px 12px',
+                    }}
+                >
+                    {menuItems.map(group => {
+                        const visibleItems = group.items.filter(item => item.roles.includes(roleName));
+                        if (!visibleItems.length) return null;
+
+                        return (
+                            <div key={group.group} style={{ marginBottom: 16 }}>
+                                {!collapsed && (
+                                    <div
+                                        style={{
+                                            fontSize: 10,
+                                            fontWeight: 900,
+                                            letterSpacing: '1.8px',
+                                            color: theme.textMuted,
+                                            padding: '10px 12px 8px',
+                                        }}
+                                    >
+                                        {group.group}
+                                    </div>
+                                )}
+
+                                <div style={{ display: 'grid', gap: 7 }}>
+                                    {visibleItems.map(item => {
+                                        const active = isActive(item.route);
+
+                                        return (
+                                            <Link
+                                                key={item.label}
+                                                href={item.route}
+                                                title={collapsed ? item.label : ''}
+                                                style={{
+                                                    position: 'relative',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: collapsed ? 'center' : 'flex-start',
+                                                    gap: 12,
+                                                    minHeight: 48,
+                                                    padding: collapsed ? '0' : '0 14px',
+                                                    borderRadius: 18,
+                                                    textDecoration: 'none',
+                                                    background: active ? theme.activeBg : 'transparent',
+                                                    border: active ? `1px solid ${theme.cardBorder}` : '1px solid transparent',
+                                                    boxShadow: active ? theme.subtleGlow : 'none',
+                                                    transition: 'all 0.18s ease',
+                                                    overflow: 'hidden',
+                                                }}
+                                            >
+                                                <span
+                                                    style={{
+                                                        width: 18,
+                                                        height: 18,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        color: active ? role.color : theme.navIcon,
+                                                        flexShrink: 0,
+                                                    }}
+                                                >
+                                                    {item.icon}
+                                                </span>
+
+                                                {!collapsed && (
+                                                    <span
+                                                        style={{
+                                                            flex: 1,
+                                                            fontSize: 13.5,
+                                                            fontWeight: active ? 800 : 600,
+                                                            color: active ? theme.navTextActive : theme.navText,
+                                                        }}
+                                                    >
+                                                        {item.label}
+                                                    </span>
+                                                )}
+
+                                                {active && (
+                                                    <span
+                                                        style={{
+                                                            position: 'absolute',
+                                                            left: 0,
+                                                            top: 10,
+                                                            bottom: 10,
+                                                            width: 4,
+                                                            borderRadius: '0 999px 999px 0',
+                                                            background: role.color,
+                                                        }}
+                                                    />
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </nav>
+
+                <div style={{ padding: collapsed ? '10px 10px 14px' : '10px 12px 14px' }}>
+                    <div style={{ height: 1, background: theme.sidebarBorder, marginBottom: 10 }} />
+
+                    <Link
+                        href="/logout"
+                        method="post"
+                        as="button"
+                        style={{
+                            width: '100%',
+                            minHeight: collapsed ? 54 : 60,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: collapsed ? 'center' : 'flex-start',
+                            gap: 12,
+                            padding: collapsed ? '0' : '0 16px',
+                            borderRadius: 18,
+                            border: `1px solid ${theme.signOutBorder}`,
+                            background: theme.signOutBg,
+                            cursor: 'pointer',
+                            textDecoration: 'none',
+                            boxShadow: darkMode
+                                ? '0 10px 25px rgba(127,29,29,0.18)'
+                                : '0 12px 24px rgba(239,68,68,0.08)',
+                        }}
+                    >
+                        <div
+                            style={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: 10,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: darkMode ? 'rgba(255,255,255,0.06)' : '#ffffff',
+                                border: `1px solid ${theme.signOutBorder}`,
+                                flexShrink: 0,
+                            }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={theme.signOut} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                        </div>
+
+                        {!collapsed && (
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ fontSize: 14, fontWeight: 900, color: theme.signOut }}>
+                                    Sign Out
+                                </div>
+                                <div style={{ fontSize: 11, color: theme.textMuted }}>
+                                    End current session
+                                </div>
+                            </div>
+                        )}
                     </Link>
                 </div>
             </aside>
 
-            {/* MAIN */}
-            <div style={s.main}>
-                <header style={s.header}>
+            <div
+                style={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: theme.contentBg,
+                }}
+            >
+                <header
+                    style={{
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 20,
+                        height: 84,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0 28px',
+                        background: theme.headerBg,
+                        borderBottom: `1px solid ${theme.headerBorder}`,
+                        backdropFilter: 'blur(18px)',
+                    }}
+                >
                     <div>
-                        <div style={s.hTitle}>{title}</div>
-                        <div style={s.hBread}>VibeMe.AI / {title}</div>
-                    </div>
-                    <div style={s.hRight}>
-                        <div style={s.search}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                            <input placeholder="Search anything..." style={s.searchInput} />
+                        <div
+                            style={{
+                                fontSize: 24,
+                                fontWeight: 900,
+                                letterSpacing: '-0.5px',
+                                color: theme.textPrimary,
+                            }}
+                        >
+                            {title}
                         </div>
-                        <button style={s.iconCircle}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                            <span style={s.bell} />
+                        <div
+                            style={{
+                                marginTop: 4,
+                                fontSize: 12,
+                                color: theme.textMuted,
+                            }}
+                        >
+                            VibeMe.AI / {title}
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <button
+                            type="button"
+                            style={{
+                                position: 'relative',
+                                width: 46,
+                                height: 46,
+                                borderRadius: 15,
+                                border: `1px solid ${theme.iconBtnBorder}`,
+                                background: theme.iconBtnBg,
+                                color: theme.iconBtnColor,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                            }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>
+
+                            <span
+                                style={{
+                                    position: 'absolute',
+                                    top: 9,
+                                    right: 9,
+                                    width: 9,
+                                    height: 9,
+                                    borderRadius: '50%',
+                                    background: '#8b5cf6',
+                                    border: darkMode ? '2px solid #0f172a' : '2px solid #ffffff',
+                                    boxShadow: '0 0 0 3px rgba(139,92,246,0.15)',
+                                }}
+                            />
                         </button>
-                       
+
+                        <button
+                            type="button"
+                            onClick={() => setDarkMode(!darkMode)}
+                            style={{
+                                minWidth: 98,
+                                height: 46,
+                                padding: '0 14px',
+                                borderRadius: 15,
+                                border: `1px solid ${theme.iconBtnBorder}`,
+                                background: theme.iconBtnBg,
+                                color: theme.iconBtnColor,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 10,
+                                cursor: 'pointer',
+                                boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                                fontWeight: 800,
+                                fontSize: 13,
+                            }}
+                        >
+                            {darkMode ? (
+                                <>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3c0 .28 0 .57.02.85A7 7 0 0 0 20.15 12c.28 0 .57 0 .85-.02Z" />
+                                    </svg>
+                                    Dark
+                                </>
+                            ) : (
+                                <>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <circle cx="12" cy="12" r="4" />
+                                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                                    </svg>
+                                    Light
+                                </>
+                            )}
+                        </button>
                     </div>
                 </header>
-                <main style={s.content}>{children}</main>
+
+                <main
+                    style={{
+                        flex: 1,
+                        padding: 28,
+                        background: 'transparent',
+                    }}
+                >
+                    {children}
+                </main>
             </div>
         </div>
     );
 }
-
-const s = {
-    root: { display:'flex', minHeight:'100vh', background:'#f8fafc', fontFamily:"'Outfit','Segoe UI',sans-serif" },
-    sidebar: { background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', flexShrink:0, position:'sticky', top:0, height:'100vh', overflow:'hidden', transition:'width 0.22s ease', boxShadow:'2px 0 12px rgba(0,0,0,0.04)' },
-    logoRow: { display:'flex', alignItems:'center', gap:10, padding:'18px 14px 14px' },
-    logoMark: { fontSize:24, flexShrink:0 },
-    logoText: { display:'flex', flexDirection:'column', flex:1 },
-    logoName: { fontSize:15, fontWeight:800, color:'#111827', letterSpacing:'-0.4px' },
-    logoSub:  { fontSize:9, fontWeight:700, color:'#9ca3af', letterSpacing:'1.2px' },
-    toggleBtn: { marginLeft:'auto', background:'#f3f4f6', border:'none', color:'#6b7280', cursor:'pointer', width:26, height:26, borderRadius:8, fontSize:16, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 },
-    userCard: { display:'flex', alignItems:'center', gap:10, margin:'4px 10px 8px', padding:'10px 12px', background:'#f9fafb', borderRadius:12, border:'1px solid #e5e7eb' },
-    userMeta: { flex:1, minWidth:0 },
-    uName: { fontSize:13, fontWeight:700, color:'#111827', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', marginBottom:4 },
-    rolePill: { display:'inline-flex', alignItems:'center', gap:5, fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:99, textTransform:'uppercase', letterSpacing:'0.4px' },
-    roleDot: { width:5, height:5, borderRadius:'50%', flexShrink:0 },
-    hr: { height:1, background:'#f3f4f6', margin:'4px 12px' },
-    nav: { flex:1, overflowY:'auto', padding:'4px 0' },
-    groupLbl: { fontSize:9, fontWeight:800, color:'#d1d5db', letterSpacing:'1.6px', padding:'10px 16px 3px' },
-    navItem: { display:'flex', alignItems:'center', gap:10, border:'none', cursor:'pointer', transition:'background 0.12s', position:'relative', width:'100%' },
-    activeBar: { position:'absolute', right:0, top:'18%', bottom:'18%', width:3, borderRadius:'3px 0 0 3px' },
-    sideFooter: { paddingBottom:10 },
-    signOutBtn: { width:'100%', display:'flex', alignItems:'center', gap:10, background:'transparent', border:'none', cursor:'pointer', textDecoration:'none' },
-    main: { flex:1, display:'flex', flexDirection:'column', minWidth:0 },
-    header: { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 28px', height:62, background:'#fff', borderBottom:'1px solid #e5e7eb', position:'sticky', top:0, zIndex:10, boxShadow:'0 1px 4px rgba(0,0,0,0.04)' },
-    hTitle: { fontSize:16, fontWeight:800, color:'#111827', letterSpacing:'-0.3px' },
-    hBread: { fontSize:11, color:'#9ca3af' },
-    hRight: { display:'flex', alignItems:'center', gap:10 },
-    search: { display:'flex', alignItems:'center', gap:8, background:'#f9fafb', border:'1px solid #e5e7eb', borderRadius:10, padding:'7px 14px' },
-    searchInput: { background:'transparent', border:'none', outline:'none', color:'#374151', fontSize:13, width:180 },
-    iconCircle: { position:'relative', background:'#f9fafb', border:'1px solid #e5e7eb', borderRadius:10, width:38, height:38, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' },
-    bell: { position:'absolute', top:8, right:8, width:7, height:7, background:'#7c3aed', borderRadius:'50%', border:'2px solid #fff' },
-    hUserChip: { display:'flex', alignItems:'center', gap:10, padding:'6px 12px', background:'#f9fafb', border:'1px solid #e5e7eb', borderRadius:10 },
-    hUName: { fontSize:13, fontWeight:700, color:'#111827' },
-    hRole: { fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px' },
-    content: { flex:1, padding:'26px 28px', background:'#f8fafc' },
-};
