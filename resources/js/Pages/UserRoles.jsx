@@ -147,9 +147,6 @@ function SectionTitle({ eyebrow, title, desc, theme, action = null }) {
                         {eyebrow}
                     </div>
                 )}
-                <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', color: theme.text }}>
-                    {title}
-                </div>
                 {desc && (
                     <div style={{ marginTop: 6, fontSize: 13, color: theme.textMute, lineHeight: 1.6 }}>
                         {desc}
@@ -233,6 +230,166 @@ function UIButton({ children, onClick, type = 'button', variant = 'primary', dis
     );
 }
 
+function PremiumSelect({
+    options = [],
+    value = '',
+    onChange,
+    placeholder = 'Select option...',
+    theme,
+    darkMode = false,
+    minWidth = 170,
+    width = 'auto',
+    renderOption,
+    zIndex = 300,
+}) {
+    const [open, setOpen] = useState(false);
+    const wrapRef = useRef(null);
+
+    const selected = options.find(
+        opt => String(opt.value) === String(value) && !opt.disabled
+    );
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const triggerBg = darkMode
+        ? 'linear-gradient(180deg, rgba(12,22,44,0.96) 0%, rgba(8,17,36,0.96) 100%)'
+        : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)';
+
+    const menuBg = darkMode
+        ? 'linear-gradient(180deg, rgba(5,17,38,0.99) 0%, rgba(3,12,28,0.99) 100%)'
+        : '#ffffff';
+
+    const selectedBg = darkMode ? 'rgba(37,99,235,0.22)' : '#2563eb';
+    const selectedText = '#ffffff';
+
+    return (
+        <div ref={wrapRef} style={{ position: 'relative', minWidth, width, zIndex }}>
+            <button
+                type="button"
+                onClick={() => setOpen(v => !v)}
+                style={{
+                    width: '100%',
+                    height: 52,
+                    padding: '0 16px',
+                    borderRadius: 18,
+                    border: `1px solid ${open ? theme.borderStrong : theme.inputBorder}`,
+                    background: triggerBg,
+                    color: selected ? theme.text : theme.textMute,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    cursor: 'pointer',
+                    boxShadow: open ? theme.shadowSoft : 'none',
+                    backdropFilter: 'blur(12px)',
+                    transition: 'all 0.18s ease',
+                }}
+            >
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {selected ? (
+                        renderOption ? renderOption(selected, true, true) : (
+                            <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {selected.label}
+                            </span>
+                        )
+                    ) : (
+                        <span style={{ fontSize: 13, color: theme.textMute }}>{placeholder}</span>
+                    )}
+                </div>
+
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease', flexShrink: 0 }}
+                >
+                    <path
+                        d="M4 6L8 10L12 6"
+                        stroke={theme.textMute}
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                </svg>
+            </button>
+
+            {open && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 10px)',
+                        left: 0,
+                        right: 0,
+                        zIndex: zIndex + 50,
+                        background: menuBg,
+                        border: `1px solid ${theme.borderStrong}`,
+                        borderRadius: 20,
+                        overflow: 'hidden',
+                        boxShadow: theme.shadow,
+                        backdropFilter: 'blur(16px)',
+                    }}
+                >
+                    {options.map((opt, index) => {
+                        const isSelected = String(opt.value) === String(value);
+                        const isDisabled = !!opt.disabled;
+
+                        return (
+                            <button
+                                key={String(opt.value) || `opt-${index}`}
+                                type="button"
+                                onClick={() => {
+                                    if (isDisabled) return;
+                                    onChange(opt.value);
+                                    setOpen(false);
+                                }}
+                                style={{
+                                    width: '100%',
+                                    minHeight: 54,
+                                    padding: '0 16px',
+                                    border: 'none',
+                                    borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none',
+                                    background: isSelected ? selectedBg : 'transparent',
+                                    color: isSelected ? selectedText : theme.textSoft,
+                                    opacity: isDisabled ? 0.45 : 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    textAlign: 'left',
+                                    cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.15s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!isSelected && !isDisabled) {
+                                        e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.03)' : '#f8fafc';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isSelected && !isDisabled) {
+                                        e.currentTarget.style.background = 'transparent';
+                                    }
+                                }}
+                            >
+                                {renderOption ? renderOption(opt, false, isSelected) : (
+                                    <span style={{ fontSize: 13, fontWeight: isSelected ? 800 : 600 }}>
+                                        {opt.label}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
 function CountryFlag({ code, size = 20 }) {
     const h = Math.round(size * 0.6);
     const flags = {
@@ -421,9 +578,11 @@ function Modal({ open, onClose, title, subtitle, children, darkMode = false }) {
             >
                 <div
                     style={{
-                        position: 'relative',
-                        padding: '24px 24px 18px',
-                        background: theme.modalHeader,
+                        padding: '30px 24px 26px',
+                        background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 42%, #2563eb 100%)',
+                        borderBottom: darkMode
+                            ? '1px solid rgba(255,255,255,0.10)'
+                            : '1px solid rgba(255,255,255,0.22)',
                         overflow: 'hidden',
                     }}
                 >
@@ -431,16 +590,62 @@ function Modal({ open, onClose, title, subtitle, children, darkMode = false }) {
                         style={{
                             position: 'absolute',
                             inset: 0,
-                            background: 'linear-gradient(135deg, rgba(255,255,255,0.16), transparent 58%)',
+                            background: `
+                                radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 34%),
+                                radial-gradient(circle at bottom right, rgba(255,255,255,0.10), transparent 28%),
+                                linear-gradient(135deg, rgba(255,255,255,0.08), transparent 58%)
+                            `,
                             pointerEvents: 'none',
                         }}
                     />
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
-                        <div>
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.74)', fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+
+                    <div
+                        style={{
+                            position: 'absolute',
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            height: 20,
+                            background: 'linear-gradient(to bottom, rgba(255,255,255,0.10), rgba(255,255,255,0))',
+                            pointerEvents: 'none',
+                        }}
+                    />
+
+                    <div
+                        style={{
+                            position: 'relative',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            justifyContent: 'space-between',
+                            gap: 18,
+                        }}
+                    >
+                        <div style={{ paddingRight: 16 }}>
+                            <div
+                                style={{
+                                    fontSize: 12,
+                                    color: 'rgba(255,255,255,0.78)',
+                                    fontWeight: 900,
+                                    letterSpacing: '0.16em',
+                                    textTransform: 'uppercase',
+                                    marginBottom: 10,
+                                    lineHeight: 1,
+                                }}
+                            >
                                 {subtitle || 'Workspace'}
                             </div>
-                            <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', marginTop: 5 }}>
+
+                            <div
+                                style={{
+                                    fontSize: 20,
+                                    fontWeight: 900,
+                                    color: '#ffffff',
+                                    letterSpacing: '-0.03em',
+                                    lineHeight: 1.15,
+                                    margin: 0,
+                                    textShadow: '0 2px 10px rgba(0,0,0,0.12)',
+                                }}
+                            >
                                 {title}
                             </div>
                         </div>
@@ -448,17 +653,30 @@ function Modal({ open, onClose, title, subtitle, children, darkMode = false }) {
                         <button
                             onClick={onClose}
                             style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 14,
+                                width: 50,
+                                height: 50,
+                                borderRadius: 18,
                                 border: '1px solid rgba(255,255,255,0.16)',
-                                background: 'rgba(255,255,255,0.14)',
+                                background: 'rgba(255,255,255,0.12)',
                                 color: '#fff',
                                 cursor: 'pointer',
-                                fontSize: 20,
+                                fontSize: 28,
+                                lineHeight: 1,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
+                                flexShrink: 0,
+                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14)',
+                                backdropFilter: 'blur(10px)',
+                                transition: 'all 0.18s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.18)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+                                e.currentTarget.style.transform = 'translateY(0)';
                             }}
                         >
                             ×
@@ -466,7 +684,7 @@ function Modal({ open, onClose, title, subtitle, children, darkMode = false }) {
                     </div>
                 </div>
 
-                <div style={{ overflowY: 'auto', padding: '24px' }}>
+                <div style={{ overflowY: 'auto', padding: '22px 24px 24px' }}>
                     {children}
                 </div>
             </div>
@@ -507,20 +725,9 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
         contract_end_date: editUser?.contract_end_date ? String(editUser.contract_end_date).split('T')[0] : '',
     });
 
-    const [countryOpen, setCountryOpen] = useState(false);
-    const dropdownRef = useRef(null);
+
     const fileInputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(editUser?.avatar_url ? `/storage/${editUser.avatar_url}` : null);
-
-    useEffect(() => {
-        const handler = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-                setCountryOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, []);
 
     const lbl = {
         fontSize: 12,
@@ -530,20 +737,44 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
         marginBottom: 7,
     };
 
+    const roleOptions = [
+        { value: '', label: 'Select role...' },
+        ...roles.map(r => ({
+            value: String(r.id),
+            label: r.display_name,
+        })),
+    ];
+
+    const employmentTypeOptions = [
+        { value: 'probation', label: 'Probation' },
+        { value: 'permanent', label: 'Permanent' },
+        { value: 'contract', label: 'Contract' },
+    ];
+
+    const countryOptions = [
+        { value: '', label: 'Select country...', disabled: true },
+        ...COUNTRIES.map(c => ({
+            value: c.code,
+            label: c.label,
+            code: c.code,
+        })),
+    ];
     const submit = (e) => {
         e.preventDefault();
+
         const url = isEdit ? `/users/${editUser.id}` : '/users';
 
         form.post(url, {
             forceFormData: true,
+            preserveScroll: true,
             onSuccess: () => {
                 onClose();
-                window.dispatchEvent(new CustomEvent('global-toast', {
-                    detail: {
-                        message: isEdit ? 'User updated successfully!' : 'User created successfully!',
-                        type: 'success'
-                    }
-                }));
+                // window.dispatchEvent(new CustomEvent('global-toast', {
+                //     detail: {
+                //         message: isEdit ? 'User updated successfully!' : 'User created successfully!',
+                //         type: 'success'
+                //     }
+                // }));
             },
             onError: (errors) => {
                 const firstErr = Object.values(errors)[0];
@@ -571,80 +802,42 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
                     <FieldError msg={form.errors.email} darkMode={darkMode} />
                 </div>
 
-                <div style={{ gridColumn: '1/-1', position: 'relative' }} ref={dropdownRef}>
+                <div style={{ gridColumn: '1/-1', position: 'relative', zIndex: 900 }}>
                     <label style={lbl}>Country <span style={{ color: theme.danger }}>*</span></label>
-                    <div
-                        onClick={() => setCountryOpen(o => !o)}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '13px 15px',
-                            borderRadius: 16,
-                            cursor: 'pointer',
-                            border: `1px solid ${form.errors.country ? '#fca5a5' : theme.inputBorder}`,
-                            background: form.errors.country ? (darkMode ? 'rgba(127,29,29,0.12)' : '#fef2f2') : theme.inputBg,
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            {form.data.country ? (
-                                <>
-                                    <CountryFlag code={form.data.country} size={22} />
-                                    <span style={{ fontSize: 13, color: theme.text, fontWeight: 700 }}>
-                                        {COUNTRIES.find(c => c.code === form.data.country)?.label}
-                                    </span>
-                                </>
-                            ) : (
-                                <span style={{ fontSize: 13, color: theme.textMute }}>Select country...</span>
-                            )}
-                        </div>
 
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ transform: countryOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
-                            <path d="M2 4L6 8L10 4" stroke={theme.textMute} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                    </div>
-
-                    {countryOpen && (
-                        <div
-                            style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                right: 0,
-                                zIndex: 100,
-                                background: theme.panelSolid,
-                                border: `1px solid ${theme.borderStrong}`,
-                                borderRadius: 18,
-                                boxShadow: theme.shadowSoft,
-                                overflow: 'hidden',
-                                marginTop: 8,
-                            }}
-                        >
-                            {COUNTRIES.map((c, i) => (
-                                <div
-                                    key={c.code}
-                                    onClick={() => {
-                                        form.setData('country', c.code);
-                                        setCountryOpen(false);
-                                    }}
+                    <PremiumSelect
+                        options={countryOptions}
+                        value={form.data.country}
+                        onChange={(val) => form.setData('country', val)}
+                        placeholder="Select country..."
+                        theme={theme}
+                        darkMode={darkMode}
+                        minWidth={0}
+                        width="100%"
+                        zIndex={900}
+                        renderOption={(opt, isTriggerView, isSelectedItem) => (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, width: '100%' }}>
+                                {opt.code ? <CountryFlag code={opt.code} size={22} /> : null}
+                                <span
                                     style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 10,
-                                        padding: '12px 15px',
-                                        cursor: 'pointer',
-                                        background: form.data.country === c.code ? (darkMode ? theme.primarySoft : '#f5f3ff') : theme.panelSolid,
-                                        borderBottom: i < COUNTRIES.length - 1 ? `1px solid ${theme.border}` : 'none',
+                                        fontSize: 13,
+                                        fontWeight: isTriggerView || isSelectedItem ? 800 : 600,
+                                        color: isTriggerView
+                                            ? theme.text
+                                            : isSelectedItem
+                                                ? '#ffffff'
+                                                : theme.textSoft,
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
                                     }}
                                 >
-                                    <CountryFlag code={c.code} size={22} />
-                                    <span style={{ fontSize: 13, fontWeight: form.data.country === c.code ? 800 : 600, color: form.data.country === c.code ? theme.primary : theme.textSoft, flex: 1 }}>
-                                        {c.label}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                                    {opt.label}
+                                </span>
+                            </div>
+                        )}
+                    />
+
                     <FieldError msg={form.errors.country} darkMode={darkMode} />
                 </div>
 
@@ -656,10 +849,19 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
 
                 <div>
                     <label style={lbl}>Role <span style={{ color: theme.danger }}>*</span></label>
-                    <select value={form.data.role_id} onChange={e => form.setData('role_id', e.target.value)} style={{ ...inputStyle(theme, !!form.errors.role_id), cursor: 'pointer' }}>
-                        <option value="">Select role...</option>
-                        {roles.map(r => <option key={r.id} value={String(r.id)}>{r.display_name}</option>)}
-                    </select>
+
+                    <PremiumSelect
+                        options={roleOptions}
+                        value={form.data.role_id}
+                        onChange={(val) => form.setData('role_id', val)}
+                        placeholder="Select role..."
+                        theme={theme}
+                        darkMode={darkMode}
+                        minWidth={0}
+                        width="100%"
+                        zIndex={300}
+                    />
+
                     <FieldError msg={form.errors.role_id} darkMode={darkMode} />
                 </div>
 
@@ -689,11 +891,18 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
 
                 <div>
                     <label style={lbl}>Employment Type</label>
-                    <select value={form.data.employment_type || 'probation'} onChange={e => form.setData('employment_type', e.target.value)} style={{ ...inputStyle(theme, !!form.errors.employment_type), cursor: 'pointer' }}>
-                        <option value="probation">Probation</option>
-                        <option value="permanent">Permanent</option>
-                        <option value="contract">Contract</option>
-                    </select>
+
+                    <PremiumSelect
+                        options={employmentTypeOptions}
+                        value={form.data.employment_type || 'probation'}
+                        onChange={(val) => form.setData('employment_type', val)}
+                        placeholder="Select employment type..."
+                        theme={theme}
+                        darkMode={darkMode}
+                        minWidth={0}
+                        width="100%"
+                    />
+
                     <FieldError msg={form.errors.employment_type} darkMode={darkMode} />
                 </div>
 
@@ -871,6 +1080,7 @@ export default function UserRoles({ users = [], roles = [], roleName = '' }) {
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
+    const [filterCountry, setFilterCountry] = useState('');
     const [search, setSearch] = useState('');
     const [filterRole, setFilterRole] = useState('');
     const [showCreate, setShowCreate] = useState(false);
@@ -879,33 +1089,41 @@ export default function UserRoles({ users = [], roles = [], roleName = '' }) {
     const [deleting, setDeleting] = useState(false);
 
     const handleDelete = () => {
+        if (!deleteUser?.id) return;
+
         setDeleting(true);
+
         router.delete(`/users/${deleteUser.id}`, {
+            preserveScroll: true,
             onSuccess: () => {
-                window.dispatchEvent(new CustomEvent('global-toast', {
-                    detail: { message: 'User deleted successfully!', type: 'success' }
-                }));
+                // window.dispatchEvent(new CustomEvent('global-toast', {
+                //     detail: { message: 'User deleted successfully!', type: 'success' }
+                // }));
                 setDeleteUser(null);
-                setDeleting(false);
             },
             onError: () => {
                 window.dispatchEvent(new CustomEvent('global-toast', {
                     detail: { message: 'Failed to delete user.', type: 'error' }
                 }));
+            },
+            onFinish: () => {
                 setDeleting(false);
             },
         });
     };
 
     const handleToggle = (user) => {
+        if (!user?.id) return;
+
         router.patch(`/users/${user.id}/toggle`, {}, {
+            preserveScroll: true,
             onSuccess: () => {
-                window.dispatchEvent(new CustomEvent('global-toast', {
-                    detail: {
-                        message: `${user.name} marked as ${user.is_active ? 'inactive' : 'active'}!`,
-                        type: 'success'
-                    }
-                }));
+                // window.dispatchEvent(new CustomEvent('global-toast', {
+                //     detail: {
+                //         message: `${user.name} marked as ${user.is_active ? 'inactive' : 'active'}!`,
+                //         type: 'success'
+                //     }
+                // }));
             },
             onError: () => {
                 window.dispatchEvent(new CustomEvent('global-toast', {
@@ -919,7 +1137,8 @@ export default function UserRoles({ users = [], roles = [], roleName = '' }) {
         const s = search.toLowerCase();
         const matchSearch = u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s);
         const matchRole = filterRole ? u.role?.name === filterRole : true;
-        return matchSearch && matchRole;
+        const matchCountry = filterCountry ? u.country === filterCountry : true;
+        return matchSearch && matchRole && matchCountry;
     });
 
     const roleMap = {
@@ -930,6 +1149,23 @@ export default function UserRoles({ users = [], roles = [], roleName = '' }) {
     };
 
     const totalActive = users.filter(u => u.is_active).length;
+
+    const countryOptions = [
+        { value: '', label: 'All Countries' },
+        { value: 'cambodia', label: 'Cambodia', code: 'cambodia' },
+        { value: 'myanmar', label: 'Myanmar', code: 'myanmar' },
+        { value: 'vietnam', label: 'Vietnam', code: 'vietnam' },
+        { value: 'korea', label: 'Korea', code: 'korea' },
+        { value: 'japan', label: 'Japan', code: 'japan' },
+    ];
+
+    const roleOptions = [
+        { value: '', label: 'Select role...', disabled: true },
+        ...roles.map(r => ({
+            value: String(r.id),
+            label: r.display_name,
+        })),
+    ];
 
     return (
         <AppLayout title="User & Roles">
@@ -1050,25 +1286,42 @@ export default function UserRoles({ users = [], roles = [], roleName = '' }) {
                     </div>
 
                     {roleName === 'admin' && (
-                        <select
-                            onChange={e => router.get('/users', { country: e.target.value }, { preserveState: true })}
-                            style={{ ...inputStyle(theme, false), minWidth: 160, width: 'auto', height: 46, cursor: 'pointer' }}
-                        >
-                            <option value="">All Countries</option>
-                            {['cambodia', 'myanmar', 'vietnam', 'korea', 'japan'].map(c => (
-                                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
-                            ))}
-                        </select>
+                        <PremiumSelect
+                            options={countryOptions}
+                            value={filterCountry}
+                            onChange={setFilterCountry}
+                            placeholder="All Countries"
+                            theme={theme}
+                            darkMode={darkMode}
+                            minWidth={180}
+                            renderOption={(opt, isSelected) => (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                                    {opt.code ? <CountryFlag code={opt.code} size={20} /> : null}
+                                    <span
+                                        style={{
+                                            fontSize: 13,
+                                            fontWeight: isSelected ? 700 : 600,
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                        }}
+                                    >
+                                        {opt.label}
+                                    </span>
+                                </div>
+                            )}
+                        />
                     )}
 
-                    <select
+                    <PremiumSelect
+                        options={roleOptions}
                         value={filterRole}
-                        onChange={e => setFilterRole(e.target.value)}
-                        style={{ ...inputStyle(theme, false), minWidth: 150, width: 'auto', height: 46, cursor: 'pointer' }}
-                    >
-                        <option value="">All Roles</option>
-                        {roles.map(r => <option key={r.id} value={r.name}>{r.display_name}</option>)}
-                    </select>
+                        onChange={setFilterRole}
+                        placeholder="All Roles"
+                        theme={theme}
+                        darkMode={darkMode}
+                        minWidth={170}
+                    />
                 </div>
 
                 <div style={{ ...card(theme), overflow: 'hidden' }}>
