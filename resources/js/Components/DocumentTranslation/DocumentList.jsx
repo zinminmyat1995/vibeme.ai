@@ -1,36 +1,506 @@
-// resources/js/Components/DocumentTranslation/DocumentList.jsx
-
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 
 const LANGUAGES = {
-    en: { label:'English',    flag:'🇬🇧' },
-    ja: { label:'Japanese',   flag:'🇯🇵' },
-    my: { label:'Burmese',    flag:'🇲🇲' },
-    km: { label:'Khmer',      flag:'🇰🇭' },
-    vi: { label:'Vietnamese', flag:'🇻🇳' },
-    ko: { label:'Korean',     flag:'🇰🇷' },
+    en: { label: 'English', flag: '🇬🇧' },
+    ja: { label: 'Japanese', flag: '🇯🇵' },
+    my: { label: 'Burmese', flag: '🇲🇲' },
+    km: { label: 'Khmer', flag: '🇰🇭' },
+    vi: { label: 'Vietnamese', flag: '🇻🇳' },
+    ko: { label: 'Korean', flag: '🇰🇷' },
 };
 
-const FILE_ICONS = {
-    pdf:  { icon:'📄', color:'#ef4444', bg:'#fee2e2' },
-    doc:  { icon:'📝', color:'#2563eb', bg:'#dbeafe' },
-    docx: { icon:'📝', color:'#2563eb', bg:'#dbeafe' },
-    txt:  { icon:'📃', color:'#6b7280', bg:'#f3f4f6' },
-    png:  { icon:'🖼️', color:'#059669', bg:'#d1fae5' },
-    jpg:  { icon:'🖼️', color:'#059669', bg:'#d1fae5' },
-    jpeg: { icon:'🖼️', color:'#059669', bg:'#d1fae5' },
+const FILE_META = {
+    pdf: {
+        label: 'PDF',
+        color: '#ef4444',
+        soft: '#fee2e2',
+        note: 'Portable document',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
+                <path d="M14 2v5h5" />
+                <path d="M8 13h3" />
+                <path d="M8 17h8" />
+            </svg>
+        ),
+    },
+    doc: {
+        label: 'DOC',
+        color: '#2563eb',
+        soft: '#dbeafe',
+        note: 'Editable document',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
+                <path d="M14 2v5h5" />
+                <path d="M9 10h1a2 2 0 0 1 0 4H9z" />
+                <path d="M14 10v4" />
+                <path d="M14 12h2.5" />
+            </svg>
+        ),
+    },
+    docx: {
+        label: 'DOCX',
+        color: '#2563eb',
+        soft: '#dbeafe',
+        note: 'Editable document',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
+                <path d="M14 2v5h5" />
+                <path d="M8 10l4 6" />
+                <path d="M12 10l-4 6" />
+                <path d="M15.5 10v6" />
+            </svg>
+        ),
+    },
+    txt: {
+        label: 'TXT',
+        color: '#64748b',
+        soft: '#e2e8f0',
+        note: 'Plain text',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
+                <path d="M14 2v5h5" />
+                <path d="M8 12h8" />
+                <path d="M8 16h6" />
+            </svg>
+        ),
+    },
+    png: {
+        label: 'PNG',
+        color: '#059669',
+        soft: '#d1fae5',
+        note: 'Image file',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="3" />
+                <circle cx="9" cy="10" r="1.3" />
+                <path d="M21 16l-5.2-5.2a1.5 1.5 0 0 0-2.1 0L6 18" />
+            </svg>
+        ),
+    },
+    jpg: {
+        label: 'JPG',
+        color: '#059669',
+        soft: '#d1fae5',
+        note: 'Image file',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="3" />
+                <circle cx="9" cy="10" r="1.3" />
+                <path d="M21 16l-5.2-5.2a1.5 1.5 0 0 0-2.1 0L6 18" />
+            </svg>
+        ),
+    },
+    jpeg: {
+        label: 'JPEG',
+        color: '#059669',
+        soft: '#d1fae5',
+        note: 'Image file',
+        icon: (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="3" />
+                <circle cx="9" cy="10" r="1.3" />
+                <path d="M21 16l-5.2-5.2a1.5 1.5 0 0 0-2.1 0L6 18" />
+            </svg>
+        ),
+    },
 };
 
-const STATUS_MAP = {
-    pending:     { label:'Pending',     color:'#d97706', bg:'#fef3c7', dot:'#d97706' },
-    translating: { label:'Translating', color:'#2563eb', bg:'#dbeafe', dot:'#2563eb' },
-    completed:   { label:'Completed',   color:'#059669', bg:'#d1fae5', dot:'#059669' },
-    failed:      { label:'Failed',      color:'#ef4444', bg:'#fee2e2', dot:'#ef4444' },
+const STATUS_META = {
+    pending: {
+        label: 'Pending',
+        color: '#d97706',
+        soft: '#fef3c7',
+        note: 'Waiting in queue',
+        icon: (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+            </svg>
+        ),
+    },
+    translating: {
+        label: 'Translating',
+        color: '#2563eb',
+        soft: '#dbeafe',
+        note: 'Jobs currently running',
+        icon: (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 4v6h-6" />
+                <path d="M1 20v-6h6" />
+                <path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10" />
+                <path d="M20.49 15a9 9 0 0 1-14.13 3.36L1 14" />
+            </svg>
+        ),
+    },
+    completed: {
+        label: 'Completed',
+        color: '#059669',
+        soft: '#d1fae5',
+        note: 'Downloads available',
+        icon: (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+            </svg>
+        ),
+    },
+    failed: {
+        label: 'Failed',
+        color: '#ef4444',
+        soft: '#fee2e2',
+        note: 'Needs review or retry',
+        icon: (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M15 9l-6 6" />
+                <path d="M9 9l6 6" />
+            </svg>
+        ),
+    },
 };
 
-// ── Download Modal ─────────────────────────────────
-function DownloadModal({ document, hasApi, onClose }) {
+function useReactiveTheme() {
+    const getDark = () => {
+        if (typeof window === 'undefined') return false;
+        return document.documentElement.getAttribute('data-theme') === 'dark'
+            || localStorage.getItem('vibeme-theme') === 'dark';
+    };
+
+    const [darkMode, setDarkMode] = useState(getDark);
+
+    useEffect(() => {
+        const sync = () => setDarkMode(getDark());
+        window.addEventListener('vibeme-theme-change', sync);
+        window.addEventListener('storage', sync);
+        return () => {
+            window.removeEventListener('vibeme-theme-change', sync);
+            window.removeEventListener('storage', sync);
+        };
+    }, []);
+
+    return darkMode;
+}
+
+function getTheme(darkMode) {
+    if (darkMode) {
+        return {
+            panel: 'linear-gradient(180deg, rgba(10,18,36,0.96) 0%, rgba(9,16,32,0.92) 100%)',
+            panelSolid: '#0b1324',
+            panelSoft: 'rgba(255,255,255,0.035)',
+            panelSofter: 'rgba(255,255,255,0.055)',
+            border: 'rgba(148,163,184,0.12)',
+            borderStrong: 'rgba(148,163,184,0.22)',
+            text: '#f8fafc',
+            textSoft: '#cbd5e1',
+            textMute: '#8da0b8',
+            shadow: '0 28px 80px rgba(0,0,0,0.42)',
+            shadowSoft: '0 16px 36px rgba(0,0,0,0.28)',
+            overlay: 'rgba(2, 8, 23, 0.74)',
+            primary: '#7c3aed',
+            primaryHover: '#6d28d9',
+            primarySoft: 'rgba(124,58,237,0.18)',
+            secondary: '#2563eb',
+            secondaryHover: '#1d4ed8',
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#f87171',
+            dangerHover: '#ef4444',
+            tableHead: 'rgba(255,255,255,0.03)',
+            rowHover: 'rgba(255,255,255,0.03)',
+            glass: 'radial-gradient(circle at top right, rgba(124,58,237,0.18), transparent 40%), radial-gradient(circle at bottom left, rgba(37,99,235,0.12), transparent 36%)',
+            inputBg: 'rgba(255,255,255,0.035)',
+            inputBorder: 'rgba(148,163,184,0.16)',
+        };
+    }
+
+    return {
+        panel: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(250,251,255,0.96) 100%)',
+        panelSolid: '#ffffff',
+        panelSoft: '#f8fafc',
+        panelSofter: '#f1f5f9',
+        border: 'rgba(15,23,42,0.08)',
+        borderStrong: 'rgba(15,23,42,0.12)',
+        text: '#0f172a',
+        textSoft: '#475569',
+        textMute: '#94a3b8',
+        shadow: '0 24px 70px rgba(15,23,42,0.08)',
+        shadowSoft: '0 14px 30px rgba(15,23,42,0.06)',
+        overlay: 'rgba(15,23,42,0.36)',
+        primary: '#7c3aed',
+        primaryHover: '#6d28d9',
+        primarySoft: '#f3e8ff',
+        secondary: '#2563eb',
+        secondaryHover: '#1d4ed8',
+        success: '#059669',
+        warning: '#d97706',
+        danger: '#ef4444',
+        dangerHover: '#dc2626',
+        tableHead: '#f8fafc',
+        rowHover: '#fbfbfe',
+        glass: 'radial-gradient(circle at top right, rgba(124,58,237,0.08), transparent 44%), radial-gradient(circle at bottom left, rgba(37,99,235,0.07), transparent 40%)',
+        inputBg: '#f8fafc',
+        inputBorder: '#e5e7eb',
+    };
+}
+
+function card(theme, extra = {}) {
+    return {
+        background: theme.panel,
+        border: `1px solid ${theme.border}`,
+        borderRadius: 24,
+        boxShadow: theme.shadowSoft,
+        backdropFilter: 'blur(16px)',
+        ...extra,
+    };
+}
+
+function IconButton({ children, onClick, theme, variant = 'neutral', title }) {
+    const styles = {
+        neutral: {
+            background: theme.panelSoft,
+            color: theme.textSoft,
+            border: `1px solid ${theme.border}`,
+        },
+        danger: {
+            background: theme.panelSolid === '#0b1324' ? 'rgba(248,113,113,0.12)' : '#fee2e2',
+            color: theme.danger,
+            border: `1px solid ${theme.border}`,
+        },
+    }[variant];
+
+    return (
+        <button
+            type="button"
+            title={title}
+            onClick={onClick}
+            style={{
+                width: 40,
+                height: 40,
+                borderRadius: 14,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease',
+                ...styles,
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+            }}
+        >
+            {children}
+        </button>
+    );
+}
+
+function UIButton({ children, onClick, type = 'button', variant = 'primary', disabled = false, theme, style = {} }) {
+    const cfg = {
+        primary: {
+            bg: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
+            color: '#fff',
+            border: 'none',
+            hoverBg: `linear-gradient(135deg, ${theme.primaryHover} 0%, ${theme.secondaryHover} 100%)`,
+            shadow: `0 14px 32px ${theme.primary}30`,
+        },
+        ghost: {
+            bg: theme.panelSoft,
+            color: theme.textSoft,
+            border: `1px solid ${theme.border}`,
+            hoverBg: theme.panelSofter,
+            shadow: 'none',
+        },
+        danger: {
+            bg: theme.danger,
+            color: '#fff',
+            border: 'none',
+            hoverBg: theme.dangerHover,
+            shadow: `0 14px 32px ${theme.danger}30`,
+        },
+    }[variant];
+
+    return (
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                height: 46,
+                padding: '0 18px',
+                borderRadius: 16,
+                border: cfg.border,
+                background: disabled ? theme.textMute : cfg.bg,
+                color: cfg.color,
+                fontSize: 13,
+                fontWeight: 900,
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                whiteSpace: 'nowrap',
+                boxShadow: disabled ? 'none' : cfg.shadow,
+                transition: 'all 0.18s ease',
+                ...style,
+            }}
+            onMouseEnter={(e) => {
+                if (disabled) return;
+                e.currentTarget.style.background = cfg.hoverBg;
+                e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+                if (disabled) return;
+                e.currentTarget.style.background = cfg.bg;
+                e.currentTarget.style.transform = 'translateY(0)';
+            }}
+        >
+            {children}
+        </button>
+    );
+}
+
+function PremiumSelect({
+    options = [],
+    value = '',
+    onChange,
+    placeholder = 'Select option...',
+    theme,
+    darkMode = false,
+    minWidth = 170,
+    width = 'auto',
+}) {
+    const [open, setOpen] = useState(false);
+    const wrapRef = useRef(null);
+
+    const selected = options.find((opt) => String(opt.value) === String(value) && !opt.disabled);
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const triggerBg = darkMode
+        ? 'linear-gradient(180deg, rgba(12,22,44,0.96) 0%, rgba(8,17,36,0.96) 100%)'
+        : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)';
+
+    const menuBg = darkMode
+        ? 'linear-gradient(180deg, rgba(5,17,38,0.99) 0%, rgba(3,12,28,0.99) 100%)'
+        : '#ffffff';
+
+    return (
+        <div ref={wrapRef} style={{ position: 'relative', minWidth, width, zIndex: 50 }}>
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                style={{
+                    width: '100%',
+                    height: 46,
+                    padding: '0 14px',
+                    borderRadius: 16,
+                    border: `1px solid ${open ? theme.borderStrong : theme.inputBorder}`,
+                    background: triggerBg,
+                    color: selected ? theme.text : theme.textMute,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    cursor: 'pointer',
+                    boxShadow: open ? theme.shadowSoft : 'none',
+                    backdropFilter: 'blur(12px)',
+                    transition: 'all 0.18s ease',
+                }}
+            >
+                <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {selected ? selected.label : placeholder}
+                </span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease' }}>
+                    <path d="M4 6L8 10L12 6" stroke={theme.textMute} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </button>
+
+            {open && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 10px)',
+                        left: 0,
+                        right: 0,
+                        zIndex: 90,
+                        background: menuBg,
+                        border: `1px solid ${theme.borderStrong}`,
+                        borderRadius: 18,
+                        overflow: 'hidden',
+                        boxShadow: theme.shadow,
+                        backdropFilter: 'blur(16px)',
+                    }}
+                >
+                    {options.map((opt, index) => {
+                        const isSelected = String(opt.value) === String(value);
+                        return (
+                            <button
+                                key={String(opt.value) || `opt-${index}`}
+                                type="button"
+                                onClick={() => {
+                                    if (opt.disabled) return;
+                                    onChange(opt.value);
+                                    setOpen(false);
+                                }}
+                                style={{
+                                    width: '100%',
+                                    minHeight: 48,
+                                    padding: '0 14px',
+                                    border: 'none',
+                                    borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none',
+                                    background: isSelected ? theme.primary : 'transparent',
+                                    color: isSelected ? '#fff' : theme.textSoft,
+                                    opacity: opt.disabled ? 0.45 : 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    textAlign: 'left',
+                                    cursor: opt.disabled ? 'not-allowed' : 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    fontSize: 13,
+                                    fontWeight: isSelected ? 800 : 600,
+                                }}
+                            >
+                                {opt.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function formatDate(dateValue) {
+    if (!dateValue) return '—';
+    const parsed = new Date(String(dateValue).replace(' ', 'T'));
+    if (Number.isNaN(parsed.getTime())) return dateValue;
+    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function statusFor(doc) {
+    return STATUS_META[doc.status] || STATUS_META.pending;
+}
+
+function fileMetaFor(doc) {
+    return FILE_META[doc.file_type?.toLowerCase()] || FILE_META.txt;
+}
+
+function DownloadModal({ document, hasApi, onClose, darkMode = false }) {
+    const theme = getTheme(darkMode);
     if (!document) return null;
 
     const availableLangs = document.translated_paths || [];
@@ -41,240 +511,267 @@ function DownloadModal({ document, hasApi, onClose }) {
     };
 
     return (
-        <div style={{ position:'fixed', inset:0, zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-            <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.35)', backdropFilter:'blur(4px)' }} />
-            <div style={{ position:'relative', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,0.15)', width:'100%', maxWidth:400 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: theme.overlay, backdropFilter: 'blur(12px)' }} />
+            <div style={{ ...card(theme, { width: '100%', maxWidth: 560, overflow: 'hidden', position: 'relative' }) }}>
+                <div style={{ padding: '26px 24px 22px', background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 42%, #2563eb 100%)', position: 'relative' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 34%), radial-gradient(circle at bottom right, rgba(255,255,255,0.12), transparent 30%)', pointerEvents: 'none' }} />
+                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', marginBottom: 8 }}>
+                                Downloads
+                            </div>
+                            <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', lineHeight: 1.15 }}>
+                                Choose file version
+                            </div>
+                            <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.78)' }}>
+                                {document.original_filename}
+                            </div>
+                        </div>
 
-                <div style={{ padding:'20px 24px 16px', borderBottom:'1px solid #f3f4f6' }}>
-                    <h3 style={{ fontSize:15, fontWeight:800, color:'#111827', margin:0 }}>📥 Download</h3>
-                    <p style={{ fontSize:11, color:'#9ca3af', marginTop:3 }}>{document.original_filename}</p>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            style={{
+                                width: 46,
+                                height: 46,
+                                borderRadius: 16,
+                                border: '1px solid rgba(255,255,255,0.16)',
+                                background: 'rgba(255,255,255,0.12)',
+                                color: '#fff',
+                                cursor: 'pointer',
+                                fontSize: 26,
+                                lineHeight: 1,
+                            }}
+                        >
+                            ×
+                        </button>
+                    </div>
                 </div>
 
-                <div style={{ padding:'16px 24px 20px', display:'flex', flexDirection:'column', gap:8 }}>
-
-                    {/* Original */}
-                    <button onClick={() => handleDownload('original')}
-                        style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', cursor:'pointer', textAlign:'left' }}>
-                        <span style={{ fontSize:20 }}>📎</span>
-                        <div>
-                            <div style={{ fontSize:13, fontWeight:700, color:'#111827' }}>Original File</div>
-                            <div style={{ fontSize:11, color:'#9ca3af' }}>{document.file_type?.toUpperCase()} · {document.file_size}</div>
+                <div style={{ padding: 24, display: 'grid', gap: 12 }}>
+                    <button
+                        type="button"
+                        onClick={() => handleDownload('original')}
+                        style={{
+                            width: '100%',
+                            padding: '16px 18px',
+                            borderRadius: 18,
+                            border: `1px solid ${theme.border}`,
+                            background: theme.panelSoft,
+                            color: theme.text,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                        }}
+                    >
+                        <div style={{ width: 48, height: 48, borderRadius: 16, background: theme.primarySoft, color: theme.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <path d="M7 10l5 5 5-5" />
+                                <path d="M12 15V3" />
+                            </svg>
                         </div>
-                        <span style={{ marginLeft:'auto', fontSize:11, color:'#7c3aed', fontWeight:600 }}>↓ Download</span>
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: theme.text }}>Original file</div>
+                            <div style={{ marginTop: 4, fontSize: 11.5, color: theme.textMute }}>
+                                {document.file_type?.toUpperCase()} · {document.file_size}
+                            </div>
+                        </div>
+                        <div style={{ marginLeft: 'auto', fontSize: 11, color: theme.primary, fontWeight: 900 }}>
+                            Download
+                        </div>
                     </button>
 
-                    {/* Translated versions */}
                     {hasApi && availableLangs.length > 0 && (
-                        <>
-                            <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', letterSpacing:'0.5px', marginTop:4 }}>TRANSLATED VERSIONS</div>
-                            {availableLangs.map(lang => {
-                                const l = LANGUAGES[lang];
-                                if (!l) return null;
+                        <div style={{ display: 'grid', gap: 12 }}>
+                            <div style={{ fontSize: 11, color: theme.textMute, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.10em', marginTop: 4 }}>
+                                Translated versions
+                            </div>
+
+                            {availableLangs.map((lang) => {
+                                const meta = LANGUAGES[lang];
+                                if (!meta) return null;
+
                                 return (
-                                    <button key={lang} onClick={() => handleDownload(lang)}
-                                        style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', cursor:'pointer', textAlign:'left' }}>
-                                        <span style={{ fontSize:20 }}>{l.flag}</span>
-                                        <div>
-                                            <div style={{ fontSize:13, fontWeight:700, color:'#111827' }}>{l.label}</div>
-                                            <div style={{ fontSize:11, color:'#9ca3af' }}>Translated · {document.file_type?.toUpperCase()}</div>
+                                    <button
+                                        key={lang}
+                                        type="button"
+                                        onClick={() => handleDownload(lang)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '16px 18px',
+                                            borderRadius: 18,
+                                            border: `1px solid ${theme.border}`,
+                                            background: theme.panelSoft,
+                                            color: theme.text,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 14,
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                        }}
+                                    >
+                                        <div style={{ width: 48, height: 48, borderRadius: 16, background: darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
+                                            {meta.flag}
                                         </div>
-                                        <span style={{ marginLeft:'auto', fontSize:11, color:'#059669', fontWeight:600 }}>↓ Download</span>
+                                        <div style={{ minWidth: 0 }}>
+                                            <div style={{ fontSize: 13, fontWeight: 900, color: theme.text }}>{meta.label}</div>
+                                            <div style={{ marginTop: 4, fontSize: 11.5, color: theme.textMute }}>
+                                                Translated · {document.file_type?.toUpperCase()}
+                                            </div>
+                                        </div>
+                                        <div style={{ marginLeft: 'auto', fontSize: 11, color: theme.success, fontWeight: 900 }}>
+                                            Download
+                                        </div>
                                     </button>
                                 );
                             })}
-                        </>
+                        </div>
                     )}
 
                     {!hasApi && (
-                        <div style={{ padding:'10px 14px', background:'#fef3c7', borderRadius:10, border:'1px solid #fcd34d', fontSize:12, color:'#92400e' }}>
-                            ⚠ API not configured — only original file available
+                        <div style={{ padding: '14px 16px', borderRadius: 16, border: `1px solid ${theme.border}`, background: darkMode ? 'rgba(245,158,11,0.12)' : '#fef3c7', color: theme.warning, fontSize: 12.5, fontWeight: 700 }}>
+                            API is not configured, so only the original document is available.
                         </div>
                     )}
                 </div>
 
-                <div style={{ padding:'0 24px 20px', display:'flex', justifyContent:'flex-end' }}>
-                    <button onClick={onClose} style={{ padding:'8px 20px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#374151', fontSize:13, fontWeight:600, cursor:'pointer' }}>
-                        Close
-                    </button>
+                <div style={{ padding: '0 24px 24px', display: 'flex', justifyContent: 'flex-end' }}>
+                    <UIButton onClick={onClose} variant="ghost" theme={theme}>Close</UIButton>
                 </div>
             </div>
         </div>
     );
 }
 
-// ── Delete Confirm ─────────────────────────────────
-function DeleteConfirm({ document, onClose, onConfirm, loading }) {
+function DeleteConfirm({ document, onClose, onConfirm, loading, darkMode = false }) {
+    const theme = getTheme(darkMode);
     if (!document) return null;
+
     return (
-        <div style={{ position:'fixed', inset:0, zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-            <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.35)', backdropFilter:'blur(4px)' }} />
-            <div style={{ position:'relative', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,0.15)', width:'100%', maxWidth:380, padding:'28px 24px', textAlign:'center' }}>
-                <div style={{ fontSize:48, marginBottom:12 }}>🗑️</div>
-                <h4 style={{ fontSize:15, fontWeight:800, color:'#111827', marginBottom:8 }}>Delete Document?</h4>
-                <p style={{ fontSize:13, color:'#6b7280', marginBottom:20, lineHeight:1.5 }}>
-                    Are you sure you want to delete<br/>
-                    <strong style={{ color:'#111827' }}>{document.original_filename}</strong>?<br/>
-                    <span style={{ fontSize:11 }}>All translated versions will also be deleted.</span>
-                </p>
-                <div style={{ display:'flex', gap:10, justifyContent:'center' }}>
-                    <button onClick={onClose} style={{ padding:'9px 24px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#374151', fontSize:13, fontWeight:600, cursor:'pointer' }}>
-                        Cancel
-                    </button>
-                    <button onClick={onConfirm} disabled={loading}
-                        style={{ padding:'9px 24px', borderRadius:10, border:'none', background: loading ? '#fca5a5' : '#ef4444', color:'#fff', fontSize:13, fontWeight:700, cursor: loading ? 'not-allowed' : 'pointer' }}>
-                        {loading ? 'Deleting...' : 'Yes, Delete'}
-                    </button>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: theme.overlay, backdropFilter: 'blur(12px)' }} />
+            <div style={{ ...card(theme, { width: '100%', maxWidth: 460, padding: 28, position: 'relative' }) }}>
+                <div style={{ textAlign: 'center' }}>
+                    <div style={{ width: 82, height: 82, margin: '0 auto 18px', borderRadius: 26, background: darkMode ? 'rgba(248,113,113,0.14)' : '#fee2e2', border: `1px solid ${theme.border}`, color: theme.danger, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                        </svg>
+                    </div>
+
+                    <div style={{ fontSize: 22, fontWeight: 900, color: theme.text }}>Delete document?</div>
+                    <div style={{ marginTop: 10, fontSize: 13, color: theme.textMute, lineHeight: 1.7 }}>
+                        This will remove <strong style={{ color: theme.text }}>{document.original_filename}</strong> and all translated versions linked to it.
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 26 }}>
+                    <UIButton onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
+                    <UIButton onClick={onConfirm} disabled={loading} variant="danger" theme={theme}>
+                        {loading ? 'Deleting...' : 'Delete'}
+                    </UIButton>
                 </div>
             </div>
         </div>
     );
 }
 
-// ── Document Card (Grid view) ──────────────────────
-function DocumentCard({ doc, hasApi, onDownload, onDelete }) {
-    const fileInfo = FILE_ICONS[doc.file_type?.toLowerCase()] || FILE_ICONS.txt;
-    const status   = STATUS_MAP[doc.status]   || STATUS_MAP.pending;
+function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false }) {
+    const theme = getTheme(darkMode);
+    const file = fileMetaFor(doc);
+    const status = statusFor(doc);
 
     return (
-        <div style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:14, padding:16, display:'flex', flexDirection:'column', gap:10, boxShadow:'0 1px 4px rgba(0,0,0,0.04)', transition:'box-shadow 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'}
-            onMouseLeave={e => e.currentTarget.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)'}>
-
-            {/* File icon + status */}
-            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
-                <div style={{ width:44, height:44, borderRadius:12, background:fileInfo.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>
-                    {fileInfo.icon}
+        <tr
+            style={{ borderBottom: isLast ? 'none' : `1px solid ${theme.border}` }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = theme.rowHover; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+            <td style={{ padding: '16px 18px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 250 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 16, background: file.soft, color: file.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {file.icon}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 900, color: theme.text, wordBreak: 'break-word' }}>
+                            {doc.original_filename}
+                        </div>
+                        <div style={{ marginTop: 4, fontSize: 11.5, color: theme.textMute }}>
+                            {doc.file_size} · {file.label} · {file.note}
+                        </div>
+                    </div>
                 </div>
-                <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:99, background:status.bg, color:status.color }}>
-                    <span style={{ width:5, height:5, borderRadius:'50%', background:status.dot, display:'inline-block' }} />
+            </td>
+
+            <td style={{ padding: '16px 18px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 999, background: status.soft, color: status.color, fontSize: 11, fontWeight: 900 }}>
+                    {status.icon}
                     {status.label}
                 </span>
-            </div>
+            </td>
 
-            {/* Filename */}
-            <div>
-                <div style={{ fontSize:13, fontWeight:700, color:'#111827', marginBottom:2, wordBreak:'break-word' }}>
-                    {doc.original_filename}
-                </div>
-                <div style={{ fontSize:11, color:'#9ca3af' }}>
-                    {doc.file_size} · {doc.file_type?.toUpperCase()} · {doc.created_at}
-                </div>
-            </div>
-
-            {/* Languages */}
-            <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-                <span style={{ fontSize:10, padding:'2px 7px', borderRadius:99, background:'#f3f4f6', color:'#6b7280', fontWeight:600 }}>
-                    {LANGUAGES[doc.source_language]?.flag} {LANGUAGES[doc.source_language]?.label}
-                </span>
-                {doc.target_languages?.map(lang => (
-                    <span key={lang} style={{ fontSize:10, padding:'2px 7px', borderRadius:99, background:'#d1fae5', color:'#059669', fontWeight:600 }}>
-                        → {LANGUAGES[lang]?.flag} {LANGUAGES[lang]?.label}
+            <td style={{ padding: '16px 18px' }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(255,255,255,0.06)' : '#f1f5f9', color: theme.textSoft, fontWeight: 800 }}>
+                        {LANGUAGES[doc.source_language]?.flag} {LANGUAGES[doc.source_language]?.label || 'Unknown'}
                     </span>
-                ))}
-            </div>
-
-            {/* Tags */}
-            {doc.tags?.length > 0 && (
-                <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-                    {doc.tags.map(tag => (
-                        <span key={tag} style={{ fontSize:10, padding:'2px 8px', borderRadius:99, background:'#ede9fe', color:'#7c3aed', fontWeight:600 }}>
-                            #{tag}
+                    {doc.target_languages?.map((lang) => (
+                        <span key={lang} style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5', color: theme.success, fontWeight: 800 }}>
+                            {LANGUAGES[lang]?.flag} {LANGUAGES[lang]?.label}
                         </span>
                     ))}
                 </div>
-            )}
+            </td>
 
-            {/* Uploader */}
-            <div style={{ fontSize:11, color:'#9ca3af' }}>
-                Uploaded by <strong style={{ color:'#374151' }}>{doc.uploader}</strong>
-            </div>
+            <td style={{ padding: '16px 18px', fontSize: 12.5, color: theme.textSoft, whiteSpace: 'nowrap' }}>
+                {formatDate(doc.created_at)}
+            </td>
 
-            {/* Actions */}
-            <div style={{ display:'flex', gap:8, marginTop:'auto' }}>
-                <button onClick={() => onDownload(doc)}
-                    style={{ flex:1, padding:'7px', borderRadius:8, border:'1px solid #7c3aed', background:'#ede9fe', color:'#7c3aed', fontSize:12, fontWeight:700, cursor:'pointer' }}>
-                    📥 Download
-                </button>
-                {doc.canDelete && (
-                    <button onClick={() => onDelete(doc)}
-                        style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #fee2e2', background:'#fef2f2', color:'#ef4444', fontSize:12, cursor:'pointer' }}>
-                        🗑️
-                    </button>
+            <td style={{ padding: '16px 18px', fontSize: 12.5, color: theme.textSoft }}>
+                {doc.uploader || '—'}
+            </td>
+
+            <td style={{ padding: '16px 18px' }}>
+                {doc.tags?.length ? (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 220 }}>
+                        {doc.tags.map((tag) => (
+                            <span key={tag} style={{ fontSize: 10, padding: '5px 8px', borderRadius: 999, background: darkMode ? 'rgba(124,58,237,0.18)' : '#ede9fe', color: theme.primary, fontWeight: 800 }}>
+                                #{tag}
+                            </span>
+                        ))}
+                    </div>
+                ) : (
+                    <span style={{ fontSize: 12, color: theme.textMute }}>—</span>
                 )}
-            </div>
-        </div>
-    );
-}
-
-// ── Document Row (List view) ───────────────────────
-function DocumentRow({ doc, hasApi, onDownload, onDelete, isLast }) {
-    const fileInfo = FILE_ICONS[doc.file_type?.toLowerCase()] || FILE_ICONS.txt;
-    const status   = STATUS_MAP[doc.status] || STATUS_MAP.pending;
-
-    return (
-        <tr style={{ borderBottom: isLast ? 'none' : '1px solid #f3f4f6' }}
-            onMouseEnter={e => e.currentTarget.style.background='#fafafa'}
-            onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-
-            {/* File */}
-            <td style={{ padding:'12px 16px' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                    <div style={{ width:36, height:36, borderRadius:9, background:fileInfo.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>
-                        {fileInfo.icon}
-                    </div>
-                    <div>
-                        <div style={{ fontSize:13, fontWeight:700, color:'#111827' }}>{doc.original_filename}</div>
-                        <div style={{ fontSize:11, color:'#9ca3af' }}>{doc.file_size} · by {doc.uploader}</div>
-                    </div>
-                </div>
             </td>
 
-            {/* Languages */}
-            <td style={{ padding:'12px 16px' }}>
-                <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-                    <span style={{ fontSize:10, padding:'2px 7px', borderRadius:99, background:'#f3f4f6', color:'#6b7280', fontWeight:600 }}>
-                        {LANGUAGES[doc.source_language]?.flag}
-                    </span>
-                    {doc.target_languages?.map(lang => (
-                        <span key={lang} style={{ fontSize:10, padding:'2px 7px', borderRadius:99, background:'#d1fae5', color:'#059669', fontWeight:600 }}>
-                            {LANGUAGES[lang]?.flag}
-                        </span>
-                    ))}
-                </div>
-            </td>
+            <td style={{ padding: '16px 18px' }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <IconButton onClick={() => onDownload(doc)} theme={theme} title="Download">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <path d="M7 10l5 5 5-5" />
+                            <path d="M12 15V3" />
+                        </svg>
+                    </IconButton>
 
-            {/* Status */}
-            <td style={{ padding:'12px 16px' }}>
-                <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:99, background:status.bg, color:status.color }}>
-                    <span style={{ width:5, height:5, borderRadius:'50%', background:status.dot, display:'inline-block' }} />
-                    {status.label}
-                </span>
-            </td>
-
-            {/* Tags */}
-            <td style={{ padding:'12px 16px' }}>
-                <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-                    {doc.tags?.slice(0,2).map(tag => (
-                        <span key={tag} style={{ fontSize:10, padding:'2px 7px', borderRadius:99, background:'#ede9fe', color:'#7c3aed', fontWeight:600 }}>#{tag}</span>
-                    ))}
-                </div>
-            </td>
-
-            {/* Date */}
-            <td style={{ padding:'12px 16px', fontSize:12, color:'#9ca3af', whiteSpace:'nowrap' }}>{doc.created_at}</td>
-
-            {/* Actions */}
-            <td style={{ padding:'12px 16px' }}>
-                <div style={{ display:'flex', gap:6 }}>
-                    <button onClick={() => onDownload(doc)}
-                        style={{ padding:'6px 12px', borderRadius:8, border:'1px solid #7c3aed', background:'#ede9fe', color:'#7c3aed', fontSize:12, fontWeight:700, cursor:'pointer' }}>
-                        📥
-                    </button>
                     {doc.canDelete && (
-                        <button onClick={() => onDelete(doc)}
-                            style={{ padding:'6px 12px', borderRadius:8, border:'1px solid #fee2e2', background:'#fef2f2', color:'#ef4444', fontSize:12, cursor:'pointer' }}>
-                            🗑️
-                        </button>
+                        <IconButton onClick={() => onDelete(doc)} theme={theme} variant="danger" title="Delete">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                <path d="M10 11v6" />
+                                <path d="M14 11v6" />
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                            </svg>
+                        </IconButton>
                     )}
                 </div>
             </td>
@@ -282,116 +779,383 @@ function DocumentRow({ doc, hasApi, onDownload, onDelete, isLast }) {
     );
 }
 
-// ── Main Component ─────────────────────────────────
+function DocumentCard({ doc, onDownload, onDelete, darkMode = false }) {
+    const theme = getTheme(darkMode);
+    const file = fileMetaFor(doc);
+    const status = statusFor(doc);
+
+    return (
+        <div style={{ ...card(theme, { padding: 18, display: 'flex', flexDirection: 'column', gap: 14, position: 'relative', overflow: 'hidden' }) }}>
+            <div style={{ position: 'absolute', inset: 0, background: theme.glass, opacity: 0.45, pointerEvents: 'none' }} />
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
+                <div style={{ width: 54, height: 54, borderRadius: 18, background: file.soft, color: file.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {file.icon}
+                </div>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 999, background: status.soft, color: status.color, fontSize: 10, fontWeight: 900 }}>
+                    {status.icon}
+                    {status.label}
+                </span>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+                <div style={{ fontSize: 14, fontWeight: 900, color: theme.text, wordBreak: 'break-word' }}>
+                    {doc.original_filename}
+                </div>
+                <div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>
+                    {doc.file_size} · {file.label} · {formatDate(doc.created_at)}
+                </div>
+            </div>
+
+            <div style={{ position: 'relative', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(255,255,255,0.06)' : '#f1f5f9', color: theme.textSoft, fontWeight: 800 }}>
+                    {LANGUAGES[doc.source_language]?.flag} {LANGUAGES[doc.source_language]?.label || 'Unknown'}
+                </span>
+                {doc.target_languages?.map((lang) => (
+                    <span key={lang} style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5', color: theme.success, fontWeight: 800 }}>
+                        {LANGUAGES[lang]?.flag} {LANGUAGES[lang]?.label}
+                    </span>
+                ))}
+            </div>
+
+            {doc.tags?.length > 0 && (
+                <div style={{ position: 'relative', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {doc.tags.map((tag) => (
+                        <span key={tag} style={{ fontSize: 10, padding: '5px 8px', borderRadius: 999, background: darkMode ? 'rgba(124,58,237,0.18)' : '#ede9fe', color: theme.primary, fontWeight: 800 }}>
+                            #{tag}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            <div style={{ position: 'relative', fontSize: 12, color: theme.textMute }}>
+                Uploaded by <strong style={{ color: theme.textSoft }}>{doc.uploader || '—'}</strong>
+            </div>
+
+            <div style={{ position: 'relative', display: 'flex', gap: 10, marginTop: 'auto' }}>
+                <UIButton onClick={() => onDownload(doc)} variant="primary" theme={theme} style={{ flex: 1, height: 42 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <path d="M7 10l5 5 5-5" />
+                        <path d="M12 15V3" />
+                    </svg>
+                    Download
+                </UIButton>
+
+                {doc.canDelete && (
+                    <UIButton onClick={() => onDelete(doc)} variant="ghost" theme={theme} style={{ width: 46, padding: 0, color: theme.danger }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                        </svg>
+                    </UIButton>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function DocumentList({ documents = [], hasApi = false, folderName = 'All Files', onShowToast }) {
-    const [viewMode, setViewMode]       = useState('list'); // 'grid' | 'list'
-    const [search, setSearch]           = useState('');
-    const [filterStatus, setFilterStatus] = useState('');
-    const [downloadDoc, setDownloadDoc] = useState(null);
-    const [deleteDoc, setDeleteDoc]     = useState(null);
-    const [deleting, setDeleting]       = useState(false);
+    const darkMode = useReactiveTheme();
+    const theme = useMemo(() => getTheme(darkMode), [darkMode]);
+
+    const [query, setQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [typeFilter, setTypeFilter] = useState('');
+    const [viewMode, setViewMode] = useState('grid');
+    const [downloadTarget, setDownloadTarget] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+
+    const filtered = useMemo(() => {
+        return documents.filter((doc) => {
+            const q = query.trim().toLowerCase();
+            const searchMatch = !q || [
+                doc.original_filename,
+                doc.uploader,
+                ...(doc.tags || []),
+                doc.file_type,
+            ].filter(Boolean).join(' ').toLowerCase().includes(q);
+
+            const statusMatch = statusFilter ? doc.status === statusFilter : true;
+            const typeMatch = typeFilter ? doc.file_type?.toLowerCase() === typeFilter : true;
+
+            return searchMatch && statusMatch && typeMatch;
+        });
+    }, [documents, query, statusFilter, typeFilter]);
+
+    const stats = useMemo(() => {
+        return {
+            total: documents.length,
+            completed: documents.filter((d) => d.status === 'completed').length,
+            translating: documents.filter((d) => d.status === 'translating').length,
+            failed: documents.filter((d) => d.status === 'failed').length,
+        };
+    }, [documents]);
 
     const handleDelete = () => {
+        if (!deleteTarget?.id) return;
+
         setDeleting(true);
-        router.delete(`/documents/${deleteDoc.id}`, {
-            onSuccess: () => { onShowToast('Document deleted!'); setDeleteDoc(null); setDeleting(false); },
-            onError:   () => { onShowToast('Failed to delete.', 'error'); setDeleting(false); },
+        router.delete(`/documents/${deleteTarget.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                onShowToast?.('Document deleted successfully!');
+                setDeleteTarget(null);
+            },
+            onError: () => {
+                onShowToast?.('Failed to delete document.', 'error');
+            },
+            onFinish: () => setDeleting(false),
         });
     };
 
-    const filtered = documents.filter(d => {
-        const s = search.toLowerCase();
-        const matchSearch = d.original_filename.toLowerCase().includes(s) ||
-                            d.tags?.some(t => t.toLowerCase().includes(s)) ||
-                            d.uploader?.toLowerCase().includes(s);
-        const matchStatus = filterStatus ? d.status === filterStatus : true;
-        return matchSearch && matchStatus;
-    });
+    const statusOptions = [
+        { value: '', label: 'All statuses' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'translating', label: 'Translating' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'failed', label: 'Failed' },
+    ];
+
+    const typeOptions = [
+        { value: '', label: 'All file types' },
+        { value: 'pdf', label: 'PDF' },
+        { value: 'doc', label: 'DOC' },
+        { value: 'docx', label: 'DOCX' },
+        { value: 'txt', label: 'TXT' },
+        { value: 'png', label: 'PNG' },
+        { value: 'jpg', label: 'JPG' },
+        { value: 'jpeg', label: 'JPEG' },
+    ];
 
     return (
-        <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <>
+            <style>{`
+                @keyframes dtSpin { to { transform: rotate(360deg); } }
+            `}</style>
 
-            {/* Toolbar */}
-            <div style={{ display:'flex', alignItems:'center', gap:10, padding:'14px 16px', borderBottom:'1px solid #e5e7eb', background:'#fff' }}>
-                <div style={{ fontSize:14, fontWeight:800, color:'#111827', flex:1 }}>
-                    {folderName}
-                    <span style={{ fontSize:12, color:'#9ca3af', fontWeight:400, marginLeft:8 }}>{documents.length} files</span>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'transparent' }}>
+                <div style={{ padding: 20, borderBottom: `1px solid ${theme.border}`, background: theme.panel, position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: theme.glass, opacity: 0.5, pointerEvents: 'none' }} />
+                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.primary, marginBottom: 8 }}>
+                                Document Library
+                            </div>
+                            <div style={{ fontSize: 22, fontWeight: 900, color: theme.text, lineHeight: 1.15 }}>
+                                {folderName}
+                            </div>
+                            <div style={{ marginTop: 8, fontSize: 12.5, color: theme.textMute }}>
+                                {filtered.length} visible file{filtered.length !== 1 ? 's' : ''} · Same route/API flow preserved
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(110px, 1fr))', gap: 10, minWidth: 420, maxWidth: 560, width: '100%' }}>
+                            {[
+                                { label: 'Total', value: stats.total, color: theme.primary, soft: theme.primarySoft },
+                                { label: 'Completed', value: stats.completed, color: theme.success, soft: darkMode ? 'rgba(16,185,129,0.14)' : '#d1fae5' },
+                                { label: 'Running', value: stats.translating, color: theme.secondary, soft: darkMode ? 'rgba(37,99,235,0.14)' : '#dbeafe' },
+                                { label: 'Failed', value: stats.failed, color: theme.danger, soft: darkMode ? 'rgba(248,113,113,0.12)' : '#fee2e2' },
+                            ].map((item) => (
+                                <div key={item.label} style={{ ...card(theme, { padding: '14px 14px 12px', borderRadius: 18, background: theme.panelSoft }) }}>
+                                    <div style={{ fontSize: 10, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900 }}>
+                                        {item.label}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 10 }}>
+                                        <div style={{ fontSize: 22, lineHeight: 1, fontWeight: 900, color: item.color }}>
+                                            {item.value}
+                                        </div>
+                                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.color, boxShadow: `0 0 0 6px ${item.soft}` }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
-                {/* Search */}
-                <div style={{ display:'flex', alignItems:'center', gap:6, background:'#f9fafb', border:'1px solid #e5e7eb', borderRadius:8, padding:'6px 10px' }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search files..."
-                        style={{ background:'transparent', border:'none', outline:'none', fontSize:12, color:'#374151', width:160 }} />
+                <div style={{ padding: 18, borderBottom: `1px solid ${theme.border}`, background: theme.panelSolid, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ ...card(theme, { flex: 1, minWidth: 240, display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 18 }) }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+
+                        <input
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search documents, uploader, tag..."
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                outline: 'none',
+                                fontSize: 13,
+                                color: theme.text,
+                                flex: 1,
+                            }}
+                        />
+
+                        {query && (
+                            <button type="button" onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.textMute, fontSize: 16 }}>
+                                ×
+                            </button>
+                        )}
+                    </div>
+
+                    <PremiumSelect
+                        options={statusOptions}
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        placeholder="All statuses"
+                        theme={theme}
+                        darkMode={darkMode}
+                        minWidth={170}
+                    />
+
+                    <PremiumSelect
+                        options={typeOptions}
+                        value={typeFilter}
+                        onChange={setTypeFilter}
+                        placeholder="All file types"
+                        theme={theme}
+                        darkMode={darkMode}
+                        minWidth={160}
+                    />
+
+                    <div style={{ ...card(theme, { display: 'inline-flex', padding: 6, borderRadius: 18, gap: 6, background: theme.panelSoft }) }}>
+                        {[
+                            {
+                                value: 'grid',
+                                label: 'Grid',
+                                icon: (
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                                        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                                        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                                        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                                    </svg>
+                                ),
+                            },
+                            {
+                                value: 'list',
+                                label: 'List',
+                                icon: (
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <line x1="8" y1="6" x2="21" y2="6" />
+                                        <line x1="8" y1="12" x2="21" y2="12" />
+                                        <line x1="8" y1="18" x2="21" y2="18" />
+                                        <line x1="3" y1="6" x2="3.01" y2="6" />
+                                        <line x1="3" y1="12" x2="3.01" y2="12" />
+                                        <line x1="3" y1="18" x2="3.01" y2="18" />
+                                    </svg>
+                                ),
+                            },
+                        ].map((item) => {
+                            const active = viewMode === item.value;
+                            return (
+                                <button
+                                    key={item.value}
+                                    type="button"
+                                    onClick={() => setViewMode(item.value)}
+                                    style={{
+                                        height: 40,
+                                        padding: '0 14px',
+                                        borderRadius: 14,
+                                        border: 'none',
+                                        background: active ? `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` : 'transparent',
+                                        color: active ? '#fff' : theme.textSoft,
+                                        fontSize: 12,
+                                        fontWeight: 900,
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                    }}
+                                >
+                                    {item.icon}
+                                    {item.label}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
-                {/* Status filter */}
-                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                    style={{ padding:'6px 10px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:12, color:'#374151', background:'#f9fafb', cursor:'pointer', outline:'none' }}>
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="translating">Translating</option>
-                    <option value="completed">Completed</option>
-                    <option value="failed">Failed</option>
-                </select>
-
-                {/* View toggle */}
-                <div style={{ display:'flex', border:'1px solid #e5e7eb', borderRadius:8, overflow:'hidden' }}>
-                    {[{v:'list',i:'☰'},{v:'grid',i:'⊞'}].map(({v,i}) => (
-                        <button key={v} onClick={() => setViewMode(v)}
-                            style={{ padding:'6px 10px', border:'none', cursor:'pointer', fontSize:14, background: viewMode===v ? '#7c3aed' : '#f9fafb', color: viewMode===v ? '#fff' : '#6b7280', transition:'all 0.1s' }}>
-                            {i}
-                        </button>
-                    ))}
+                <div style={{ flex: 1, overflow: 'auto', padding: 18, background: theme.panelSolid }}>
+                    {filtered.length === 0 ? (
+                        <div style={{ ...card(theme, { minHeight: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 30 }) }}>
+                            <div>
+                                <div style={{ width: 72, height: 72, margin: '0 auto 16px', borderRadius: 24, background: theme.panelSoft, border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.textMute }}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <circle cx="11" cy="11" r="8" />
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                    </svg>
+                                </div>
+                                <div style={{ fontSize: 16, color: theme.text, fontWeight: 900 }}>No documents found</div>
+                                <div style={{ marginTop: 6, fontSize: 12.5, color: theme.textMute }}>
+                                    Try adjusting search or filters.
+                                </div>
+                            </div>
+                        </div>
+                    ) : viewMode === 'grid' ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 16 }}>
+                            {filtered.map((doc) => (
+                                <DocumentCard
+                                    key={doc.id}
+                                    doc={doc}
+                                    onDownload={setDownloadTarget}
+                                    onDelete={setDeleteTarget}
+                                    darkMode={darkMode}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div style={{ ...card(theme, { overflow: 'hidden' }) }}>
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead>
+                                        <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
+                                            {['Document', 'Status', 'Languages', 'Created', 'Uploader', 'Tags', 'Actions'].map((head) => (
+                                                <th
+                                                    key={head}
+                                                    style={{
+                                                        padding: '15px 18px',
+                                                        textAlign: 'left',
+                                                        fontSize: 11,
+                                                        fontWeight: 900,
+                                                        color: theme.textMute,
+                                                        letterSpacing: '0.08em',
+                                                        textTransform: 'uppercase',
+                                                        whiteSpace: 'nowrap',
+                                                    }}
+                                                >
+                                                    {head}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filtered.map((doc, index) => (
+                                            <ListRow
+                                                key={doc.id}
+                                                doc={doc}
+                                                onDownload={setDownloadTarget}
+                                                onDelete={setDeleteTarget}
+                                                darkMode={darkMode}
+                                                isLast={index === filtered.length - 1}
+                                            />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Content */}
-            <div style={{ flex:1, overflowY:'auto', padding:16 }}>
-                {filtered.length === 0 ? (
-                    <div style={{ textAlign:'center', padding:'60px 20px' }}>
-                        <div style={{ fontSize:48, marginBottom:12 }}>📭</div>
-                        <div style={{ fontSize:14, fontWeight:700, color:'#374151' }}>No documents found</div>
-                        <div style={{ fontSize:12, color:'#9ca3af', marginTop:4 }}>Upload a file to get started</div>
-                    </div>
-                ) : viewMode === 'grid' ? (
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px,1fr))', gap:14 }}>
-                        {filtered.map(doc => (
-                            <DocumentCard key={doc.id} doc={doc} hasApi={hasApi}
-                                onDownload={setDownloadDoc} onDelete={setDeleteDoc} />
-                        ))}
-                    </div>
-                ) : (
-                    <div style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:14, overflow:'hidden' }}>
-                        <table style={{ width:'100%', borderCollapse:'collapse' }}>
-                            <thead>
-                                <tr style={{ background:'#f9fafb', borderBottom:'1px solid #e5e7eb' }}>
-                                    {['File','Languages','Status','Tags','Date','Actions'].map(h => (
-                                        <th key={h} style={{ padding:'10px 16px', textAlign:'left', fontSize:10, fontWeight:800, color:'#6b7280', letterSpacing:'0.5px', textTransform:'uppercase', whiteSpace:'nowrap' }}>{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map((doc, i) => (
-                                    <DocumentRow key={doc.id} doc={doc} hasApi={hasApi}
-                                        onDownload={setDownloadDoc} onDelete={setDeleteDoc}
-                                        isLast={i === filtered.length - 1} />
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
-
-            {/* Download Modal */}
-            {downloadDoc && (
-                <DownloadModal document={downloadDoc} hasApi={hasApi} onClose={() => setDownloadDoc(null)} />
-            )}
-
-            {/* Delete Modal */}
-            {deleteDoc && (
-                <DeleteConfirm document={deleteDoc} onClose={() => setDeleteDoc(null)} onConfirm={handleDelete} loading={deleting} />
-            )}
-        </div>
+            <DownloadModal document={downloadTarget} hasApi={hasApi} onClose={() => setDownloadTarget(null)} darkMode={darkMode} />
+            <DeleteConfirm document={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} loading={deleting} darkMode={darkMode} />
+        </>
     );
 }
