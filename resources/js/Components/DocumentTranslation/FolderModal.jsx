@@ -110,12 +110,6 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
         form.post(url, {
             preserveScroll: true,
             onSuccess: () => {
-                window.dispatchEvent(new CustomEvent('global-toast', {
-                    detail: {
-                        message: isEdit ? 'Folder updated successfully!' : 'Folder created successfully!',
-                        type: 'success',
-                    },
-                }));
                 onClose();
             },
             onError: () => {

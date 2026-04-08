@@ -279,6 +279,7 @@ export default function DocumentTranslation({
     const [deleteFolderTarget, setDeleteFolderTarget] = useState(null);
     const [deletingFolder, setDeletingFolder] = useState(false);
 
+    
     const showToast = (message, type = 'success') => {
         window.dispatchEvent(new CustomEvent('global-toast', {
             detail: { message, type }
@@ -305,8 +306,8 @@ export default function DocumentTranslation({
                 showToast('Unable to load folder contents.', 'error');
             });
     };
-
-    const currentDocs = selectedFolder ? (folderDocs || []) : documents;
+    const [documentsState, setDocumentsState] = useState(documents);
+    const currentDocs = selectedFolder ? (folderDocs || []) : documentsState;
     const currentFolderName = selectedFolder ? `${selectedFolder.icon} ${selectedFolder.name}` : 'All Files';
 
     const handleCreateFolder = (parentFolder) => {
@@ -399,10 +400,26 @@ export default function DocumentTranslation({
         },
     ];
 
-    useEffect(() => {
-        if (flash?.success) showToast(flash.success, 'success');
-        if (flash?.error) showToast(flash.error, 'error');
-    }, [flash]);
+    const handleUploadSuccess = (newDocument) => {
+        if (selectedFolder) {
+            if (newDocument && String(selectedFolder.id) === String(newDocument.folder_id)) {
+                setFolderDocs((prev) => [newDocument, ...(prev || [])]);
+            } else {
+                setLoadingFolder(true);
+                fetch(`/folders/${selectedFolder.id}/contents`)
+                    .then((r) => r.json())
+                    .then((data) => setFolderDocs(data.documents || []))
+                    .catch(() => showToast('Unable to refresh folder contents.', 'error'))
+                    .finally(() => setLoadingFolder(false));
+            }
+            return;
+        }
+
+        if (newDocument) {
+            setDocumentsState((prev) => [newDocument, ...prev]);
+        }
+    };
+
 
     return (
         <AppLayout title="Document Translation">
@@ -432,14 +449,15 @@ export default function DocumentTranslation({
                                 </UIButton>
                             }
                         />
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+                            {statCards.map((item) => (
+                                <StatCard key={item.label} item={item} theme={theme} />
+                            ))}
+                        </div>
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
-                    {statCards.map((item) => (
-                        <StatCard key={item.label} item={item} theme={theme} />
-                    ))}
-                </div>
+
 
                 <div style={{ ...card(theme, { overflow: 'hidden', padding: 12 }) }}>
                     <div
@@ -491,6 +509,7 @@ export default function DocumentTranslation({
                 folders={folders}
                 currentFolderId={selectedFolder?.id}
                 hasApi={hasApi}
+                onUploaded={handleUploadSuccess}
             />
 
             <FolderModal

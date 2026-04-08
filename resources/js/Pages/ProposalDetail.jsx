@@ -611,26 +611,7 @@ function BrowserPreviewFrame({
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <a
-                        href={pdfUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                            padding: '8px 14px',
-                            borderRadius: 10,
-                            background: theme.accentGradient,
-                            color: '#fff',
-                            fontSize: 12,
-                            fontWeight: 900,
-                            textDecoration: 'none',
-                            boxShadow: `0 8px 22px ${theme.primary}30`,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 6,
-                        }}
-                    >
-                        📥 Download PDF
-                    </a>
+                   
 
                     <button
                         onClick={onMaximize}
@@ -1219,28 +1200,7 @@ export default function ProposalDetail({ proposal }) {
                                     Mark Accepted
                                 </UIButton>
 
-                                <a
-                                    href={pdfUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{
-                                        height: 46,
-                                        padding: '0 18px',
-                                        borderRadius: 16,
-                                        background: theme.accentGradient,
-                                        color: '#fff',
-                                        fontSize: 13,
-                                        fontWeight: 900,
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: 8,
-                                        textDecoration: 'none',
-                                        boxShadow: `0 14px 32px ${theme.primary}30`,
-                                    }}
-                                >
-                                    Download PDF
-                                </a>
+                              
                             </div>
                         </div>
                     </div>

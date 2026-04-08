@@ -864,7 +864,7 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
-    const [viewMode, setViewMode] = useState('grid');
+    const [viewMode, setViewMode] = useState('list');
     const [downloadTarget, setDownloadTarget] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
@@ -902,7 +902,6 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
         router.delete(`/documents/${deleteTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                onShowToast?.('Document deleted successfully!');
                 setDeleteTarget(null);
             },
             onError: () => {
@@ -953,7 +952,12 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(110px, 1fr))', gap: 10, minWidth: 420, maxWidth: 560, width: '100%' }}>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                            gap: 10,
+                            width: '100%',
+                        }}>
                             {[
                                 { label: 'Total', value: stats.total, color: theme.primary, soft: theme.primarySoft },
                                 { label: 'Completed', value: stats.completed, color: theme.success, soft: darkMode ? 'rgba(16,185,129,0.14)' : '#d1fae5' },
@@ -1082,9 +1086,20 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                     </div>
                 </div>
 
-                <div style={{ flex: 1, overflow: 'auto', padding: 18, background: theme.panelSolid }}>
+                <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: 18, background: theme.panelSolid }}>
                     {filtered.length === 0 ? (
-                        <div style={{ ...card(theme, { minHeight: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 30 }) }}>
+                        <div style={{
+                            ...card(theme, {
+                                flex: 1,
+                                minHeight: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                textAlign: 'center',
+                                padding: 30
+                            })
+                        }}>
                             <div>
                                 <div style={{ width: 72, height: 72, margin: '0 auto 16px', borderRadius: 24, background: theme.panelSoft, border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.textMute }}>
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

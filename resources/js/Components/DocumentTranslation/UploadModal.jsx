@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 
@@ -27,9 +28,7 @@ function useReactiveTheme() {
         return document.documentElement.getAttribute('data-theme') === 'dark'
             || localStorage.getItem('vibeme-theme') === 'dark';
     };
-
     const [darkMode, setDarkMode] = useState(getDark);
-
     useEffect(() => {
         const sync = () => setDarkMode(getDark());
         window.addEventListener('vibeme-theme-change', sync);
@@ -39,222 +38,68 @@ function useReactiveTheme() {
             window.removeEventListener('storage', sync);
         };
     }, []);
-
     return darkMode;
 }
 
 function getTheme(darkMode) {
-    if (darkMode) {
-        return {
-            panel: 'linear-gradient(180deg, rgba(10,18,36,0.96) 0%, rgba(9,16,32,0.92) 100%)',
-            panelSolid: '#0b1324',
-            panelSoft: 'rgba(255,255,255,0.035)',
-            panelSofter: 'rgba(255,255,255,0.055)',
-            border: 'rgba(148,163,184,0.12)',
-            borderStrong: 'rgba(148,163,184,0.22)',
-            text: '#f8fafc',
-            textSoft: '#cbd5e1',
-            textMute: '#8da0b8',
-            shadow: '0 28px 80px rgba(0,0,0,0.42)',
-            shadowSoft: '0 16px 36px rgba(0,0,0,0.28)',
-            overlay: 'rgba(2, 8, 23, 0.74)',
-            primary: '#7c3aed',
-            primaryHover: '#6d28d9',
-            primarySoft: 'rgba(124,58,237,0.18)',
-            secondary: '#2563eb',
-            secondaryHover: '#1d4ed8',
-            success: '#10b981',
-            warning: '#f59e0b',
-            danger: '#f87171',
-            inputBg: 'rgba(255,255,255,0.035)',
-            inputBorder: 'rgba(148,163,184,0.16)',
-        };
-    }
-
-    return {
+    return darkMode ? {
+        panel: 'linear-gradient(180deg, rgba(10,18,36,0.96) 0%, rgba(9,16,32,0.92) 100%)',
+        panelSolid: '#0b1324', panelSoft: 'rgba(255,255,255,0.035)',
+        border: 'rgba(148,163,184,0.12)', borderStrong: 'rgba(148,163,184,0.22)',
+        text: '#f8fafc', textSoft: '#cbd5e1', textMute: '#8da0b8',
+        shadow: '0 28px 80px rgba(0,0,0,0.42)', shadowSoft: '0 16px 36px rgba(0,0,0,0.28)',
+        overlay: 'rgba(2, 8, 23, 0.74)', primary: '#7c3aed', primarySoft: 'rgba(124,58,237,0.18)',
+        secondary: '#2563eb', success: '#10b981', warning: '#f59e0b', danger: '#f87171',
+        inputBg: 'rgba(255,255,255,0.035)', inputBorder: 'rgba(148,163,184,0.16)',
+    } : {
         panel: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(250,251,255,0.96) 100%)',
-        panelSolid: '#ffffff',
-        panelSoft: '#f8fafc',
-        panelSofter: '#f1f5f9',
-        border: 'rgba(15,23,42,0.08)',
-        borderStrong: 'rgba(15,23,42,0.12)',
-        text: '#0f172a',
-        textSoft: '#475569',
-        textMute: '#94a3b8',
-        shadow: '0 24px 70px rgba(15,23,42,0.08)',
-        shadowSoft: '0 14px 30px rgba(15,23,42,0.06)',
-        overlay: 'rgba(15,23,42,0.36)',
-        primary: '#7c3aed',
-        primaryHover: '#6d28d9',
-        primarySoft: '#f3e8ff',
-        secondary: '#2563eb',
-        secondaryHover: '#1d4ed8',
-        success: '#059669',
-        warning: '#d97706',
-        danger: '#ef4444',
-        inputBg: '#f8fafc',
-        inputBorder: '#e5e7eb',
+        panelSolid: '#ffffff', panelSoft: '#f8fafc',
+        border: 'rgba(15,23,42,0.08)', borderStrong: 'rgba(15,23,42,0.12)',
+        text: '#0f172a', textSoft: '#475569', textMute: '#94a3b8',
+        shadow: '0 24px 70px rgba(15,23,42,0.08)', shadowSoft: '0 14px 30px rgba(15,23,42,0.06)',
+        overlay: 'rgba(15,23,42,0.36)', primary: '#7c3aed', primarySoft: '#f3e8ff',
+        secondary: '#2563eb', success: '#059669', warning: '#d97706', danger: '#ef4444',
+        inputBg: '#f8fafc', inputBorder: '#e5e7eb',
     };
 }
 
 function card(theme, extra = {}) {
-    return {
-        background: theme.panel,
-        border: `1px solid ${theme.border}`,
-        borderRadius: 24,
-        boxShadow: theme.shadowSoft,
-        backdropFilter: 'blur(16px)',
-        ...extra,
-    };
+    return { background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 24, boxShadow: theme.shadowSoft, backdropFilter: 'blur(16px)', ...extra };
 }
 
 function UIButton({ children, onClick, type = 'button', variant = 'primary', disabled = false, theme, style = {} }) {
-    const cfg = {
-        primary: {
-            bg: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
-            color: '#fff',
-            border: 'none',
-            shadow: `0 14px 32px ${theme.primary}30`,
-        },
-        ghost: {
-            bg: theme.panelSoft,
-            color: theme.textSoft,
-            border: `1px solid ${theme.border}`,
-            shadow: 'none',
-        },
-    }[variant];
+    const cfg = variant === 'ghost'
+        ? { bg: theme.panelSoft, color: theme.textSoft, border: `1px solid ${theme.border}`, shadow: 'none' }
+        : { bg: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, color: '#fff', border: 'none', shadow: `0 14px 32px ${theme.primary}30` };
 
-    return (
-        <button
-            type={type}
-            onClick={onClick}
-            disabled={disabled}
-            style={{
-                height: 46,
-                padding: '0 18px',
-                borderRadius: 16,
-                border: cfg.border,
-                background: disabled ? theme.textMute : cfg.bg,
-                color: cfg.color,
-                fontSize: 13,
-                fontWeight: 900,
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                whiteSpace: 'nowrap',
-                boxShadow: disabled ? 'none' : cfg.shadow,
-                transition: 'all 0.18s ease',
-                ...style,
-            }}
-        >
-            {children}
-        </button>
-    );
+    return <button type={type} onClick={onClick} disabled={disabled} style={{ height: 46, padding: '0 18px', borderRadius: 16, border: cfg.border, background: disabled ? theme.textMute : cfg.bg, color: cfg.color, fontSize: 13, fontWeight: 900, cursor: disabled ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap', boxShadow: disabled ? 'none' : cfg.shadow, ...style }}>{children}</button>;
 }
 
 function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Select option...', theme, darkMode = false, width = '100%', zIndex = 300 }) {
     const [open, setOpen] = useState(false);
     const wrapRef = useRef(null);
-
     const selected = options.find((opt) => String(opt.value) === String(value) && !opt.disabled);
 
     useEffect(() => {
-        const handler = (e) => {
-            if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
-        };
+        const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    const triggerBg = darkMode
-        ? 'linear-gradient(180deg, rgba(12,22,44,0.96) 0%, rgba(8,17,36,0.96) 100%)'
-        : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)';
-
-    const menuBg = darkMode
-        ? 'linear-gradient(180deg, rgba(5,17,38,0.99) 0%, rgba(3,12,28,0.99) 100%)'
-        : '#ffffff';
+    const triggerBg = darkMode ? 'linear-gradient(180deg, rgba(12,22,44,0.96) 0%, rgba(8,17,36,0.96) 100%)' : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)';
+    const menuBg = darkMode ? 'linear-gradient(180deg, rgba(5,17,38,0.99) 0%, rgba(3,12,28,0.99) 100%)' : '#ffffff';
 
     return (
         <div ref={wrapRef} style={{ position: 'relative', width, zIndex }}>
-            <button
-                type="button"
-                onClick={() => setOpen((v) => !v)}
-                style={{
-                    width: '100%',
-                    height: 52,
-                    padding: '0 16px',
-                    borderRadius: 18,
-                    border: `1px solid ${open ? theme.borderStrong : theme.inputBorder}`,
-                    background: triggerBg,
-                    color: selected ? theme.text : theme.textMute,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 12,
-                    cursor: 'pointer',
-                    boxShadow: open ? theme.shadowSoft : 'none',
-                    backdropFilter: 'blur(12px)',
-                    transition: 'all 0.18s ease',
-                }}
-            >
-                <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {selected ? selected.label : placeholder}
-                </span>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease' }}>
-                    <path d="M4 6L8 10L12 6" stroke={theme.textMute} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+            <button type="button" onClick={() => setOpen((v) => !v)} style={{ width: '100%', height: 52, padding: '0 16px', borderRadius: 18, border: `1px solid ${open ? theme.borderStrong : theme.inputBorder}`, background: triggerBg, color: selected ? theme.text : theme.textMute, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, cursor: 'pointer', boxShadow: open ? theme.shadowSoft : 'none' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected ? selected.label : placeholder}</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}><path d="M4 6L8 10L12 6" stroke={theme.textMute} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
-
             {open && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 10px)',
-                        left: 0,
-                        right: 0,
-                        zIndex: zIndex + 50,
-                        background: menuBg,
-                        border: `1px solid ${theme.borderStrong}`,
-                        borderRadius: 20,
-                        overflow: 'hidden',
-                        boxShadow: theme.shadow,
-                        backdropFilter: 'blur(16px)',
-                    }}
-                >
+                <div style={{ position: 'absolute', top: 'calc(100% + 10px)', left: 0, right: 0, zIndex: zIndex + 50, background: menuBg, border: `1px solid ${theme.borderStrong}`, borderRadius: 20, overflow: 'hidden', boxShadow: theme.shadow }}>
                     {options.map((opt, index) => {
                         const isSelected = String(opt.value) === String(value);
-                        return (
-                            <button
-                                key={String(opt.value) || `opt-${index}`}
-                                type="button"
-                                onClick={() => {
-                                    if (opt.disabled) return;
-                                    onChange(opt.value);
-                                    setOpen(false);
-                                }}
-                                style={{
-                                    width: '100%',
-                                    minHeight: 54,
-                                    padding: '0 16px',
-                                    border: 'none',
-                                    borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none',
-                                    background: isSelected ? '#2563eb' : 'transparent',
-                                    color: isSelected ? '#fff' : theme.textSoft,
-                                    opacity: opt.disabled ? 0.45 : 1,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    textAlign: 'left',
-                                    cursor: opt.disabled ? 'not-allowed' : 'pointer',
-                                    transition: 'all 0.15s ease',
-                                    fontSize: 13,
-                                    fontWeight: isSelected ? 800 : 600,
-                                }}
-                            >
-                                {opt.label}
-                            </button>
-                        );
+                        return <button key={String(opt.value) || `opt-${index}`} type="button" onClick={() => { if (opt.disabled) return; onChange(opt.value); setOpen(false); }} style={{ width: '100%', minHeight: 54, padding: '0 16px', border: 'none', borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none', background: isSelected ? '#2563eb' : 'transparent', color: isSelected ? '#fff' : theme.textSoft, opacity: opt.disabled ? 0.45 : 1, display: 'flex', alignItems: 'center', textAlign: 'left', cursor: opt.disabled ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: isSelected ? 800 : 600 }}>{opt.label}</button>;
                     })}
                 </div>
             )}
@@ -262,10 +107,7 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
     );
 }
 
-function FieldError({ msg, theme }) {
-    if (!msg) return null;
-    return <div style={{ fontSize: 11, color: theme.danger, marginTop: 7, fontWeight: 700 }}>{msg}</div>;
-}
+function FieldError({ msg, theme }) { return msg ? <div style={{ fontSize: 11, color: theme.danger, marginTop: 7, fontWeight: 700 }}>{msg}</div> : null; }
 
 function FileGlyph({ ext, theme }) {
     const map = {
@@ -289,92 +131,40 @@ function flattenFolders(folders, prefix = '') {
     });
     return result;
 }
+function formatSize(bytes) { if (bytes < 1024) return `${bytes} B`; if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`; return `${(bytes / 1048576).toFixed(1)} MB`; }
 
-function formatSize(bytes) {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1048576).toFixed(1)} MB`;
-}
-
-export default function UploadModal({ open, onClose, folders = [], currentFolderId = null, hasApi = false }) {
+export default function UploadModal({ open, onClose, folders = [], currentFolderId = null, hasApi = false ,onUploaded,}) {
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
-
     const [dragOver, setDragOver] = useState(false);
     const [preview, setPreview] = useState(null);
     const inputRef = useRef(null);
 
-    const form = useForm({
-        file: null,
-        folder_id: currentFolderId || '',
-        source_language: 'en',
-        target_languages: [],
-        visibility: 'all',
-        tags: '',
-    });
+    const form = useForm({ file: null, folder_id: currentFolderId || '', source_language: 'en', target_languages: [], visibility: 'all', tags: '' });
 
-    useEffect(() => {
-        if (open) form.setData('folder_id', currentFolderId || '');
-    }, [currentFolderId, open]);
-
+    useEffect(() => { if (open) form.setData('folder_id', currentFolderId || ''); }, [currentFolderId, open]);
     if (!open) return null;
 
-    const folderOptions = [
-        { value: '', label: 'Root (No folder)' },
-        ...flattenFolders(folders).map((f) => ({ value: String(f.id), label: f.name })),
-    ];
+    const folderOptions = [{ value: '', label: 'Root (No folder)' }, ...flattenFolders(folders).map((f) => ({ value: String(f.id), label: f.name }))];
+    const visibilityOptions = [{ value: 'private', label: 'Private', desc: 'Only you', icon: '🔒' }, { value: 'branch', label: 'My Branch', desc: 'Your branch', icon: '🏢' }, { value: 'all', label: 'All Branches', desc: 'Everyone', icon: '🌐' }];
 
-    const visibilityOptions = [
-        { value: 'private', label: 'Private', desc: 'Only you', icon: '🔒' },
-        { value: 'branch', label: 'My Branch', desc: 'Your branch', icon: '🏢' },
-        { value: 'all', label: 'All Branches', desc: 'Everyone', icon: '🌐' },
-    ];
-
-    const handleFile = (file) => {
-        if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        setPreview({ name: file.name, size: formatSize(file.size), ext });
-        form.setData('file', file);
-    };
-
-    const toggleTargetLang = (code) => {
-        const current = form.data.target_languages;
-        if (current.includes(code)) {
-            form.setData('target_languages', current.filter((l) => l !== code));
-        } else {
-            form.setData('target_languages', [...current, code]);
-        }
-    };
-
-    const resetAll = () => {
-        setPreview(null);
-        form.reset('file', 'tags', 'target_languages');
-        form.setData('folder_id', currentFolderId || '');
-        form.setData('source_language', 'en');
-        form.setData('visibility', 'all');
-        if (inputRef.current) inputRef.current.value = '';
-    };
-
-    const fireGlobalToast = (message, type = 'success') => {
-        window.dispatchEvent(new CustomEvent('global-toast', {
-            detail: { message, type }
-        }));
-    };
+    const handleFile = (file) => { if (!file) return; const ext = file.name.split('.').pop().toLowerCase(); setPreview({ name: file.name, size: formatSize(file.size), ext }); form.setData('file', file); };
+    const toggleTargetLang = (code) => { const current = form.data.target_languages; form.setData('target_languages', current.includes(code) ? current.filter((l) => l !== code) : [...current, code]); };
+    const resetAll = () => { setPreview(null); form.reset('file', 'tags', 'target_languages'); form.setData('folder_id', currentFolderId || ''); form.setData('source_language', 'en'); form.setData('visibility', 'all'); if (inputRef.current) inputRef.current.value = ''; };
+    const fireGlobalToast = (message, type = 'success') => window.dispatchEvent(new CustomEvent('global-toast', { detail: { message, type } }));
 
     const submit = (e) => {
         e.preventDefault();
-
         form.post('/documents/upload', {
             forceFormData: true,
             preserveScroll: true,
-            onSuccess: () => {
+            onSuccess: (page) => {
+                const newDocument = page?.props?.newDocument;
+                onUploaded?.(newDocument);
                 onClose();
                 resetAll();
-                fireGlobalToast('File uploaded successfully!', 'success');
             },
-            onError: () => {
-                fireGlobalToast('Upload failed. Please try again.', 'error');
-            },
+            onError: () => { fireGlobalToast('Upload failed. Please try again.', 'error'); },
         });
     };
 
@@ -382,327 +172,67 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
         <>
             <style>{`
                 @keyframes uploadSpin { to { transform: rotate(360deg); } }
-                @keyframes uploadPulse {
-                    0%, 100% { transform: scale(1); opacity: 0.88; }
-                    50% { transform: scale(1.04); opacity: 1; }
-                }
-                .dt-upload-scroll-hide {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-                .dt-upload-scroll-hide::-webkit-scrollbar {
-                    display: none;
-                    width: 0;
-                    height: 0;
-                }
+                @keyframes uploadPulse { 0%, 100% { transform: scale(1); opacity: 0.88; } 50% { transform: scale(1.04); opacity: 1; } }
+                .dt-upload-scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+                .dt-upload-scroll-hide::-webkit-scrollbar { display: none; width: 0; height: 0; }
             `}</style>
 
             <div style={{ position: 'fixed', inset: 0, zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
                 <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: theme.overlay, backdropFilter: 'blur(12px)' }} />
-
-                <div style={{ ...card(theme, { width: '100%', maxWidth: 760, maxHeight: '92vh', overflow: 'hidden', position: 'relative' }) }}>
-                    <div style={{ padding: '30px 24px 26px', background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 42%, #2563eb 100%)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ ...card(theme, { width: '100%', maxWidth: 760, height: 'min(92vh, 920px)', overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }) }}>
+                    <div style={{ padding: '30px 24px 26px', background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 42%, #2563eb 100%)', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
                         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 34%), radial-gradient(circle at bottom right, rgba(255,255,255,0.10), transparent 28%), linear-gradient(135deg, rgba(255,255,255,0.08), transparent 58%)', pointerEvents: 'none' }} />
                         <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start' }}>
                             <div>
-                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 10 }}>
-                                    Document Translation
-                                </div>
-                                <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.12 }}>
-                                    Premium upload workspace
-                                </div>
-                                <div style={{ marginTop: 10, fontSize: 13, color: 'rgba(255,255,255,0.82)', lineHeight: 1.6 }}>
-                                    Cleaner one-column layout, same route and same upload flow.
-                                </div>
+                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 10 }}>Document Translation</div>
+                                <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.12 }}>Upload workspace</div>
                             </div>
-
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                style={{
-                                    width: 50,
-                                    height: 50,
-                                    borderRadius: 18,
-                                    border: '1px solid rgba(255,255,255,0.16)',
-                                    background: 'rgba(255,255,255,0.12)',
-                                    color: '#fff',
-                                    cursor: 'pointer',
-                                    fontSize: 28,
-                                    lineHeight: 1,
-                                }}
-                            >
-                                ×
-                            </button>
+                            <button type="button" onClick={onClose} style={{ width: 50, height: 50, borderRadius: 18, border: '1px solid rgba(255,255,255,0.16)', background: 'rgba(255,255,255,0.12)', color: '#fff', cursor: 'pointer', fontSize: 28, lineHeight: 1, flexShrink: 0 }}>×</button>
                         </div>
                     </div>
 
-                    <form onSubmit={submit}>
-                        <div className="dt-upload-scroll-hide" style={{ overflowY: 'auto', maxHeight: 'calc(92vh - 170px)', padding: 24 }}>
-                            <div style={{ display: 'grid', gap: 18 }}>
+                    <form onSubmit={submit} style={{ minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div className="dt-upload-scroll-hide" style={{ minHeight: 0, flex: 1, overflowY: 'auto', padding: 24 }}>
+                            <div style={{ display: 'grid', gap: 18, paddingBottom: 8 }}>
                                 <div style={{ ...card(theme, { padding: 20, borderRadius: 22 }) }}>
-                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
-                                        File intake
+                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>File intake</div>
+                                    <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }} onClick={() => inputRef.current?.click()} style={{ border: `2px dashed ${dragOver ? theme.primary : form.errors.file ? theme.danger : theme.inputBorder}`, borderRadius: 24, padding: '28px 20px', background: dragOver ? theme.primarySoft : theme.inputBg, cursor: 'pointer' }}>
+                                        <input ref={inputRef} type="file" accept={ACCEPTED} style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files[0])} />
+                                        {preview ? <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}><FileGlyph ext={preview.ext} theme={theme} /><div style={{ minWidth: 0, flex: 1 }}><div style={{ fontSize: 14, fontWeight: 900, color: theme.text, wordBreak: 'break-word' }}>{preview.name}</div><div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>{preview.size} · {preview.ext.toUpperCase()}</div><div style={{ marginTop: 8, fontSize: 11, color: theme.textMute }}>Click to replace or drag another file here.</div></div><button type="button" onClick={(e) => { e.stopPropagation(); setPreview(null); form.setData('file', null); if (inputRef.current) inputRef.current.value = ''; }} style={{ width: 42, height: 42, borderRadius: 14, border: `1px solid ${theme.border}`, background: theme.panelSoft, color: theme.danger, cursor: 'pointer', fontSize: 20, flexShrink: 0 }}>×</button></div> : <div style={{ textAlign: 'center' }}><div style={{ width: 82, height: 82, margin: '0 auto 14px', borderRadius: 26, background: theme.primarySoft, color: theme.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'uploadPulse 2.1s ease-in-out infinite' }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M17 8l-5-5-5 5" /><path d="M12 3v12" /></svg></div><div style={{ fontSize: 15, fontWeight: 900, color: theme.text }}>Drop file here or browse</div><div style={{ marginTop: 8, fontSize: 12.5, color: theme.textMute, lineHeight: 1.6 }}>PDF, DOC, DOCX, TXT, PNG, JPG, JPEG</div><div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 999, background: theme.panelSoft, color: theme.textSoft, fontSize: 11, fontWeight: 900 }}>Max 20MB</div></div>}
                                     </div>
-
-                                    <div
-                                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                                        onDragLeave={() => setDragOver(false)}
-                                        onDrop={(e) => {
-                                            e.preventDefault();
-                                            setDragOver(false);
-                                            handleFile(e.dataTransfer.files[0]);
-                                        }}
-                                        onClick={() => inputRef.current?.click()}
-                                        style={{
-                                            border: `2px dashed ${dragOver ? theme.primary : form.errors.file ? theme.danger : theme.inputBorder}`,
-                                            borderRadius: 24,
-                                            padding: '28px 20px',
-                                            background: dragOver ? theme.primarySoft : theme.inputBg,
-                                            cursor: 'pointer',
-                                            transition: 'all 0.18s ease',
-                                        }}
-                                    >
-                                        <input
-                                            ref={inputRef}
-                                            type="file"
-                                            accept={ACCEPTED}
-                                            style={{ display: 'none' }}
-                                            onChange={(e) => handleFile(e.target.files[0])}
-                                        />
-
-                                        {preview ? (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                                                <FileGlyph ext={preview.ext} theme={theme} />
-                                                <div style={{ minWidth: 0, flex: 1 }}>
-                                                    <div style={{ fontSize: 14, fontWeight: 900, color: theme.text, wordBreak: 'break-word' }}>{preview.name}</div>
-                                                    <div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>{preview.size} · {preview.ext.toUpperCase()}</div>
-                                                    <div style={{ marginTop: 8, fontSize: 11, color: theme.textMute }}>Click to replace or drag another file here.</div>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setPreview(null);
-                                                        form.setData('file', null);
-                                                        if (inputRef.current) inputRef.current.value = '';
-                                                    }}
-                                                    style={{
-                                                        width: 42,
-                                                        height: 42,
-                                                        borderRadius: 14,
-                                                        border: `1px solid ${theme.border}`,
-                                                        background: theme.panelSoft,
-                                                        color: theme.danger,
-                                                        cursor: 'pointer',
-                                                        fontSize: 20,
-                                                        flexShrink: 0,
-                                                    }}
-                                                >
-                                                    ×
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div style={{ textAlign: 'center' }}>
-                                                <div style={{ width: 82, height: 82, margin: '0 auto 14px', borderRadius: 26, background: theme.primarySoft, color: theme.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'uploadPulse 2.1s ease-in-out infinite' }}>
-                                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                                        <path d="M17 8l-5-5-5 5" />
-                                                        <path d="M12 3v12" />
-                                                    </svg>
-                                                </div>
-                                                <div style={{ fontSize: 15, fontWeight: 900, color: theme.text }}>Drop file here or browse</div>
-                                                <div style={{ marginTop: 8, fontSize: 12.5, color: theme.textMute, lineHeight: 1.6 }}>PDF, DOC, DOCX, TXT, PNG, JPG, JPEG</div>
-                                                <div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 999, background: theme.panelSoft, color: theme.textSoft, fontSize: 11, fontWeight: 900 }}>Max 20MB</div>
-                                            </div>
-                                        )}
-                                    </div>
-
                                     <FieldError msg={form.errors.file} theme={theme} />
                                 </div>
 
                                 <div style={{ ...card(theme, { padding: 20, borderRadius: 22, position: 'relative', zIndex: 120, overflow: 'visible' }) }}>
-                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>
-                                        Metadata
-                                    </div>
-
+                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>Metadata</div>
                                     <div style={{ display: 'grid', gap: 16 }}>
                                         <div style={{ position: 'relative', zIndex: 150 }}>
                                             <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 8 }}>Save to folder</div>
-                                            <PremiumSelect
-                                                options={folderOptions}
-                                                value={form.data.folder_id}
-                                                onChange={(value) => form.setData('folder_id', value)}
-                                                placeholder="Root (No folder)"
-                                                theme={theme}
-                                                darkMode={darkMode}
-                                                width="100%"
-                                                zIndex={400}
-                                            />
+                                            <PremiumSelect options={folderOptions} value={form.data.folder_id} onChange={(value) => form.setData('folder_id', value)} placeholder="Root (No folder)" theme={theme} darkMode={darkMode} width="100%" zIndex={400} />
                                         </div>
-
-                                        <div>
-                                            <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 8 }}>Tags</div>
-                                            <input
-                                                value={form.data.tags}
-                                                onChange={(e) => form.setData('tags', e.target.value)}
-                                                placeholder="hr, report, 2026"
-                                                style={{
-                                                    width: '100%',
-                                                    height: 52,
-                                                    borderRadius: 18,
-                                                    border: `1px solid ${form.errors.tags ? theme.danger : theme.inputBorder}`,
-                                                    background: theme.inputBg,
-                                                    color: theme.text,
-                                                    padding: '0 16px',
-                                                    outline: 'none',
-                                                    boxSizing: 'border-box',
-                                                    fontSize: 13,
-                                                    fontFamily: 'inherit',
-                                                }}
-                                            />
-                                            <FieldError msg={form.errors.tags} theme={theme} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div style={{ ...card(theme, { padding: 20, borderRadius: 22, position: 'relative', zIndex: 40 }) }}>
-                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>
-                                        Language direction
-                                    </div>
-
-                                    <div>
-                                        <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 10 }}>Source language</div>
-                                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                                            {LANGUAGES.map((lang) => {
-                                                const active = form.data.source_language === lang.code;
-                                                return (
-                                                    <button
-                                                        key={lang.code}
-                                                        type="button"
-                                                        onClick={() => form.setData('source_language', lang.code)}
-                                                        style={{
-                                                            height: 42,
-                                                            padding: '0 14px',
-                                                            borderRadius: 999,
-                                                            border: `1px solid ${active ? theme.primary : theme.inputBorder}`,
-                                                            background: active ? theme.primarySoft : theme.inputBg,
-                                                            color: active ? theme.primary : theme.textSoft,
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: 8,
-                                                            cursor: 'pointer',
-                                                            fontSize: 12,
-                                                            fontWeight: 800,
-                                                        }}
-                                                    >
-                                                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>
-                                                        {lang.label}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        <FieldError msg={form.errors.source_language} theme={theme} />
-                                    </div>
-
-                                    <div style={{ marginTop: 18 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
-                                            <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>Translate to</div>
-                                            {!hasApi && (
-                                                <div style={{ padding: '5px 10px', borderRadius: 999, background: darkMode ? 'rgba(245,158,11,0.14)' : '#fef3c7', color: theme.warning, fontSize: 10.5, fontWeight: 900 }}>
-                                                    API not configured
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                                            {LANGUAGES.filter((lang) => lang.code !== form.data.source_language).map((lang) => {
-                                                const selected = form.data.target_languages.includes(lang.code);
-                                                return (
-                                                    <button
-                                                        key={lang.code}
-                                                        type="button"
-                                                        onClick={() => toggleTargetLang(lang.code)}
-                                                        style={{
-                                                            height: 42,
-                                                            padding: '0 14px',
-                                                            borderRadius: 999,
-                                                            border: `1px solid ${selected ? theme.success : theme.inputBorder}`,
-                                                            background: selected ? (darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5') : theme.inputBg,
-                                                            color: selected ? theme.success : theme.textSoft,
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: 8,
-                                                            cursor: 'pointer',
-                                                            fontSize: 12,
-                                                            fontWeight: 800,
-                                                        }}
-                                                    >
-                                                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>
-                                                        {lang.label}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                        <div><div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 8 }}>Tags</div><input value={form.data.tags} onChange={(e) => form.setData('tags', e.target.value)} placeholder="hr, report, 2026" style={{ width: '100%', height: 52, borderRadius: 18, border: `1px solid ${form.errors.tags ? theme.danger : theme.inputBorder}`, background: theme.inputBg, color: theme.text, padding: '0 16px', outline: 'none', boxSizing: 'border-box', fontSize: 13, fontFamily: 'inherit' }} /><FieldError msg={form.errors.tags} theme={theme} /></div>
                                     </div>
                                 </div>
 
                                 <div style={{ ...card(theme, { padding: 20, borderRadius: 22 }) }}>
-                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>
-                                        Visibility
-                                    </div>
+                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>Language direction</div>
+                                    <div><div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 10 }}>Source language</div><div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>{LANGUAGES.map((lang) => { const active = form.data.source_language === lang.code; return <button key={lang.code} type="button" onClick={() => form.setData('source_language', lang.code)} style={{ height: 42, padding: '0 14px', borderRadius: 999, border: `1px solid ${active ? theme.primary : theme.inputBorder}`, background: active ? theme.primarySoft : theme.inputBg, color: active ? theme.primary : theme.textSoft, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800 }}><span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>{lang.label}</button>; })}</div><FieldError msg={form.errors.source_language} theme={theme} /></div>
+                                    <div style={{ marginTop: 18 }}><div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}><div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>Translate to</div>{!hasApi && <div style={{ padding: '5px 10px', borderRadius: 999, background: darkMode ? 'rgba(245,158,11,0.14)' : '#fef3c7', color: theme.warning, fontSize: 10.5, fontWeight: 900 }}>API not configured</div>}</div><div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>{LANGUAGES.filter((lang) => lang.code !== form.data.source_language).map((lang) => { const selected = form.data.target_languages.includes(lang.code); return <button key={lang.code} type="button" onClick={() => toggleTargetLang(lang.code)} style={{ height: 42, padding: '0 14px', borderRadius: 999, border: `1px solid ${selected ? theme.success : theme.inputBorder}`, background: selected ? (darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5') : theme.inputBg, color: selected ? theme.success : theme.textSoft, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800 }}><span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>{lang.label}</button>; })}</div></div>
+                                </div>
 
-                                    <div style={{ display: 'grid', gap: 10 }}>
-                                        {visibilityOptions.map((item) => {
-                                            const active = form.data.visibility === item.value;
-                                            return (
-                                                <button
-                                                    key={item.value}
-                                                    type="button"
-                                                    onClick={() => form.setData('visibility', item.value)}
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: '15px 16px',
-                                                        borderRadius: 18,
-                                                        border: `1px solid ${active ? theme.primary : theme.border}`,
-                                                        background: active ? theme.primarySoft : theme.panelSoft,
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: 14,
-                                                        textAlign: 'left',
-                                                        cursor: 'pointer',
-                                                    }}
-                                                >
-                                                    <div style={{ width: 44, height: 44, borderRadius: 14, background: active ? `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` : theme.inputBg, color: active ? '#fff' : theme.textSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-                                                        {item.icon}
-                                                    </div>
-                                                    <div style={{ minWidth: 0 }}>
-                                                        <div style={{ fontSize: 13, fontWeight: 900, color: active ? theme.primary : theme.text }}>{item.label}</div>
-                                                        <div style={{ marginTop: 4, fontSize: 11.5, color: theme.textMute }}>{item.desc}</div>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
+                                <div style={{ ...card(theme, { padding: 20, borderRadius: 22 }) }}>
+                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>Visibility</div>
+                                    <div style={{ display: 'grid', gap: 10 }}>{visibilityOptions.map((item) => { const active = form.data.visibility === item.value; return <button key={item.value} type="button" onClick={() => form.setData('visibility', item.value)} style={{ width: '100%', padding: '15px 16px', borderRadius: 18, border: `1px solid ${active ? theme.primary : theme.border}`, background: active ? theme.primarySoft : theme.panelSoft, display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left', cursor: 'pointer' }}><div style={{ width: 44, height: 44, borderRadius: 14, background: active ? `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` : theme.inputBg, color: active ? '#fff' : theme.textSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{item.icon}</div><div style={{ minWidth: 0 }}><div style={{ fontSize: 13, fontWeight: 900, color: active ? theme.primary : theme.text }}>{item.label}</div><div style={{ marginTop: 4, fontSize: 11.5, color: theme.textMute }}>{item.desc}</div></div></button>; })}</div>
                                     <FieldError msg={form.errors.visibility} theme={theme} />
-
-                                    {!hasApi && (
-                                        <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 16, border: `1px solid ${theme.border}`, background: darkMode ? 'rgba(245,158,11,0.12)' : '#fef3c7', color: theme.warning, fontSize: 12, fontWeight: 700, lineHeight: 1.6 }}>
-                                            Translation API is not configured. The document can still be uploaded and stored using the current flow.
-                                        </div>
-                                    )}
+                                    {!hasApi && <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 16, border: `1px solid ${theme.border}`, background: darkMode ? 'rgba(245,158,11,0.12)' : '#fef3c7', color: theme.warning, fontSize: 12, fontWeight: 700, lineHeight: 1.6 }}>Translation API is not configured. The document can still be uploaded and stored using the current flow.</div>}
                                 </div>
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', padding: '0 24px 24px', borderTop: `1px solid ${theme.border}`, background: theme.panelSolid }}>
-                            <UIButton type="button" onClick={onClose} variant="ghost" theme={theme} style={{ marginTop: 18 }}>
-                                Cancel
-                            </UIButton>
-                            <UIButton type="submit" disabled={form.processing || !form.data.file} theme={theme} style={{ marginTop: 18 }}>
-                                {form.processing && (
-                                    <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'uploadSpin 0.7s linear infinite' }} />
-                                )}
+                        <div style={{ flexShrink: 0, display: 'flex', gap: 10, justifyContent: 'flex-end', padding: '16px 24px 20px', borderTop: `1px solid ${theme.border}`, background: theme.panelSolid }}>
+                            <UIButton type="button" onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
+                            <UIButton type="submit" disabled={form.processing || !form.data.file} theme={theme}>
+                                {form.processing && <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'uploadSpin 0.7s linear infinite' }} />}
                                 {form.processing ? 'Uploading...' : 'Upload document'}
                             </UIButton>
                         </div>
