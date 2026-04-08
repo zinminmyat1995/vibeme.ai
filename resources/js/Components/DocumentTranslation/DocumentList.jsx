@@ -857,7 +857,7 @@ function DocumentCard({ doc, onDownload, onDelete, darkMode = false }) {
     );
 }
 
-export default function DocumentList({ documents = [], hasApi = false, folderName = 'All Files', onShowToast }) {
+export default function DocumentList({ documents = [], hasApi = false, folderName = 'All Files', onShowToast,onDeleteSuccess, }) {
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
@@ -898,10 +898,13 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
     const handleDelete = () => {
         if (!deleteTarget?.id) return;
 
+        const deletedId = deleteTarget.id;
+
         setDeleting(true);
-        router.delete(`/documents/${deleteTarget.id}`, {
+        router.delete(`/documents/${deletedId}`, {
             preserveScroll: true,
             onSuccess: () => {
+                onDeleteSuccess?.(deletedId);
                 setDeleteTarget(null);
             },
             onError: () => {

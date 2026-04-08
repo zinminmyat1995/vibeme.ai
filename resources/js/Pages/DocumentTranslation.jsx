@@ -310,6 +310,10 @@ export default function DocumentTranslation({
     const currentDocs = selectedFolder ? (folderDocs || []) : documentsState;
     const currentFolderName = selectedFolder ? `${selectedFolder.icon} ${selectedFolder.name}` : 'All Files';
 
+    useEffect(() => {
+        setDocumentsState(documents || []);
+    }, [documents]);
+
     const handleCreateFolder = (parentFolder) => {
         setFolderModal({ open: true, editFolder: null, parentFolder });
     };
@@ -415,11 +419,33 @@ export default function DocumentTranslation({
             return;
         }
 
+        // All Files (root)
         if (newDocument) {
-            setDocumentsState((prev) => [newDocument, ...prev]);
+            setDocumentsState((prev) => [newDocument, ...(prev || [])]);
+            return;
         }
+
+        router.reload({
+            only: ['documents', 'stats'],
+            preserveScroll: true,
+            onSuccess: (page) => {
+                setDocumentsState(page.props.documents || []);
+            },
+            onError: () => {
+                showToast('Unable to refresh document list.', 'error');
+            },
+        });
     };
 
+    const handleDeleteSuccess = (deletedId) => {
+        if (!deletedId) return;
+
+        if (selectedFolder) {
+            setFolderDocs((prev) => (prev || []).filter((doc) => String(doc.id) !== String(deletedId)));
+        }
+
+        setDocumentsState((prev) => (prev || []).filter((doc) => String(doc.id) !== String(deletedId)));
+    };
 
     return (
         <AppLayout title="Document Translation">
@@ -496,6 +522,7 @@ export default function DocumentTranslation({
                                     hasApi={hasApi}
                                     folderName={currentFolderName}
                                     onShowToast={showToast}
+                                    onDeleteSuccess={handleDeleteSuccess}
                                 />
                             )}
                         </div>
