@@ -1,6 +1,6 @@
 // resources/js/Pages/SmartMail.jsx
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { usePage, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import MailSetup from '@/Components/SmartMail/MailSetup';
@@ -9,64 +9,302 @@ import MailList from '@/Components/SmartMail/MailList';
 import MailView from '@/Components/SmartMail/MailView';
 import ComposeModal from '@/Components/SmartMail/ComposeModal';
 
-function Toast({ message, type, onClose }) {
+// ── Theme System (identical to UserRoles) ─────────────────────
+function useReactiveTheme() {
+    const getDark = () => {
+        if (typeof window === 'undefined') return false;
+        return document.documentElement.getAttribute('data-theme') === 'dark'
+            || localStorage.getItem('vibeme-theme') === 'dark';
+    };
+    const [darkMode, setDarkMode] = useState(getDark);
+    useEffect(() => {
+        const sync = () => setDarkMode(getDark());
+        window.addEventListener('vibeme-theme-change', sync);
+        window.addEventListener('storage', sync);
+        return () => {
+            window.removeEventListener('vibeme-theme-change', sync);
+            window.removeEventListener('storage', sync);
+        };
+    }, []);
+    return darkMode;
+}
+
+function getTheme(darkMode) {
+    if (darkMode) {
+        return {
+            pageBg: 'transparent',
+            panel: 'linear-gradient(180deg, rgba(10,18,36,0.96) 0%, rgba(9,16,32,0.92) 100%)',
+            panelSolid: '#0b1324',
+            panelSoft: 'rgba(255,255,255,0.035)',
+            panelSofter: 'rgba(255,255,255,0.055)',
+            border: 'rgba(148,163,184,0.12)',
+            borderStrong: 'rgba(148,163,184,0.2)',
+            text: '#f8fafc',
+            textSoft: '#cbd5e1',
+            textMute: '#8da0b8',
+            shadow: '0 28px 80px rgba(0,0,0,0.42)',
+            shadowSoft: '0 16px 36px rgba(0,0,0,0.28)',
+            overlay: 'rgba(2,8,23,0.72)',
+            primary: '#7c3aed',
+            primaryHover: '#6d28d9',
+            primarySoft: 'rgba(124,58,237,0.16)',
+            secondary: '#2563eb',
+            secondaryHover: '#1d4ed8',
+            secondarySoft: 'rgba(37,99,235,0.14)',
+            success: '#10b981',
+            successSoft: 'rgba(16,185,129,0.16)',
+            warning: '#f59e0b',
+            warningSoft: 'rgba(245,158,11,0.16)',
+            danger: '#f87171',
+            dangerHover: '#ef4444',
+            dangerSoft: 'rgba(248,113,113,0.14)',
+            inputBg: 'rgba(255,255,255,0.04)',
+            inputBorder: 'rgba(148,163,184,0.16)',
+            glass: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+            rowHover: 'rgba(255,255,255,0.03)',
+            tableHead: 'rgba(255,255,255,0.03)',
+        };
+    }
+    return {
+        pageBg: 'transparent',
+        panel: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(250,251,255,0.96) 100%)',
+        panelSolid: '#ffffff',
+        panelSoft: '#f8fafc',
+        panelSofter: '#f1f5f9',
+        border: 'rgba(15,23,42,0.08)',
+        borderStrong: 'rgba(15,23,42,0.14)',
+        text: '#0f172a',
+        textSoft: '#475569',
+        textMute: '#94a3b8',
+        shadow: '0 24px 70px rgba(15,23,42,0.10)',
+        shadowSoft: '0 8px 24px rgba(15,23,42,0.07)',
+        overlay: 'rgba(15,23,42,0.36)',
+        primary: '#7c3aed',
+        primaryHover: '#6d28d9',
+        primarySoft: '#f3e8ff',
+        secondary: '#2563eb',
+        secondaryHover: '#1d4ed8',
+        secondarySoft: '#eff6ff',
+        success: '#059669',
+        successSoft: '#d1fae5',
+        warning: '#d97706',
+        warningSoft: '#fef3c7',
+        danger: '#ef4444',
+        dangerHover: '#dc2626',
+        dangerSoft: '#fee2e2',
+        inputBg: '#f8fafc',
+        inputBorder: '#e2e8f0',
+        glass: 'linear-gradient(135deg, rgba(124,58,237,0.03) 0%, rgba(37,99,235,0.02) 100%)',
+        rowHover: '#fafbff',
+        tableHead: '#f8fafc',
+    };
+}
+
+// ── Shared UIButton ───────────────────────────────────────────
+function UIButton({ children, onClick, type = 'button', variant = 'primary', disabled = false, theme, style = {} }) {
+    const cfg = {
+        primary: {
+            bg: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
+            color: '#fff',
+            border: 'none',
+            hoverBg: `linear-gradient(135deg, ${theme.primaryHover} 0%, ${theme.secondaryHover} 100%)`,
+            shadow: `0 8px 24px ${theme.primary}30`,
+        },
+        ghost: {
+            bg: theme.panelSoft,
+            color: theme.textSoft,
+            border: `1px solid ${theme.border}`,
+            hoverBg: theme.panelSofter,
+            shadow: 'none',
+        },
+        danger: {
+            bg: theme.danger,
+            color: '#fff',
+            border: 'none',
+            hoverBg: theme.dangerHover,
+            shadow: `0 8px 24px ${theme.danger}30`,
+        },
+    }[variant] || {};
+
+    return (
+        <button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                height: 40,
+                padding: '0 16px',
+                borderRadius: 14,
+                border: cfg.border,
+                background: disabled ? theme.textMute : cfg.bg,
+                color: cfg.color,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 7,
+                whiteSpace: 'nowrap',
+                boxShadow: disabled ? 'none' : cfg.shadow,
+                transition: 'all 0.18s ease',
+                ...style,
+            }}
+            onMouseEnter={e => { if (!disabled) { e.currentTarget.style.background = cfg.hoverBg; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+            onMouseLeave={e => { if (!disabled) { e.currentTarget.style.background = cfg.bg; e.currentTarget.style.transform = 'translateY(0)'; } }}
+        >
+            {children}
+        </button>
+    );
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function Toast({ message, type, onClose, theme }) {
     useEffect(() => {
         if (!message) return;
         const t = setTimeout(onClose, 4000);
         return () => clearTimeout(t);
     }, [message]);
     if (!message) return null;
-    const s = {
-        success: { bg: '#f0fdf4', border: '#86efac', color: '#166534', icon: '✅' },
-        error:   { bg: '#fef2f2', border: '#fca5a5', color: '#991b1b', icon: '❌' },
-        warning: { bg: '#fef3c7', border: '#fcd34d', color: '#92400e', icon: '⚠️' },
-        info:    { bg: '#eff6ff', border: '#93c5fd', color: '#1e40af', icon: 'ℹ️' },
+
+    const cfg = {
+        success: { bg: theme.successSoft, border: theme.success, color: theme.success, icon: '✓' },
+        error:   { bg: theme.dangerSoft,  border: theme.danger,  color: theme.danger,  icon: '✕' },
+        warning: { bg: theme.warningSoft, border: theme.warning, color: theme.warning, icon: '!' },
+        info:    { bg: theme.primarySoft, border: theme.primary, color: theme.primary, icon: 'i' },
     };
-    const c = s[type] || s.info;
+    const c = cfg[type] || cfg.info;
+
     return (
-        <div style={{ position:'fixed', top:24, right:24, zIndex:9999, display:'flex', alignItems:'center', gap:10, padding:'12px 18px', background:c.bg, border:`1px solid ${c.border}`, borderRadius:12, boxShadow:'0 4px 24px rgba(0,0,0,0.12)', minWidth:300, animation:'slideIn 0.2s ease' }}>
-            <span style={{ fontSize:18 }}>{c.icon}</span>
-            <span style={{ fontSize:13, fontWeight:600, color:c.color, flex:1 }}>{message}</span>
-            <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:c.color, fontSize:18 }}>×</button>
+        <div style={{
+            position: 'fixed', top: 24, right: 24, zIndex: 9999,
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '12px 18px',
+            background: theme.panelSolid,
+            border: `1px solid ${c.border}`,
+            borderRadius: 16,
+            boxShadow: theme.shadow,
+            minWidth: 300,
+            animation: 'slideIn 0.22s ease',
+        }}>
+            <span style={{
+                width: 28, height: 28, borderRadius: 10,
+                background: c.bg, color: c.color,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, fontWeight: 900, flexShrink: 0,
+            }}>{c.icon}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text, flex: 1 }}>{message}</span>
+            <button onClick={onClose} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: theme.textMute, fontSize: 16, lineHeight: 1,
+            }}>×</button>
         </div>
     );
 }
 
-function NewMailNotif({ mail, onClose, onView }) {
+// ── New Mail Notification ─────────────────────────────────────
+function NewMailNotif({ mail, onClose, onView, theme }) {
     useEffect(() => { const t = setTimeout(onClose, 6000); return () => clearTimeout(t); }, []);
     if (!mail) return null;
+
+    const initial = (mail.from_name || mail.from_address || '?').charAt(0).toUpperCase();
+
     return (
-        <div style={{ position:'fixed', bottom:24, right:24, zIndex:9998, background:'#fff', border:'1px solid #e5e7eb', borderRadius:16, boxShadow:'0 8px 32px rgba(0,0,0,0.15)', padding:'14px 16px', width:300, animation:'slideUp 0.3s ease' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                <div style={{ width:36, height:36, borderRadius:'50%', background:'#7c3aed', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, flexShrink:0 }}>
-                    {(mail.from_name || mail.from_address || '?').charAt(0).toUpperCase()}
-                </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:'#7c3aed', marginBottom:1 }}>📬 New Mail</div>
-                    <div style={{ fontSize:12, fontWeight:700, color:'#111827', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+        <div style={{
+            position: 'fixed', bottom: 28, right: 28, zIndex: 9998,
+            background: theme.panelSolid,
+            border: `1px solid ${theme.borderStrong}`,
+            borderRadius: 20,
+            boxShadow: theme.shadow,
+            padding: '16px 18px',
+            width: 310,
+            animation: 'slideUp 0.3s ease',
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={{
+                    width: 38, height: 38, borderRadius: '50%',
+                    background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                    color: '#fff', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0,
+                }}>{initial}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: theme.primary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>New Mail</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: theme.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {mail.from_name || mail.from_address}
                     </div>
                 </div>
-                <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af', fontSize:18 }}>×</button>
+                <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.textMute, fontSize: 16 }}>×</button>
             </div>
-            <div style={{ fontSize:12, fontWeight:600, color:'#374151', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft, marginBottom: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {typeof mail.subject === 'string' ? mail.subject : '(No Subject)'}
             </div>
-            <div style={{ display:'flex', gap:8, marginTop:10 }}>
-                <button onClick={onClose} style={{ flex:1, padding:'6px', borderRadius:8, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#6b7280', fontSize:11, fontWeight:600, cursor:'pointer' }}>Dismiss</button>
-                <button onClick={() => { onView(); onClose(); }} style={{ flex:1, padding:'6px', borderRadius:8, border:'none', background:'#7c3aed', color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer' }}>View Mail</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={onClose} style={{
+                    flex: 1, padding: '8px', borderRadius: 10,
+                    border: `1px solid ${theme.border}`,
+                    background: theme.panelSoft, color: theme.textSoft,
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                }}>Dismiss</button>
+                <button onClick={() => { onView(); onClose(); }} style={{
+                    flex: 1, padding: '8px', borderRadius: 10, border: 'none',
+                    background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                    color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                }}>View Mail</button>
             </div>
         </div>
     );
 }
 
+// ── Settings Modal ────────────────────────────────────────────
+function SettingsModal({ open, onClose, mailSetting, theme, onShowToast }) {
+    if (!open) return null;
+    return (
+        <div style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            background: theme.overlay,
+            backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        }}>
+            <div onClick={onClose} style={{ position: 'absolute', inset: 0 }} />
+            <div style={{
+                position: 'relative',
+                background: theme.panelSolid,
+                border: `1px solid ${theme.borderStrong}`,
+                borderRadius: 24,
+                width: '100%', maxWidth: 540,
+                maxHeight: '90vh', overflowY: 'auto',
+                boxShadow: theme.shadow,
+            }}>
+                <button onClick={onClose} style={{
+                    position: 'absolute', top: 16, right: 16, zIndex: 10,
+                    background: theme.panelSoft,
+                    border: `1px solid ${theme.border}`,
+                    width: 34, height: 34, borderRadius: 10,
+                    cursor: 'pointer', fontSize: 16,
+                    color: theme.textMute,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>×</button>
+                <MailSetup
+                    mailSetting={mailSetting}
+                    onSuccess={() => {
+                        onClose();
+                        router.reload({ only: ['mailSetting'] });
+                    }}
+                />
+            </div>
+        </div>
+    );
+}
+
+// ── Main Component ────────────────────────────────────────────
 export default function SmartMail({
     mailSetting = null, inbox = [], sent = [], unreadCount = 0,
-    templates = [], systemUsers = [], needsSetup = false, hasApi = false,
+    templates = [], systemUsers = [], leaveTypes = [], needsSetup = false, hasApi = false,
 }) {
-    const { flash } = usePage().props;
+    const darkMode = useReactiveTheme();
+    const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
-    const [toast, setToast]               = useState(flash?.success ? { msg:flash.success, type:'success' } : null);
+    const [toast, setToast]               = useState(null);
     const [activeTab, setActiveTab]       = useState('inbox');
     const [selectedMail, setSelectedMail] = useState(null);
     const [syncing, setSyncing]           = useState(false);
@@ -76,26 +314,17 @@ export default function SmartMail({
     const [forwardMail, setForwardMail]   = useState(null);
     const [showSettings, setShowSettings] = useState(false);
 
-    // Sync state
-    const [syncPage, setSyncPage]       = useState(1);
-    const [hasMore, setHasMore]         = useState(true);
-    const [inboxMails, setInboxMails]   = useState(inbox);
-    const [sentMails, setSentMails]     = useState(sent);
-    const [totalMails, setTotalMails]   = useState(0);
+    const [syncPage, setSyncPage]     = useState(1);
+    const [hasMore, setHasMore]       = useState(true);
+    const [inboxMails, setInboxMails] = useState(inbox);
+    const [sentMails, setSentMails]   = useState(sent);
+    const [totalMails, setTotalMails] = useState(0);
+    const [unreadMails, setUnreadMails] = useState(inbox.filter(m => !m.is_read).length);
 
-    // unreadCount ကို local state ထဲထည့်
-    const [unreadMails, setUnreadMails] = useState(
-        inbox.filter(m => !m.is_read).length
-    );
-
+    // ref guard မလိုတော့ဘူး — flash useEffect ဖြုတ်ပစ်ပြီ
+    // toast က SettingsModal onSuccess callback ကနေပဲ ပြမယ်
     const showToast = (msg, type = 'success') => setToast({ msg, type });
 
-    useEffect(() => {
-        if (flash?.success) setToast({ msg:flash.success, type:'success' });
-        if (flash?.error)   setToast({ msg:flash.error,   type:'error'   });
-    }, [flash]);
-
-    // Realtime
     useEffect(() => {
         if (needsSetup || !window.Echo || !window.userId) return;
         const channel = window.Echo.private(`user.${window.userId}`);
@@ -109,8 +338,6 @@ export default function SmartMail({
         return () => window.Echo.leave(`user.${window.userId}`);
     }, [needsSetup]);
 
-
-    // sync response လာရင် merge လုပ်
     const handleSync = async (page = 1) => {
         setSyncing(true);
         try {
@@ -133,14 +360,9 @@ export default function SmartMail({
                     const merged = [...newMails, ...updated].sort(
                         (a, b) => new Date(b.mail_date) - new Date(a.mail_date)
                     );
-
-                    // ✅ merged ထဲမှာ တွက်တာ — prev scope မှာမဟုတ်
-                    const newUnread = merged.filter(m => !m.is_read).length;
-                    setUnreadMails(newUnread);
-
+                    setUnreadMails(merged.filter(m => !m.is_read).length);
                     return merged;
                 });
-
                 if (data.has_more !== undefined) setHasMore(data.has_more);
                 if (data.total)                  setTotalMails(data.total);
                 if (data.next_page)              setSyncPage(data.next_page);
@@ -159,9 +381,36 @@ export default function SmartMail({
         if (sentMail) {
             setSentMails(prev => [sentMail, ...prev]);
         } else {
-            // sentMail မပါလာရင် sent list ကိုပဲ reload
             router.reload({ only: ['sent'], preserveScroll: true });
         }
+    };
+
+    const handleSelectMail = async (mail) => {
+        setSelectedMail(mail);
+        if (!mail.is_read) {
+            setInboxMails(prev => prev.map(m => m.id === mail.id ? { ...m, is_read: true } : m));
+            setUnreadMails(prev => Math.max(0, prev - 1));
+            fetch(`/smart-mail/${mail.id}/read`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+        }
+    };
+
+    const handleDeleteMail = (id) => {
+        setInboxMails(prev => prev.filter(m => m.id !== id));
+        setSentMails(prev => prev.filter(m => m.id !== id));
+        if (selectedMail?.id === id) setSelectedMail(null);
+    };
+
+    // Star toggle — optimistic, no reload
+    const handleStarMail = (id, starred) => {
+        const toggle = m => m.id === id ? { ...m, is_starred: starred } : m;
+        setInboxMails(prev => prev.map(toggle));
+        setSentMails(prev => prev.map(toggle));
     };
 
     const currentMails = activeTab === 'inbox'
@@ -172,111 +421,155 @@ export default function SmartMail({
 
     const starredCount = [...inboxMails, ...sentMails].filter(m => m.is_starred).length;
 
+    // NeedsSetup screen
     if (needsSetup) {
         return (
             <AppLayout title="Smart Mail">
-                <Toast message={toast?.msg} type={toast?.type} onClose={() => setToast(null)} />
-                <MailSetup mailSetting={mailSetting} />
+                <style>{`@keyframes slideIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }`}</style>
+                <Toast message={toast?.msg} type={toast?.type} onClose={() => setToast(null)} theme={theme} />
+                <div style={{
+                    background: theme.panel,
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: 24,
+                    boxShadow: theme.shadow,
+                    overflow: 'hidden',
+                }}>
+                    <MailSetup mailSetting={mailSetting} />
+                </div>
             </AppLayout>
         );
     }
 
-    // mail select လုပ်တဲ့အချိန် read mark လုပ်
-    const handleSelectMail = async (mail) => {
-        setSelectedMail(mail);
-        
-        if (!mail.is_read) {
-            // ✅ UI ချက်ချင်း update
-            setInboxMails(prev => prev.map(m =>
-                m.id === mail.id ? { ...m, is_read: true } : m
-            ));
-            setUnreadMails(prev => Math.max(0, prev - 1));
-            
-            // ✅ Backend mark read
-            await fetch(`/smart-mail/${mail.id}/read`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            });
-        }
-    };
-
-    const handleDeleteMail = (mailId) => {
-        setInboxMails(prev => prev.filter(m => m.id !== mailId));
-        setSentMails(prev => prev.filter(m => m.id !== mailId));
-        if (selectedMail?.id === mailId) setSelectedMail(null);
-    };
-
     return (
         <AppLayout title="Smart Mail">
             <style>{`
-                @keyframes slideIn { from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)} }
-                @keyframes slideUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
-                @keyframes spin    { to{transform:rotate(360deg)} }
+                @keyframes slideIn  { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+                @keyframes slideUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+                @keyframes spin     { to { transform:rotate(360deg); } }
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                .hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
             `}</style>
 
-            <Toast message={toast?.msg} type={toast?.type} onClose={() => setToast(null)} />
+            <Toast message={toast?.msg} type={toast?.type} onClose={() => setToast(null)} theme={theme} />
+            <NewMailNotif
+                mail={newMailNotif}
+                onClose={() => setNewMailNotif(null)}
+                onView={() => { setActiveTab('inbox'); setSelectedMail(newMailNotif); }}
+                theme={theme}
+            />
 
-            {newMailNotif && (
-                <NewMailNotif
-                    mail={newMailNotif}
-                    onClose={() => setNewMailNotif(null)}
-                    onView={() => {
-                        setActiveTab('inbox');
-                        setSelectedMail(inboxMails.find(m => m.id === newMailNotif.id) || null);
-                    }}
-                />
-            )}
+            {/* Page wrapper */}
+            <div style={{ display: 'grid', gap: 18 }}>
 
-            {/* Header */}
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                <div>
-                    <h2 style={{ fontSize:18, fontWeight:800, color:'#111827', margin:0 }}>📧 Smart Mail</h2>
-                    <p style={{ fontSize:12, color:'#9ca3af', marginTop:3 }}>
-                        Send & receive with AI translation · {mailSetting?.mail_address}
-                        {!hasApi && <span style={{ marginLeft:8, color:'#f59e0b', fontWeight:600 }}>· Demo Mode</span>}
-                    </p>
+                {/* Header Card */}
+                <div style={{
+                    background: theme.panel,
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: 24,
+                    boxShadow: theme.shadowSoft,
+                    padding: '20px 26px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
+                    position: 'relative', overflow: 'hidden',
+                }}>
+                    {/* Decorative glow */}
+                    <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: theme.primarySoft, pointerEvents: 'none', filter: 'blur(40px)' }} />
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, position: 'relative' }}>
+                        <div style={{
+                            width: 48, height: 48, borderRadius: 16,
+                            background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 22, boxShadow: `0 8px 24px ${theme.primary}40`,
+                        }}>📬</div>
+                        <div>
+                            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.primary, marginBottom: 3 }}>
+                                Smart Mail
+                            </div>
+                            <div style={{ fontSize: 18, fontWeight: 900, color: theme.text, lineHeight: 1.1 }}>
+                                {mailSetting?.mail_name || 'Mail'}
+                            </div>
+                            <div style={{ fontSize: 12, color: theme.textMute, marginTop: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span>{mailSetting?.mail_address}</span>
+                                {!hasApi && (
+                                    <span style={{ padding: '1px 8px', borderRadius: 99, background: theme.warningSoft, color: theme.warning, fontSize: 10, fontWeight: 800 }}>
+                                        Demo Mode
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center', position: 'relative' }}>
+                        {/* Unread badge */}
+                        {unreadMails > 0 && (
+                            <div style={{
+                                padding: '6px 14px', borderRadius: 99,
+                                background: theme.primarySoft,
+                                color: theme.primary,
+                                fontSize: 12, fontWeight: 800,
+                                border: `1px solid ${theme.primary}30`,
+                            }}>
+                                {unreadMails} unread
+                            </div>
+                        )}
+                        <UIButton variant="ghost" theme={theme} onClick={() => setShowSettings(true)} style={{ height: 38 }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                            </svg>
+                            Mail Settings
+                        </UIButton>
+                    </div>
                 </div>
-                <button
-                    onClick={() => setShowSettings(true)}
-                    style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', border:'1px solid #e5e7eb', background:'#f9fafb', borderRadius:10, fontSize:12, fontWeight:600, color:'#374151', cursor:'pointer' }}>
-                    ⚙️ Mail Settings
-                </button>
-            </div>
 
-            {/* Main Layout */}
-            <div style={{ display:'flex', background:'#fff', border:'1px solid #e5e7eb', borderRadius:16, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.04)', height:'calc(100vh - 220px)', minHeight:500 }}>
-                <MailSidebar
-                    activeTab={activeTab}
-                    onTabChange={(tab) => { setActiveTab(tab); setSelectedMail(null); }}
-                    unreadCount={unreadMails}
-                    inboxCount={inboxMails.length}
-                    sentCount={sentMails.length}
-                    starredCount={starredCount}
-                    mailSetting={mailSetting}
-                    onCompose={handleCompose}
-                    onSync={() => handleSync(1)}         // Sync Inbox = fresh
-                    onLoadMore={() => handleSync(syncPage)}    // Load More = next page
-                    hasMore={hasMore}
-                    syncing={syncing}
-                />
-                <MailList
-                    mails={currentMails}
-                    activeTab={activeTab}
-                    selectedMail={selectedMail}
-                    onSelectMail={handleSelectMail}
-                    onShowToast={showToast}
-                    onDeleteMail={handleDeleteMail}
-                />
-                <MailView
-                    mail={selectedMail}
-                    hasApi={hasApi}
-                    onReply={handleReply}
-                    onForward={handleForward}
-                    onShowToast={showToast}
-                />
+                {/* Main Mail Panel */}
+                <div style={{
+                    background: theme.panel,
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: 24,
+                    boxShadow: theme.shadow,
+                    overflow: 'hidden',
+                    display: 'flex',
+                    height: 'calc(100vh - 220px)',
+                    minHeight: 520,
+                }}>
+                    <MailSidebar
+                        activeTab={activeTab}
+                        onTabChange={(tab) => { setActiveTab(tab); setSelectedMail(null); }}
+                        unreadCount={unreadMails}
+                        inboxCount={inboxMails.length}
+                        sentCount={sentMails.length}
+                        starredCount={starredCount}
+                        mailSetting={mailSetting}
+                        onCompose={handleCompose}
+                        onSync={() => handleSync(1)}
+                        onLoadMore={() => handleSync(syncPage)}
+                        hasMore={hasMore}
+                        syncing={syncing}
+                        theme={theme}
+                        darkMode={darkMode}
+                    />
+                    <MailList
+                        mails={currentMails}
+                        activeTab={activeTab}
+                        selectedMail={selectedMail}
+                        onSelectMail={handleSelectMail}
+                        onShowToast={showToast}
+                        onDeleteMail={handleDeleteMail}
+                        onStarMail={handleStarMail}
+                        theme={theme}
+                        darkMode={darkMode}
+                    />
+                    <MailView
+                        mail={selectedMail}
+                        hasApi={hasApi}
+                        onReply={handleReply}
+                        onForward={handleForward}
+                        onShowToast={showToast}
+                        theme={theme}
+                        darkMode={darkMode}
+                    />
+                </div>
             </div>
 
             <ComposeModal
@@ -285,30 +578,21 @@ export default function SmartMail({
                 onSuccess={handleSendSuccess}
                 systemUsers={systemUsers}
                 templates={templates}
+                leaveTypes={leaveTypes}
                 hasApi={hasApi}
                 replyTo={replyTo}
                 forwardMail={forwardMail}
+                theme={theme}
+                darkMode={darkMode}
             />
 
-            {/* Mail Settings Modal */}
-            {showSettings && (
-                <div style={{ position:'fixed', inset:0, zIndex:2000, background:'rgba(0,0,0,0.4)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-                    <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:540, maxHeight:'90vh', overflowY:'auto', position:'relative', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
-                        <button
-                            onClick={() => setShowSettings(false)}
-                            style={{ position:'absolute', top:16, right:16, zIndex:10, background:'rgba(255,255,255,0.9)', border:'1px solid #e5e7eb', width:32, height:32, borderRadius:8, cursor:'pointer', fontSize:18, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' }}>×
-                        </button>
-                        <MailSetup
-                            mailSetting={mailSetting}
-                            onSuccess={() => {
-                                setShowSettings(false);
-                                showToast('Mail settings updated! ✓');
-                                router.reload({ only:['mailSetting'] });
-                            }}
-                        />
-                    </div>
-                </div>
-            )}
+            <SettingsModal
+                open={showSettings}
+                onClose={() => setShowSettings(false)}
+                mailSetting={mailSetting}
+                theme={theme}
+                onShowToast={showToast}
+            />
         </AppLayout>
     );
 }

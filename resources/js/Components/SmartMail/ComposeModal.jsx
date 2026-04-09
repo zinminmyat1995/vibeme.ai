@@ -1,70 +1,79 @@
 // resources/js/Components/SmartMail/ComposeModal.jsx
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePage } from '@inertiajs/react';
 
-const FLAGS = {
-    en: <svg width="16" height="12" viewBox="0 0 60 40"><rect width="60" height="40" fill="#012169"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" strokeWidth="8"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" strokeWidth="5"/><path d="M30,0 V40 M0,20 H60" stroke="#fff" strokeWidth="13"/><path d="M30,0 V40 M0,20 H60" stroke="#C8102E" strokeWidth="8"/></svg>,
-    ja: <svg width="16" height="12" viewBox="0 0 60 40"><rect width="60" height="40" fill="#fff"/><circle cx="30" cy="20" r="12" fill="#BC002D"/></svg>,
-    my: <svg width="16" height="12" viewBox="0 0 60 40"><rect width="60" height="40" fill="#FECB00"/><rect y="13" width="60" height="14" fill="#34B233"/><rect y="27" width="60" height="13" fill="#EA2839"/><polygon points="30,4 33,14 43,14 35,20 38,30 30,24 22,30 25,20 17,14 27,14" fill="#fff"/></svg>,
-    km: <svg width="20" height="14" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 2, display: 'block' }}><rect width="900" height="600" fill="#032EA1"/><rect width="900" height="300" y="150" fill="#E00025"/><g fill="white"><rect x="375" y="215" width="150" height="170"/><rect x="363" y="195" width="40"  height="25"/><rect x="430" y="175" width="40"  height="45"/><rect x="497" y="195" width="40"  height="25"/><rect x="330" y="235" width="48"  height="150"/><rect x="522" y="235" width="48"  height="150"/></g></svg>,
-    vi: <svg width="16" height="12" viewBox="0 0 60 40"><rect width="60" height="40" fill="#DA251D"/><polygon points="30,7 33,18 44,18 35,25 38,36 30,29 22,36 25,25 16,18 27,18" fill="#FFFF00"/></svg>,
-    ko: <svg width="16" height="12" viewBox="0 0 60 40"><rect width="60" height="40" fill="#fff"/><circle cx="30" cy="20" r="10" fill="#CD2E3A"/><path d="M30,10 A10,10 0 0,1 30,20 A5,5 0 0,1 30,10z" fill="#0047A0"/><line x1="8" y1="8" x2="16" y2="16" stroke="#000" strokeWidth="2"/><line x1="10" y1="6" x2="18" y2="14" stroke="#000" strokeWidth="2"/><line x1="44" y1="24" x2="52" y2="32" stroke="#000" strokeWidth="2"/><line x1="42" y1="26" x2="50" y2="34" stroke="#000" strokeWidth="2"/></svg>,
-};
-
-const LANGUAGES = [
-    { code:'en', label:'English',    flag: FLAGS.en },
-    { code:'ja', label:'Japanese',   flag: FLAGS.ja },
-    { code:'my', label:'Burmese',    flag: FLAGS.my },
-    { code:'km', label:'Khmer',      flag: FLAGS.km },
-    { code:'vi', label:'Vietnamese', flag: FLAGS.vi },
-    { code:'ko', label:'Korean',     flag: FLAGS.ko },
-];
-
-const TONES = [
-    { value:'professional', label:'Professional' },
-    { value:'friendly',     label:'Friendly'     },
-    { value:'formal',       label:'Formal'       },
-    { value:'casual',       label:'Casual'       },
-];
-
-// highlight {variable} in HTML
+// ── Highlight template vars ───────────────────────────────────
 function highlightVars(html) {
     return html.replace(/\{(\w+)\}/g, (match) =>
         `<mark data-var="${match}" style="background:#ede9fe;color:#7c3aed;border-radius:4px;padding:1px 6px;font-weight:700;cursor:pointer;">${match}</mark>`
     );
 }
 
-// ── Rich Toolbar ───────────────────────────
-function RichToolbar({ editorRef }) {
+// ── Rich Toolbar ──────────────────────────────────────────────
+function RichToolbar({ editorRef, theme }) {
     const exec = (cmd, val = null) => {
         editorRef.current?.focus();
         document.execCommand(cmd, false, val);
     };
-    const b = (onClick, children, title) => (
+
+    const Btn = ({ onClick, children, title }) => (
         <button type="button" title={title}
             onMouseDown={e => { e.preventDefault(); onClick(); }}
-            style={{ padding:'4px 8px', border:'1px solid #e5e7eb', borderRadius:6, background:'#f9fafb', cursor:'pointer', fontSize:12, fontWeight:700, color:'#374151', minWidth:28 }}>
+            style={{
+                padding: '4px 8px',
+                border: `1px solid ${theme.border}`,
+                borderRadius: 7, background: theme.panelSoft,
+                cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                color: theme.textSoft, minWidth: 28,
+                transition: 'all 0.12s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = theme.panelSofter; e.currentTarget.style.color = theme.text; }}
+            onMouseLeave={e => { e.currentTarget.style.background = theme.panelSoft; e.currentTarget.style.color = theme.textSoft; }}
+        >
             {children}
         </button>
     );
+
+    const Divider = () => (
+        <div style={{ width: 1, background: theme.border, height: 20, margin: '0 2px' }} />
+    );
+
     return (
-        <div style={{ display:'flex', gap:4, flexWrap:'wrap', padding:'8px 10px', borderBottom:'1px solid #e5e7eb', background:'#f9fafb', alignItems:'center' }}>
-            {b(() => exec('bold'),          <strong>B</strong>, 'Bold')}
-            {b(() => exec('italic'),        <em>I</em>,         'Italic')}
-            {b(() => exec('underline'),     <u>U</u>,           'Underline')}
-            {b(() => exec('strikeThrough'), <s>S</s>,           'Strike')}
-            <div style={{ width:1, background:'#e5e7eb', height:20, margin:'0 2px' }} />
-            {b(() => exec('insertUnorderedList'), '• List', 'Bullet')}
-            {b(() => exec('insertOrderedList'),   '1. List','Numbered')}
-            <div style={{ width:1, background:'#e5e7eb', height:20, margin:'0 2px' }} />
-            {b(() => exec('justifyLeft'),   '⬅', 'Left')}
-            {b(() => exec('justifyCenter'), '≡',  'Center')}
-            {b(() => exec('justifyRight'),  '➡', 'Right')}
-            <div style={{ width:1, background:'#e5e7eb', height:20, margin:'0 2px' }} />
-            <select onMouseDown={e => e.stopPropagation()}
-                onChange={e => exec('fontSize', e.target.value)} defaultValue="3"
-                style={{ padding:'3px 6px', border:'1px solid #e5e7eb', borderRadius:6, fontSize:11, background:'#f9fafb', cursor:'pointer' }}>
+        <div style={{
+            display: 'flex', gap: 4, flexWrap: 'wrap',
+            padding: '8px 12px',
+            borderBottom: `1px solid ${theme.border}`,
+            background: theme.panelSoft,
+            alignItems: 'center',
+            flexShrink: 0,
+        }}>
+            <Btn onClick={() => exec('bold')}          title="Bold"><strong>B</strong></Btn>
+            <Btn onClick={() => exec('italic')}        title="Italic"><em>I</em></Btn>
+            <Btn onClick={() => exec('underline')}     title="Underline"><u>U</u></Btn>
+            <Btn onClick={() => exec('strikeThrough')} title="Strike"><s>S</s></Btn>
+            <Divider />
+            <Btn onClick={() => exec('insertUnorderedList')} title="Bullet List">• List</Btn>
+            <Btn onClick={() => exec('insertOrderedList')}   title="Numbered">1. List</Btn>
+            <Divider />
+            <Btn onClick={() => exec('justifyLeft')}   title="Left">⬅</Btn>
+            <Btn onClick={() => exec('justifyCenter')} title="Center">≡</Btn>
+            <Btn onClick={() => exec('justifyRight')}  title="Right">➡</Btn>
+            <Divider />
+            <select
+                onMouseDown={e => e.stopPropagation()}
+                onChange={e => exec('fontSize', e.target.value)}
+                defaultValue="3"
+                style={{
+                    padding: '3px 8px',
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: 7, fontSize: 11,
+                    background: theme.panelSoft,
+                    color: theme.textSoft,
+                    cursor: 'pointer',
+                    outline: 'none',
+                }}
+            >
                 <option value="1">Small</option>
                 <option value="3">Normal</option>
                 <option value="5">Large</option>
@@ -74,61 +83,243 @@ function RichToolbar({ editorRef }) {
     );
 }
 
-// ── Template Variables Modal ───────────────
-function TemplateVarsModal({ open, template, onClose, onApply }) {
+// ── Smart field renderer per variable ────────────────────────
+const LEAVE_SESSIONS = ['Full Day','Morning (AM Half)','Afternoon (PM Half)'];
+const DATE_FIELDS    = ['date','from_date','to_date','deadline','effective_date','start_date'];
+
+function SmartField({ varKey, value, onChange, theme, leaveTypes = [] }) {
+    const [dropOpen, setDropOpen] = useState(false);
+    const isDate    = DATE_FIELDS.includes(varKey);
+    const isLeave   = varKey === 'leave_type';
+    const isSession = varKey === 'session';
+    const label     = varKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    const inputStyle = {
+        width: '100%', padding: '10px 14px', borderRadius: 12,
+        border: `1px solid ${theme.inputBorder}`,
+        background: theme.inputBg, color: theme.text,
+        fontSize: 13, outline: 'none', boxSizing: 'border-box',
+        fontFamily: 'inherit',
+    };
+
+    // Custom dropdown (themed — no native OS white bg)
+    const CustomDropdown = ({ options, placeholder }) => (
+        <div style={{ position: 'relative' }}>
+            <button
+                type="button"
+                onClick={() => setDropOpen(v => !v)}
+                style={{
+                    ...inputStyle,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    cursor: 'pointer', textAlign: 'left',
+                }}
+            >
+                <span style={{ color: value ? theme.text : theme.textMute }}>
+                    {value || placeholder}
+                </span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2.5">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </button>
+            {dropOpen && (
+                <div style={{
+                    position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+                    zIndex: 999,
+                    background: theme.panelSolid,
+                    border: `1px solid ${theme.borderStrong}`,
+                    borderRadius: 12,
+                    boxShadow: theme.shadow,
+                    maxHeight: 220, overflowY: 'auto',
+                    scrollbarWidth: 'none',
+                }}>
+                    <div
+                        onClick={() => { onChange(''); setDropOpen(false); }}
+                        style={{
+                            padding: '9px 14px', fontSize: 13, cursor: 'pointer',
+                            color: theme.textMute,
+                            borderBottom: `1px solid ${theme.border}`,
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >{placeholder}</div>
+                    {options.map(opt => (
+                        <div
+                            key={opt}
+                            onClick={() => { onChange(opt); setDropOpen(false); }}
+                            style={{
+                                padding: '9px 14px', fontSize: 13, cursor: 'pointer',
+                                color: theme.text,
+                                background: value === opt ? theme.primarySoft : 'transparent',
+                                fontWeight: value === opt ? 700 : 400,
+                            }}
+                            onMouseEnter={e => { if (value !== opt) e.currentTarget.style.background = theme.rowHover; }}
+                            onMouseLeave={e => { if (value !== opt) e.currentTarget.style.background = 'transparent'; }}
+                        >{opt}</div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
+    let field;
+    if (isLeave) {
+        // Use DB leave types, fallback to common ones
+        const opts = leaveTypes.length > 0 ? leaveTypes : [];
+        field = <CustomDropdown options={opts} placeholder="Select leave type..." />;
+    } else if (isSession) {
+        field = <CustomDropdown options={LEAVE_SESSIONS} placeholder="Select session..." />;
+    } else if (isDate) {
+        field = (
+            <input
+                type="datetime-local"
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer', colorScheme: 'dark' }}
+            />
+        );
+    } else {
+        field = (
+            <input
+                value={value || ''}
+                onChange={e => onChange(e.target.value)}
+                placeholder={`Enter ${label.toLowerCase()}...`}
+                style={inputStyle}
+            />
+        );
+    }
+
+    return (
+        <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: theme.textSoft, display: 'block', marginBottom: 6 }}>
+                {label}
+            </label>
+            {field}
+        </div>
+    );
+}
+
+// ── Template Variables Modal ──────────────────────────────────
+function TemplateVarsModal({ open, template, onClose, onApply, leaveTypes = [], theme }) {
     const [vars, setVars] = useState({});
 
     useEffect(() => {
         if (template?.variables) {
             const init = {};
-            template.variables.forEach(v => { init[v] = ''; });
+            // Leave Request template — add session field
+            const vars = template.slug === 'leave_request'
+                ? [...template.variables, 'session']
+                : template.variables;
+            vars.forEach(v => { init[v] = ''; });
             setVars(init);
         }
     }, [template]);
 
     if (!open || !template) return null;
 
+    // Final variable list for leave_request
+    const fields = template.slug === 'leave_request'
+        ? [...(template.variables || []), 'session']
+        : template.variables || [];
+
+    // Format datetime value for display in template
+    const formatVal = (key, val) => {
+        if (!val) return '';
+        if (DATE_FIELDS.includes(key)) {
+            try {
+                return new Date(val).toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                });
+            } catch { return val; }
+        }
+        return val;
+    };
+
+    const handleApply = () => {
+        const formatted = {};
+        Object.entries(vars).forEach(([k, v]) => { formatted[k] = formatVal(k, v); });
+        onApply(formatted);
+        onClose();
+    };
+
     return (
-        <div style={{ position:'fixed', inset:0, zIndex:3000, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-            <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.4)', backdropFilter:'blur(4px)' }} />
-            <div style={{ position:'relative', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,0.2)', width:'100%', maxWidth:460, maxHeight:'80vh', overflowY:'auto' }}>
-                <div style={{ padding:'18px 24px 14px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{
+            position: 'fixed', inset: 0, zIndex: 3000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        }}>
+            <div onClick={onClose} style={{
+                position: 'absolute', inset: 0,
+                background: theme.overlay,
+                backdropFilter: 'blur(6px)',
+            }} />
+            <div style={{
+                position: 'relative',
+                background: theme.panelSolid,
+                border: `1px solid ${theme.borderStrong}`,
+                borderRadius: 24,
+                boxShadow: theme.shadow,
+                width: '100%', maxWidth: 460,
+                maxHeight: '85vh', display: 'flex', flexDirection: 'column',
+            }}>
+                {/* Header */}
+                <div style={{
+                    padding: '20px 24px 16px',
+                    borderBottom: `1px solid ${theme.border}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    flexShrink: 0,
+                }}>
                     <div>
-                        <h3 style={{ fontSize:15, fontWeight:800, color:'#111827', margin:0 }}>{template.icon} {template.name}</h3>
-                        <p style={{ fontSize:11, color:'#9ca3af', marginTop:3 }}>Fill in the template variables below</p>
+                        <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>Template</div>
+                        <div style={{ fontSize: 15, fontWeight: 900, color: theme.text }}>{template.name}</div>
                     </div>
-                    <button onClick={onClose} style={{ background:'#f3f4f6', border:'none', width:30, height:30, borderRadius:8, cursor:'pointer', fontSize:18, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
+                    <button onClick={onClose} style={{
+                        background: theme.panelSoft, border: `1px solid ${theme.border}`,
+                        width: 32, height: 32, borderRadius: 10, cursor: 'pointer',
+                        color: theme.textMute, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>×</button>
                 </div>
-                <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:12 }}>
-                    {template.variables?.map(v => (
-                        <div key={v}>
-                            <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>
-                                {v.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
-                                <span style={{ fontSize:10, color:'#9ca3af', fontWeight:400, marginLeft:6 }}>{`{${v}}`}</span>
-                            </label>
-                            <input value={vars[v]||''} onChange={e => setVars(p => ({...p,[v]:e.target.value}))}
-                                placeholder={`Enter ${v.replace(/_/g,' ')}...`}
-                                style={{ width:'100%', padding:'8px 12px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', fontSize:13, outline:'none', color:'#111827', boxSizing:'border-box' }} />
-                        </div>
+
+                {/* Fields — scrollable */}
+                <div style={{
+                    padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14,
+                    overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none',
+                }}>
+                    {fields.map(v => (
+                        <SmartField
+                            key={v}
+                            varKey={v}
+                            value={vars[v] || ''}
+                            onChange={val => setVars(p => ({ ...p, [v]: val }))}
+                            leaveTypes={leaveTypes}
+                            theme={theme}
+                        />
                     ))}
                 </div>
-                <div style={{ padding:'0 24px 20px', display:'flex', gap:10, justifyContent:'flex-end' }}>
-                    <button onClick={onClose} style={{ padding:'8px 20px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#374151', fontSize:13, fontWeight:600, cursor:'pointer' }}>Cancel</button>
-                    <button onClick={() => { onApply(vars); onClose(); }}
-                        style={{ padding:'8px 24px', borderRadius:10, border:'none', background:'#7c3aed', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
-                        ✓ Apply Template
-                    </button>
+
+                {/* Actions */}
+                <div style={{ padding: '12px 24px 22px', display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0, borderTop: `1px solid ${theme.border}` }}>
+                    <button onClick={onClose} style={{
+                        padding: '9px 20px', borderRadius: 12,
+                        border: `1px solid ${theme.border}`, background: theme.panelSoft,
+                        color: theme.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                    }}>Cancel</button>
+                    <button onClick={handleApply} style={{
+                        padding: '9px 22px', borderRadius: 12, border: 'none',
+                        background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                        color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                        boxShadow: `0 6px 18px ${theme.primary}35`,
+                    }}>Apply Template</button>
                 </div>
             </div>
         </div>
     );
 }
 
-// ── To Field ──────────────────────────────
-function ToField({ value = [], onChange, systemUsers = [] }) {
-    const [query, setQuery] = useState('');
-    const [show, setShow]   = useState(false);
-    const inputRef          = useRef(null);
+// ── Email Input (To / CC / BCC) ───────────────────────────────
+function ToField({ value = [], onChange, systemUsers = [], theme }) {
+    const [query, setQuery]   = useState('');
+    const [show, setShow]     = useState(false);
+    const inputRef            = useRef(null);
 
     const filtered = query.length > 0
         ? systemUsers.filter(u =>
@@ -138,80 +329,102 @@ function ToField({ value = [], onChange, systemUsers = [] }) {
           )
         : [];
 
-    const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     const addEmail = (email) => {
         const e = email.trim().toLowerCase();
-        if (!e || !isValidEmail(e) || value.includes(e)) return;
-        onChange([...value, e]);
+        if (isValidEmail(e) && !value.includes(e)) {
+            onChange([...value, e]);
+        }
         setQuery('');
         setShow(false);
-        setTimeout(() => inputRef.current?.focus(), 0);
+        inputRef.current?.focus();
     };
-
-    const removeEmail = (email) => onChange(value.filter(e => e !== email));
 
     const handleKeyDown = (e) => {
-        if (['Enter',',' ,'Tab'].includes(e.key) && query.trim()) {
+        if ((e.key === 'Enter' || e.key === ',') && query) {
             e.preventDefault();
             addEmail(query);
-            return;
         }
         if (e.key === 'Backspace' && !query && value.length > 0) {
-            removeEmail(value[value.length - 1]);
+            onChange(value.slice(0, -1));
         }
-    };
-
-    // FIX 4: show dropdown after adding a tag too
-    const handleChange = (e) => {
-        setQuery(e.target.value);
-        setShow(e.target.value.length > 0);
     };
 
     return (
-        <div style={{ position:'relative' }}>
-            <div onClick={() => inputRef.current?.focus()}
-                style={{ display:'flex', flexWrap:'wrap', gap:4, padding:'6px 10px', border:'1px solid #e5e7eb', borderRadius:10, background:'#f9fafb', minHeight:38, alignItems:'center', cursor:'text' }}>
+        <div style={{ position: 'relative' }}>
+            <div style={{
+                display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center',
+                minHeight: 36, padding: '4px 6px',
+                border: `1px solid ${theme.inputBorder}`,
+                borderRadius: 12,
+                background: theme.inputBg,
+            }}>
                 {value.map(email => (
-                    <span key={email} style={{ display:'flex', alignItems:'center', gap:4, padding:'2px 8px', background:'#ede9fe', color:'#7c3aed', borderRadius:99, fontSize:12, fontWeight:600 }}>
+                    <span key={email} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                        padding: '3px 10px', borderRadius: 99,
+                        background: theme.primarySoft,
+                        border: `1px solid ${theme.primary}22`,
+                        color: theme.primary, fontSize: 11, fontWeight: 700,
+                    }}>
                         {email}
-                        <button type="button" onClick={e => { e.stopPropagation(); removeEmail(email); }}
-                            style={{ background:'none', border:'none', cursor:'pointer', color:'#7c3aed', fontSize:14, lineHeight:1, padding:0, display:'flex', alignItems:'center' }}>×</button>
+                        <button type="button" onClick={() => onChange(value.filter(e => e !== email))}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.primary, fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
                     </span>
                 ))}
                 <input
                     ref={inputRef}
                     value={query}
-                    onChange={handleChange}
+                    onChange={e => { setQuery(e.target.value); setShow(true); }}
                     onKeyDown={handleKeyDown}
-                    onBlur={() => {
-                        // FIX 3: if valid email typed but not confirmed, add it on blur
-                        if (query.trim() && isValidEmail(query)) {
-                            addEmail(query);
-                        }
-                        setTimeout(() => setShow(false), 200);
+                    onFocus={() => setShow(true)}
+                    onBlur={() => setTimeout(() => setShow(false), 150)}
+                    placeholder={value.length === 0 ? 'Type email + Enter, or search...' : ''}
+                    style={{
+                        border: 'none', outline: 'none',
+                        background: 'transparent',
+                        fontSize: 12, color: theme.text,
+                        flex: 1, minWidth: 160, padding: '2px 0',
                     }}
-                    onFocus={() => { if (query.length > 0) setShow(true); }}
-                    placeholder={value.length === 0 ? 'Type email + Enter, or search user...' : ''}
-                    style={{ border:'none', outline:'none', background:'transparent', fontSize:12, color:'#374151', flex:1, minWidth:160, padding:'2px 0' }}
                 />
             </div>
 
-            {/* Autocomplete */}
+            {/* Autocomplete dropdown */}
             {show && filtered.length > 0 && (
-                <div style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:500, background:'#fff', border:'1px solid #e5e7eb', borderRadius:10, boxShadow:'0 8px 24px rgba(0,0,0,0.1)', maxHeight:200, overflowY:'auto' }}>
+                <div style={{
+                    position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 500,
+                    background: theme.panelSolid,
+                    border: `1px solid ${theme.borderStrong}`,
+                    borderRadius: 14,
+                    boxShadow: theme.shadow,
+                    maxHeight: 200, overflowY: 'auto',
+                    padding: 6,
+                }}>
                     {filtered.map(u => (
                         <button key={u.id} type="button"
                             onMouseDown={e => { e.preventDefault(); addEmail(u.email); }}
-                            style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'8px 12px', border:'none', background:'transparent', cursor:'pointer', textAlign:'left' }}
-                            onMouseEnter={e => e.currentTarget.style.background='#f5f3ff'}
-                            onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                            <div style={{ width:30, height:30, borderRadius:'50%', background:'#7c3aed', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:800, flexShrink:0 }}>
+                            style={{
+                                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                                padding: '8px 12px', borderRadius: 10,
+                                border: 'none', background: 'transparent',
+                                cursor: 'pointer', textAlign: 'left',
+                                transition: 'background 0.12s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <div style={{
+                                width: 32, height: 32, borderRadius: 10,
+                                background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                                color: '#fff', display: 'flex', alignItems: 'center',
+                                justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0,
+                            }}>
                                 {u.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <div style={{ fontSize:12, fontWeight:700, color:'#111827' }}>{u.name}</div>
-                                <div style={{ fontSize:11, color:'#9ca3af' }}>{u.email}</div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{u.name}</div>
+                                <div style={{ fontSize: 11, color: theme.textMute }}>{u.email}</div>
                             </div>
                         </button>
                     ))}
@@ -221,65 +434,60 @@ function ToField({ value = [], onChange, systemUsers = [] }) {
     );
 }
 
-// ── Main Component ─────────────────────────
+// ── Main Export ───────────────────────────────────────────────
 export default function ComposeModal({
     open, onClose, onSuccess,
-    systemUsers  = [],
-    templates    = [],
-    hasApi       = false,
-    replyTo      = null,
-    forwardMail  = null,
+    systemUsers = [], templates = [], leaveTypes = [],
+    hasApi = false, replyTo = null, forwardMail = null,
+    theme, darkMode = false,
 }) {
-    // FIX 5: don't render at all when closed — prevents React hook errors
     if (!open) return null;
-
-    return <ComposeInner
-        onClose={onClose} onSuccess={onSuccess}
-        systemUsers={systemUsers} templates={templates}
-        hasApi={hasApi} replyTo={replyTo} forwardMail={forwardMail}
-    />;
+    return (
+        <ComposeInner
+            onClose={onClose} onSuccess={onSuccess}
+            systemUsers={systemUsers} templates={templates} leaveTypes={leaveTypes}
+            hasApi={hasApi} replyTo={replyTo} forwardMail={forwardMail}
+            theme={theme} darkMode={darkMode}
+        />
+    );
 }
 
-// Separate inner component so hooks always run consistently
-function ComposeInner({ onClose, onSuccess, systemUsers, templates, hasApi, replyTo, forwardMail }) {
+// ── Inner Component ───────────────────────────────────────────
+function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, hasApi, replyTo, forwardMail, theme, darkMode }) {
+    const editorRef    = useRef(null);
+    const editorReady  = useRef(false);
+    const { props }    = usePage();
 
-    // FIX 1: use ref only for editor, never dangerouslySetInnerHTML
-    const editorRef          = useRef(null);
-    const editorReady        = useRef(false);
+    const [maximized, setMaximized]         = useState(false);
 
-    const [toAddresses, setToAddresses]   = useState(replyTo ? [replyTo.from_address].filter(Boolean) : []);
-    const [ccAddresses, setCcAddresses]   = useState([]);
-    const [bccAddresses, setBccAddresses] = useState([]);
-    const [subject, setSubject]           = useState(replyTo ? `Re: ${replyTo.subject||''}` : forwardMail ? `Fwd: ${forwardMail.subject||''}` : '');
-    const [aiGenerated, setAiGenerated]   = useState(false);
-    const [templateUsed, setTemplateUsed] = useState(null);
-    const [attachFiles, setAttachFiles]   = useState([]);
+    const [toAddresses, setToAddresses]     = useState(replyTo ? [replyTo.from_address].filter(Boolean) : []);
+    const [ccAddresses, setCcAddresses]     = useState([]);
+    const [bccAddresses, setBccAddresses]   = useState([]);
+    const [subject, setSubject]             = useState(replyTo ? `Re: ${replyTo.subject || ''}` : forwardMail ? `Fwd: ${forwardMail.subject || ''}` : '');
+    const [aiGenerated, setAiGenerated]     = useState(false);
+    const [templateUsed, setTemplateUsed]   = useState(null);
+    const [attachFiles, setAttachFiles]     = useState([]);
     const [attachPreviews, setAttachPreviews] = useState([]);
-    const [showCC, setShowCC]             = useState(false);
-    const [showBCC, setShowBCC]           = useState(false);
+    const [showCC, setShowCC]               = useState(false);
+    const [showBCC, setShowBCC]             = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
-    const [templateModal, setTemplateModal] = useState({ open:false, template:null });
-    const [aiMode, setAiMode]             = useState(null);
-    const [aiPrompt, setAiPrompt]         = useState('');
-    const [aiTone, setAiTone]             = useState('professional');
-    const [aiLoading, setAiLoading]       = useState(false);
+    const [templateModal, setTemplateModal] = useState({ open: false, template: null });
+    const [aiMode, setAiMode]               = useState(null);
+    const [aiPrompt, setAiPrompt]           = useState('');
+    const [aiTone, setAiTone]               = useState('professional');
+    const [aiLoading, setAiLoading]         = useState(false);
     const [translateLang, setTranslateLang] = useState('');
     const [translatePreview, setTranslatePreview] = useState(null);
-    const [errors, setErrors]             = useState({});
-    const [sending, setSending]           = useState(false);
+    const [errors, setErrors]               = useState({});
+    const [sending, setSending]             = useState(false);
 
-    const { props } = usePage();
-    
-    // FIX 1: set initial content via ref ONCE after mount
     useEffect(() => {
         if (editorRef.current && !editorReady.current) {
             editorReady.current = true;
             let initial = '';
-            if (forwardMail) initial = `<br><br>---------- Forwarded message ----------<br>${forwardMail.body_html||''}`;
-            else if (replyTo) initial = `<br><br><blockquote style="border-left:3px solid #e5e7eb;padding-left:12px;color:#6b7280">${replyTo.body_html||''}</blockquote>`;
+            if (forwardMail) initial = `<br><br>---------- Forwarded message ----------<br>${forwardMail.body_html || ''}`;
+            else if (replyTo) initial = `<br><br><blockquote style="border-left:3px solid ${theme.border};padding-left:12px;color:${theme.textMute}">${replyTo.body_html || ''}</blockquote>`;
             editorRef.current.innerHTML = initial;
-
-            // Place cursor at the beginning
             const range = document.createRange();
             range.setStart(editorRef.current, 0);
             range.collapse(true);
@@ -291,7 +499,6 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, hasApi, repl
     }, []);
 
     const getContent = () => editorRef.current?.innerHTML || '';
-
     const setContent = (html, highlight = false) => {
         if (editorRef.current) {
             editorRef.current.innerHTML = highlight ? highlightVars(html) : html;
@@ -300,10 +507,9 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, hasApi, repl
 
     const csrf = () => props.csrf_token || document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-    // FIX 2: Template — show variable fill modal
     const handleTemplateClick = (t) => {
         setShowTemplates(false);
-        setTemplateModal({ open:true, template:t });
+        setTemplateModal({ open: true, template: t });
     };
 
     const handleTemplateApply = (vars) => {
@@ -316,16 +522,13 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, hasApi, repl
             }
         });
         setSubject(subj);
-        setContent(body, true); // remaining {vars} highlighted purple
+        setContent(body, true);
         setTemplateUsed(templateModal.template.slug);
     };
 
-    // AI
     const aiPost = async (url, body) => {
         const res = await window.apiFetch(url, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify(body),
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
         });
         return res.json();
     };
@@ -334,7 +537,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, hasApi, repl
         if (!aiPrompt) return;
         setAiLoading(true);
         try {
-            const data = await aiPost('/smart-mail/ai/generate', { prompt:aiPrompt, tone:aiTone });
+            const data = await aiPost('/smart-mail/ai/generate', { prompt: aiPrompt, tone: aiTone });
             if (data.success) { setSubject(data.result.subject); setContent(data.result.body); setAiGenerated(true); setAiMode(null); }
         } catch {}
         setAiLoading(false);
@@ -343,7 +546,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, hasApi, repl
     const handleAiImprove = async () => {
         setAiLoading(true);
         try {
-            const data = await aiPost('/smart-mail/ai/improve', { content:getContent() });
+            const data = await aiPost('/smart-mail/ai/improve', { content: getContent() });
             if (data.success) { setContent(data.improved); setAiMode(null); }
         } catch {}
         setAiLoading(false);
@@ -353,7 +556,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, hasApi, repl
         if (!translateLang) return;
         setAiLoading(true);
         try {
-            const data = await aiPost('/smart-mail/ai/translate-preview', { content:getContent(), language:translateLang });
+            const data = await aiPost('/smart-mail/ai/translate-preview', { content: getContent(), language: translateLang });
             if (data.success) setTranslatePreview(data.translated);
         } catch {}
         setAiLoading(false);
@@ -361,273 +564,546 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, hasApi, repl
 
     const handleAttach = (e) => {
         const files = Array.from(e.target.files);
-        setAttachPreviews(p => [...p, ...files.map(f => ({ name:f.name, size:(f.size/1024).toFixed(1)+' KB' }))]);
+        setAttachPreviews(p => [...p, ...files.map(f => ({ name: f.name, size: (f.size / 1024).toFixed(1) + ' KB' }))]);
         setAttachFiles(p => [...p, ...files]);
     };
 
-    // FIX 3: validate toAddresses array length
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
-
-        if (toAddresses.length === 0) {
-            setErrors({ to:'Please add at least one recipient.' });
-            return;
-        }
-
+        if (toAddresses.length === 0) { setErrors({ to: 'Please add at least one recipient.' }); return; }
         setSending(true);
-
         const fd = new FormData();
-        toAddresses.forEach(a      => fd.append('to_addresses[]', a));
-        ccAddresses.forEach(a      => fd.append('cc_addresses[]', a));
-        bccAddresses.forEach(a     => fd.append('bcc_addresses[]', a));
-        fd.append('subject', subject.trim() || '(No Subject)');
-        fd.append('body_html',      getContent());
-        fd.append('ai_generated',   aiGenerated ? '1' : '0');
+        toAddresses.forEach(a  => fd.append('to_addresses[]', a));
+        ccAddresses.forEach(a  => fd.append('cc_addresses[]', a));
+        bccAddresses.forEach(a => fd.append('bcc_addresses[]', a));
+        fd.append('subject',      subject.trim() || '(No Subject)');
+        fd.append('body_html',    getContent());
+        fd.append('ai_generated', aiGenerated ? '1' : '0');
         if (templateUsed) fd.append('template_used', templateUsed);
         attachFiles.forEach(f => fd.append('attachments[]', f));
-
         try {
-            // ✅ window.apiFetch သုံး — Content-Type မထည့်ရ (FormData က auto set လုပ်တယ်)
-            const res = await window.apiFetch('/smart-mail/send', {
-                method: 'POST',
-                body:   fd,
-            });
-
+            const res = await window.apiFetch('/smart-mail/send', { method: 'POST', body: fd });
             const data = await res.json();
-
-            if (res.ok && data.success) {
-                onSuccess?.('Mail sent successfully! ✉️', data.mail ?? null);
-                onClose();
-            } else {
-                setErrors(data.errors || { send: data.message || 'Failed to send.' });
-            }
-        } catch (err) {
-            console.error('Send error:', err);
-            setErrors({ send: 'Network error. Please try again.' });
-        }
-
+            if (res.ok && data.success) { onSuccess?.('Mail sent successfully! ✉️', data.mail ?? null); onClose(); }
+            else setErrors(data.errors || { send: data.message || 'Failed to send.' });
+        } catch { setErrors({ send: 'Network error. Please try again.' }); }
         setSending(false);
     };
 
-    const spin = { width:12, height:12, border:'2px solid rgba(255,255,255,0.4)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'spin 0.7s linear infinite' };
+    // Shared input style
+    const inp = {
+        width: '100%', padding: '9px 12px', borderRadius: 12, fontSize: 13,
+        border: `1px solid ${theme.inputBorder}`, background: theme.inputBg,
+        color: theme.text, outline: 'none', boxSizing: 'border-box',
+        transition: 'border-color 0.15s',
+    };
+
+    const lbl = { fontSize: 12, fontWeight: 700, color: theme.textMute, minWidth: 40 };
+
+    // AI mode configs
+    const aiActions = [
+        { mode: 'generate',  label: 'Write',     color: theme.primary,  soft: theme.primarySoft },
+        { mode: 'improve',   label: 'Improve',   color: theme.success,  soft: theme.successSoft },
+        { mode: 'translate', label: 'Translate', color: theme.secondary, soft: theme.secondarySoft },
+    ];
+
+    const TONES = ['professional', 'friendly', 'formal', 'casual', 'persuasive'];
+    const LANGS = [
+        { code: 'en', label: 'English',    flag: '🇬🇧' },
+        { code: 'ja', label: 'Japanese',   flag: '🇯🇵' },
+        { code: 'my', label: 'Burmese',    flag: '🇲🇲' },
+        { code: 'km', label: 'Khmer',      flag: '🇰🇭' },
+        { code: 'vi', label: 'Vietnamese', flag: '🇻🇳' },
+        { code: 'ko', label: 'Korean',     flag: '🇰🇷' },
+    ];
 
     return (
         <>
-            <div style={{ position:'fixed', inset:0, zIndex:1000, display:'flex', alignItems:'flex-end', justifyContent:'flex-end', padding:20, pointerEvents:'none' }}>
-                <div style={{ pointerEvents:'all', background:'#fff', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,0.2)', width:'100%', maxWidth:660, maxHeight:'92vh', display:'flex', flexDirection:'column', animation:'slideUp 0.2s ease' }}>
+            {/* Backdrop (dim) */}
+            <div style={{
+                position: 'fixed', inset: 0, zIndex: 999,
+                background: 'transparent',
+                pointerEvents: 'none',
+            }} />
 
-                    {/* Header */}
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'#7c3aed', borderRadius:'20px 20px 0 0', flexShrink:0 }}>
-                        <h3 style={{ fontSize:15, fontWeight:800, color:'#fff', margin:0 }}>
-                            {replyTo ? '↩️ Reply' : forwardMail ? '↪️ Forward' : '✏️ New Message'}
+            {/* Compose window — bottom right, or maximized */}
+            <div style={{
+                position: 'fixed',
+                ...(maximized ? {
+                    inset: 20,
+                    bottom: 20, right: 20,
+                    width: 'auto', maxWidth: 'none',
+                    maxHeight: 'none',
+                } : {
+                    bottom: 24, right: 24,
+                    width: '100%', maxWidth: 680,
+                    maxHeight: '92vh',
+                }),
+                zIndex: 1000,
+                display: 'flex', flexDirection: 'column',
+                background: theme.panelSolid,
+                border: `1px solid ${theme.borderStrong}`,
+                borderRadius: 24,
+                boxShadow: theme.shadow,
+                animation: 'slideUp 0.22s ease',
+                overflow: 'hidden',
+                transition: 'all 0.2s ease',
+            }}>
+
+                {/* ── Header ── */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '14px 20px',
+                    background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                    flexShrink: 0,
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                            width: 32, height: 32, borderRadius: 10,
+                            background: 'rgba(255,255,255,0.2)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 15,
+                        }}>
+                            {replyTo ? '↩' : forwardMail ? '↪' : '✉'}
+                        </div>
+                        <h3 style={{ fontSize: 14, fontWeight: 900, color: '#fff', margin: 0 }}>
+                            {replyTo ? 'Reply' : forwardMail ? 'Forward' : 'New Message'}
                         </h3>
-                        <div style={{ display:'flex', gap:8 }}>
-                            <div style={{ position:'relative' }}>
-                                <button type="button" onClick={() => setShowTemplates(!showTemplates)}
-                                    style={{ padding:'5px 12px', borderRadius:8, border:'1px solid rgba(255,255,255,0.3)', background:'rgba(255,255,255,0.15)', color:'#fff', fontSize:12, fontWeight:600, cursor:'pointer' }}>
-                                    📋 Templates
-                                </button>
-                                {showTemplates && (
-                                    <div style={{ position:'absolute', top:'110%', right:0, zIndex:300, background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,0.12)', padding:8, minWidth:230, maxHeight:320, overflowY:'auto' }}>
-                                        {templates.map(t => (
-                                            <button key={t.id} type="button" onClick={() => handleTemplateClick(t)}
-                                                style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'9px 12px', border:'none', background:'transparent', cursor:'pointer', borderRadius:8, textAlign:'left' }}
-                                                onMouseEnter={e => e.currentTarget.style.background='#f9fafb'}
-                                                onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                                                <span style={{ fontSize:20 }}>{t.icon}</span>
-                                                <div>
-                                                    <div style={{ fontSize:12, fontWeight:700, color:'#111827' }}>{t.name}</div>
-                                                    <div style={{ fontSize:10, color:'#9ca3af', textTransform:'capitalize' }}>{t.category}</div>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                        {aiGenerated && (
+                            <span style={{
+                                fontSize: 10, padding: '2px 8px', borderRadius: 99,
+                                background: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 800,
+                            }}>✨ AI</span>
+                        )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {/* Templates button — always visible in header */}
+                        <div style={{ position: 'relative' }}>
+                            <button type="button" onClick={() => setShowTemplates(!showTemplates)} style={{
+                                display: 'flex', alignItems: 'center', gap: 6,
+                                padding: '6px 14px', borderRadius: 10,
+                                border: '1px solid rgba(255,255,255,0.3)',
+                                background: showTemplates ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)',
+                                color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                                transition: 'all 0.15s',
+                            }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+                                onMouseLeave={e => e.currentTarget.style.background = showTemplates ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)'}
+                            >
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <line x1="10" y1="9" x2="8" y2="9"/>
+                                </svg>
+                                Templates
+                            </button>
+
+                            {showTemplates && (
+                                <div style={{
+                                    position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 300,
+                                    background: theme.panelSolid,
+                                    border: `1px solid ${theme.borderStrong}`,
+                                    borderRadius: 16, boxShadow: theme.shadow,
+                                    padding: 6, minWidth: 220, maxHeight: 300, overflowY: 'auto',
+                                    animation: 'slideIn 0.15s ease',
+                                    scrollbarWidth: 'none', msOverflowStyle: 'none',
+                                }}>
+                                    {templates.filter(t => !['job_offer','project_update'].includes(t.slug)).length === 0 ? (
+                                        <div style={{ padding: '14px 16px', fontSize: 12, color: theme.textMute, textAlign: 'center' }}>
+                                            No templates available
+                                        </div>
+                                    ) : templates.filter(t => !['job_offer','project_update'].includes(t.slug)).map(t => (
+                                        <button key={t.id} type="button" onClick={() => handleTemplateClick(t)} style={{
+                                            width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                                            padding: '10px 12px', borderRadius: 10,
+                                            border: 'none', background: 'transparent',
+                                            cursor: 'pointer', textAlign: 'left',
+                                            transition: 'background 0.12s',
+                                        }}
+                                            onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
+                                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                        >
+                                            <div style={{
+                                                width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                                                background: theme.primarySoft,
+                                                border: `1px solid ${theme.primary}22`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: 15,
+                                            }}>{t.icon || '📋'}</div>
+                                            <div>
+                                                <div style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{t.name}</div>
+                                                {t.category && <div style={{ fontSize: 10, color: theme.textMute, marginTop: 1, textTransform: 'capitalize' }}>{t.category}</div>}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Maximize / Minimize */}
+                        <button onClick={() => setMaximized(v => !v)} title={maximized ? 'Minimize' : 'Maximize'} style={{
+                            background: 'rgba(255,255,255,0.15)',
+                            border: '1px solid rgba(255,255,255,0.3)',
+                            width: 30, height: 30, borderRadius: 8,
+                            cursor: 'pointer', color: '#fff',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                            {maximized ? (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
+                                    <line x1="10" y1="14" x2="21" y2="3"/><line x1="3" y1="21" x2="14" y2="10"/>
+                                </svg>
+                            ) : (
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                    <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                                    <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                                </svg>
+                            )}
+                        </button>
+
+                        {/* Close */}
+                        <button onClick={onClose} style={{
+                            background: 'rgba(255,255,255,0.15)',
+                            border: '1px solid rgba(255,255,255,0.3)',
+                            width: 30, height: 30, borderRadius: 8,
+                            cursor: 'pointer', fontSize: 16, color: '#fff',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>×</button>
+                    </div>
+                </div>
+
+                <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
+
+                    {/* ── To / CC / BCC / Subject ── */}
+                    <div style={{
+                        padding: '14px 20px',
+                        display: 'flex', flexDirection: 'column', gap: 10,
+                        borderBottom: `1px solid ${theme.border}`,
+                        flexShrink: 0,
+                    }}>
+                        {/* To row */}
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 5 }}>
+                                <label style={lbl}>To</label>
+                                <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                                    <button type="button" onClick={() => setShowCC(!showCC)}
+                                        style={{ fontSize: 11, color: showCC ? theme.primary : theme.textMute, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>CC</button>
+                                    <button type="button" onClick={() => setShowBCC(!showBCC)}
+                                        style={{ fontSize: 11, color: showBCC ? theme.primary : theme.textMute, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>BCC</button>
+                                </div>
                             </div>
-                            <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.3)', width:30, height:30, borderRadius:8, cursor:'pointer', fontSize:18, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
+                            {replyTo ? (
+                                <div style={{
+                                    padding: '8px 12px', borderRadius: 12,
+                                    background: theme.primarySoft,
+                                    border: `1px solid ${theme.primary}22`,
+                                    fontSize: 12, color: theme.primary, fontWeight: 700,
+                                }}>{replyTo.from_address}</div>
+                            ) : (
+                                <ToField value={toAddresses} onChange={setToAddresses} systemUsers={systemUsers} theme={theme} />
+                            )}
+                            {errors.to && <p style={{ fontSize: 11, color: theme.danger, marginTop: 4, fontWeight: 700 }}>{errors.to}</p>}
+                        </div>
+
+                        {/* CC */}
+                        {showCC && (
+                            <div>
+                                <label style={{ ...lbl, display: 'block', marginBottom: 5 }}>CC</label>
+                                <ToField value={ccAddresses} onChange={setCcAddresses} systemUsers={systemUsers} theme={theme} />
+                            </div>
+                        )}
+
+                        {/* BCC */}
+                        {showBCC && (
+                            <div>
+                                <label style={{ ...lbl, display: 'block', marginBottom: 5 }}>BCC</label>
+                                <ToField value={bccAddresses} onChange={setBccAddresses} systemUsers={systemUsers} theme={theme} />
+                            </div>
+                        )}
+
+                        {/* Subject */}
+                        <div>
+                            <label style={{ ...lbl, display: 'block', marginBottom: 5 }}>Subject</label>
+                            <input value={subject} onChange={e => setSubject(e.target.value)}
+                                placeholder="Email subject..."
+                                style={inp} />
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0 }}>
+                    {/* ── AI Toolbar ── */}
+                    <div style={{
+                        display: 'flex', gap: 6, padding: '8px 16px',
+                        borderBottom: `1px solid ${theme.border}`,
+                        background: theme.panelSoft,
+                        flexWrap: 'wrap', flexShrink: 0, alignItems: 'center',
+                    }}>
+                        <span style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: 4 }}>AI</span>
+                        {aiActions.map(a => (
+                            <button key={a.mode} type="button"
+                                onClick={() => setAiMode(aiMode === a.mode ? null : a.mode)}
+                                style={{
+                                    padding: '5px 12px', borderRadius: 99,
+                                    border: `1px solid ${aiMode === a.mode ? a.color : theme.border}`,
+                                    background: aiMode === a.mode ? a.soft : 'transparent',
+                                    color: aiMode === a.mode ? a.color : theme.textMute,
+                                    fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                    transition: 'all 0.13s',
+                                }}
+                            >{a.label}</button>
+                        ))}
 
-                        {/* To / CC / BCC / Subject */}
-                        <div style={{ padding:'14px 20px', display:'flex', flexDirection:'column', gap:10, borderBottom:'1px solid #f3f4f6', flexShrink:0 }}>
-                            <div>
-                                <div style={{ display:'flex', alignItems:'center', marginBottom:4 }}>
-                                    <label style={{ fontSize:12, fontWeight:700, color:'#374151', minWidth:32 }}>To</label>
-                                    <div style={{ marginLeft:'auto', display:'flex', gap:8 }}>
-                                        <button type="button" onClick={() => setShowCC(!showCC)}
-                                            style={{ fontSize:11, color:showCC?'#7c3aed':'#9ca3af', background:'none', border:'none', cursor:'pointer', fontWeight:700 }}>CC</button>
-                                        <button type="button" onClick={() => setShowBCC(!showBCC)}
-                                            style={{ fontSize:11, color:showBCC?'#7c3aed':'#9ca3af', background:'none', border:'none', cursor:'pointer', fontWeight:700 }}>BCC</button>
+
+                    </div>
+
+                    {/* ── AI Panel ── */}
+                    {aiMode && (
+                        <div style={{
+                            padding: '12px 16px',
+                            background: theme.panelSoft,
+                            borderBottom: `1px solid ${theme.border}`,
+                            flexShrink: 0,
+                        }}>
+                            {aiMode === 'generate' && (
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                                    <div style={{ flex: 1, minWidth: 200 }}>
+                                        <input value={aiPrompt} onChange={e => setAiPrompt(e.target.value)}
+                                            placeholder="Describe what to write..."
+                                            onKeyDown={e => e.key === 'Enter' && handleAiGenerate()}
+                                            style={{ ...inp, padding: '8px 12px' }} />
                                     </div>
-                                </div>
-                                {replyTo ? (
-                                    <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 10px', border:'1px solid #e5e7eb', borderRadius:10, background:'#f3f4f6', minHeight:38 }}>
-                                        <span style={{ padding:'2px 8px', background:'#ede9fe', color:'#7c3aed', borderRadius:99, fontSize:12, fontWeight:600 }}>
-                                            {replyTo.from_address}
-                                        </span>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <ToField value={toAddresses} onChange={setToAddresses} systemUsers={systemUsers} />
-                                        {errors.to && <p style={{ fontSize:11, color:'#ef4444', marginTop:4 }}>⚠ {errors.to}</p>}
-                                    </>
-                                )}
-                            </div>
-                            {showCC && (
-                                <div>
-                                    <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>CC</label>
-                                    <ToField value={ccAddresses} onChange={setCcAddresses} systemUsers={systemUsers} />
+                                    <select value={aiTone} onChange={e => setAiTone(e.target.value)} style={{
+                                        padding: '8px 12px', borderRadius: 12,
+                                        border: `1px solid ${theme.inputBorder}`, background: theme.inputBg,
+                                        color: theme.text, fontSize: 12, outline: 'none', cursor: 'pointer',
+                                    }}>
+                                        {TONES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                                    </select>
+                                    <button type="button" onClick={handleAiGenerate} disabled={aiLoading || !aiPrompt} style={{
+                                        padding: '8px 16px', borderRadius: 12, border: 'none',
+                                        background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                                        color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 6,
+                                        opacity: !aiPrompt ? 0.5 : 1,
+                                    }}>
+                                        {aiLoading ? <><span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />Writing...</> : '✨ Write'}
+                                    </button>
                                 </div>
                             )}
-                            {showBCC && (
-                                <div>
-                                    <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>BCC</label>
-                                    <ToField value={bccAddresses} onChange={setBccAddresses} systemUsers={systemUsers} />
+
+                            {aiMode === 'improve' && (
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <button type="button" onClick={handleAiImprove} disabled={aiLoading} style={{
+                                        padding: '8px 16px', borderRadius: 12, border: 'none',
+                                        background: `linear-gradient(135deg, ${theme.success}, #059669)`,
+                                        color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 6,
+                                    }}>
+                                        {aiLoading ? <><span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />Improving...</> : '🔧 Improve Content'}
+                                    </button>
+                                    <span style={{ fontSize: 11, color: theme.textMute, alignSelf: 'center' }}>Rewrites your current draft professionally</span>
                                 </div>
                             )}
-                            <div>
-                                <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Subject</label>
-                                <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Email subject..."
-                                    style={{ width:'100%', padding:'8px 12px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', fontSize:13, outline:'none', color:'#111827', boxSizing:'border-box' }} />
-                            </div>
-                        </div>
 
-                        {/* AI Toolbar */}
-                        <div style={{ display:'flex', gap:6, padding:'8px 20px', borderBottom:'1px solid #f3f4f6', background:'#fafafa', flexWrap:'wrap', flexShrink:0, alignItems:'center' }}>
-                            <span style={{ fontSize:11, fontWeight:700, color:'#9ca3af', marginRight:4 }}>AI:</span>
-                            {[
-                                { mode:'generate',  label:'✨ Write',    color:'#7c3aed', bg:'#ede9fe' },
-                                { mode:'improve',   label:'🔧 Improve',  color:'#059669', bg:'#d1fae5' },
-                                { mode:'translate', label:'🌐 Translate', color:'#2563eb', bg:'#dbeafe' },
-                            ].map(a => (
-                                <button key={a.mode} type="button" onClick={() => setAiMode(aiMode===a.mode?null:a.mode)}
-                                    style={{ padding:'5px 12px', borderRadius:99, border:`1px solid ${aiMode===a.mode?a.color:'#e5e7eb'}`, background:aiMode===a.mode?a.bg:'#fff', color:aiMode===a.mode?a.color:'#6b7280', fontSize:11, fontWeight:700, cursor:'pointer' }}>
-                                    {a.label}
-                                </button>
-                            ))}
-                            {!hasApi && <span style={{ fontSize:10, color:'#f59e0b', background:'#fef3c7', padding:'2px 8px', borderRadius:99 }}>⚠ Demo mode</span>}
-                        </div>
-
-                        {/* AI Panel */}
-                        {aiMode && (
-                            <div style={{ padding:'12px 20px', background:'#f9fafb', borderBottom:'1px solid #e5e7eb', flexShrink:0 }}>
-                                {aiMode === 'generate' && (
-                                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                                        <input value={aiPrompt} onChange={e => setAiPrompt(e.target.value)} placeholder="Describe the email..."
-                                            style={{ width:'100%', padding:'8px 12px', borderRadius:10, border:'1px solid #e5e7eb', background:'#fff', fontSize:12, outline:'none', boxSizing:'border-box' }} />
-                                        <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
-                                            <span style={{ fontSize:11, color:'#6b7280', fontWeight:600 }}>Tone:</span>
-                                            {TONES.map(t => (
-                                                <button key={t.value} type="button" onClick={() => setAiTone(t.value)}
-                                                    style={{ padding:'4px 10px', borderRadius:99, border:`1px solid ${aiTone===t.value?'#7c3aed':'#e5e7eb'}`, background:aiTone===t.value?'#ede9fe':'#fff', color:aiTone===t.value?'#7c3aed':'#6b7280', fontSize:11, fontWeight:600, cursor:'pointer' }}>
-                                                    {t.label}
-                                                </button>
-                                            ))}
-                                            <button type="button" onClick={handleAiGenerate} disabled={aiLoading||!aiPrompt}
-                                                style={{ marginLeft:'auto', padding:'5px 14px', borderRadius:8, border:'none', background:aiLoading?'#c4b5fd':'#7c3aed', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
-                                                {aiLoading?<><span style={spin}/>Generating...</>:'✨ Generate'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                                {aiMode === 'improve' && (
-                                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                                        <span style={{ fontSize:12, color:'#6b7280', flex:1 }}>AI will improve grammar, tone and clarity.</span>
-                                        <button type="button" onClick={handleAiImprove} disabled={aiLoading}
-                                            style={{ padding:'5px 14px', borderRadius:8, border:'none', background:aiLoading?'#86efac':'#059669', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
-                                            {aiLoading?<><span style={spin}/>Improving...</>:'🔧 Improve Now'}
+                            {aiMode === 'translate' && (
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                                    {LANGS.map(l => (
+                                        <button key={l.code} type="button" onClick={() => setTranslateLang(l.code)} style={{
+                                            padding: '5px 12px', borderRadius: 99,
+                                            border: `1px solid ${translateLang === l.code ? theme.secondary : theme.border}`,
+                                            background: translateLang === l.code ? theme.secondarySoft : 'transparent',
+                                            color: translateLang === l.code ? theme.secondary : theme.textMute,
+                                            fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                        }}>{l.flag} {l.label}</button>
+                                    ))}
+                                    {translateLang && (
+                                        <button type="button" onClick={handleTranslatePreview} disabled={aiLoading} style={{
+                                            padding: '5px 14px', borderRadius: 99, border: 'none',
+                                            background: `linear-gradient(135deg, ${theme.secondary}, ${theme.primary})`,
+                                            color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                            marginLeft: 'auto',
+                                        }}>
+                                            {aiLoading ? 'Translating...' : 'Preview'}
                                         </button>
-                                    </div>
-                                )}
-                                {aiMode === 'translate' && (
-                                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                                        <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
-                                            {LANGUAGES.map(l => (
-                                                <button key={l.code} type="button" onClick={() => setTranslateLang(l.code)}
-                                                    style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:99, border:`1px solid ${translateLang===l.code?'#2563eb':'#e5e7eb'}`, background:translateLang===l.code?'#dbeafe':'#fff', color:translateLang===l.code?'#2563eb':'#6b7280', fontSize:11, fontWeight:600, cursor:'pointer' }}>
-                                                    <span style={{ display:'flex', alignItems:'center', borderRadius:2, overflow:'hidden', flexShrink:0 }}>{l.flag}</span>
-                                                    {l.label}
-                                                </button>
-                                            ))}
-                                            <button type="button" onClick={handleTranslatePreview} disabled={aiLoading||!translateLang}
-                                                style={{ padding:'5px 14px', borderRadius:8, border:'none', background:aiLoading?'#bfdbfe':'#2563eb', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
-                                                {aiLoading?<><span style={spin}/>Translating...</>:'👁 Preview'}
-                                            </button>
-                                        </div>
-                                        {translatePreview && (
-                                            <div style={{ padding:'10px 12px', background:'#eff6ff', borderRadius:10, border:'1px solid #bfdbfe', fontSize:12, color:'#1e40af', maxHeight:100, overflowY:'auto' }}>
-                                                <strong style={{ display:'block', marginBottom:4, fontSize:11 }}>Preview:</strong>
-                                                {translatePreview}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {translatePreview && aiMode === 'translate' && (
+                                <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 12, background: theme.secondarySoft, border: `1px solid ${theme.secondary}22`, fontSize: 12, color: theme.textSoft, whiteSpace: 'pre-wrap', maxHeight: 120, overflowY: 'auto' }}>
+                                    {translatePreview}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ── Rich Toolbar + Editor ── */}
+                    <RichToolbar editorRef={editorRef} theme={theme} />
+
+                    <div
+                        ref={editorRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        data-placeholder="Write your message..."
+                        style={{
+                            flex: 1, padding: maximized ? '24px 32px' : '16px 20px',
+                            outline: 'none', overflowY: 'auto',
+                            fontSize: 13, color: theme.text,
+                            lineHeight: 1.7, minHeight: 160,
+                            background: theme.panelSolid,
+                        }}
+                    />
+
+                    {/* ── Send Error ── */}
+                    {errors.send && (
+                        <div style={{ margin: '0 16px', padding: '8px 14px', borderRadius: 10, background: theme.dangerSoft, border: `1px solid ${theme.danger}30`, color: theme.danger, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                            {errors.send}
+                        </div>
+                    )}
+
+                    {/* ── Attachments preview ── */}
+                    {attachPreviews.length > 0 && (
+                        <div style={{ padding: '8px 16px', display: 'flex', flexWrap: 'wrap', gap: 6, borderTop: `1px solid ${theme.border}`, flexShrink: 0 }}>
+                            {attachPreviews.map((f, i) => (
+                                <span key={i} style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                                    padding: '4px 10px', borderRadius: 99,
+                                    background: theme.panelSoft,
+                                    border: `1px solid ${theme.border}`,
+                                    fontSize: 11, color: theme.textSoft,
+                                }}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                                    {f.name} <span style={{ color: theme.textMute }}>{f.size}</span>
+                                    <button type="button" onClick={() => { setAttachFiles(p => p.filter((_, j) => j !== i)); setAttachPreviews(p => p.filter((_, j) => j !== i)); }}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.textMute, fontSize: 13, lineHeight: 1 }}>×</button>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* ── Footer ── */}
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '12px 16px',
+                        borderTop: `1px solid ${theme.border}`,
+                        background: theme.panelSoft,
+                        flexShrink: 0,
+                    }}>
+                        {/* Attach */}
+                        <label title="Attach files" style={{
+                            width: 36, height: 36, borderRadius: 12,
+                            border: `1px solid ${theme.border}`,
+                            background: theme.panelSolid,
+                            cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: theme.textMute,
+                            transition: 'all 0.14s',
+                        }}
+                            onMouseEnter={e => { e.currentTarget.style.background = theme.panelSofter; e.currentTarget.style.color = theme.text; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = theme.panelSolid; e.currentTarget.style.color = theme.textMute; }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                            </svg>
+                            <input type="file" multiple onChange={handleAttach} style={{ display: 'none' }} />
+                        </label>
+
+                        {!hasApi && (
+                            <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 99, background: theme.warningSoft, color: theme.warning, fontWeight: 800 }}>
+                                Demo Mode
+                            </span>
                         )}
 
-                        {/* Editor — FIX 1: ref only, no dangerouslySetInnerHTML */}
-                        <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minHeight:0 }}>
-                            <RichToolbar editorRef={editorRef} />
-                            <div
-                                ref={editorRef}
-                                contentEditable
-                                suppressContentEditableWarning
-                                style={{ flex:1, padding:'14px 20px', outline:'none', overflowY:'auto', fontSize:13, color:'#374151', lineHeight:1.7, minHeight:140, wordBreak:'break-word' }}
-                            />
-                        </div>
+                        <div style={{ flex: 1 }} />
 
-                        {/* Attachments */}
-                        {attachPreviews.length > 0 && (
-                            <div style={{ padding:'8px 20px', borderTop:'1px solid #f3f4f6', display:'flex', gap:8, flexWrap:'wrap', flexShrink:0 }}>
-                                {attachPreviews.map((a,i) => (
-                                    <div key={i} style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', background:'#f9fafb', border:'1px solid #e5e7eb', borderRadius:8 }}>
-                                        <span>📎</span>
-                                        <span style={{ fontSize:11, fontWeight:600, color:'#374151' }}>{a.name}</span>
-                                        <span style={{ fontSize:10, color:'#9ca3af' }}>{a.size}</span>
-                                        <button type="button" onClick={() => {
-                                            setAttachPreviews(p => p.filter((_,idx)=>idx!==i));
-                                            setAttachFiles(p => p.filter((_,idx)=>idx!==i));
-                                        }} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af', fontSize:14 }}>×</button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        {/* Cancel */}
+                        <button type="button" onClick={onClose} style={{
+                            padding: '9px 18px', borderRadius: 12,
+                            border: `1px solid ${theme.border}`,
+                            background: theme.panelSolid, color: theme.textSoft,
+                            fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                            transition: 'all 0.15s',
+                        }}
+                            onMouseEnter={e => e.currentTarget.style.background = theme.panelSofter}
+                            onMouseLeave={e => e.currentTarget.style.background = theme.panelSolid}
+                        >Cancel</button>
 
-                        {/* Footer */}
-                        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 20px', borderTop:'1px solid #f3f4f6', flexShrink:0 }}>
-                            <label style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 12px', borderRadius:8, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#6b7280', fontSize:12, fontWeight:600, cursor:'pointer' }}>
-                                📎 Attach <input type="file" multiple style={{ display:'none' }} onChange={handleAttach} />
-                            </label>
-                            {errors.send && <span style={{ fontSize:11, color:'#ef4444' }}>❌ {errors.send}</span>}
-                            <div style={{ flex:1 }} />
-                            <button type="button" onClick={onClose}
-                                style={{ padding:'8px 20px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#374151', fontSize:13, fontWeight:600, cursor:'pointer' }}>
-                                Discard
-                            </button>
-                            <button type="submit" disabled={sending}
-                                style={{ padding:'8px 24px', borderRadius:10, border:'none', background:sending?'#c4b5fd':'#7c3aed', color:'#fff', fontSize:13, fontWeight:700, cursor:sending?'not-allowed':'pointer', display:'flex', alignItems:'center', gap:6 }}>
-                                {sending?<><span style={spin}/>Sending...</>:'📤 Send'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                        {/* Send */}
+                        <button type="submit" disabled={sending} style={{
+                            padding: '9px 22px', borderRadius: 12, border: 'none',
+                            background: sending
+                                ? theme.textMute
+                                : `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                            color: '#fff', fontSize: 13, fontWeight: 900,
+                            cursor: sending ? 'not-allowed' : 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 7,
+                            boxShadow: sending ? 'none' : `0 6px 18px ${theme.primary}35`,
+                            transition: 'all 0.18s',
+                        }}
+                            onMouseEnter={e => { if (!sending) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                        >
+                            {sending ? (
+                                <>
+                                    <span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                                    Sending...
+                                </>
+                            ) : (
+                                <>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                    </svg>
+                                    Send
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
             </div>
 
             {/* Template Vars Modal */}
             <TemplateVarsModal
                 open={templateModal.open}
                 template={templateModal.template}
-                onClose={() => setTemplateModal({ open:false, template:null })}
+                onClose={() => setTemplateModal({ open: false, template: null })}
                 onApply={handleTemplateApply}
+                leaveTypes={leaveTypes}
+                theme={theme}
             />
 
             <style>{`
-                @keyframes spin    { to { transform:rotate(360deg); } }
-                @keyframes slideUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
-                [contenteditable] { caret-color: #7c3aed; }
+                @keyframes spin    { to { transform: rotate(360deg); } }
+                @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+                @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+                [contenteditable]:empty:before { content: attr(data-placeholder); color: ${theme.textMute}; pointer-events: none; }
+                [contenteditable] { caret-color: ${theme.primary}; }
+
+                /* ── Dark mode: template HTML hardcoded colors override ── */
+                ${darkMode ? `
+                [contenteditable] * { color: ${theme.text} !important; }
+                [contenteditable] h1,
+                [contenteditable] h2,
+                [contenteditable] h3 { color: ${theme.text} !important; }
+                [contenteditable] strong { color: ${theme.text} !important; }
+                [contenteditable] p { color: ${theme.textSoft} !important; }
+                [contenteditable] [style*="color:#9ca3af"],
+                [contenteditable] [style*="color:#6b7280"],
+                [contenteditable] [style*="color:#4b5563"],
+                [contenteditable] [style*="color:#374151"],
+                [contenteditable] [style*="color:#475569"],
+                [contenteditable] [style*="color:#64748b"] { color: ${theme.textSoft} !important; }
+                [contenteditable] [style*="color:#0f172a"],
+                [contenteditable] [style*="color:#111827"],
+                [contenteditable] [style*="color:#1a1a2e"] { color: ${theme.text} !important; }
+                [contenteditable] div[style*="background:#f"],
+                [contenteditable] div[style*="background:#e"] { background: ${theme.panelSoft} !important; border-color: ${theme.border} !important; }
+                ` : ''}
+
+                /* ── Maximize: editor content full width ── */
+                [contenteditable] > div[style*="max-width"] { max-width: 100% !important; }
             `}</style>
         </>
     );

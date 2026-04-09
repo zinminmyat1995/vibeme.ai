@@ -520,9 +520,7 @@ class ImapService
                     $newCount++;
                 }
 
-                try { event(new NewMailReceived($mail)); } catch (\Throwable $e) {}
-
-                $newCount++;
+                
                 $mails[] = $this->formatMailArray($mail);
             }
 
@@ -553,11 +551,73 @@ class ImapService
 
     public function testConnection(string $host, int $port, string $username, string $password): array
     {
-        $ctx  = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
-        $sock = @stream_socket_client("ssl://{$host}:{$port}", $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $ctx);
-        if (!$sock) return ['success' => false, 'error' => "Cannot connect: {$errstr}"];
-        fclose($sock);
-        return ['success' => true, 'message' => 'Connection successful'];
+        $ctx = stream_context_create([
+            'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+        ]);
+
+        // Step 1: SSL Connect
+        $sock = @stream_socket_client(
+            "ssl://{$host}:{$port}",
+            $errno, $errstr, 15,
+            STREAM_CLIENT_CONNECT, $ctx
+        );
+
+        if (!$sock) {
+            return ['success' => false, 'error' => "Cannot connect to {$host}:{$port} — {$errstr}"];
+        }
+
+        stream_set_timeout($sock, 15);
+
+        // Step 2: Read greeting
+        $greeting = fgets($sock, 1024);
+        if ($greeting === false) {
+            fclose($sock);
+            return ['success' => false, 'error' => 'No response from mail server.'];
+        }
+
+        // Step 3: IMAP LOGIN with actual credentials
+        $tag = 'T0001';
+        $cmd = "{$tag} LOGIN \"{$username}\" \"{$password}\"\r\n";
+        fwrite($sock, $cmd);
+
+        $response = '';
+        $deadline = time() + 15;
+        while (time() < $deadline) {
+            $line = fgets($sock, 1024);
+            if ($line === false) break;
+            $response .= $line;
+            if (str_starts_with($line, $tag . ' ')) break;
+        }
+
+        // Step 4: Logout cleanly
+        @fwrite($sock, "T0002 LOGOUT\r\n");
+        @fclose($sock);
+
+        // Step 5: Check result
+        if (preg_match('/^' . preg_quote($tag) . '\s+OK/im', $response)) {
+            return ['success' => true, 'message' => 'Connection and login successful'];
+        }
+
+        // Extract server error message
+        $errorLine = '';
+        foreach (explode("\n", $response) as $line) {
+            if (str_starts_with(trim($line), $tag . ' ')) {
+                $errorLine = trim($line);
+                break;
+            }
+        }
+
+        // Friendly error messages
+        if (str_contains(strtoupper($errorLine), 'AUTHENTICATIONFAILED')
+            || str_contains(strtoupper($errorLine), 'INVALID CREDENTIALS')) {
+            return ['success' => false, 'error' => 'Login failed — Email or App Password is incorrect.'];
+        }
+
+        if (str_contains(strtoupper($errorLine), 'NO')) {
+            return ['success' => false, 'error' => 'Login rejected by server — check your App Password.'];
+        }
+
+        return ['success' => false, 'error' => 'Login failed — ' . ($errorLine ?: 'Unknown error')];
     }
 
     // ── Format ────────────────────────────────────────────────────────

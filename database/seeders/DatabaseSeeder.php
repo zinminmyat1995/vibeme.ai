@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
             PublicHolidaySeeder::class,
             SalaryRuleSeeder::class,
             LeavePolicySeeder::class,
+            BrycenOfficeSeeder::class,   // ← ထည့်
+            MailTemplateSeeder::class,   // ← ထည့်
         ]);
     }
 }

@@ -216,7 +216,7 @@ class SalaryRuleSeeder extends Seeder
     {
         foreach ($deductions as $d) {
             SalaryDeduction::create([
-                'salary_rule_id' => $ruleId,
+                // 'salary_rule_id' => $ruleId,
                 'name' => $d['name'],
                 'amount_per_unit' => $d['amount_per_unit'],
                 'unit_type' => $d['unit_type'],

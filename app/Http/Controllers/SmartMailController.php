@@ -35,13 +35,14 @@ class SmartMailController extends Controller
             ]);
         }
 
-        // Page load = DB ထဲရှိပြီးသားကို newest 20 ပြ (no IMAP call)
+        // Page load = DB ထဲရှိသမျှ ဆွဲ (limit မပါ — sync လုပ်ထားသမျှ အကုန်ပြ)
+        // newest 100 ခု cap ထားမယ် (performance အတွက်)
         $inbox = Mail::where('user_id', $user->id)
             ->where('type', 'received')
             ->whereNull('deleted_at')
             ->with('attachments')
             ->orderByDesc('mail_date')
-            ->limit(20)
+            ->limit(100)
             ->get()
             ->map(fn($m) => $this->formatMail($m));
 
@@ -50,7 +51,7 @@ class SmartMailController extends Controller
             ->whereNull('deleted_at')
             ->with('attachments')
             ->orderByDesc('mail_date')
-            ->limit(20)
+            ->limit(100)
             ->get()
             ->map(fn($m) => $this->formatMail($m));
 
@@ -59,7 +60,11 @@ class SmartMailController extends Controller
             ->where('is_read', false)
             ->whereNull('deleted_at')
             ->count();
-
+        \Log::info(\App\Models\LeavePolicy::where('is_active', true)
+                                ->orderBy('leave_type')
+                                ->pluck('leave_type')
+                                ->unique()
+                                ->values());
         return Inertia::render('SmartMail', [
             'mailSetting' => $this->formatSetting($mailSetting),
             'inbox'       => $inbox,
@@ -67,6 +72,11 @@ class SmartMailController extends Controller
             'unreadCount' => $unreadCount,
             'templates'   => MailTemplate::all(),
             'systemUsers' => $this->getSystemUsers(),
+            'leaveTypes'  => \App\Models\LeavePolicy::where('is_active', true)
+                                ->orderBy('leave_type')
+                                ->pluck('leave_type')
+                                ->unique()
+                                ->values(),
             'needsSetup'  => false,
             'hasApi'      => $this->aiService->hasApiKey(),
         ]);
@@ -114,7 +124,7 @@ class SmartMailController extends Controller
             ]
         );
 
-        return back()->with('success', 'Mail account connected successfully!');
+        return back();
     }
 
     // ── Test Connection ─────────────────────────────────────────────
@@ -200,12 +210,12 @@ class SmartMailController extends Controller
             ]);
         }
 
-        return response()->json(['success' => true, 'message' => 'Mail sent successfully!','mail'    => $this->formatMail($result['mail'])]);
+        return response()->json(['success' => true, 'message' => 'Mail sent successfully!', 'mail' => $this->formatMail($result['mail'])]);
     }
 
     // ── Sync Inbox ──────────────────────────────────────────────────
-    // page=1 → clear DB + fetch newest 10
-    // page=2,3... → fetch next 10 (append)
+    // page=1 → newest 10 UIDs (IMAP) → DB save
+    // page=2,3... → older 10 UIDs → DB save
     public function sync(Request $request)
     {
         $setting = UserMailSetting::where('user_id', auth()->id())
@@ -240,7 +250,7 @@ class SmartMailController extends Controller
     {
         $this->authorizeMail($mail);
         $mail->delete();
-        return back()->with('success', 'Mail deleted!');
+        return back();
     }
 
     // ── Translate ───────────────────────────────────────────────────
