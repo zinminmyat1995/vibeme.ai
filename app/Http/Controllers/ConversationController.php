@@ -320,8 +320,6 @@ class ConversationController extends Controller
     }
 
     // ── Block user ──
-    // ── Block user ──
-
     public function blockUser(Request $request)
     {
         $request->validate(['user_id' => 'required|exists:users,id']);
@@ -329,16 +327,36 @@ class ConversationController extends Controller
             'user_id'         => auth()->id(),
             'blocked_user_id' => $request->user_id,
         ]);
+
+        // Find the private conversation between these two users
+        $conv = Conversation::where('type', 'private')
+            ->whereHas('members', fn($q) => $q->where('user_id', auth()->id()))
+            ->whereHas('members', fn($q) => $q->where('user_id', $request->user_id))
+            ->first();
+
+        if ($conv) {
+            broadcast(new \App\Events\UserBlocked($conv->id, $request->user_id, true));
+        }
+
         return response()->json(['success' => true, 'i_blocked_them' => true, 'they_blocked_me' => false]);
     }
 
-    // ── Unblock user ──
     public function unblockUser(Request $request)
     {
         $request->validate(['user_id' => 'required|exists:users,id']);
         BlockedUser::where('user_id', auth()->id())
             ->where('blocked_user_id', $request->user_id)
             ->delete();
+
+        $conv = Conversation::where('type', 'private')
+            ->whereHas('members', fn($q) => $q->where('user_id', auth()->id()))
+            ->whereHas('members', fn($q) => $q->where('user_id', $request->user_id))
+            ->first();
+
+        if ($conv) {
+            broadcast(new \App\Events\UserBlocked($conv->id, $request->user_id, false));
+        }
+
         return response()->json(['success' => true, 'i_blocked_them' => false, 'they_blocked_me' => false]);
     }
 

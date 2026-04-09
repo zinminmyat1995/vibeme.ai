@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
+import { usePage } from '@inertiajs/react';
 
 // ── Theme System ───────────────────────────────────────────────
 function useReactiveTheme() {
@@ -216,6 +217,8 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
     const [showLangPicker, setShowLangPicker]   = useState(false);
     const [translating, setTranslating]         = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [menuDir, setMenuDir] = useState('up'); // 'up' | 'down'
+    const dotBtnRef = useRef(null);
 
     const isMenuOpen = openMenuId === msg.id;
     const myReaction = msg.reactions?.find(r => r.reacted_by_me)?.emoji || null;
@@ -224,7 +227,16 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
     const toggleMenu = (e) => {
         e.stopPropagation();
         if (isMenuOpen) { setOpenMenuId(null); setShowEmojiPicker(false); setShowLangPicker(false); }
-        else            { setOpenMenuId(msg.id); setShowEmojiPicker(false); setShowLangPicker(false); }
+        else {
+            // Detect if menu should open up or down
+            if (dotBtnRef.current) {
+                const rect = dotBtnRef.current.getBoundingClientRect();
+                const spaceAbove = rect.top;
+                // If less than 220px above (header ~64px + menu ~160px), open downward
+                setMenuDir(spaceAbove < 220 ? 'down' : 'up');
+            }
+            setOpenMenuId(msg.id); setShowEmojiPicker(false); setShowLangPicker(false);
+        }
     };
     const handleReactClick = (e, emoji) => { e.stopPropagation(); onReact(msg.id, emoji); setShowEmojiPicker(false); setOpenMenuId(null); };
     const handleRemoveReact = (e) => { e.stopPropagation(); if (myReaction) onReact(msg.id, myReaction); };
@@ -236,18 +248,18 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: isMine ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: 6, marginBottom: 2, padding: '2px 16px' }}>
+        <div style={{ display: 'flex', flexDirection: isMine ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: 2, marginBottom: 2, padding: '2px 16px' }}>
             {!isMine && <div style={{ width: 32, flexShrink: 0 }}>{showAvatar && <Avatar name={msg.sender?.name || '?'} size={32} photo={msg.sender?.avatar_url || msg.sender?.avatar || null} />}</div>}
 
             {!isDeleted && (
-                <div style={{ position: 'relative', alignSelf: 'center', flexShrink: 0, order: isMine ? -1 : 1 }}>
-                    <button onClick={toggleMenu} style={{ width: 26, height: 26, borderRadius: 8, background: isMenuOpen ? 'rgba(99,102,241,0.12)' : t.reactionBg, border: `1px solid ${isMenuOpen ? 'rgba(99,102,241,0.3)' : t.reactionBorder}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isMenuOpen ? '#6366f1' : t.textMute, fontSize: 15, fontWeight: 900, letterSpacing: '-1px', transition: 'all 0.15s' }}
+                <div style={{ position: 'relative', alignSelf: 'flex-end', flexShrink: 0, order: isMine ? -1 : 1, marginBottom: 6 }}>
+                    <button ref={dotBtnRef} onClick={toggleMenu} style={{ height: 26, borderRadius: 8, background: isMenuOpen ? 'rgba(99,102,241,0.1)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isMenuOpen ? '#6366f1' : t.textMute, fontSize: 15, fontWeight: 900, letterSpacing: '-1px', transition: 'all 0.15s' }}
                         onMouseEnter={e => { e.currentTarget.style.background='rgba(99,102,241,0.1)'; e.currentTarget.style.color='#6366f1'; }}
-                        onMouseLeave={e => { if (!isMenuOpen) { e.currentTarget.style.background=t.reactionBg; e.currentTarget.style.color=t.textMute; } }}
+                        onMouseLeave={e => { if (!isMenuOpen) { e.currentTarget.style.background='transparent'; e.currentTarget.style.color=t.textMute; } }}
                     >⋯</button>
 
                     {isMenuOpen && (
-                        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', bottom: '110%', [isMine ? 'right' : 'left']: 0, background: t.menuBg, border: `1px solid ${t.menuBorder}`, borderRadius: 14, padding: '6px', zIndex: 500, boxShadow: t.shadow, minWidth: 160, animation: 'fadeIn 0.15s ease' }}>
+                        <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', ...(menuDir === 'down' ? { top: '110%' } : { bottom: '110%' }), [isMine ? 'right' : 'left']: 0, background: t.menuBg, border: `1px solid ${t.menuBorder}`, borderRadius: 14, padding: '6px', zIndex: 9999, boxShadow: t.shadow, minWidth: 160, animation: 'fadeIn 0.15s ease' }}>
                             {!showEmojiPicker && !showLangPicker && (
                                 <div>
                                     {!isMine && <MItem icon={myReaction || '😊'} label="React" onClick={e => { e.stopPropagation(); setShowEmojiPicker(true); }} highlight={!!myReaction} t={t} />}
@@ -295,7 +307,18 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
                 )}
 
                 {msg.reply_to && (
-                    <div style={{ padding: '4px 10px', marginBottom: 4, background: t.replyBg, borderLeft: '3px solid #6366f1', borderRadius: 8, fontSize: 11, color: t.textSecondary, maxWidth: '100%' }}>
+                    <div
+                        onClick={() => {
+                            const el = document.getElementById(`msg-${msg.reply_to.id}`);
+                            if (el) {
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                el.style.transition = 'background 0.2s';
+                                el.style.background = 'rgba(99,102,241,0.15)';
+                                setTimeout(() => { el.style.background = ''; }, 1200);
+                            }
+                        }}
+                        style={{ padding: '4px 10px', marginBottom: 4, background: t.replyBg, borderLeft: '3px solid #6366f1', borderRadius: 8, fontSize: 11, color: t.textSecondary, maxWidth: '100%', cursor: 'pointer' }}
+                    >
                         <span style={{ fontWeight: 700, color: '#6366f1' }}>{msg.reply_to.sender_name}</span>
                         <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{msg.reply_to.body || `[${msg.reply_to.type}]`}</div>
                     </div>
@@ -500,7 +523,15 @@ function HeaderBtn({ icon, title, onClick, active = false, t }) {
 }
 
 // ── Main Page ──────────────────────────────────────────────────
-export default function AiChat({ conversations: initConvs = [], users = [], authUser }) {
+export default function AiChat({ conversations: initConvs = [], users = [] }) {
+    // authUser — usePage() live + WS avatar override
+    const { auth } = usePage().props;
+    const baseAuthUser = auth?.user;
+    const [avatarOverride, setAvatarOverride] = useState(undefined); // undefined=not yet set
+    // live authUser: WS override wins over Inertia shared prop
+    const authUser = avatarOverride !== undefined
+        ? { ...baseAuthUser, avatar_url: avatarOverride }
+        : baseAuthUser;
     const darkMode = useReactiveTheme();
     const t = getTheme(darkMode);
 
@@ -569,6 +600,54 @@ export default function AiChat({ conversations: initConvs = [], users = [], auth
         const ch = window.Echo.private(`user.${authUser.id}`);
         ch.listen('.conversation.created', ({ conversation }) => { const nc = normalizeConv(conversation); setConversations(prev => { if (prev.find(c => c.id === nc.id)) return prev; return [nc, ...prev]; }); });
         ch.listen('.conversation.deleted', ({ conversation_id }) => { setConversations(prev => prev.filter(c => c.id !== conversation_id)); setActiveConv(prev => { if (prev?.id === conversation_id) return null; return prev; }); });
+
+        // Real-time block/unblock — they_blocked_me updates without refresh
+        ch.listen('.user.blocked', ({ conversation_id, is_blocked }) => {
+            setConversations(prev => prev.map(c =>
+                c.id !== conversation_id ? c : { ...c, they_blocked_me: is_blocked }
+            ));
+            setActiveConv(prev =>
+                prev?.id !== conversation_id ? prev : { ...prev, they_blocked_me: is_blocked }
+            );
+        });
+
+        // Real-time avatar update
+        ch.listen('.user.avatar.updated', ({ user_id, avatar_url }) => {
+            // ── ကိုယ်ရဲ့ own avatar ──
+            if (user_id === baseAuthUser?.id) {
+                setAvatarOverride(avatar_url ?? null);
+            }
+            // ── Conversations list ထဲ member avatar update ──
+            setConversations(prev => prev.map(c => ({
+                ...c,
+                members: (c.members || []).map(m =>
+                    m.id === user_id ? { ...m, avatar_url } : m
+                ),
+                ...(c.type === 'private' && c.members?.find(m => m.id === user_id)
+                    ? { avatar_url }
+                    : {}),
+            })));
+            // ── Active conversation ──
+            setActiveConv(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    members: (prev.members || []).map(m =>
+                        m.id === user_id ? { ...m, avatar_url } : m
+                    ),
+                    ...(prev.type === 'private' && prev.members?.find(m => m.id === user_id)
+                        ? { avatar_url }
+                        : {}),
+                };
+            });
+            // ── Message bubbles sender avatar ──
+            setMessages(prev => prev.map(m =>
+                m.sender_id === user_id
+                    ? { ...m, sender: { ...m.sender, avatar_url } }
+                    : m
+            ));
+        });
+
         return () => { try { window.Echo.leave(`user.${authUser.id}`); } catch(e) {} };
     }, [authUser?.id]);
 
@@ -605,7 +684,7 @@ export default function AiChat({ conversations: initConvs = [], users = [], auth
                     clearTimeout(typingReceiveTimer.current);
                     if (is_typing) {
                         setTyping({ name: user_name, userId: user_id });
-                        typingReceiveTimer.current = setTimeout(() => setTyping(null), 4000);
+                        typingReceiveTimer.current = setTimeout(() => setTyping(null), 3500);
                     } else {
                         typingReceiveTimer.current = setTimeout(() => setTyping(null), 500);
                     }
@@ -692,9 +771,30 @@ export default function AiChat({ conversations: initConvs = [], users = [], auth
 
     const handleTyping = useCallback(() => {
         if (!activeConv) return;
-        if (!isTypingRef.current) { isTypingRef.current = true; fetch(`/ai-chat/conversations/${activeConv.id}/typing`, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' }, body: JSON.stringify({ is_typing: true }) }); }
+
+        // ── Throttle: send is_typing:true every 2s max (not every keystroke) ──
+        const now = Date.now();
+        if (!isTypingRef.current || (now - (isTypingRef.lastSent || 0)) > 2000) {
+            isTypingRef.current = true;
+            isTypingRef.lastSent = now;
+            fetch(`/ai-chat/conversations/${activeConv.id}/typing`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_typing: true })
+            });
+        }
+
+        // ── Reset stop timer on every keystroke ──
         clearTimeout(typingTimer.current);
-        typingTimer.current = setTimeout(() => { isTypingRef.current = false; fetch(`/ai-chat/conversations/${activeConv.id}/typing`, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' }, body: JSON.stringify({ is_typing: false }) }); }, 3000);
+        typingTimer.current = setTimeout(() => {
+            isTypingRef.current = false;
+            isTypingRef.lastSent = 0;
+            fetch(`/ai-chat/conversations/${activeConv.id}/typing`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_typing: false })
+            });
+        }, 2500);
     }, [activeConv]);
 
     const handleNewConv = async ({ type, user_id, name, user_ids }) => {

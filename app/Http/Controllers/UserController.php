@@ -118,6 +118,13 @@ public function store(Request $request)
         'contract_end_date' => $employmentType === 'contract' ? $request->contract_end_date : null,
     ]);
 
+    if ($request->hasFile('avatar') || $request->boolean('remove_avatar')) {
+        broadcast(new \App\Events\UserAvatarUpdated(
+            $user->id,
+            $user->avatar_url,  // null = removed
+        ));
+    }
+
     Mail::to($user->email)->send(new UserCreatedMail($user, $request->password));
     return back()->with('success', 'User created successfully!');
 }
@@ -189,6 +196,13 @@ public function update(Request $request, User $user)
     }
 
     $user->save();
+    if ($request->hasFile('avatar') || $request->boolean('remove_avatar')) {
+        broadcast(new \App\Events\UserAvatarUpdated(
+            $user->id,
+            $user->avatar_url,
+        ));
+    }
+
     Mail::to($user->email)->send(new UserUpdatedMail($user));
     return back()->with('success', 'User updated successfully!');
 }
