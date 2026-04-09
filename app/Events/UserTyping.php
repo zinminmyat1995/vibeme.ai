@@ -5,11 +5,11 @@ namespace App\Events;
 use App\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;  // ← ShouldBroadcast မဟုတ်ဘဲ ShouldBroadcastNow
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class UserTyping implements ShouldBroadcast
+class UserTyping implements ShouldBroadcastNow  // ← ဒါပြောင်း
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
