@@ -1,6 +1,98 @@
 import { useForm, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
+// ── Theme hook ─────────────────────────────────────────────────
+function useTheme() {
+    const getDark = () => {
+        if (typeof window === 'undefined') return false;
+        return document.documentElement.getAttribute('data-theme') === 'dark'
+            || localStorage.getItem('vibeme-theme') === 'dark';
+    };
+    const [dark, setDark] = useState(getDark);
+    useEffect(() => {
+        const sync = () => setDark(getDark());
+        window.addEventListener('vibeme-theme-change', sync);
+        window.addEventListener('storage', sync);
+        return () => {
+            window.removeEventListener('vibeme-theme-change', sync);
+            window.removeEventListener('storage', sync);
+        };
+    }, []);
+    return dark;
+}
+
+function getTheme(dark) {
+    if (dark) return {
+        panel:        'linear-gradient(180deg, rgba(10,18,36,0.97) 0%, rgba(9,16,32,0.93) 100%)',
+        panelSolid:   '#0b1324',
+        panelSoft:    'rgba(255,255,255,0.04)',
+        panelSofter:  'rgba(255,255,255,0.07)',
+        border:       'rgba(148,163,184,0.12)',
+        borderFocus:  'rgba(124,58,237,0.5)',
+        text:         '#f8fafc',
+        textSoft:     '#cbd5e1',
+        textMute:     '#64748b',
+        primary:      '#7c3aed',
+        primarySoft:  'rgba(124,58,237,0.15)',
+        primaryHover: '#6d28d9',
+        danger:       '#f87171',
+        dangerSoft:   'rgba(248,113,113,0.12)',
+        dangerHover:  '#ef4444',
+        success:      '#34d399',
+        successSoft:  'rgba(52,211,153,0.12)',
+        warning:      '#fbbf24',
+        warningSoft:  'rgba(251,191,36,0.12)',
+        info:         '#60a5fa',
+        infoSoft:     'rgba(96,165,250,0.12)',
+        orange:       '#fb923c',
+        orangeSoft:   'rgba(251,146,60,0.12)',
+        shadow:       '0 8px 32px rgba(0,0,0,0.4)',
+        shadowSoft:   '0 2px 12px rgba(0,0,0,0.25)',
+        inputBg:      'rgba(255,255,255,0.05)',
+        inputBorder:  'rgba(148,163,184,0.15)',
+        tableHead:    'rgba(255,255,255,0.03)',
+        rowHover:     'rgba(255,255,255,0.03)',
+        divider:      'rgba(148,163,184,0.08)',
+        emptyBorder:  'rgba(148,163,184,0.15)',
+        overlay:      'rgba(2,8,23,0.72)',
+    };
+    return {
+        panel:        'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(249,250,255,0.96) 100%)',
+        panelSolid:   '#ffffff',
+        panelSoft:    '#f8fafc',
+        panelSofter:  '#f1f5f9',
+        border:       'rgba(15,23,42,0.08)',
+        borderFocus:  'rgba(124,58,237,0.4)',
+        text:         '#0f172a',
+        textSoft:     '#475569',
+        textMute:     '#94a3b8',
+        primary:      '#7c3aed',
+        primarySoft:  '#f3e8ff',
+        primaryHover: '#6d28d9',
+        danger:       '#ef4444',
+        dangerSoft:   '#fef2f2',
+        dangerHover:  '#dc2626',
+        success:      '#059669',
+        successSoft:  '#f0fdf4',
+        warning:      '#d97706',
+        warningSoft:  '#fffbeb',
+        info:         '#2563eb',
+        infoSoft:     '#eff6ff',
+        orange:       '#ea580c',
+        orangeSoft:   '#fff7ed',
+        shadow:       '0 8px 32px rgba(15,23,42,0.1)',
+        shadowSoft:   '0 2px 8px rgba(15,23,42,0.06)',
+        inputBg:      '#f8fafc',
+        inputBorder:  '#e2e8f0',
+        tableHead:    '#f8fafc',
+        rowHover:     '#fafbff',
+        divider:      'rgba(15,23,42,0.06)',
+        emptyBorder:  'rgba(15,23,42,0.12)',
+        overlay:      'rgba(15,23,42,0.36)',
+    };
+}
+
+// ── Constants ──────────────────────────────────────────────────
 const defaultForm = {
     name:            '',
     deduction_type:  'percentage',
@@ -9,17 +101,66 @@ const defaultForm = {
 };
 
 const PRESET_DEDUCTIONS = [
-    { name: 'Income Tax',        type: 'percentage' },
-    { name: 'Social Security',   type: 'percentage' },
-    { name: 'NSSF',              type: 'percentage' },
-    { name: 'SSB',               type: 'percentage' },
-    { name: 'Health Insurance',  type: 'percentage' },
-    { name: 'Pension Fund',      type: 'percentage' },
-    { name: 'Union Fee',         type: 'flat'       },
-    { name: 'Absence Deduction', type: 'flat'       },
+    { name: 'Income Tax',        type: 'percentage', emoji: '🏛️' },
+    { name: 'Social Security',   type: 'percentage', emoji: '🛡️' },
+    { name: 'NSSF',              type: 'percentage', emoji: '📋' },
+    { name: 'SSB',               type: 'percentage', emoji: '🏦' },
+    { name: 'Health Insurance',  type: 'percentage', emoji: '🏥' },
+    { name: 'Pension Fund',      type: 'percentage', emoji: '💰' },
+    { name: 'Union Fee',         type: 'flat',       emoji: '🤝' },
+    { name: 'Absence Deduction', type: 'flat',       emoji: '📅' },
 ];
 
+// ── Helpers ────────────────────────────────────────────────────
+function ErrMsg({ msg }) {
+    if (!msg) return null;
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5, fontSize: 11, fontWeight: 600, color: '#ef4444' }}>
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01"/>
+            </svg>
+            {msg}
+        </div>
+    );
+}
+
+function DSToggle({ label, checked, onChange, disabled, T, dark }) {
+    return (
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1, userSelect: 'none' }}>
+            <div
+                onClick={() => !disabled && onChange(!checked)}
+                style={{
+                    position: 'relative', width: 38, height: 22, borderRadius: 99,
+                    background: checked ? '#7c3aed' : (dark ? 'rgba(148,163,184,0.2)' : '#d1d5db'),
+                    flexShrink: 0, cursor: disabled ? 'not-allowed' : 'pointer',
+                    transition: 'background 0.2s',
+                }}>
+                <span style={{
+                    position: 'absolute', top: 3, left: checked ? 19 : 3,
+                    width: 16, height: 16, borderRadius: '50%', background: '#fff',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s',
+                }}/>
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: T.textSoft }}>{label}</span>
+        </label>
+    );
+}
+
+function DSSpinner() {
+    return (
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"
+            style={{ animation: 'dsSpin 0.7s linear infinite', display: 'inline-block' }}>
+            <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+        </svg>
+    );
+}
+
+// ── Main ───────────────────────────────────────────────────────
 export default function DeductionSection({ deductions }) {
+    const dark = useTheme();
+    const T    = getTheme(dark);
+
     const [showForm, setShowForm]         = useState(false);
     const [editingId, setEditingId]       = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -30,10 +171,10 @@ export default function DeductionSection({ deductions }) {
 
     const validate = () => {
         const errs = {};
-        if (!data.name.trim())        errs.name            = 'Deduction name is required.';
-        if (!data.amount_per_unit)    errs.amount_per_unit  = 'Rate / Amount is required.';
-        else if (Number(data.amount_per_unit) < 0)
-                                      errs.amount_per_unit  = 'Must be 0 or greater.';
+        if (!data.name.trim())     errs.name            = 'Deduction name is required.';
+        if (!data.amount_per_unit) errs.amount_per_unit  = 'Rate / Amount is required.';
+        else if (isNaN(data.amount_per_unit) || Number(data.amount_per_unit) < 0)
+                                   errs.amount_per_unit  = 'Enter a valid number.';
         return errs;
     };
 
@@ -42,35 +183,25 @@ export default function DeductionSection({ deductions }) {
         const errs = validate();
         if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
         setFormErrors({});
-
         if (editingId) {
             put(`/payroll/hr-policy/deduction/${editingId}`, {
                 preserveScroll: true,
                 onSuccess: () => { reset(); setShowForm(false); setEditingId(null); },
-                onError: (e) => {
-                    if (e.name) setFormErrors(p => ({ ...p, name: e.name }));
-                },
+                onError:   (e) => { if (e.name) setFormErrors(p => ({ ...p, name: e.name })); },
             });
         } else {
             post('/payroll/hr-policy/deduction', {
                 preserveScroll: true,
                 onSuccess: () => { reset(); setShowForm(false); },
-                onError: (e) => {
-                    if (e.name) setFormErrors(p => ({ ...p, name: e.name }));
-                },
+                onError:   (e) => { if (e.name) setFormErrors(p => ({ ...p, name: e.name })); },
             });
         }
     };
 
-    const handleEdit = (deduction) => {
+    const handleEdit = (ded) => {
         setFormErrors({});
-        setData({
-            name:            deduction.name,
-            deduction_type:  deduction.deduction_type,
-            amount_per_unit: deduction.amount_per_unit,
-            is_active:       !!deduction.is_active,
-        });
-        setEditingId(deduction.id);
+        setData({ name: ded.name, deduction_type: ded.deduction_type, amount_per_unit: ded.amount_per_unit, is_active: !!ded.is_active });
+        setEditingId(ded.id);
         setShowForm(true);
     };
 
@@ -80,291 +211,372 @@ export default function DeductionSection({ deductions }) {
         router.delete(`/payroll/hr-policy/deduction/${deleteTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                setDeleting(false);
-                setDeleteTarget(null);
-                // delete လုပ်လိုက်တဲ့ item က edit state မှာရှိနေရင် clear လုပ်မယ်
-                if (editingId === deleteTarget.id) {
-                    reset();
-                    setFormErrors({});
-                    setShowForm(false);
-                    setEditingId(null);
-                }
+                setDeleting(false); setDeleteTarget(null);
+                if (editingId === deleteTarget.id) { reset(); setFormErrors({}); setShowForm(false); setEditingId(null); }
             },
-            onError: () => {
-                setDeleting(false);
-                setDeleteTarget(null);
-            },
+            onError: () => { setDeleting(false); setDeleteTarget(null); },
         });
     };
 
-    const handleCancel = () => {
-        reset(); setFormErrors({}); setShowForm(false); setEditingId(null);
-    };
+    const handleCancel = () => { reset(); setFormErrors({}); setShowForm(false); setEditingId(null); };
 
     const handlePreset = (preset) => {
-        setData({ ...data, name: preset.name, deduction_type: preset.type });
+        setData(d => ({ ...d, name: preset.name, deduction_type: preset.type }));
         setFormErrors(p => ({ ...p, name: '' }));
     };
 
-    return (
-        <div className="space-y-5">
+    const inp = (hasError) => ({
+        width: '100%', padding: '10px 14px', borderRadius: 12, fontSize: 13,
+        fontWeight: 500, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+        transition: 'all 0.15s',
+        border: `1.5px solid ${hasError ? T.danger : T.inputBorder}`,
+        background: hasError ? (dark ? 'rgba(248,113,113,0.08)' : '#fef2f2') : T.inputBg,
+        color: T.text,
+    });
 
-            
+    const typeBadge = (type) => type === 'percentage'
+        ? { bg: T.primarySoft, color: T.primary }
+        : { bg: T.orangeSoft,  color: T.orange  };
+
+    return (
+        <>
+        <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+            .ds-wrap * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+            .ds-row:hover td { background: ${T.rowHover}; }
+            .ds-inp:focus { border-color: ${T.borderFocus} !important; box-shadow: 0 0 0 3px ${T.primarySoft} !important; }
+            .ds-inp[type=number]::-webkit-outer-spin-button,
+            .ds-inp[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+            .ds-inp[type=number] { -moz-appearance: textfield; }
+            @keyframes dsSpin  { to { transform: rotate(360deg); } }
+            @keyframes ds-fade { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+            .ds-animate { animation: ds-fade 0.2s ease; }
+        `}</style>
+
+        <div className="ds-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             {/* ── Delete Modal ── */}
             {deleteTarget && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => !deleting && setDeleteTarget(null)}/>
-                    <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                        </div>
-                        <h3 className="mt-4 text-center text-base font-bold text-gray-900">Delete Deduction</h3>
-                        <p className="mt-2 text-center text-sm text-gray-500">Are you sure you want to delete</p>
-                        <p className="mt-1 text-center text-sm font-semibold text-gray-800">"{deleteTarget.name}"?</p>
-                        <p className="mt-1 text-center text-xs text-gray-400">This action cannot be undone.</p>
-                        <div className="mt-6 flex gap-3">
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+                    <div onClick={() => !deleting && setDeleteTarget(null)}
+                        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}/>
+                    <div className="ds-animate" style={{ position: 'relative', background: T.panelSolid, border: `1px solid ${T.border}`, borderRadius: 20, width: '100%', maxWidth: 400, padding: '28px 28px 24px', boxShadow: T.shadow }}>
+                        <div style={{ width: 52, height: 52, borderRadius: 16, background: T.dangerSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24 }}>🗑️</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>Delete Deduction</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{deleteTarget.name}"</div>
+                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>This action cannot be undone.</div>
+                        <div style={{ display: 'flex', gap: 10 }}>
                             <button onClick={() => !deleting && setDeleteTarget(null)} disabled={deleting}
-                                className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors">
+                                style={{ flex: 1, padding: '10px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                                 Cancel
                             </button>
                             <button onClick={handleDeleteConfirm} disabled={deleting}
-                                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition-colors">
-                                {deleting ? <><Spinner /> Deleting...</> : 'Yes, Delete'}
+                                style={{ flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1, boxShadow: '0 4px 14px rgba(239,68,68,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                {deleting ? <><DSSpinner /> Deleting...</> : 'Yes, Delete'}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ── List ── */}
+            {/* ── Table ── */}
             {deductions.length > 0 ? (
-                <div className="overflow-hidden rounded-xl border border-gray-200">
-                    <table className="w-full text-sm">
+                <div style={{ borderRadius: 16, overflow: 'hidden', border: `1px solid ${T.border}`, boxShadow: T.shadowSoft }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                         <thead>
-                            <tr className="border-b border-gray-100 bg-gray-50/80 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                                <th className="px-4 py-3 text-left">Deduction Name</th>
-                                <th className="px-4 py-3 text-center">Type</th>
-                                <th className="px-4 py-3 text-center">Rate / Amount</th>
-                                <th className="px-4 py-3 text-center">Status</th>
-                                <th className="px-4 py-3 text-center">Actions</th>
+                            <tr style={{ background: T.tableHead, borderBottom: `1px solid ${T.divider}` }}>
+                                {['Deduction Name', 'Type', 'Rate / Amount', 'Status', 'Actions'].map((h, i) => (
+                                    <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, whiteSpace: 'nowrap', textAlign: i === 0 ? 'left' : 'center' }}>
+                                        {h}
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {deductions.map((deduction) => (
-                                <tr key={deduction.id} className="hover:bg-gray-50/60 transition-colors">
-                                    <td className="px-4 py-3.5 font-semibold text-gray-800">{deduction.name}</td>
-                                    <td className="px-4 py-3.5 text-center">
-                                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                                            deduction.deduction_type === 'percentage'
-                                                ? 'bg-violet-100 text-violet-700'
-                                                : 'bg-orange-100 text-orange-700'
-                                        }`}>
-                                            {deduction.deduction_type === 'percentage' ? 'Percentage' : 'Flat'}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-3.5 text-center font-semibold text-gray-700">
-                                        {deduction.deduction_type === 'percentage'
-                                            ? `${deduction.amount_per_unit}%`
-                                            : Number(deduction.amount_per_unit).toLocaleString()
-                                        }
-                                    </td>
-                                    <td className="px-4 py-3.5 text-center">
-                                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                                            deduction.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                                        }`}>
-                                            {deduction.is_active ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-3.5 text-center">
-                                        <div className="flex items-center justify-center gap-1">
-                                            <button onClick={() => handleEdit(deduction)}
-                                                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-violet-600 hover:bg-violet-50 transition-colors">
-                                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                Edit
-                                            </button>
-                                            <button onClick={() => setDeleteTarget({ id: deduction.id, name: deduction.name })}
-                                                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors">
-                                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                        <tbody>
+                            {deductions.map((ded, idx) => {
+                                const badge  = typeBadge(ded.deduction_type);
+                                const preset = PRESET_DEDUCTIONS.find(p => p.name === ded.name);
+                                return (
+                                    <tr key={ded.id} className="ds-row"
+                                        style={{ borderBottom: idx < deductions.length - 1 ? `1px solid ${T.divider}` : 'none', transition: 'background 0.1s' }}>
+
+                                        <td style={{ padding: '12px 14px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <span style={{ fontSize: 16 }}>{preset?.emoji ?? (ded.deduction_type === 'percentage' ? '📊' : '💵')}</span>
+                                                <span style={{ fontWeight: 700, color: T.text }}>{ded.name}</span>
+                                            </div>
+                                        </td>
+
+                                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                            <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: badge.bg, color: badge.color }}>
+                                                {ded.deduction_type === 'percentage' ? '% Percentage' : '# Flat'}
+                                            </span>
+                                        </td>
+
+                                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                                <span style={{ fontWeight: 800, color: T.primary, fontSize: 14 }}>
+                                                    {ded.deduction_type === 'percentage'
+                                                        ? `${Number(ded.amount_per_unit).toFixed(2)}%`
+                                                        : Number(ded.amount_per_unit).toLocaleString()}
+                                                </span>
+                                                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 99, background: badge.bg, color: badge.color }}>
+                                                    {ded.deduction_type === 'percentage' ? 'Rate' : 'Flat'}
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                            <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: ded.is_active ? T.successSoft : T.panelSoft, color: ded.is_active ? T.success : T.textMute }}>
+                                                {ded.is_active ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </td>
+
+                                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                                <button onClick={() => handleEdit(ded)}
+                                                    style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textSoft, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                                                    onMouseEnter={e => { e.currentTarget.style.background = T.panelSofter; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.background = T.panelSoft;   e.currentTarget.style.transform = 'translateY(0)'; }}
+                                                    title="Edit">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                                                    </svg>
+                                                </button>
+                                                <button onClick={() => setDeleteTarget({ id: ded.id, name: ded.name })}
+                                                    style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.dangerSoft, color: T.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                                                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.75'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)';   e.currentTarget.style.opacity = '1'; }}
+                                                    title="Delete">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                                        <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/50 py-10 text-center">
-                    <svg className="mb-2 h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <line x1="12" y1="1" x2="12" y2="23" strokeWidth="1.5"/>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" strokeWidth="1.5"/>
-                    </svg>
-                    <p className="text-sm font-medium text-gray-400">No deductions configured yet</p>
-                    <p className="mt-0.5 text-xs text-gray-300">Click below to add your first deduction rule</p>
+                <div style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 16, border: `1.5px dashed ${T.emptyBorder}`,
+                    background: T.panelSoft, padding: '36px 24px', gap: 8,
+                }}>
+                    <div style={{
+                        width: 48, height: 48, borderRadius: 14, background: T.panelSofter,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 4,
+                    }}>💸</div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: T.textSoft, margin: 0 }}>No deductions configured yet</p>
+                    <p style={{ fontSize: 12, color: T.textMute, margin: 0 }}>Click below to add your first deduction rule</p>
                 </div>
             )}
 
             {/* ── Form ── */}
             {showForm && (
-                <form onSubmit={handleSubmit} className="rounded-xl border border-violet-100 bg-violet-50/40 p-5 space-y-5">
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm font-bold text-gray-800">
-                            {editingId ? '✏️ Edit Deduction' : '+ Add New Deduction'}
-                        </p>
-                        <button type="button" onClick={handleCancel} className="text-gray-400 hover:text-gray-600">
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+                <form onSubmit={handleSubmit} className="ds-animate" style={{
+                    borderRadius: 16,
+                    border: `1.5px solid ${dark ? 'rgba(124,58,237,0.25)' : 'rgba(124,58,237,0.2)'}`,
+                    background: dark ? 'rgba(124,58,237,0.06)' : 'rgba(124,58,237,0.03)',
+                    padding: 20, display: 'flex', flexDirection: 'column', gap: 16,
+                }}>
+
+                    {/* Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: 10, background: T.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
+                                {editingId ? '✏️' : '➕'}
+                            </div>
+                            <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>
+                                {editingId ? 'Edit Deduction' : 'Add Deduction'}
+                            </div>
+                        </div>
+                        <button type="button" onClick={handleCancel}
+                            style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                            ✕
                         </button>
                     </div>
 
-                    {/* Preset chips */}
+                    {/* Preset grid */}
                     <div>
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Quick Select</p>
-                        <div className="flex flex-wrap gap-1.5">
-                            {PRESET_DEDUCTIONS.map(preset => (
-                                <button key={preset.name} type="button" onClick={() => handlePreset(preset)}
-                                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                                        data.name === preset.name
-                                            ? 'border-violet-400 bg-violet-100 text-violet-700'
-                                            : 'border-gray-200 bg-white text-gray-500 hover:border-violet-300 hover:text-violet-600'
-                                    }`}>
-                                    {preset.name}
-                                    <span className={`rounded px-1 py-0.5 text-xs font-bold ${
-                                        preset.type === 'percentage' ? 'bg-violet-100 text-violet-600' : 'bg-orange-100 text-orange-600'
-                                    }`}>
-                                        {preset.type === 'percentage' ? '%' : 'flat'}
-                                    </span>
-                                </button>
-                            ))}
+                        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 10 }}>
+                            Quick Select Preset
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: 8 }}>
+                            {PRESET_DEDUCTIONS.map(preset => {
+                                const isSelected = data.name === preset.name;
+                                return (
+                                    <button key={preset.name} type="button"
+                                        onClick={() => handlePreset(preset)}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '11px 14px', borderRadius: 14, textAlign: 'left',
+                                            border: `1.5px solid ${isSelected ? T.primary : T.border}`,
+                                            background: isSelected ? T.primarySoft : T.panelSolid,
+                                            cursor: 'pointer', transition: 'all 0.15s',
+                                            boxShadow: isSelected ? `0 0 0 3px ${T.primarySoft}` : T.shadowSoft,
+                                        }}
+                                        onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = T.primary; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                                        onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = T.border;  e.currentTarget.style.transform = 'translateY(0)';  } }}>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                                <span style={{ fontSize: 14 }}>{preset.emoji}</span>
+                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? T.primary : T.text }}>{preset.name}</span>
+                                            </div>
+                                            <div style={{ fontSize: 10, color: T.textMute, fontWeight: 500, paddingLeft: 20 }}>
+                                                {preset.type === 'percentage' ? '% Percentage' : '# Flat Amount'}
+                                            </div>
+                                        </div>
+                                        {isSelected && <div style={{ width: 8, height: 8, borderRadius: '50%', background: T.primary, flexShrink: 0 }}/>}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Name */}
-                        <div className="col-span-2">
-                            <label className="label">Deduction Name</label>
-                            <input type="text" value={data.name}
-                                onChange={e => { setData('name', e.target.value); setFormErrors(p => ({...p, name: ''})); }}
-                                className={`input mt-1 ${formErrors.name ? 'border-red-400' : ''}`}
-                                placeholder="e.g. Income Tax, NSSF, Health Insurance"
-                                disabled={processing}
-                            />
-                            {formErrors.name && (
-                                <p className="mt-1 flex items-center gap-1 text-xs font-medium text-red-500">
-                                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01"/></svg>
-                                    {formErrors.name}
-                                </p>
-                            )}
-                        </div>
+                    {/* Deduction Name */}
+                    <div>
+                        <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                            Deduction Name <span style={{ color: T.danger }}>*</span>
+                        </label>
+                        <input
+                            className="ds-inp"
+                            type="text"
+                            value={data.name}
+                            onChange={e => { setData('name', e.target.value); setFormErrors(p => ({ ...p, name: '' })); }}
+                            placeholder="e.g. Income Tax, NSSF, Custom Deduction..."
+                            disabled={processing}
+                            style={inp(!!formErrors.name)}
+                        />
+                        <ErrMsg msg={formErrors.name} />
+                    </div>
 
-                        {/* Deduction Type */}
+                    {/* Deduction Type + Amount */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+
+                        {/* Type selector */}
                         <div>
-                            <label className="label">Deduction Type</label>
-                            <div className="mt-1 flex gap-3">
+                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                                Deduction Type
+                            </label>
+                            <div style={{ display: 'flex', gap: 8 }}>
                                 {[
-                                    { value: 'flat',       label: 'Flat Amount',    hint: 'e.g. 50,000' },
-                                    { value: 'percentage', label: 'Percentage (%)', hint: 'e.g. 5%, 10%' },
-                                    
-                                ].map(opt => (
-                                    <label key={opt.value}
-                                        className={`flex flex-1 cursor-pointer flex-col rounded-xl border px-3 py-2.5 text-xs transition ${
-                                            data.deduction_type === opt.value
-                                                ? 'border-violet-400 bg-white text-violet-700'
-                                                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                                        }`}>
-                                        <div className="flex items-center gap-1.5">
-                                            <input type="radio" name="deduction_type" value={opt.value}
-                                                checked={data.deduction_type === opt.value}
-                                                onChange={e => setData('deduction_type', e.target.value)}
-                                                className="accent-violet-600" disabled={processing}/>
-                                            <span className="font-semibold">{opt.label}</span>
-                                        </div>
-                                        <span className="mt-0.5 pl-4 text-gray-400">{opt.hint}</span>
-                                    </label>
-                                ))}
+                                    { value: 'percentage', label: 'Percentage', hint: 'e.g. 5%, 10%' },
+                                    { value: 'flat',       label: 'Flat Amount', hint: 'e.g. 50,000' },
+                                ].map(opt => {
+                                    const isSel = data.deduction_type === opt.value;
+                                    return (
+                                        <label key={opt.value}
+                                            onClick={() => !processing && setData('deduction_type', opt.value)}
+                                            style={{
+                                                flex: 1, padding: '10px 12px', borderRadius: 12,
+                                                cursor: processing ? 'not-allowed' : 'pointer',
+                                                transition: 'all 0.15s',
+                                                border: `1.5px solid ${isSel ? T.primary : T.border}`,
+                                                background: isSel ? T.primarySoft : T.panelSoft,
+                                            }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                                                <div style={{
+                                                    width: 14, height: 14, borderRadius: '50%',
+                                                    border: `2px solid ${isSel ? T.primary : T.textMute}`,
+                                                    background: isSel ? T.primary : 'transparent',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    flexShrink: 0, transition: 'all 0.15s',
+                                                }}>
+                                                    {isSel && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff' }}/>}
+                                                </div>
+                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSel ? T.primary : T.textSoft }}>{opt.label}</span>
+                                            </div>
+                                            <div style={{ fontSize: 10, color: T.textMute, paddingLeft: 20 }}>{opt.hint}</div>
+                                        </label>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* Amount */}
+                        {/* Amount input — spinner arrows removed via CSS */}
                         <div>
-                            <label className="label">{data.deduction_type === 'percentage' ? 'Rate (%)' : 'Amount'}</label>
-                            <div className="relative mt-1">
-                                <input type="number" value={data.amount_per_unit}
-                                    onChange={e => { setData('amount_per_unit', e.target.value); setFormErrors(p => ({...p, amount_per_unit: ''})); }}
-                                    className={`input pr-10 ${formErrors.amount_per_unit ? 'border-red-400' : ''}`}
+                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                                {data.deduction_type === 'percentage' ? 'Rate (%)' : 'Flat Amount'} <span style={{ color: T.danger }}>*</span>
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    className="ds-inp"
+                                    type="number"
+                                    value={data.amount_per_unit}
+                                    onChange={e => { setData('amount_per_unit', e.target.value); setFormErrors(p => ({ ...p, amount_per_unit: '' })); }}
+                                    onKeyDown={e => { if (['-', 'e', 'E'].includes(e.key)) e.preventDefault(); }}
                                     placeholder={data.deduction_type === 'percentage' ? '5.00' : '50000'}
-                                    min="0" step="0.01" disabled={processing}
+                                    step={data.deduction_type === 'percentage' ? '0.01' : '1'}
+                                    min="0"
+                                    disabled={processing}
+                                    style={{ ...inp(!!formErrors.amount_per_unit), paddingRight: 36 }}
                                 />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                                <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, fontWeight: 700, color: T.textMute, pointerEvents: 'none' }}>
                                     {data.deduction_type === 'percentage' ? '%' : '#'}
                                 </span>
                             </div>
-                            {formErrors.amount_per_unit && (
-                                <p className="mt-1 flex items-center gap-1 text-xs font-medium text-red-500">
-                                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01"/></svg>
-                                    {formErrors.amount_per_unit}
-                                </p>
-                            )}
+                            <ErrMsg msg={formErrors.amount_per_unit} />
                         </div>
                     </div>
 
-                    {/* Active toggle */}
-                    <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white px-4 py-3">
-                        <Toggle label="Active" checked={data.is_active} onChange={v => setData('is_active', v)} disabled={processing}/>
-                    </div>
-
-                    {/* Buttons */}
-                    <div className="flex items-center gap-3">
-                        <button type="submit" disabled={processing}
-                            className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60 transition-colors">
-                            {processing
-                                ? <><Spinner /> Saving...</>
-                                : <><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>{editingId ? 'Update Deduction' : 'Add Deduction'}</>
-                            }
-                        </button>
-                        <button type="button" onClick={handleCancel} disabled={processing}
-                            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors">
-                            Cancel
-                        </button>
-                       
+                    {/* Toggle + Submit row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                        <DSToggle label="Active" checked={data.is_active} onChange={v => setData('is_active', v)} disabled={processing} T={T} dark={dark} />
+                        <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+                            <button type="submit" disabled={processing}
+                                style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 7,
+                                    padding: '10px 22px', borderRadius: 12, border: 'none',
+                                    background: processing ? T.textMute : 'linear-gradient(135deg, #7c3aed, #2563eb)',
+                                    color: '#fff', fontSize: 13, fontWeight: 700,
+                                    cursor: processing ? 'not-allowed' : 'pointer',
+                                    boxShadow: processing ? 'none' : '0 4px 14px rgba(124,58,237,0.35)',
+                                    transition: 'all 0.15s',
+                                }}
+                                onMouseEnter={e => { if (!processing) e.currentTarget.style.opacity = '0.9'; }}
+                                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                                {processing
+                                    ? <><DSSpinner /> Saving...</>
+                                    : <>{editingId ? '✅ Update Deduction' : '✅ Add Deduction'}</>
+                                }
+                            </button>
+                            <button type="button" onClick={handleCancel} disabled={processing}
+                                style={{ padding: '10px 18px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.12s' }}
+                                onMouseEnter={e => e.currentTarget.style.background = T.panelSoft}
+                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </form>
             )}
 
             {/* ── Add button ── */}
             {!showForm && (
-                <button onClick={() => { setEditingId(null); reset(); setFormErrors({}); setShowForm(true); }}
-                    className="inline-flex items-center gap-2 rounded-xl border border-dashed border-violet-300 px-4 py-2.5 text-sm font-semibold text-violet-600 hover:bg-violet-50 hover:border-violet-400 transition-all">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <button
+                    onClick={() => { setEditingId(null); reset(); setFormErrors({}); setShowForm(true); }}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 8,
+                        padding: '10px 18px', borderRadius: 12,
+                        border: `1.5px dashed ${T.primary}`, background: T.primarySoft,
+                        color: T.primary, fontSize: 13, fontWeight: 700,
+                        cursor: 'pointer', alignSelf: 'flex-start',
+                        transition: 'all 0.15s', opacity: 0.85,
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
                     Add Deduction Rule
                 </button>
             )}
         </div>
-    );
-}
-
-function Toggle({ label, checked, onChange, disabled }) {
-    return (
-        <label className={`flex items-center gap-2 select-none ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
-            <div onClick={() => !disabled && onChange(!checked)}
-                className={`relative h-5 w-9 rounded-full transition-colors ${checked ? 'bg-violet-600' : 'bg-gray-300'}`}>
-                <span className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-4' : ''}`}/>
-            </div>
-            <span className="text-sm text-gray-700">{label}</span>
-        </label>
-    );
-}
-
-function Spinner() {
-    return (
-        <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-        </svg>
+        </>
     );
 }
