@@ -2,6 +2,100 @@ import { useState, useMemo, useEffect } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { usePage, router } from '@inertiajs/react';
 
+// ── Theme hook (mirrors AppLayout) ────────────────────────────
+function useTheme() {
+    const getDark = () => {
+        if (typeof window === 'undefined') return false;
+        return document.documentElement.getAttribute('data-theme') === 'dark'
+            || localStorage.getItem('vibeme-theme') === 'dark';
+    };
+    const [dark, setDark] = useState(getDark);
+    useEffect(() => {
+        const sync = () => setDark(getDark());
+        window.addEventListener('vibeme-theme-change', sync);
+        window.addEventListener('storage', sync);
+        return () => {
+            window.removeEventListener('vibeme-theme-change', sync);
+            window.removeEventListener('storage', sync);
+        };
+    }, []);
+    return dark;
+}
+
+function getTheme(dark) {
+    if (dark) return {
+        bg:             '#07111f',
+        card:           'rgba(255,255,255,0.04)',
+        cardBorder:     'rgba(148,163,184,0.10)',
+        cardShadow:     '0 1px 3px rgba(0,0,0,0.3)',
+        text:           '#f1f5f9',
+        textSoft:       '#94a3b8',
+        textMute:       '#475569',
+        input:          'rgba(255,255,255,0.06)',
+        inputBorder:    'rgba(148,163,184,0.15)',
+        inputFocus:     '#6366f1',
+        headerBg:       'rgba(8,20,40,0.95)',
+        headerBorder:   'rgba(148,163,184,0.10)',
+        dayBg:          'rgba(255,255,255,0.02)',
+        dayBgWeekend:   'rgba(239,68,68,0.06)',
+        dayBgToday:     'rgba(245,158,11,0.08)',
+        dayBgSelected:  'rgba(99,102,241,0.15)',
+        dayBorderSel:   '#6366f1',
+        dayBorderToday: '#f59e0b',
+        dayBorder:      'rgba(148,163,184,0.08)',
+        navBtn:         'rgba(255,255,255,0.06)',
+        navBtnColor:    '#94a3b8',
+        modalBg:        '#0f1f35',
+        modalBorder:    'rgba(148,163,184,0.12)',
+        overlay:        'rgba(0,0,0,0.7)',
+        detailBg:       'rgba(255,255,255,0.04)',
+        detailBorder:   'rgba(148,163,184,0.08)',
+        scrollThumb:    'rgba(255,255,255,0.08)',
+        selectBg:       'rgba(255,255,255,0.06)',
+        pillBg:         'rgba(99,102,241,0.15)',
+        pillColor:      '#a5b4fc',
+        empCardBg:      'rgba(255,255,255,0.04)',
+        summaryBg:      'rgba(255,255,255,0.04)',
+        absentColor:    '#ef4444',
+    };
+    return {
+        bg:             '#eef4fb',
+        card:           '#ffffff',
+        cardBorder:     'rgba(15,23,42,0.06)',
+        cardShadow:     '0 1px 6px rgba(15,23,42,0.06)',
+        text:           '#0f172a',
+        textSoft:       '#475569',
+        textMute:       '#94a3b8',
+        input:          '#f8fafc',
+        inputBorder:    '#e2e8f0',
+        inputFocus:     '#6366f1',
+        headerBg:       'rgba(255,255,255,0.92)',
+        headerBorder:   'rgba(15,23,42,0.06)',
+        dayBg:          '#ffffff',
+        dayBgWeekend:   '#fff5f5',
+        dayBgToday:     '#fefce8',
+        dayBgSelected:  '#ede9fe',
+        dayBorderSel:   '#7c3aed',
+        dayBorderToday: '#f59e0b',
+        dayBorder:      '#f0f0f0',
+        navBtn:         '#f3f4f6',
+        navBtnColor:    '#6b7280',
+        modalBg:        '#ffffff',
+        modalBorder:    'rgba(15,23,42,0.08)',
+        overlay:        'rgba(15,23,42,0.5)',
+        detailBg:       '#f8fafc',
+        detailBorder:   '#f1f5f9',
+        scrollThumb:    'rgba(0,0,0,0.08)',
+        selectBg:       '#ffffff',
+        pillBg:         'rgba(99,102,241,0.08)',
+        pillColor:      '#6366f1',
+        empCardBg:      '#ffffff',
+        summaryBg:      '#ffffff',
+        absentColor:    '#ef4444',
+    };
+}
+
+// ── Constants ─────────────────────────────────────────────────
 const LEAVE_LABELS = {
     annual:'Annual Leave', medical:'Medical Leave', emergency:'Emergency Leave',
     unpaid:'Unpaid Leave', maternity:'Maternity Leave', paternity:'Paternity Leave',
@@ -19,14 +113,11 @@ function calcWorkHours(checkIn, checkOut, lunchStart, lunchEnd, workStart, workE
     const inM  = timeToMinutes(checkIn);
     const outM = timeToMinutes(checkOut);
     if (outM <= inM) return '';
-
-    // Clamp to work window
     const wsM = timeToMinutes(workStart || '08:00');
     const weM = timeToMinutes(workEnd   || '17:00');
     const effIn  = Math.max(inM, wsM);
     const effOut = Math.min(outM, weM);
     if (effOut <= effIn) return 0;
-
     const ls = timeToMinutes(lunchStart || '12:00');
     const le = timeToMinutes(lunchEnd   || '13:00');
     const lunchDeduct = Math.max(0, Math.min(effOut, le) - Math.max(effIn, ls));
@@ -45,9 +136,6 @@ function autoStatus(checkIn, checkOut, workStart, lunchEnd) {
     if (!checkIn || !checkOut) return 'absent';
     return calcLateMinutes(checkIn, workStart, lunchEnd) > 0 ? 'late' : 'present';
 }
-function tagStyle(bg, color) {
-    return { fontSize:10, fontWeight:700, background:bg, color, borderRadius:6, padding:'2px 8px', display:'inline-block' };
-}
 function to12h(t) {
     if (!t) return '—';
     const [hStr, mStr] = t.substring(0, 5).split(':');
@@ -55,8 +143,6 @@ function to12h(t) {
     const m = mStr ?? '00';
     return `${h % 12 === 0 ? 12 : h % 12}:${m}${h >= 12 ? 'PM' : 'AM'}`;
 }
-
-// 7.83h → "7h 50m", 8h → "8h", 0.5h → "30m"
 function hToHM(h) {
     if (!h) return '—';
     const total = Math.round(parseFloat(h) * 60);
@@ -67,6 +153,7 @@ function hToHM(h) {
     return `${hrs}h ${mins}m`;
 }
 
+// ── Tooltip ───────────────────────────────────────────────────
 function CellTooltip({ text, children }) {
     const [show, setShow] = useState(false);
     return (
@@ -76,33 +163,17 @@ function CellTooltip({ text, children }) {
             {children}
             {show && text && (
                 <span style={{
-                    position:'absolute',
-                    bottom:'calc(100% + 6px)',
-                    left:'50%',
-                    transform:'translateX(-50%)',
-                    background:'#1e293b',
-                    color:'#f8fafc',
-                    fontSize:11,
-                    fontWeight:600,
-                    borderRadius:8,
-                    padding:'5px 10px',
-                    whiteSpace:'nowrap',
-                    zIndex:9999,
-                    boxShadow:'0 4px 16px rgba(0,0,0,0.22)',
-                    pointerEvents:'none',
-                    lineHeight:1.5,
-                    letterSpacing:'0.01em',
+                    position:'absolute', bottom:'calc(100% + 6px)', left:'50%',
+                    transform:'translateX(-50%)', background:'#1e293b', color:'#f8fafc',
+                    fontSize:11, fontWeight:600, borderRadius:8, padding:'5px 10px',
+                    whiteSpace:'nowrap', zIndex:9999, boxShadow:'0 4px 16px rgba(0,0,0,0.22)',
+                    pointerEvents:'none', lineHeight:1.5,
                 }}>
                     {text}
                     <span style={{
-                        position:'absolute',
-                        top:'100%',
-                        left:'50%',
-                        transform:'translateX(-50%)',
-                        width:0, height:0,
-                        borderLeft:'5px solid transparent',
-                        borderRight:'5px solid transparent',
-                        borderTop:'5px solid #1e293b',
+                        position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)',
+                        width:0, height:0, borderLeft:'5px solid transparent',
+                        borderRight:'5px solid transparent', borderTop:'5px solid #1e293b',
                     }}/>
                 </span>
             )}
@@ -110,6 +181,88 @@ function CellTooltip({ text, children }) {
     );
 }
 
+// ── Custom Select ─────────────────────────────────────────────
+function PremiumSelect({ value, onChange, options, placeholder, t, dropId, openId, setOpenId }) {
+    // Support both: shared openId/setOpenId (mutual exclusion) or standalone
+    const isControlled = dropId !== undefined && setOpenId !== undefined;
+    const open = isControlled ? openId === dropId : false;
+    const [localOpen, setLocalOpen] = useState(false);
+    const actualOpen = isControlled ? open : localOpen;
+
+    const setOpen = (val) => {
+        if (isControlled) {
+            val ? setOpenId(dropId) : setOpenId(null);
+        } else {
+            setLocalOpen(val);
+        }
+    };
+
+    const selected = options.find(o => String(o.value) === String(value));
+
+    useEffect(() => {
+        const close = () => setOpen(false);
+        if (actualOpen) window.addEventListener('click', close);
+        return () => window.removeEventListener('click', close);
+    }, [actualOpen]);
+
+    return (
+        <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button
+                type="button"
+                onClick={() => setOpen(!actualOpen)}
+                style={{
+                    width: '100%', padding: '10px 14px', borderRadius: 12,
+                    border: `1.5px solid ${open ? t.inputFocus : t.inputBorder}`,
+                    background: t.input, color: selected ? t.text : t.textMute,
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    outline: 'none', transition: 'border-color 0.15s',
+                    boxShadow: open ? `0 0 0 3px ${t.inputFocus}22` : 'none',
+                }}>
+                <span>{selected ? selected.label : (placeholder || 'Select...')}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textMute} strokeWidth="2.5"
+                    style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}>
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </button>
+            {actualOpen && (
+                <div style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                    background: t.modalBg, border: `1.5px solid ${t.inputBorder}`,
+                    borderRadius: 12, zIndex: 9999, overflow: 'hidden',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                    maxHeight: 240, overflowY: 'auto',
+                }}>
+                    {options.map(opt => (
+                        <button key={opt.value} type="button"
+                            onClick={() => { onChange(opt.value); setOpen(false); }}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 8,
+                                width: '100%', padding: '10px 14px',
+                                background: String(value) === String(opt.value) ? `${t.inputFocus}15` : 'transparent',
+                                border: 'none', cursor: 'pointer',
+                                color: String(value) === String(opt.value) ? t.inputFocus : t.text,
+                                fontSize: 13, fontWeight: String(value) === String(opt.value) ? 700 : 500,
+                                textAlign: 'left', transition: 'background 0.1s',
+                            }}
+                            onMouseEnter={e => { if (String(value) !== String(opt.value)) e.currentTarget.style.background = `${t.inputFocus}08`; }}
+                            onMouseLeave={e => { if (String(value) !== String(opt.value)) e.currentTarget.style.background = 'transparent'; }}>
+                            {String(value) === String(opt.value) && (
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.inputFocus} strokeWidth="2.5">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            )}
+                            {String(value) !== String(opt.value) && <span style={{ width: 14 }}/>}
+                            {opt.label}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ── Main Page ─────────────────────────────────────────────────
 export default function AttendanceIndex({
     records = [], employees = [],
     selectedMonth, selectedYear, selectedEmployee,
@@ -119,12 +272,16 @@ export default function AttendanceIndex({
     overtimeMap = {},
     leaveDateMap = {},
 }) {
+    const dark = useTheme();
+    const t = getTheme(dark);
+
     const { auth } = usePage().props;
     const user     = auth?.user;
     const roleName = user?.role?.name || 'employee';
     const canManage  = roleName === 'hr';
     const canViewAll = ['hr','admin'].includes(roleName);
 
+    const [openDropdownId, setOpenDropdownId] = useState(null);
     const [saving, setSaving]               = useState(false);
     const [deleting, setDeleting]           = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -141,7 +298,6 @@ export default function AttendanceIndex({
     const [selected, setSelected]           = useState(null);
     const [selectedDay, setSelectedDay]     = useState(null);
 
-    // ── Auto-fetch with own ID on first load if HR/Admin ──
     useEffect(() => {
         if (canViewAll && !selectedEmployee) {
             const myId = String(user?.id || '');
@@ -156,9 +312,9 @@ export default function AttendanceIndex({
             month: newMonth, year: newYear, employee_id: newEmpId,
         }, { preserveState: false });
     }
-    function handleEmpChange(e)   { const id = e.target.value; setEmpId(id); fetchData(id, month, year); }
-    function handleMonthChange(e) { const m = Number(e.target.value); setMonth(m); fetchData(empId, m, year); }
-    function handleYearChange(e)  { const y = Number(e.target.value); setYear(y); fetchData(empId, month, y); }
+    function handleEmpChange(val)   { setEmpId(val); fetchData(val, month, year); }
+    function handleMonthChange(val) { const m = Number(val); setMonth(m); fetchData(empId, m, year); }
+    function handleYearChange(val)  { const y = Number(val); setYear(y); fetchData(empId, month, y); }
     function handlePrevMonth() {
         let m = month, y = year;
         if (m === 1) { m = 12; y--; } else { m--; }
@@ -230,18 +386,11 @@ export default function AttendanceIndex({
         const status = autoStatus(formData.check_in_time, formData.check_out_time, workStart, lunchEnd);
         router.post('/payroll/attendance', { ...formData, status }, {
             onSuccess: () => {
-                setShowModal(false);
-                setSaving(false);
-                // Detail panel ကို တန်းပြောင်း
+                setShowModal(false); setSaving(false);
                 if (selectedDay) {
                     setSelectedDay(prev => ({
                         ...prev,
-                        record: {
-                            ...prev?.record,
-                            ...formData,
-                            status,
-                            user: prev?.record?.user,
-                        }
+                        record: { ...prev?.record, ...formData, status, user: prev?.record?.user }
                     }));
                 }
             },
@@ -252,9 +401,7 @@ export default function AttendanceIndex({
                     .replace('check_in_time', 'Check In time')
                     .replace('check_out_time', 'Check Out time')
                     .replace(/must match the format.*/, 'must be in HH:MM format (e.g. 08:00)');
-                window.dispatchEvent(new CustomEvent('global-toast', {
-                    detail: { message: friendly, type: 'error' }
-                }));
+                window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: friendly, type: 'error' } }));
             },
         });
     }
@@ -268,151 +415,239 @@ export default function AttendanceIndex({
         });
     }
 
-    // ── Cell label row helper ──
-    function CellRow({ label, value, labelColor, valueColor }) {
-        return (
-            <div style={{ display:'flex', alignItems:'baseline', gap:3, lineHeight:1.3 }}>
-                <span style={{ fontSize:9, fontWeight:600, color: labelColor || '#9ca3af', flexShrink:0 }}>{label}</span>
-                <span style={{ fontSize:9, fontWeight:700, color: valueColor || '#374151' }}>{value}</span>
-            </div>
-        );
-    }
+    const empOptions    = employees.map(e => ({ value: String(e.id), label: e.name }));
+    const monthOptions  = MONTHS.map((m, i) => ({ value: String(i+1), label: m }));
+    const yearOptions   = [2024,2025,2026,2027].map(y => ({ value: String(y), label: String(y) }));
+
+    // Summary stat cards
+    const stats = [
+        { val: monthlySummary.workingDays,            label: 'Working Days',   color: '#6366f1',  icon: '📅' },
+        { val: monthlySummary.presentDays,            label: 'Present',        color: '#10b981',  icon: '✅' },
+        { val: monthlySummary.absentDays,             label: 'Absent',         color: '#ef4444',  icon: '❌' },
+        { val: monthlySummary.lateDays,               label: 'Late Days',      color: '#f59e0b',  icon: '⏰' },
+        { val: monthlySummary.halfDays,               label: 'Half Days',      color: '#3b82f6',  icon: '🌓' },
+        { val: monthlySummary.leaveDays,              label: 'Leave Days',     color: '#10b981',  icon: '🏖️' },
+        { val: `${monthlySummary.totalLateMin}m`,     label: 'Total Late',     color: '#f59e0b',  icon: '⚡' },
+        { val: `${monthlySummary.totalWH.toFixed(1)}h`, label: 'Work Hours',  color: '#6366f1',  icon: '⏱️' },
+        { val: publicHolidays.length,                 label: 'Holidays',       color: '#ef4444',  icon: '🎌' },
+    ];
 
     return (
         <AppLayout title="Attendance">
-            <div style={s.wrap}>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+                .att-wrap * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+                .att-wrap ::-webkit-scrollbar { width: 0; height: 0; display: none; }
+                .att-wrap * { scrollbar-width: none; -ms-overflow-style: none; }
+                .att-day-cell:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important; }
+                .att-nav-btn:hover { background: rgba(99,102,241,0.12) !important; color: #6366f1 !important; }
+                .stat-card:hover { transform: translateY(-2px); }
+                .att-emp-row:hover { background: rgba(99,102,241,0.06) !important; }
+            `}</style>
 
-                {/* Filter Row */}
-                <div style={s.filterRow}>
+            <div className="att-wrap" style={{ display:'flex', flexDirection:'column', gap:16, background: t.bg, minHeight:'100%' }}>
+
+                {/* ── Filter Row ── */}
+                <div style={{
+                    display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center',
+                    background: t.card, border: `1px solid ${t.cardBorder}`,
+                    borderRadius: 16, padding: '12px 16px',
+                    boxShadow: t.cardShadow,
+                }}>
                     {canViewAll && (
-                        <select style={s.select} value={empId} onChange={handleEmpChange}>
-                            {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                        </select>
+                        <div style={{ minWidth: 180 }}>
+                            <PremiumSelect
+                                value={empId}
+                                onChange={handleEmpChange}
+                                options={empOptions}
+                                placeholder="Select Employee"
+                                t={t}
+                                dropId="emp"
+                                openId={openDropdownId}
+                                setOpenId={setOpenDropdownId}
+                            />
+                        </div>
                     )}
-                    <select style={s.select} value={month} onChange={handleMonthChange}>
-                        {MONTHS.map((m, i) => <option key={i} value={i+1}>{m}</option>)}
-                    </select>
-                    <select style={s.select} value={year} onChange={handleYearChange}>
-                        {[2024,2025,2026,2027].map(y => <option key={y} value={y}>{y}</option>)}
-                    </select>
-                    <div style={{ flex:1 }} />
+                    <div style={{ minWidth: 140 }}>
+                        <PremiumSelect
+                            value={String(month)}
+                            onChange={handleMonthChange}
+                            options={monthOptions}
+                            t={t}
+                            dropId="month"
+                            openId={openDropdownId}
+                            setOpenId={setOpenDropdownId}
+                        />
+                    </div>
+                    <div style={{ minWidth: 100 }}>
+                        <PremiumSelect
+                            value={String(year)}
+                            onChange={handleYearChange}
+                            options={yearOptions}
+                            t={t}
+                            dropId="year"
+                            openId={openDropdownId}
+                            setOpenId={setOpenDropdownId}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }} />
                     {canManage && (
-                        <button style={s.btnPrimary} onClick={() => { setSelected(null); setShowModal(true); }}>
-                            + Add Attendance
+                        <button
+                            onClick={() => { setSelected(null); setShowModal(true); }}
+                            style={{
+                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                color: '#fff', border: 'none', borderRadius: 12,
+                                padding: '10px 20px', fontSize: 13, fontWeight: 700,
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                                boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
+                                transition: 'all 0.15s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Add Attendance
                         </button>
                     )}
                 </div>
 
-                {/* Employee Card */}
+                {/* ── Employee Card ── */}
                 {selectedEmp && (
-                    <div style={s.empCard}>
+                    <div style={{
+                        background: t.empCardBg, border: `1px solid ${t.cardBorder}`,
+                        borderRadius: 16, padding: '16px 20px', boxShadow: t.cardShadow,
+                        display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
+                    }}>
                         {selectedEmp.avatar_url ? (
                             <img src={`/storage/${selectedEmp.avatar_url}`} alt={selectedEmp.name}
-                                style={{ width:56, height:56, borderRadius:14, objectFit:'cover', flexShrink:0, border:'2px solid #f3f4f6' }}/>
+                                style={{ width:56, height:56, borderRadius:16, objectFit:'cover', flexShrink:0, border:`2px solid ${t.cardBorder}` }}/>
                         ) : (
-                            <div style={{ ...s.empAvatar, width:56, height:56, borderRadius:14, fontSize:22 }}>
+                            <div style={{
+                                width:56, height:56, borderRadius:16, flexShrink:0, fontSize:22, fontWeight:800,
+                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color:'#fff',
+                                display:'flex', alignItems:'center', justifyContent:'center',
+                            }}>
                                 {selectedEmp.name?.charAt(0).toUpperCase()}
                             </div>
                         )}
                         <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-                                <span style={{ fontSize:16, fontWeight:800, color:'#111827', letterSpacing:'-0.3px' }}>{selectedEmp.name}</span>
+                                <span style={{ fontSize:16, fontWeight:800, color:t.text, letterSpacing:'-0.3px' }}>{selectedEmp.name}</span>
                                 {selectedEmp.role?.name && (
                                     <span style={{
-                                        fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.6px',
-                                        color: selectedEmp.role.name==='hr' ? '#059669' : selectedEmp.role.name==='admin' ? '#7c3aed' : selectedEmp.role.name==='management' ? '#2563eb' : '#6b7280',
+                                        fontSize:10, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.8px',
+                                        padding:'3px 10px', borderRadius:99,
+                                        background: t.pillBg, color: t.pillColor,
                                     }}>{selectedEmp.role.name}</span>
                                 )}
                             </div>
-                            <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:5, flexWrap:'wrap' }}>
-                                {selectedEmp.position && <span style={{ fontSize:12, fontWeight:600, color:'#374151' }}>{selectedEmp.position}</span>}
-                                {selectedEmp.position && selectedEmp.department && <span style={{ color:'#d1d5db', fontSize:12 }}>·</span>}
-                                {selectedEmp.department && <span style={{ fontSize:12, fontWeight:500, color:'#6366f1' }}>{selectedEmp.department}</span>}
-                                {(selectedEmp.position || selectedEmp.department) && <span style={{ color:'#d1d5db', fontSize:12 }}>·</span>}
-                                <span style={{ fontSize:12, color:'#9ca3af' }}>{MONTHS[month-1]} {year}</span>
-                                <span style={{ color:'#d1d5db', fontSize:12 }}>·</span>
-                                <span style={{ fontSize:12, color:'#9ca3af' }}>{monthlySummary.workingDays} working days</span>
+                            <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:5, flexWrap:'wrap' }}>
+                                {selectedEmp.position && <span style={{ fontSize:12, fontWeight:600, color:t.textSoft }}>{selectedEmp.position}</span>}
+                                {selectedEmp.position && selectedEmp.department && <span style={{ color:t.textMute, fontSize:12 }}>·</span>}
+                                {selectedEmp.department && <span style={{ fontSize:12, fontWeight:600, color:'#6366f1' }}>{selectedEmp.department}</span>}
+                                <span style={{ color:t.textMute, fontSize:12 }}>·</span>
+                                <span style={{ fontSize:12, color:t.textMute }}>{MONTHS[month-1]} {year}</span>
+                                <span style={{ color:t.textMute, fontSize:12 }}>·</span>
+                                <span style={{ fontSize:12, color:t.textMute, fontWeight:600 }}>{monthlySummary.workingDays} working days</span>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Calendar + Detail */}
-                <div style={s.calWrapper}>
-                    <div style={s.calCard}>
+                {/* ── Calendar + Detail ── */}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 268px', gap:14 }}>
+                    {/* Calendar */}
+                    <div style={{
+                        background: t.card, border: `1px solid ${t.cardBorder}`,
+                        borderRadius: 18, padding: 18, boxShadow: t.cardShadow,
+                    }}>
                         {/* Nav */}
-                        <div style={s.calHeader}>
-                            <button style={s.navBtn} onClick={handlePrevMonth}>‹</button>
-                            <div style={s.calTitle}>{MONTHS[month-1]} {year}</div>
-                            <button style={s.navBtn} onClick={handleNextMonth}>›</button>
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+                            <button className="att-nav-btn" onClick={handlePrevMonth} style={{
+                                background: t.navBtn, border:'none', borderRadius:10,
+                                width:32, height:32, fontSize:16, cursor:'pointer',
+                                color: t.navBtnColor, display:'flex', alignItems:'center', justifyContent:'center',
+                                transition:'all 0.15s',
+                            }}>‹</button>
+                            <div style={{ fontSize:15, fontWeight:800, color:t.text, letterSpacing:'-0.3px' }}>
+                                {MONTHS[month-1]} {year}
+                            </div>
+                            <button className="att-nav-btn" onClick={handleNextMonth} style={{
+                                background: t.navBtn, border:'none', borderRadius:10,
+                                width:32, height:32, fontSize:16, cursor:'pointer',
+                                color: t.navBtnColor, display:'flex', alignItems:'center', justifyContent:'center',
+                                transition:'all 0.15s',
+                            }}>›</button>
                         </div>
 
                         {/* Day headers */}
-                        <div style={s.calGrid}>
+                        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:3, marginBottom:4 }}>
                             {DAYS.map((d,i) => (
-                                <div key={d} style={{ ...s.dayHeader, color:(i===0||i===6)?'#ef4444':'#9ca3af' }}>{d}</div>
+                                <div key={d} style={{
+                                    textAlign:'center', fontSize:10, fontWeight:700,
+                                    padding:'4px 0', letterSpacing:'0.5px',
+                                    color: (i===0||i===6) ? '#ef4444' : t.textMute,
+                                }}>{d}</div>
                             ))}
+                        </div>
 
-                            {/* Empty cells */}
+                        {/* Day cells */}
+                        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:3 }}>
                             {Array.from({ length: firstDay }).map((_,i) => <div key={`e-${i}`} />)}
-
-                            {/* Day cells */}
                             {Array.from({ length: daysInMonth }).map((_,i) => {
                                 const day = i + 1;
                                 const { dateStr, record, isWeekend, isHoliday, holidayName, otRecord, leaveInfo, isFuture } = getDayData(day);
                                 const isToday    = dateStr === today;
                                 const isSelected = selectedDay?.dateStr === dateStr;
-                                const isRed      = isWeekend || isHoliday;
                                 const isAbsent   = !isWeekend && !isHoliday && !isFuture && !record && !leaveInfo;
 
-                                const cellBg = isSelected ? '#ede9fe'
-                                    : isToday   ? '#fefce8'
-                                    : isRed     ? '#fff5f5'
-                                    : '#fff';
+                                const cellBg = isSelected ? t.dayBgSelected
+                                    : isToday   ? t.dayBgToday
+                                    : (isWeekend || isHoliday) ? t.dayBgWeekend
+                                    : t.dayBg;
 
-                                const cellBorder = isSelected ? '2px solid #7c3aed'
-                                    : isToday   ? '2px solid #f59e0b'
-                                    : '1px solid #f0f0f0';
+                                const cellBorder = isSelected ? `2px solid ${t.dayBorderSel}`
+                                    : isToday   ? `2px solid ${t.dayBorderToday}`
+                                    : `1px solid ${t.dayBorder}`;
 
                                 return (
-                                    <div key={day} onClick={() => handleDayClick(day)} style={{
-                                        ...s.dayCell,
-                                        background: cellBg,
-                                        border: cellBorder,
-                                        boxShadow: isSelected ? '0 0 0 3px rgba(124,58,237,0.1)' : isToday ? '0 0 0 2px rgba(245,158,11,0.1)' : 'none',
+                                    <div key={day} className="att-day-cell" onClick={() => handleDayClick(day)} style={{
+                                        borderRadius: 10, padding: '6px 7px 5px',
+                                        minHeight: 92, display: 'flex', flexDirection: 'column', gap: 1,
+                                        cursor: 'pointer', boxSizing: 'border-box',
+                                        background: cellBg, border: cellBorder,
+                                        transition: 'all 0.15s',
+                                        boxShadow: isSelected ? `0 0 0 3px ${t.dayBorderSel}22`
+                                            : isToday ? `0 0 0 2px ${t.dayBorderToday}22` : 'none',
                                     }}>
-                                        {/* Day number */}
                                         <div style={{
-                                            fontSize:11, fontWeight: isToday ? 800 : 600,
-                                            color: isRed ? '#ef4444' : isToday ? '#d97706' : isSelected ? '#7c3aed' : '#374151',
-                                            marginBottom:2,
+                                            fontSize:11, fontWeight: isToday ? 900 : 700,
+                                            color: (isWeekend || isHoliday) ? '#ef4444'
+                                                : isToday ? '#d97706'
+                                                : isSelected ? '#6366f1'
+                                                : t.textSoft,
+                                            marginBottom:1,
                                         }}>{day}</div>
 
-                                        {/* Public holiday */}
                                         {isHoliday && holidayName && (
                                             <div style={{
-                                                fontSize:10, fontWeight:800, color:'#dc2626',
-                                                textAlign:'center', lineHeight:1.4,
-                                                wordBreak:'break-word', width:'100%',
-                                                background:'#fee2e2', borderRadius:4,
-                                                padding:'2px 3px', marginTop:1,
+                                                fontSize:9, fontWeight:800, color:'#dc2626',
+                                                textAlign:'center', lineHeight:1.4, wordBreak:'break-word', width:'100%',
+                                                background: dark ? 'rgba(239,68,68,0.15)' : '#fee2e2',
+                                                borderRadius:4, padding:'2px 3px', marginTop:1,
                                             }}>{holidayName}</div>
                                         )}
 
-                                        {/* Absent */}
                                         {isAbsent && (
-                                            <div style={{ fontSize:11, color:'#ef4444', fontWeight:700, marginTop:2 }}>Absent</div>
+                                            <div style={{ fontSize:10, color:'#ef4444', fontWeight:700, marginTop:2 }}>Absent</div>
                                         )}
 
-                                        {/* Rows: label  :  value — table for alignment */}
                                         {(() => {
                                             const rows = [];
-                                            if (record &&  record.check_in_time)
-                                                rows.push({ key:'in',    label:'In',    value: to12h(record.check_in_time),   color:'#4f46e5', tip: null });
-                                            if (record &&  record.check_out_time)
-                                                rows.push({ key:'out',   label:'Out',   value: to12h(record.check_out_time),  color:'#4f46e5', tip: null });
-                                            if (record &&  record.work_hours_actual)
-                                                rows.push({ key:'wh',    label:'WH',    value: hToHM(record.work_hours_actual), color:'#059669', tip: null });
+                                            if (record?.check_in_time)    rows.push({ key:'in',    label:'In',    value: to12h(record.check_in_time),     color:'#6366f1', tip: null });
+                                            if (record?.check_out_time)   rows.push({ key:'out',   label:'Out',   value: to12h(record.check_out_time),    color:'#6366f1', tip: null });
+                                            if (record?.work_hours_actual) rows.push({ key:'wh',   label:'WH',    value: hToHM(record.work_hours_actual), color:'#10b981', tip: null });
                                             if (leaveInfo && !isHoliday) {
                                                 const lv = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? 'AM Half' : 'PM Half') : 'Full Day';
                                                 const lc = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? '#d97706' : '#7c3aed') : '#dc2626';
@@ -420,28 +655,23 @@ export default function AttendanceIndex({
                                             }
                                             if (otRecord) {
                                                 const ov = parseFloat(otRecord.hours_approved) % 1 === 0
-                                                    ? `${parseInt(otRecord.hours_approved)}h`
-                                                    : hToHM(otRecord.hours_approved);
-                                                rows.push({ key:'ot',    label:'OT',    value: ov,  color:'#7c3aed', tip: otRecord.reason || null });
+                                                    ? `${parseInt(otRecord.hours_approved)}h` : hToHM(otRecord.hours_approved);
+                                                rows.push({ key:'ot', label:'OT', value: ov, color:'#8b5cf6', tip: otRecord.reason || null });
                                             }
-                                            if (record &&  record.late_minutes > 0)
-                                                rows.push({ key:'late',  label:'Late',  value: `${record.late_minutes}m`, color:'#d97706', tip: null });
-                                            if (record &&  parseFloat(record.short_hours) > 0)
-                                                rows.push({ key:'short', label:'Short', value: hToHM(record.short_hours), color:'#dc2626', tip: null });
+                                            if (record?.late_minutes > 0)
+                                                rows.push({ key:'late', label:'Late', value: `${record.late_minutes}m`, color:'#f59e0b', tip: null });
+                                            if (parseFloat(record?.short_hours) > 0)
+                                                rows.push({ key:'short', label:'Short', value: hToHM(record.short_hours), color:'#ef4444', tip: null });
                                             if (!rows.length) return null;
                                             return (
                                                 <table style={{ borderCollapse:'collapse', marginTop:3, tableLayout:'fixed', width:'100%' }}>
                                                     <tbody>
                                                         {rows.map(row => (
-                                                            <tr key={row.key} style={{ cursor: row.tip ? 'pointer' : 'default', position:'relative' }}>
-                                                                <td style={{ fontSize:11, fontWeight:600, color:'#9ca3af', width:28, paddingBottom:1, verticalAlign:'top', lineHeight:'17px', whiteSpace:'nowrap' }}>{row.label}</td>
-                                                                <td style={{ fontSize:11, fontWeight:600, color:'#9ca3af', width:10, paddingBottom:1, verticalAlign:'top', lineHeight:'17px', textAlign:'center' }}>:</td>
-                                                                <td style={{ fontSize:11, fontWeight:700, color:row.color, paddingBottom:1, verticalAlign:'top', lineHeight:'17px', position:'relative' }}>
-                                                                    {row.tip ? (
-                                                                        <CellTooltip text={row.tip}>
-                                                                            <span>{row.value}</span>
-                                                                        </CellTooltip>
-                                                                    ) : row.value}
+                                                            <tr key={row.key}>
+                                                                <td style={{ fontSize:10, fontWeight:600, color:t.textMute, width:28, paddingBottom:1, verticalAlign:'top', lineHeight:'16px', whiteSpace:'nowrap' }}>{row.label}</td>
+                                                                <td style={{ fontSize:10, fontWeight:600, color:t.textMute, width:10, paddingBottom:1, verticalAlign:'top', lineHeight:'16px', textAlign:'center' }}>:</td>
+                                                                <td style={{ fontSize:10, fontWeight:700, color:row.color, paddingBottom:1, verticalAlign:'top', lineHeight:'16px' }}>
+                                                                    {row.tip ? <CellTooltip text={row.tip}><span>{row.value}</span></CellTooltip> : row.value}
                                                                 </td>
                                                             </tr>
                                                         ))}
@@ -453,70 +683,72 @@ export default function AttendanceIndex({
                                 );
                             })}
                         </div>
-                        {/* Legend REMOVED */}
                     </div>
 
-                    {/* ── Detail Panel — DO NOT MODIFY LOGIC ── */}
+                    {/* Detail Panel */}
                     {selectedDay ? (
-                        <div style={s.detailPanel}>
-                        
-                            <div style={s.detailHeader}>
-                                <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                                    <div style={s.detailDate}>
+                        <div style={{
+                            background: t.card, border: `1px solid ${t.cardBorder}`,
+                            borderRadius: 18, padding: 16, boxShadow: t.cardShadow,
+                            display: 'flex', flexDirection: 'column', gap: 10,
+                            overflowY: 'auto', maxHeight: 'calc(100vh - 300px)',
+                        }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                                <div>
+                                    <div style={{ fontSize:12, fontWeight:800, color:t.text, lineHeight:1.4 }}>
                                         {new Date(selectedDay.dateStr+'T00:00:00').toLocaleDateString('en-US',{
-                                            weekday:'long', year:'numeric', month:'long', day:'numeric'
+                                            weekday:'long', month:'long', day:'numeric'
                                         })}
                                     </div>
                                     {selectedDay.isWeekend && (
                                         <span style={{
-                                            fontSize: 10, fontWeight: 700,
-                                            color: '#dc2626',
-                                            background: '#fef2f2',
-                                            border: '1px solid #fecaca',
-                                            borderRadius: 6,
-                                            padding: '2px 8px',
-                                            letterSpacing: '0.3px',
+                                            display:'inline-block', marginTop:4,
+                                            fontSize:9, fontWeight:800, color:'#dc2626',
+                                            background: dark ? 'rgba(239,68,68,0.15)' : '#fef2f2',
+                                            border:'1px solid #fecaca', borderRadius:99, padding:'2px 8px',
                                         }}>Weekend</span>
                                     )}
                                 </div>
-                                <button style={s.detailClose} onClick={() => setSelectedDay(null)}>✕</button>
+                                <button onClick={() => setSelectedDay(null)} style={{
+                                    background: t.navBtn, border:'none', borderRadius:8,
+                                    width:24, height:24, cursor:'pointer', fontSize:11,
+                                    color:t.textMute, display:'flex', alignItems:'center', justifyContent:'center',
+                                }}>✕</button>
                             </div>
 
-                            <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
+                            <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                                 {selectedDay.isHoliday && (
                                     <div style={{
                                         display:'inline-flex', alignItems:'center', gap:7,
-                                        background:'linear-gradient(135deg,#fef2f2,#fff1f1)',
-                                        border:'1px solid #fecaca',
-                                        borderRadius:10, padding:'7px 12px',
+                                        background: dark ? 'rgba(239,68,68,0.1)' : 'linear-gradient(135deg,#fef2f2,#fff1f1)',
+                                        border: dark ? '1px solid rgba(239,68,68,0.2)' : '1px solid #fecaca',
+                                        borderRadius:10, padding:'7px 12px', width:'100%',
                                     }}>
                                         <span style={{ fontSize:15 }}>🎌</span>
                                         <div>
-                                            <div style={{ fontSize:11, fontWeight:800, color:'#dc2626', letterSpacing:'0.3px' }}>
+                                            <div style={{ fontSize:11, fontWeight:800, color:'#dc2626' }}>
                                                 {selectedDay.holidayName || 'Public Holiday'}
                                             </div>
                                             <div style={{ fontSize:10, color:'#f87171', marginTop:1 }}>Public Holiday</div>
                                         </div>
                                     </div>
                                 )}
-
                                 {selectedDay.leaveInfo && (() => {
                                     const li = selectedDay.leaveInfo;
                                     const typeLabel = LEAVE_LABELS[li.type] || li.type;
                                     const dayLabel  = li.day_type === 'half_day_am' ? 'AM Half Day'
-                                                    : li.day_type === 'half_day_pm' ? 'PM Half Day'
-                                                    : 'Full Day';
+                                                    : li.day_type === 'half_day_pm' ? 'PM Half Day' : 'Full Day';
                                     const colors = li.day_type === 'half_day_am'
-                                        ? { bg:'#fefce8', color:'#d97706', border:'#fde047', icon:'🌤️' }
+                                        ? { bg: dark ? 'rgba(245,158,11,0.1)' : '#fefce8', color:'#d97706', border: dark ? 'rgba(245,158,11,0.2)' : '#fde047', icon:'🌤️' }
                                         : li.day_type === 'half_day_pm'
-                                        ? { bg:'#f5f3ff', color:'#7c3aed', border:'#ddd6fe', icon:'🌙' }
-                                        : { bg:'#fee2e2', color:'#dc2626', border:'#fca5a5', icon:'🏖️' };
+                                        ? { bg: dark ? 'rgba(124,58,237,0.1)' : '#f5f3ff', color:'#7c3aed', border: dark ? 'rgba(124,58,237,0.2)' : '#ddd6fe', icon:'🌙' }
+                                        : { bg: dark ? 'rgba(239,68,68,0.1)' : '#fee2e2', color:'#dc2626', border: dark ? 'rgba(239,68,68,0.2)' : '#fca5a5', icon:'🏖️' };
                                     return (
-                                        <div style={{ display:'flex', alignItems:'center', gap:8, background:colors.bg, border:`1px solid ${colors.border}`, borderRadius:10, padding:'8px 12px' }}>
+                                        <div style={{ display:'flex', alignItems:'center', gap:8, background:colors.bg, border:`1px solid ${colors.border}`, borderRadius:10, padding:'8px 12px', width:'100%' }}>
                                             <span style={{ fontSize:16 }}>{colors.icon}</span>
                                             <div>
                                                 <div style={{ fontSize:12, fontWeight:800, color:colors.color }}>{dayLabel} Leave</div>
-                                                <div style={{ fontSize:11, color:colors.color, opacity:0.8, marginTop:1 }}>{typeLabel}</div>
+                                                <div style={{ fontSize:10, color:colors.color, opacity:0.8, marginTop:1 }}>{typeLabel}</div>
                                             </div>
                                         </div>
                                     );
@@ -525,29 +757,25 @@ export default function AttendanceIndex({
 
                             {selectedDay.record ? (
                                 <div style={{ display:'flex', flexDirection:'column' }}>
-                                    <DR label="Employee"  val={selectedDay.record.user?.name || '—'} />
-                                    <DR label="Status">
-                                        <StatusPill status={selectedDay.record.status} />
+                                    <DR label="Employee"  val={selectedDay.record.user?.name || '—'} t={t} />
+                                    <DR label="Status" t={t}>
+                                        <StatusPill status={selectedDay.record.status} dark={dark} />
                                     </DR>
-                                    <DR label="Check In"  val={to12h(selectedDay.record.check_in_time)  || '—'} />
-                                    <DR label="Check Out" val={to12h(selectedDay.record.check_out_time) || '—'} />
-                                    <DR label="Work Hours">
-                                        <span style={{ color:'#4f46e5', fontWeight:700, fontSize:13 }}>
+                                    <DR label="Check In"  val={to12h(selectedDay.record.check_in_time)  || '—'} t={t} />
+                                    <DR label="Check Out" val={to12h(selectedDay.record.check_out_time) || '—'} t={t} />
+                                    <DR label="Work Hours" t={t}>
+                                        <span style={{ color:'#6366f1', fontWeight:700, fontSize:13 }}>
                                             {selectedDay.record.work_hours_actual ? hToHM(selectedDay.record.work_hours_actual) : '—'}
                                         </span>
                                     </DR>
                                     {parseFloat(selectedDay.record.short_hours) > 0 && (
-                                        <DR label="Short Hours">
-                                            <span style={{ color:'#dc2626', fontWeight:700, fontSize:13 }}>
-                                                {hToHM(selectedDay.record.short_hours)} short
-                                            </span>
+                                        <DR label="Short Hours" t={t}>
+                                            <span style={{ color:'#ef4444', fontWeight:700, fontSize:13 }}>{hToHM(selectedDay.record.short_hours)} short</span>
                                         </DR>
                                     )}
                                     {selectedDay.record.late_minutes > 0 && (
-                                        <DR label="Late">
-                                            <span style={{ color:'#d97706', fontWeight:700, fontSize:13 }}>
-                                                {selectedDay.record.late_minutes} min
-                                            </span>
+                                        <DR label="Late" t={t}>
+                                            <span style={{ color:'#f59e0b', fontWeight:700, fontSize:13 }}>{selectedDay.record.late_minutes} min</span>
                                         </DR>
                                     )}
                                     {selectedDay.otRecord && (() => {
@@ -557,23 +785,23 @@ export default function AttendanceIndex({
                                         const segs = ot.segments || [];
                                         return (
                                             <>
-                                                <DR label="OT Hours">
-                                                    <span style={{ color:'#7c3aed', fontWeight:700, fontSize:13 }}>{hLabel}</span>
+                                                <DR label="OT Hours" t={t}>
+                                                    <span style={{ color:'#8b5cf6', fontWeight:700, fontSize:13 }}>{hLabel}</span>
                                                 </DR>
                                                 {segs.length > 0 && (
                                                     <div style={{ paddingTop:8, marginTop:2 }}>
-                                                        <div style={{ fontSize:10, color:'#9ca3af', fontWeight:600, marginBottom:8, letterSpacing:'0.04em' }}>OVERTIME DETAIL</div>
-                                                        <div style={{ borderTop:'1px solid #f3f4f6', paddingTop:6, display:'flex', flexDirection:'column', gap:8 }}>
+                                                        <div style={{ fontSize:10, color:t.textMute, fontWeight:700, marginBottom:8, letterSpacing:'0.04em' }}>OVERTIME DETAIL</div>
+                                                        <div style={{ borderTop:`1px solid ${t.detailBorder}`, paddingTop:6, display:'flex', flexDirection:'column', gap:8 }}>
                                                             {segs.map((seg, i) => {
                                                                 const sh = parseFloat(seg.hours);
                                                                 const shLabel = Number.isInteger(sh) ? `${sh}h` : `${sh}h`;
                                                                 return (
                                                                     <div key={i}>
                                                                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                                                                            <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>{seg.title}</span>
-                                                                            <span style={{ fontSize:12, fontWeight:700, color:'#7c3aed' }}>{shLabel}</span>
+                                                                            <span style={{ fontSize:11, color:t.textMute, fontWeight:600 }}>{seg.title}</span>
+                                                                            <span style={{ fontSize:12, fontWeight:700, color:'#8b5cf6' }}>{shLabel}</span>
                                                                         </div>
-                                                                        <div style={{ fontSize:11, fontWeight:700, color:'#7c3aed', marginTop:2 }}>
+                                                                        <div style={{ fontSize:11, fontWeight:700, color:'#8b5cf6', marginTop:2 }}>
                                                                             {to12h(seg.start_time)} — {to12h(seg.end_time)}
                                                                         </div>
                                                                     </div>
@@ -585,31 +813,47 @@ export default function AttendanceIndex({
                                             </>
                                         );
                                     })()}
-
                                     {parseFloat(selectedDay.record.work_hours_actual) > stdHours && !selectedDay.otRecord && (
-                                        <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:8, padding:'8px 10px', fontSize:11, color:'#92400e', marginTop:6 }}>
+                                        <div style={{
+                                            background: dark ? 'rgba(245,158,11,0.1)' : '#fffbeb',
+                                            border: dark ? '1px solid rgba(245,158,11,0.2)' : '1px solid #fde68a',
+                                            borderRadius:10, padding:'8px 10px', fontSize:11, color:'#92400e', marginTop:6,
+                                        }}>
                                             ⚠️ Exceeds {stdHours}h standard. Consider OT request.
                                         </div>
                                     )}
                                     {selectedDay.record.note && (
-                                        <div style={{ paddingTop:8, borderTop:'1px solid #f3f4f6', marginTop:4 }}>
-                                            <div style={{ fontSize:10, color:'#9ca3af', fontWeight:700, marginBottom:3 }}>NOTE</div>
-                                            <div style={{ fontSize:12, color:'#6b7280', fontStyle:'italic', lineHeight:1.5 }}>
+                                        <div style={{ paddingTop:8, borderTop:`1px solid ${t.detailBorder}`, marginTop:4 }}>
+                                            <div style={{ fontSize:10, color:t.textMute, fontWeight:700, marginBottom:3 }}>NOTE</div>
+                                            <div style={{ fontSize:12, color:t.textSoft, fontStyle:'italic', lineHeight:1.5 }}>
                                                 {selectedDay.record.note}
                                             </div>
                                         </div>
                                     )}
-                                    {/* ── Edit + Delete buttons 50/50 ── */}
                                     {canManage && (
-                                        <div style={{ display:'flex', gap:8, marginTop:10 }}>
+                                        <div style={{ display:'flex', gap:8, marginTop:12 }}>
                                             <button
-                                                style={{ flex:1, background:'#7c3aed', color:'#fff', border:'none', borderRadius:9, padding:'9px 0', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}
-                                                onClick={() => { setSelected(selectedDay); setShowModal(true); }}>
+                                                onClick={() => { setSelected(selectedDay); setShowModal(true); }}
+                                                style={{
+                                                    flex:1, background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                                                    color:'#fff', border:'none', borderRadius:10,
+                                                    padding:'9px 0', fontSize:12, fontWeight:700,
+                                                    cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                                                    boxShadow:'0 4px 12px rgba(99,102,241,0.3)',
+                                                }}>
                                                 ✏️ Edit
                                             </button>
                                             <button
-                                                style={{ flex:1, background:'#fff', color:'#dc2626', border:'1.5px solid #fca5a5', borderRadius:9, padding:'9px 0', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}
-                                                onClick={() => setShowDeleteConfirm(true)}>
+                                                onClick={() => setShowDeleteConfirm(true)}
+                                                style={{
+                                                    flex:1, background:'transparent',
+                                                    color:'#ef4444', border:'1.5px solid rgba(239,68,68,0.3)',
+                                                    borderRadius:10, padding:'9px 0', fontSize:12, fontWeight:700,
+                                                    cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                                                    transition:'all 0.15s',
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'}
+                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                                 🗑️ Delete
                                             </button>
                                         </div>
@@ -617,16 +861,22 @@ export default function AttendanceIndex({
                                 </div>
                             ) : (
                                 !selectedDay.otRecord && !selectedDay.leaveInfo && (
-                                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, padding:'16px 0', color:'#9ca3af', fontSize:12 }}>
-                                        <div style={{ fontSize:24, color:'#d1d5db' }}>—</div>
-                                        {selectedDay.isWeekend || selectedDay.isHoliday
-                                            ? 'No attendance required'
-                                            : selectedDay.isFuture
-                                                ? 'Future date'
+                                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:'20px 0', color:t.textMute, fontSize:12 }}>
+                                        <div style={{ fontSize:28, opacity:0.4 }}>—</div>
+                                        <div style={{ color:t.textMute, fontWeight:500, textAlign:'center' }}>
+                                            {selectedDay.isWeekend || selectedDay.isHoliday
+                                                ? 'No attendance required'
+                                                : selectedDay.isFuture ? 'Future date'
                                                 : 'Absent — No record'}
+                                        </div>
                                         {canManage && !selectedDay.isWeekend && !selectedDay.isHoliday && !selectedDay.isFuture && (
-                                            <button style={{ ...s.btnPrimary, marginTop:6 }}
-                                                onClick={() => { setSelected(selectedDay); setShowModal(true); }}>
+                                            <button
+                                                onClick={() => { setSelected(selectedDay); setShowModal(true); }}
+                                                style={{
+                                                    marginTop:4, background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                                                    color:'#fff', border:'none', borderRadius:10,
+                                                    padding:'8px 16px', fontSize:12, fontWeight:700, cursor:'pointer',
+                                                }}>
                                                 + Add Record
                                             </button>
                                         )}
@@ -634,7 +884,7 @@ export default function AttendanceIndex({
                                 )
                             )}
 
-                            {/* OT — record မရှိရင်လည်း ပြ */}
+                            {/* OT only day */}
                             {!selectedDay.record && selectedDay.otRecord && (() => {
                                 const ot   = selectedDay.otRecord;
                                 const h    = parseFloat(ot.hours_approved);
@@ -642,32 +892,27 @@ export default function AttendanceIndex({
                                 const segs = ot.segments || [];
                                 return (
                                     <div>
-                                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid #f9fafb' }}>
-                                            <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>Employee</span>
-                                            <span style={{ fontSize:12, color:'#374151', fontWeight:600 }}>{selectedEmp?.name || '—'}</span>
-                                        </div>
-                                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid #f9fafb' }}>
-                                            <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>Status</span>
-                                            <span style={{ fontSize:11, fontWeight:700, background:'#fdf4ff', color:'#7c3aed', borderRadius:99, padding:'2px 10px' }}>OT Only</span>
-                                        </div>
-                                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid #f9fafb' }}>
-                                            <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>OT Hours</span>
-                                            <span style={{ color:'#7c3aed', fontWeight:700, fontSize:13 }}>{hLabel}</span>
-                                        </div>
+                                        <DR label="Employee" val={selectedEmp?.name || '—'} t={t} />
+                                        <DR label="Status" t={t}>
+                                            <span style={{ fontSize:11, fontWeight:700, background: dark ? 'rgba(139,92,246,0.15)' : '#fdf4ff', color:'#8b5cf6', borderRadius:99, padding:'2px 10px' }}>OT Only</span>
+                                        </DR>
+                                        <DR label="OT Hours" t={t}>
+                                            <span style={{ color:'#8b5cf6', fontWeight:700, fontSize:13 }}>{hLabel}</span>
+                                        </DR>
                                         {segs.length > 0 && (
                                             <div style={{ paddingTop:8, marginTop:2 }}>
-                                                <div style={{ fontSize:10, color:'#9ca3af', fontWeight:600, marginBottom:8, letterSpacing:'0.04em' }}>OVERTIME DETAIL</div>
-                                                <div style={{ borderTop:'1px solid #f3f4f6', paddingTop:6, display:'flex', flexDirection:'column', gap:8 }}>
+                                                <div style={{ fontSize:10, color:t.textMute, fontWeight:700, marginBottom:8, letterSpacing:'0.04em' }}>OVERTIME DETAIL</div>
+                                                <div style={{ borderTop:`1px solid ${t.detailBorder}`, paddingTop:6, display:'flex', flexDirection:'column', gap:8 }}>
                                                     {segs.map((seg, i) => {
                                                         const sh = parseFloat(seg.hours);
                                                         const shLabel = Number.isInteger(sh) ? `${sh}h` : `${sh}h`;
                                                         return (
                                                             <div key={i}>
                                                                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                                                                    <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>{seg.title}</span>
-                                                                    <span style={{ fontSize:12, color:'#7c3aed', fontWeight:700 }}>{shLabel}</span>
+                                                                    <span style={{ fontSize:11, color:t.textMute, fontWeight:600 }}>{seg.title}</span>
+                                                                    <span style={{ fontSize:12, color:'#8b5cf6', fontWeight:700 }}>{shLabel}</span>
                                                                 </div>
-                                                                <div style={{ fontSize:11, fontWeight:700, color:'#7c3aed', marginTop:2 }}>
+                                                                <div style={{ fontSize:11, fontWeight:700, color:'#8b5cf6', marginTop:2 }}>
                                                                     {to12h(seg.start_time)} — {to12h(seg.end_time)}
                                                                 </div>
                                                             </div>
@@ -681,51 +926,89 @@ export default function AttendanceIndex({
                             })()}
                         </div>
                     ) : (
-                        <div style={{ ...s.detailPanel, alignItems:'center', justifyContent:'center', color:'#9ca3af', fontSize:12, minHeight:200 }}>
-                            <div style={{ fontSize:24, color:'#d1d5db', marginBottom:6 }}>📅</div>
-                            Click a day to view details
+                        <div style={{
+                            background: t.card, border: `1px solid ${t.cardBorder}`,
+                            borderRadius: 18, padding: 16, boxShadow: t.cardShadow,
+                            display:'flex', alignItems:'center', justifyContent:'center',
+                            color:t.textMute, fontSize:12, minHeight:200,
+                            flexDirection:'column', gap:8,
+                        }}>
+                            <div style={{ fontSize:28, opacity:0.3 }}>📅</div>
+                            <span>Click a day to view details</span>
                         </div>
                     )}
                 </div>
 
-                {/* Monthly Summary */}
-                <div style={s.summaryCard}>
-                    <div style={s.summaryTitle}>📊 {MONTHS[month-1]} {year} — Monthly Summary</div>
-                    <div style={s.summaryGrid}>
-                        {[
-                            { val: monthlySummary.workingDays,             label:'Working Days',    color:'#374151' },
-                            { val: monthlySummary.presentDays,             label:'Present Days',    color:'#059669' },
-                            { val: monthlySummary.absentDays,              label:'Absent Days',     color:'#dc2626' },
-                            { val: monthlySummary.lateDays,                label:'Late Days',       color:'#d97706' },
-                            { val: monthlySummary.halfDays,                label:'Half Days',       color:'#2563eb' },
-                            { val: monthlySummary.leaveDays,               label:'Leave Days',      color:'#059669' },
-                            { val: monthlySummary.totalLateMin+'m',        label:'Total Late',      color:'#f59e0b' },
-                            { val: monthlySummary.totalWH.toFixed(1)+'h',  label:'Work Hours',      color:'#4f46e5' },
-                            { val: publicHolidays.length,                  label:'Public Holidays', color:'#dc2626' },
-                        ].map((item, i) => (
-                            <div key={i} style={{ textAlign:'center' }}>
-                                <div style={{ fontSize:18, fontWeight:800, color:item.color }}>{item.val}</div>
-                                <div style={s.summaryLbl}>{item.label}</div>
+                {/* ── Monthly Summary ── */}
+                <div style={{
+                    background: t.summaryBg, border: `1px solid ${t.cardBorder}`,
+                    borderRadius: 18, padding: '16px 20px', boxShadow: t.cardShadow,
+                }}>
+                    <div style={{ fontSize:13, fontWeight:800, color:t.text, marginBottom:14, letterSpacing:'-0.2px' }}>
+                        📊 {MONTHS[month-1]} {year} — Monthly Summary
+                    </div>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(9,1fr)', gap:10 }}>
+                        {stats.map((item, i) => (
+                            <div key={i} className="stat-card" style={{
+                                textAlign:'center', padding:'12px 4px',
+                                background: t.detailBg, borderRadius:12,
+                                border:`1px solid ${t.cardBorder}`,
+                                transition:'all 0.15s',
+                                cursor:'default',
+                            }}>
+                                <div style={{ fontSize:16, marginBottom:4 }}>{item.icon}</div>
+                                <div style={{ fontSize:16, fontWeight:900, color:item.color, letterSpacing:'-0.5px' }}>{item.val}</div>
+                                <div style={{ fontSize:9, color:t.textMute, marginTop:3, fontWeight:600, letterSpacing:'0.3px' }}>{item.label}</div>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
 
-            {/* Delete Confirm Modal */}
+            {/* ── Delete Confirm Modal ── */}
             {showDeleteConfirm && selectedDay?.record && (
-                <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }}>
-                    <div style={{ background:'#fff', borderRadius:16, width:360, padding:'28px 28px 24px', boxShadow:'0 20px 60px rgba(0,0,0,0.2)', textAlign:'center' }}>
-                        <div style={{ width:52, height:52, borderRadius:'50%', background:'#fee2e2', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, margin:'0 auto 14px' }}>🗑️</div>
-                        <div style={{ fontSize:15, fontWeight:800, color:'#111827', marginBottom:6 }}>Delete Attendance?</div>
-                        <div style={{ fontSize:12, color:'#6b7280', marginBottom:20, lineHeight:1.6 }}>
+                <div style={{
+                    position:'fixed', inset:0, background:t.overlay,
+                    display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000,
+                    backdropFilter:'blur(8px)',
+                }}>
+                    <div style={{
+                        background:t.modalBg, border:`1px solid ${t.modalBorder}`,
+                        borderRadius:20, width:380, padding:'32px 28px 24px',
+                        boxShadow:'0 24px 64px rgba(0,0,0,0.25)', textAlign:'center',
+                    }}>
+                        <div style={{
+                            width:56, height:56, borderRadius:16,
+                            background: dark ? 'rgba(239,68,68,0.15)' : '#fee2e2',
+                            border: dark ? '1px solid rgba(239,68,68,0.2)' : 'none',
+                            display:'flex', alignItems:'center', justifyContent:'center',
+                            fontSize:26, margin:'0 auto 16px',
+                        }}>🗑️</div>
+                        <div style={{ fontSize:16, fontWeight:800, color:t.text, marginBottom:8 }}>Delete Attendance?</div>
+                        <div style={{ fontSize:12, color:t.textMute, marginBottom:24, lineHeight:1.7 }}>
                             {new Date(selectedDay.dateStr+'T00:00:00').toLocaleDateString('en-US',{ weekday:'long', month:'long', day:'numeric' })}
-                            <br/>{selectedDay.record.user?.name}
+                            <br/><span style={{ fontWeight:700, color:t.textSoft }}>{selectedDay.record.user?.name}</span>
                         </div>
                         <div style={{ display:'flex', gap:10 }}>
-                            <button style={{ flex:1, background:'#f3f4f6', border:'none', borderRadius:9, padding:'10px', fontSize:13, fontWeight:600, cursor:'pointer', color:'#6b7280' }}
-                                onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>Cancel</button>
-                            <button style={{ flex:1, background:'#dc2626', border:'none', borderRadius:9, padding:'10px', fontSize:13, fontWeight:700, cursor:deleting?'not-allowed':'pointer', color:'#fff', opacity:deleting?0.6:1 }}
+                            <button
+                                style={{
+                                    flex:1, background:'transparent', border:`1.5px solid ${t.inputBorder}`,
+                                    borderRadius:12, padding:'11px', fontSize:13, fontWeight:600,
+                                    cursor:'pointer', color:t.textSoft, transition:'all 0.15s',
+                                }}
+                                onClick={() => setShowDeleteConfirm(false)} disabled={deleting}
+                                onMouseEnter={e => e.currentTarget.style.background = t.input}
+                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                                Cancel
+                            </button>
+                            <button
+                                style={{
+                                    flex:1, background:'linear-gradient(135deg,#ef4444,#dc2626)',
+                                    border:'none', borderRadius:12, padding:'11px',
+                                    fontSize:13, fontWeight:700,
+                                    cursor:deleting?'not-allowed':'pointer', color:'#fff',
+                                    opacity:deleting?0.6:1, boxShadow:'0 4px 14px rgba(239,68,68,0.35)',
+                                }}
                                 onClick={handleDelete} disabled={deleting}>
                                 {deleting ? 'Deleting...' : 'Yes, Delete'}
                             </button>
@@ -734,6 +1017,7 @@ export default function AttendanceIndex({
                 </div>
             )}
 
+            {/* ── Add/Edit Modal ── */}
             {showModal && (
                 <AttendanceModal
                     data={selected}
@@ -743,37 +1027,45 @@ export default function AttendanceIndex({
                     leaveInfo={selected?.leaveInfo || null}
                     onClose={() => setShowModal(false)}
                     onSave={handleSave}
+                    dark={dark}
+                    t={t}
                 />
             )}
         </AppLayout>
     );
 }
 
-function DR({ label, val, children }) {
+// ── Detail Row ────────────────────────────────────────────────
+function DR({ label, val, children, t }) {
     return (
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid #f9fafb' }}>
-            <span style={{ fontSize:11, color:'#9ca3af', fontWeight:600 }}>{label}</span>
-            {children || <span style={{ fontSize:12, color:'#374151', fontWeight:600 }}>{val}</span>}
+        <div style={{
+            display:'flex', justifyContent:'space-between', alignItems:'center',
+            padding:'8px 0', borderBottom:`1px solid ${t.detailBorder}`,
+        }}>
+            <span style={{ fontSize:11, color:t.textMute, fontWeight:600 }}>{label}</span>
+            {children || <span style={{ fontSize:12, color:t.textSoft, fontWeight:600 }}>{val}</span>}
         </div>
     );
 }
 
-function StatusPill({ status }) {
+// ── Status Pill ───────────────────────────────────────────────
+function StatusPill({ status, dark }) {
     const cfg = {
-        present:  { label:'Present',  bg:'#d1fae5', color:'#059669' },
-        absent:   { label:'Absent',   bg:'#fee2e2', color:'#dc2626' },
-        late:     { label:'Late',     bg:'#fef3c7', color:'#d97706' },
-        half_day: { label:'Half Day', bg:'#dbeafe', color:'#2563eb' },
+        present:  { label:'Present',  bg: dark ? 'rgba(16,185,129,0.15)' : '#d1fae5', color:'#10b981' },
+        absent:   { label:'Absent',   bg: dark ? 'rgba(239,68,68,0.15)' : '#fee2e2',  color:'#ef4444' },
+        late:     { label:'Late',     bg: dark ? 'rgba(245,158,11,0.15)' : '#fef3c7', color:'#f59e0b' },
+        half_day: { label:'Half Day', bg: dark ? 'rgba(59,130,246,0.15)' : '#dbeafe', color:'#3b82f6' },
     };
     const c = cfg[status] || cfg.present;
     return (
-        <span style={{ fontSize:11, fontWeight:700, background:c.bg, color:c.color, borderRadius:99, padding:'2px 10px' }}>
+        <span style={{ fontSize:11, fontWeight:700, background:c.bg, color:c.color, borderRadius:99, padding:'3px 12px' }}>
             {c.label}
         </span>
     );
 }
 
-function AttendanceModal({ data, employees, onClose, onSave, saving, countryConfig, leaveInfo }) {
+// ── Attendance Modal ──────────────────────────────────────────
+function AttendanceModal({ data, employees, onClose, onSave, saving, countryConfig, leaveInfo, dark, t }) {
     const WORK_START  = countryConfig?.work_start || countryConfig?.standard_start_time || '08:00';
     const WORK_END    = countryConfig?.work_end   || '17:00';
     const LUNCH_START = countryConfig?.lunch_start || '12:00';
@@ -782,6 +1074,7 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
     const isPmHalf    = leaveInfo?.day_type === 'half_day_pm';
     const isEdit      = !!data?.record;
 
+    const [modalOpenId, setModalOpenId] = useState(null);
     const [form, setForm] = useState({
         user_id:           data?.record?.user_id           || '',
         date:              data?.dateStr                   || '',
@@ -791,12 +1084,10 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
         late_minutes:      data?.record?.late_minutes      ?? 0,
         note:              data?.record?.note              || '',
     });
-
     const [errors, setErrors] = useState({});
 
     const normalizeTime = (t) => {
         if (!t) return '';
-        // "08" → "08:00", "08:3" → "08:03", "08:30" → "08:30"
         if (!t.includes(':')) return t.length >= 2 ? `${t.padStart(2,'0')}:00` : '';
         const [h, min] = t.split(':');
         if (!h) return '';
@@ -843,146 +1134,233 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
         if (isPmHalf && form.check_out_time && form.check_out_time > LUNCH_START)
             e.check_out_time = `PM Half Leave — check-out must be ${fmt12(LUNCH_START)} or earlier`;
         if (form.work_hours_actual === '' || form.work_hours_actual === null)
-                                  e.work_hours_actual = 'Work Hours is required';
+            e.work_hours_actual = 'Work Hours is required';
         if (form.late_minutes === '' || form.late_minutes === null)
-                                  e.late_minutes   = 'Late minutes is required';
-        if (!form.note)           e.note           = 'Note is required';
+            e.late_minutes = 'Late minutes is required';
+        if (!form.note) e.note = 'Note is required';
         setErrors(e);
         return Object.keys(e).length === 0;
     }
 
+    const empOptions = employees.map(e => ({ value: String(e.id), label: e.name }));
+
+    // Shared input style
+    const inputStyle = (hasError) => ({
+        width: '100%', padding: '11px 14px', borderRadius: 12,
+        border: `1.5px solid ${hasError ? '#ef4444' : t.inputBorder}`,
+        background: t.input, color: t.text, fontSize: 13, fontWeight: 500,
+        outline: 'none', transition: 'border-color 0.15s',
+        boxSizing: 'border-box',
+    });
+
     return (
-        <div style={m.overlay}>
-            <div style={m.modal}>
-                <div style={m.header}>
-                    <div style={m.title}>{isEdit ? 'Edit Attendance' : 'Add Attendance'}</div>
-                    <button style={m.closeBtn} onClick={onClose}>✕</button>
+        <div style={{
+            position:'fixed', inset:0, background:t.overlay,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            zIndex:1000, backdropFilter:'blur(10px)',
+        }}>
+            <div style={{
+                background: t.modalBg, border:`1px solid ${t.modalBorder}`,
+                borderRadius: 24, width: 520, maxHeight:'90vh',
+                overflow:'hidden', display:'flex', flexDirection:'column',
+                boxShadow: '0 32px 80px rgba(0,0,0,0.3)',
+            }}>
+                {/* Header gradient */}
+                <div style={{
+                    padding: '20px 24px 18px',
+                    background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08))',
+                    borderBottom: `1px solid ${t.modalBorder}`,
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    flexShrink: 0,
+                }}>
+                    <div>
+                        <div style={{ fontSize:16, fontWeight:900, color:t.text, letterSpacing:'-0.3px' }}>
+                            {isEdit ? 'Edit Attendance' : 'Add Attendance'}
+                        </div>
+                        <div style={{ fontSize:11, color:t.textMute, marginTop:2, fontWeight:500 }}>
+                            {isEdit ? 'Update attendance record' : 'Record employee attendance'}
+                        </div>
+                    </div>
+                    <button onClick={onClose} style={{
+                        background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)',
+                        border: 'none', borderRadius: 10, width: 32, height: 32,
+                        cursor: 'pointer', fontSize: 13, color: t.textMute,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.12)' : 'rgba(15,23,42,0.1)'}
+                    onMouseLeave={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)'}>
+                        ✕
+                    </button>
                 </div>
-                <div style={m.body}>
-                    <div style={m.field}>
-                        <label style={m.label}>Employee <span style={m.req}>*</span></label>
-                        <select style={{ ...m.input, border: errors.user_id ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
-                            value={form.user_id} onChange={e => set('user_id', e.target.value)}>
-                            <option value="">Select Employee</option>
-                            {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                        </select>
-                        {errors.user_id && <span style={m.errMsg}>{errors.user_id}</span>}
+
+                {/* Body — scrollable, scrollbar hidden */}
+                <div style={{
+                    padding: '20px 24px', overflowY: 'auto', flex: 1,
+                    display: 'flex', flexDirection: 'column', gap: 16,
+                }}>
+                    {/* Employee */}
+                    <div>
+                        <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
+                            Employee <span style={{ color:'#ef4444' }}>*</span>
+                        </label>
+                        <PremiumSelect
+                            value={form.user_id}
+                            onChange={v => set('user_id', v)}
+                            options={[{ value:'', label:'Select Employee' }, ...empOptions]}
+                            placeholder="Select Employee"
+                            t={t}
+                            dropId="modal-emp"
+                            openId={modalOpenId}
+                            setOpenId={setModalOpenId}
+                        />
+                        {errors.user_id && <span style={{ fontSize:11, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.user_id}</span>}
                     </div>
 
-                    <div style={m.field}>
-                        <label style={m.label}>Date <span style={m.req}>*</span></label>
+                    {/* Date */}
+                    <div>
+                        <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
+                            Date <span style={{ color:'#ef4444' }}>*</span>
+                        </label>
                         <input
-                            style={{ ...m.input, border: errors.date ? '1.5px solid #dc2626' : '1px solid #e5e7eb',
-                                background: isEdit ? '#f3f4f6' : '#f9fafb',
-                                cursor: isEdit ? 'not-allowed' : 'default' }}
+                            style={{
+                                ...inputStyle(!!errors.date),
+                                background: isEdit ? (dark ? 'rgba(255,255,255,0.03)' : '#f3f4f6') : t.input,
+                                cursor: isEdit ? 'not-allowed' : 'default',
+                                color: isEdit ? t.textMute : t.text,
+                            }}
                             type="date" value={form.date}
                             onChange={e => !isEdit && set('date', e.target.value)}
-                            readOnly={isEdit}/>
-                        {errors.date && <span style={m.errMsg}>{errors.date}</span>}
+                            readOnly={isEdit}
+                            onFocus={e => { if (!isEdit) e.target.style.borderColor = t.inputFocus; e.target.style.boxShadow = `0 0 0 3px ${t.inputFocus}22`; }}
+                            onBlur={e => { e.target.style.borderColor = errors.date ? '#ef4444' : t.inputBorder; e.target.style.boxShadow = 'none'; }}
+                        />
+                        {errors.date && <span style={{ fontSize:11, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.date}</span>}
                     </div>
 
-                    <div style={m.row2}>
-                        <div style={m.field}>
-                            <label style={m.label}>Check In <span style={m.req}>*</span></label>
-                            <input style={{ ...m.input, border: errors.check_in_time ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
+                    {/* Check In / Out */}
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+                        <div>
+                            <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
+                                Check In <span style={{ color:'#ef4444' }}>*</span>
+                            </label>
+                            <input
+                                style={inputStyle(!!errors.check_in_time)}
                                 type="time"
                                 min={isAmHalf ? LUNCH_END : undefined}
                                 value={form.check_in_time}
-                                onChange={e => set('check_in_time', e.target.value)} />
-                            {errors.check_in_time && <span style={m.errMsg}>{errors.check_in_time}</span>}
-                            {isAmHalf && !errors.check_in_time && <span style={{ fontSize:10, color:'#d97706' }}>⚠️ Must be {fmt12(LUNCH_END)} or later</span>}
+                                onChange={e => set('check_in_time', e.target.value)}
+                                onFocus={e => { e.target.style.borderColor = t.inputFocus; e.target.style.boxShadow = `0 0 0 3px ${t.inputFocus}22`; }}
+                                onBlur={e => { e.target.style.borderColor = errors.check_in_time ? '#ef4444' : t.inputBorder; e.target.style.boxShadow = 'none'; }}
+                            />
+                            {errors.check_in_time && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.check_in_time}</span>}
+                            {isAmHalf && !errors.check_in_time && <span style={{ fontSize:10, color:'#f59e0b', marginTop:3, display:'block' }}>⚠️ Must be {fmt12(LUNCH_END)} or later</span>}
                         </div>
-                        <div style={m.field}>
-                            <label style={m.label}>Check Out <span style={m.req}>*</span></label>
-                            <input style={{ ...m.input, border: errors.check_out_time ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
+                        <div>
+                            <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
+                                Check Out <span style={{ color:'#ef4444' }}>*</span>
+                            </label>
+                            <input
+                                style={inputStyle(!!errors.check_out_time)}
                                 type="time"
                                 max={isPmHalf ? LUNCH_START : undefined}
                                 value={form.check_out_time}
-                                onChange={e => set('check_out_time', e.target.value)} />
-                            {errors.check_out_time && <span style={m.errMsg}>{errors.check_out_time}</span>}
-                            {isPmHalf && !errors.check_out_time && <span style={{ fontSize:10, color:'#d97706' }}>⚠️ Must be {fmt12(LUNCH_START)} or earlier</span>}
+                                onChange={e => set('check_out_time', e.target.value)}
+                                onFocus={e => { e.target.style.borderColor = t.inputFocus; e.target.style.boxShadow = `0 0 0 3px ${t.inputFocus}22`; }}
+                                onBlur={e => { e.target.style.borderColor = errors.check_out_time ? '#ef4444' : t.inputBorder; e.target.style.boxShadow = 'none'; }}
+                            />
+                            {errors.check_out_time && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.check_out_time}</span>}
+                            {isPmHalf && !errors.check_out_time && <span style={{ fontSize:10, color:'#f59e0b', marginTop:3, display:'block' }}>⚠️ Must be {fmt12(LUNCH_START)} or earlier</span>}
                         </div>
                     </div>
 
-                    <div style={m.row2}>
-                        <div style={m.field}>
-                            <label style={m.label}>Work Hours <span style={m.req}>*</span> <span style={m.autoTag}>auto</span></label>
-                            <div style={{ ...m.input, border: errors.work_hours_actual ? '1.5px solid #dc2626' : '1px solid #e5e7eb', background:'#f3f4f6', color:'#4f46e5', fontWeight:700 }}>
+                    {/* Work Hours / Late */}
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+                        <div>
+                            <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'flex', alignItems:'center', gap:6, marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
+                                Work Hours <span style={{ color:'#ef4444' }}>*</span>
+                                <span style={{ fontSize:8, fontWeight:800, background:'rgba(59,130,246,0.15)', color:'#3b82f6', borderRadius:4, padding:'1px 6px', textTransform:'none', letterSpacing:0 }}>AUTO</span>
+                            </label>
+                            <div style={{
+                                ...inputStyle(!!errors.work_hours_actual),
+                                background: dark ? 'rgba(255,255,255,0.03)' : '#f3f4f6',
+                                color: '#6366f1', fontWeight: 700, display:'flex', alignItems:'center',
+                            }}>
                                 {form.work_hours_actual !== '' && form.work_hours_actual !== null ? hToHM(form.work_hours_actual) : '—'}
                             </div>
-                            {errors.work_hours_actual && <span style={m.errMsg}>{errors.work_hours_actual}</span>}
-                            <span style={m.hint}>Lunch: {LUNCH_START} — {LUNCH_END}</span>
+                            {errors.work_hours_actual && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.work_hours_actual}</span>}
+                            <span style={{ fontSize:10, color:t.textMute, marginTop:3, display:'block' }}>Lunch: {LUNCH_START} — {LUNCH_END}</span>
                         </div>
-                        <div style={m.field}>
-                            <label style={m.label}>Late (min) <span style={m.req}>*</span> <span style={m.autoTag}>auto</span></label>
-                            <input style={{ ...m.input, border: errors.late_minutes ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
+                        <div>
+                            <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'flex', alignItems:'center', gap:6, marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
+                                Late (min) <span style={{ color:'#ef4444' }}>*</span>
+                                <span style={{ fontSize:8, fontWeight:800, background:'rgba(59,130,246,0.15)', color:'#3b82f6', borderRadius:4, padding:'1px 6px', textTransform:'none', letterSpacing:0 }}>AUTO</span>
+                            </label>
+                            <input
+                                style={inputStyle(!!errors.late_minutes)}
                                 type="number" value={form.late_minutes}
-                                onChange={e => set('late_minutes', e.target.value)} placeholder="Auto" />
-                            {errors.late_minutes && <span style={m.errMsg}>{errors.late_minutes}</span>}
-                            <span style={m.hint}>Start: {WORK_START}</span>
+                                onChange={e => set('late_minutes', e.target.value)}
+                                placeholder="Auto"
+                                onFocus={e => { e.target.style.borderColor = t.inputFocus; e.target.style.boxShadow = `0 0 0 3px ${t.inputFocus}22`; }}
+                                onBlur={e => { e.target.style.borderColor = errors.late_minutes ? '#ef4444' : t.inputBorder; e.target.style.boxShadow = 'none'; }}
+                            />
+                            {errors.late_minutes && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.late_minutes}</span>}
+                            <span style={{ fontSize:10, color:t.textMute, marginTop:3, display:'block' }}>Start: {WORK_START}</span>
                         </div>
                     </div>
 
-                    <div style={m.field}>
-                        <label style={m.label}>Note <span style={m.req}>*</span></label>
-                        <textarea style={{ ...m.input, height:65, resize:'vertical', border: errors.note ? '1.5px solid #dc2626' : '1px solid #e5e7eb' }}
-                            value={form.note} onChange={e => set('note', e.target.value)} placeholder="Required note..." />
-                        {errors.note && <span style={m.errMsg}>{errors.note}</span>}
+                    {/* Note */}
+                    <div>
+                        <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
+                            Note <span style={{ color:'#ef4444' }}>*</span>
+                        </label>
+                        <textarea
+                            style={{ ...inputStyle(!!errors.note), height:80, resize:'vertical', lineHeight:1.6 }}
+                            value={form.note}
+                            onChange={e => set('note', e.target.value)}
+                            placeholder="Required note..."
+                            onFocus={e => { e.target.style.borderColor = t.inputFocus; e.target.style.boxShadow = `0 0 0 3px ${t.inputFocus}22`; }}
+                            onBlur={e => { e.target.style.borderColor = errors.note ? '#ef4444' : t.inputBorder; e.target.style.boxShadow = 'none'; }}
+                        />
+                        {errors.note && <span style={{ fontSize:11, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.note}</span>}
                     </div>
                 </div>
-                <div style={m.footer}>
-                    <button style={m.btnCancel} onClick={onClose}>Cancel</button>
-                    <button style={{ ...m.btnSave, opacity:saving?0.6:1, cursor:saving?'not-allowed':'pointer' }}
-                        onClick={() => { if (!validate()) return; onSave(form); }} disabled={saving}>
-                        {saving ? 'Saving...' : 'Save'}
+
+                {/* Footer */}
+                <div style={{
+                    padding: '16px 24px 20px',
+                    borderTop: `1px solid ${t.modalBorder}`,
+                    display: 'flex', gap: 10, justifyContent: 'flex-end',
+                    flexShrink: 0,
+                    background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(248,250,252,0.8)',
+                }}>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            padding:'10px 22px', borderRadius:12, fontSize:13, fontWeight:700,
+                            border:`1.5px solid ${t.inputBorder}`, background:'transparent',
+                            color:t.textSoft, cursor:'pointer', transition:'all 0.15s',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = t.input}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => { if (!validate()) return; onSave(form); }}
+                        disabled={saving}
+                        style={{
+                            padding:'10px 26px', borderRadius:12, fontSize:13, fontWeight:700,
+                            border:'none', background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                            color:'#fff', cursor:saving?'not-allowed':'pointer',
+                            opacity:saving?0.65:1, transition:'all 0.15s',
+                            boxShadow:'0 4px 14px rgba(99,102,241,0.35)',
+                        }}
+                        onMouseEnter={e => { if (!saving) e.currentTarget.style.opacity = '0.9'; }}
+                        onMouseLeave={e => { if (!saving) e.currentTarget.style.opacity = '1'; }}>
+                        {saving ? '⏳ Saving...' : '✅ Save'}
                     </button>
                 </div>
             </div>
         </div>
     );
 }
-
-const s = {
-    wrap:          { display:'flex', flexDirection:'column', gap:16 },
-    filterRow:     { display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' },
-    select:        { background:'#fff', border:'1px solid #e5e7eb', borderRadius:8, padding:'7px 11px', fontSize:13, color:'#374151', cursor:'pointer' },
-    btnPrimary:    { background:'#7c3aed', color:'#fff', border:'none', borderRadius:9, padding:'8px 16px', fontSize:13, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5 },
-    empCard:       { background:'#fff', borderRadius:12, padding:'14px 18px', boxShadow:'0 1px 3px rgba(0,0,0,0.06)', display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' },
-    empAvatar:     { width:46, height:46, borderRadius:12, background:'linear-gradient(135deg,#7c3aed,#a78bfa)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:800, flexShrink:0 },
-    calWrapper:    { display:'grid', gridTemplateColumns:'1fr 260px', gap:14 },
-    calCard:       { background:'#fff', borderRadius:14, padding:16, boxShadow:'0 1px 3px rgba(0,0,0,0.06)' },
-    calHeader:     { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 },
-    calTitle:      { fontSize:14, fontWeight:800, color:'#111827' },
-    navBtn:        { background:'#f3f4f6', border:'none', borderRadius:7, width:27, height:27, fontSize:15, cursor:'pointer', color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' },
-    calGrid:       { display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:3 },
-    dayHeader:     { textAlign:'center', fontSize:10, fontWeight:700, padding:'3px 0', letterSpacing:'0.3px' },
-    dayCell:       { borderRadius:8, padding:'6px 6px 5px', minHeight:92, display:'flex', flexDirection:'column', gap:1, cursor:'pointer', boxSizing:'border-box', transition:'box-shadow 0.1s' },
-    detailPanel:   { background:'#fff', borderRadius:14, padding:16, boxShadow:'0 1px 3px rgba(0,0,0,0.06)', display:'flex', flexDirection:'column', gap:10 },
-    detailHeader:  { display:'flex', justifyContent:'space-between', alignItems:'flex-start' },
-    detailDate:    { fontSize:11, fontWeight:700, color:'#374151', lineHeight:1.5 },
-    detailClose:   { background:'#f3f4f6', border:'none', borderRadius:6, width:22, height:22, cursor:'pointer', fontSize:10, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 },
-    summaryCard:   { background:'#fff', borderRadius:14, padding:16, boxShadow:'0 1px 3px rgba(0,0,0,0.06)' },
-    summaryTitle:  { fontSize:13, fontWeight:800, color:'#111827', marginBottom:12 },
-    summaryGrid:   { display:'grid', gridTemplateColumns:'repeat(9,1fr)', gap:10 },
-    summaryLbl:    { fontSize:10, color:'#9ca3af', marginTop:2, fontWeight:600 },
-};
-
-const m = {
-    overlay:   { position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 },
-    modal:     { background:'#fff', borderRadius:16, width:500, maxHeight:'90vh', overflow:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' },
-    header:    { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'18px 22px 14px', borderBottom:'1px solid #f3f4f6' },
-    title:     { fontSize:15, fontWeight:800, color:'#111827' },
-    closeBtn:  { background:'#f3f4f6', border:'none', borderRadius:7, width:27, height:27, cursor:'pointer', fontSize:12, color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center' },
-    body:      { padding:'16px 22px', display:'flex', flexDirection:'column', gap:12 },
-    field:     { display:'flex', flexDirection:'column', gap:4 },
-    label:     { fontSize:11, fontWeight:700, color:'#374151', display:'flex', alignItems:'center', gap:5 },
-    req:       { color:'#dc2626', fontSize:12 },
-    autoTag:   { fontSize:8, fontWeight:700, background:'#dbeafe', color:'#2563eb', borderRadius:3, padding:'1px 5px' },
-    hint:      { fontSize:10, color:'#9ca3af' },
-    errMsg:    { fontSize:11, color:'#dc2626', fontWeight:600 },
-    input:     { background:'#f9fafb', border:'1px solid #e5e7eb', borderRadius:8, padding:'8px 11px', fontSize:13, color:'#374151', outline:'none', width:'100%', boxSizing:'border-box' },
-    row2:      { display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 },
-    footer:    { display:'flex', justifyContent:'flex-end', gap:8, padding:'12px 22px', borderTop:'1px solid #f3f4f6' },
-    btnCancel: { background:'#f3f4f6', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:600, cursor:'pointer', color:'#6b7280' },
-    btnSave:   { background:'#7c3aed', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:700, cursor:'pointer', color:'#fff' },
-};

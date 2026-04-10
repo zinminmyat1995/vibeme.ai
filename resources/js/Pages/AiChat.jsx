@@ -253,7 +253,7 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
 
             {!isDeleted && (
                 <div style={{ position: 'relative', alignSelf: 'flex-end', flexShrink: 0, order: isMine ? -1 : 1, marginBottom: 6 }}>
-                    <button ref={dotBtnRef} onClick={toggleMenu} style={{ height: 26, borderRadius: 8, background: isMenuOpen ? 'rgba(99,102,241,0.1)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isMenuOpen ? '#6366f1' : t.textMute, fontSize: 15, fontWeight: 900, letterSpacing: '-1px', transition: 'all 0.15s' }}
+                    <button ref={dotBtnRef} onClick={toggleMenu} style={{ width: 26, height: 26, borderRadius: 8, background: isMenuOpen ? 'rgba(99,102,241,0.1)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isMenuOpen ? '#6366f1' : t.textMute, fontSize: 15, fontWeight: 900, letterSpacing: '-1px', transition: 'all 0.15s' }}
                         onMouseEnter={e => { e.currentTarget.style.background='rgba(99,102,241,0.1)'; e.currentTarget.style.color='#6366f1'; }}
                         onMouseLeave={e => { if (!isMenuOpen) { e.currentTarget.style.background='transparent'; e.currentTarget.style.color=t.textMute; } }}
                     >⋯</button>
@@ -692,6 +692,30 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                 ch.listen('.member.added', ({ conversation_id, member }) => { const updateMembers = (prev) => prev.map(c => c.id !== conversation_id ? c : { ...c, members: c.members?.find(m => m.id === member.id) ? c.members : [...(c.members || []), member] }); setConversations(updateMembers); setActiveConv(prev => { if (prev?.id !== conversation_id) return prev; const already = prev.members?.find(m => m.id === member.id); return already ? prev : { ...prev, members: [...(prev.members || []), member] }; }); });
                 ch.listen('.member.removed', ({ conversation_id, user_id }) => { const updateMembers = (prev) => prev.map(c => c.id !== conversation_id ? c : { ...c, members: (c.members || []).filter(m => m.id !== user_id) }); setConversations(updateMembers); setActiveConv(prev => { if (prev?.id !== conversation_id) return prev; return { ...prev, members: (prev.members || []).filter(m => m.id !== user_id) }; }); });
                 ch.listen('.group.updated', ({ conversation_id, name, avatar, avatar_url }) => { setConversations(prev => prev.map(c => c.id !== conversation_id ? c : { ...c, name, avatar, avatar_url })); setActiveConv(prev => prev?.id !== conversation_id ? prev : { ...prev, name, avatar, avatar_url }); });
+
+                // Avatar update via conversation channel (for other members to receive)
+                ch.listen('.user.avatar.updated', ({ user_id, avatar_url }) => {
+                    if (user_id === baseAuthUser?.id) {
+                        setAvatarOverride(avatar_url ?? null);
+                    }
+                    setConversations(prev => prev.map(c => ({
+                        ...c,
+                        members: (c.members || []).map(m => m.id === user_id ? { ...m, avatar_url } : m),
+                        ...(c.type === 'private' && c.members?.find(m => m.id === user_id) ? { avatar_url } : {}),
+                    })));
+                    setActiveConv(prev => {
+                        if (!prev) return prev;
+                        return {
+                            ...prev,
+                            members: (prev.members || []).map(m => m.id === user_id ? { ...m, avatar_url } : m),
+                            ...(prev.type === 'private' && prev.members?.find(m => m.id === user_id) ? { avatar_url } : {}),
+                        };
+                    });
+                    setMessages(prev => prev.map(m =>
+                        m.sender_id === user_id ? { ...m, sender: { ...m.sender, avatar_url } } : m
+                    ));
+                });
+
                 return conv.id;
             });
             cleanupFn = () => { ids.forEach(id => { try { window.Echo.leave(`conversation.${id}`); } catch(e) {} }); };

@@ -1,5 +1,92 @@
 import { useForm, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
+// ── Theme hook ─────────────────────────────────────────────────
+function useTheme() {
+    const getDark = () => {
+        if (typeof window === 'undefined') return false;
+        return document.documentElement.getAttribute('data-theme') === 'dark'
+            || localStorage.getItem('vibeme-theme') === 'dark';
+    };
+    const [dark, setDark] = useState(getDark);
+    useEffect(() => {
+        const sync = () => setDark(getDark());
+        window.addEventListener('vibeme-theme-change', sync);
+        window.addEventListener('storage', sync);
+        return () => {
+            window.removeEventListener('vibeme-theme-change', sync);
+            window.removeEventListener('storage', sync);
+        };
+    }, []);
+    return dark;
+}
+
+function getTheme(dark) {
+    if (dark) return {
+        panel:       'linear-gradient(180deg, rgba(10,18,36,0.97) 0%, rgba(9,16,32,0.93) 100%)',
+        panelSolid:  '#0b1324',
+        panelSoft:   'rgba(255,255,255,0.04)',
+        panelSofter: 'rgba(255,255,255,0.07)',
+        border:      'rgba(148,163,184,0.12)',
+        borderFocus: 'rgba(124,58,237,0.5)',
+        text:        '#f8fafc',
+        textSoft:    '#cbd5e1',
+        textMute:    '#64748b',
+        primary:     '#7c3aed',
+        primarySoft: 'rgba(124,58,237,0.15)',
+        primaryHover:'#6d28d9',
+        danger:      '#f87171',
+        dangerSoft:  'rgba(248,113,113,0.12)',
+        dangerHover: '#ef4444',
+        success:     '#34d399',
+        successSoft: 'rgba(52,211,153,0.12)',
+        warning:     '#fbbf24',
+        warningSoft: 'rgba(251,191,36,0.12)',
+        info:        '#60a5fa',
+        infoSoft:    'rgba(96,165,250,0.12)',
+        shadow:      '0 8px 32px rgba(0,0,0,0.4)',
+        shadowSoft:  '0 2px 12px rgba(0,0,0,0.25)',
+        inputBg:     'rgba(255,255,255,0.05)',
+        inputBorder: 'rgba(148,163,184,0.15)',
+        tableHead:   'rgba(255,255,255,0.03)',
+        rowHover:    'rgba(255,255,255,0.03)',
+        divider:     'rgba(148,163,184,0.08)',
+        emptyBorder: 'rgba(148,163,184,0.15)',
+        glass:       'radial-gradient(circle at top right, rgba(124,58,237,0.12), transparent 50%)',
+    };
+    return {
+        panel:       'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(250,251,255,0.96) 100%)',
+        panelSolid:  '#ffffff',
+        panelSoft:   '#f8fafc',
+        panelSofter: '#f1f5f9',
+        border:      'rgba(15,23,42,0.08)',
+        borderFocus: 'rgba(124,58,237,0.4)',
+        text:        '#0f172a',
+        textSoft:    '#475569',
+        textMute:    '#94a3b8',
+        primary:     '#7c3aed',
+        primarySoft: '#f3e8ff',
+        primaryHover:'#6d28d9',
+        danger:      '#ef4444',
+        dangerSoft:  '#fef2f2',
+        dangerHover: '#dc2626',
+        success:     '#059669',
+        successSoft: '#f0fdf4',
+        warning:     '#d97706',
+        warningSoft: '#fffbeb',
+        info:        '#2563eb',
+        infoSoft:    '#eff6ff',
+        shadow:      '0 8px 32px rgba(15,23,42,0.1)',
+        shadowSoft:  '0 2px 8px rgba(15,23,42,0.06)',
+        inputBg:     '#f8fafc',
+        inputBorder: '#e2e8f0',
+        tableHead:   '#f8fafc',
+        rowHover:    '#fafbff',
+        divider:     'rgba(15,23,42,0.06)',
+        emptyBorder: 'rgba(15,23,42,0.12)',
+        glass:       'radial-gradient(circle at top right, rgba(124,58,237,0.05), transparent 50%)',
+    };
+}
 
 const defaultForm = {
     leave_type:        '',
@@ -12,35 +99,115 @@ const defaultForm = {
 };
 
 const PRESET_LEAVE_TYPES = [
-    { name: 'Annual Leave',     gender: 'all',    days: 15, paid: true  },
-    { name: 'Sick Leave',       gender: 'all',    days: 10, paid: true  },
-    { name: 'Maternity Leave',  gender: 'female', days: 90, paid: true  },
-    { name: 'Paternity Leave',  gender: 'male',   days: 7,  paid: true  },
-    { name: 'Unpaid Leave',     gender: 'all',    days: 30, paid: false },
-    { name: 'Emergency Leave',  gender: 'all',    days: 3,  paid: true  },
-    { name: 'Marriage Leave',   gender: 'all',    days: 3,  paid: true  },
-    { name: 'Bereavement Leave',gender: 'all',    days: 3,  paid: true  },
-    { name: 'Public Holiday',   gender: 'all',    days: 12, paid: true  },
-    { name: 'Compensation Leave',gender: 'all',   days: 5,  paid: true  },
+    { name: 'Annual Leave',      gender: 'all',    days: 15, paid: true  },
+    { name: 'Sick Leave',        gender: 'all',    days: 10, paid: true  },
+    { name: 'Maternity Leave',   gender: 'female', days: 90, paid: true  },
+    { name: 'Paternity Leave',   gender: 'male',   days: 7,  paid: true  },
+    { name: 'Unpaid Leave',      gender: 'all',    days: 30, paid: false },
+    { name: 'Emergency Leave',   gender: 'all',    days: 3,  paid: true  },
+    { name: 'Marriage Leave',    gender: 'all',    days: 3,  paid: true  },
+    { name: 'Bereavement Leave', gender: 'all',    days: 3,  paid: true  },
+    { name: 'Public Holiday',    gender: 'all',    days: 12, paid: true  },
+    { name: 'Compensation Leave',gender: 'all',    days: 5,  paid: true  },
 ];
 
+
+// ── PremiumSelect (UserRoles pattern) ────────────────────────
+function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Select...', T, dark, disabled = false, zIndex = 300 }) {
+    const [open, setOpen] = useState(false);
+    const wrapRef = useRef(null);
+    const selected = options.find(o => String(o.value) === String(value));
+
+    useEffect(() => {
+        const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const triggerBg = T.inputBg;
+    const menuBg = dark ? T.panelSolid : '#ffffff';
+
+    return (
+        <div ref={wrapRef} style={{ position: 'relative', zIndex }}>
+            <button type="button" onClick={() => !disabled && setOpen(v => !v)}
+                style={{
+                    width: '100%', height: 44, padding: '0 14px', borderRadius: 14,
+                    border: `1.5px solid ${open ? T.primary : T.inputBorder}`,
+                    background: disabled ? T.panelSoft : triggerBg,
+                    color: selected ? T.text : T.textMute,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    boxShadow: open ? `0 0 0 3px ${T.primarySoft}` : T.shadowSoft,
+                    backdropFilter: 'blur(12px)', transition: 'all 0.18s ease', outline: 'none',
+                    opacity: disabled ? 0.6 : 1,
+                }}>
+                <span style={{ fontSize: 13, fontWeight: selected ? 700 : 500, color: selected ? T.text : T.textMute, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {selected ? selected.label : placeholder}
+                </span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                    style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease', flexShrink: 0 }}>
+                    <path d="M4 6L8 10L12 6" stroke={T.textMute} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+            </button>
+
+            {open && (
+                <div style={{
+                    position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0,
+                    background: menuBg, border: `1.5px solid ${T.inputBorder}`,
+                    borderRadius: 16, overflow: 'hidden', boxShadow: T.shadow,
+                    backdropFilter: 'blur(16px)', zIndex: zIndex + 50,
+                }}>
+                    {options.map((opt, idx) => {
+                        const isSel = String(opt.value) === String(value);
+                        return (
+                            <button key={opt.value} type="button"
+                                onClick={() => { onChange(opt.value); setOpen(false); }}
+                                style={{
+                                    width: '100%', minHeight: 44, padding: '0 14px',
+                                    border: 'none', borderBottom: idx < options.length - 1 ? `1px solid ${T.divider}` : 'none',
+                                    background: isSel ? (dark ? 'rgba(37,99,235,0.22)' : '#2563eb') : 'transparent',
+                                    color: isSel ? '#ffffff' : T.textSoft,
+                                    fontSize: 13, fontWeight: isSel ? 800 : 600,
+                                    display: 'flex', alignItems: 'center', gap: 8,
+                                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.12s',
+                                }}
+                                onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.04)' : '#f8fafc'; }}
+                                onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}>
+                                {isSel && (
+                                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth="2.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                )}
+                                {!isSel && <span style={{ width: 13 }}/>}
+                                {opt.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function LeavePolicySection({ leavePolicies }) {
-    const [showForm, setShowForm]           = useState(false);
-    const [editingId, setEditingId]         = useState(null);
-    const [deleteTarget, setDeleteTarget]   = useState(null); // { id, leave_type }
-    const [deleting, setDeleting]           = useState(false);
-    const [formErrors, setFormErrors]       = useState({});
+    const dark = useTheme();
+    const T    = getTheme(dark);
 
-    const { data, setData, post, put, processing, errors, reset } = useForm(defaultForm);
+    const [showForm, setShowForm]         = useState(false);
+    const [editingId, setEditingId]       = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting]         = useState(false);
+    const [formErrors, setFormErrors]     = useState({});
 
-    // Frontend validation
+    const { data, setData, post, put, processing, reset } = useForm(defaultForm);
+
     const validate = () => {
         const errs = {};
-        if (!data.leave_type.trim())  errs.leave_type   = 'Leave type name is required.';
-        if (!data.days_per_year)      errs.days_per_year = 'Days per year is required.';
+        if (!data.leave_type.trim()) errs.leave_type = 'Leave type name is required.';
+        if (!data.days_per_year)     errs.days_per_year = 'Days per year is required.';
         else if (Number(data.days_per_year) < 1) errs.days_per_year = 'Must be at least 1 day.';
         if (data.carry_over_days === '' || data.carry_over_days === null || data.carry_over_days === undefined)
-                                  errs.carry_over_days = 'Carry over days is required.';
+            errs.carry_over_days = 'Carry over days is required.';
         return errs;
     };
 
@@ -49,22 +216,17 @@ export default function LeavePolicySection({ leavePolicies }) {
         const errs = validate();
         if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
         setFormErrors({});
-
         if (editingId) {
             put(`/payroll/hr-policy/leave-policy/${editingId}`, {
                 preserveScroll: true,
                 onSuccess: () => { reset(); setShowForm(false); setEditingId(null); },
-                onError: (e) => {
-                    if (e.leave_type) setFormErrors(p => ({ ...p, leave_type: e.leave_type }));
-                },
+                onError: (e) => { if (e.leave_type) setFormErrors(p => ({ ...p, leave_type: e.leave_type })); },
             });
         } else {
             post('/payroll/hr-policy/leave-policy', {
                 preserveScroll: true,
                 onSuccess: () => { reset(); setShowForm(false); },
-                onError: (e) => {
-                    if (e.leave_type) setFormErrors(p => ({ ...p, leave_type: e.leave_type }));
-                },
+                onError: (e) => { if (e.leave_type) setFormErrors(p => ({ ...p, leave_type: e.leave_type })); },
             });
         }
     };
@@ -90,64 +252,60 @@ export default function LeavePolicySection({ leavePolicies }) {
         router.delete(`/payroll/hr-policy/leave-policy/${deleteTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                setDeleting(false);
-                setDeleteTarget(null);
-                // delete လုပ်လိုက်တဲ့ item က edit state မှာရှိနေရင် clear လုပ်မယ်
-                if (editingId === deleteTarget.id) {
-                    reset();
-                    setFormErrors({});
-                    setShowForm(false);
-                    setEditingId(null);
-                }
+                setDeleting(false); setDeleteTarget(null);
+                if (editingId === deleteTarget.id) { reset(); setFormErrors({}); setShowForm(false); setEditingId(null); }
             },
-            onError: () => {
-                setDeleting(false);
-                setDeleteTarget(null);
-            },
+            onError: () => { setDeleting(false); setDeleteTarget(null); },
         });
     };
 
-    const handleCancel = () => {
-        reset();
-        setFormErrors({});
-        setShowForm(false);
-        setEditingId(null);
-    };
+    const handleCancel = () => { reset(); setFormErrors({}); setShowForm(false); setEditingId(null); };
+
+    // input style helper
+    const inp = (hasError) => ({
+        width: '100%', padding: '10px 14px', borderRadius: 12, fontSize: 13,
+        fontWeight: 500, outline: 'none', boxSizing: 'border-box',
+        fontFamily: 'inherit', transition: 'all 0.15s',
+        border: `1.5px solid ${hasError ? T.danger : T.inputBorder}`,
+        background: hasError ? (dark ? 'rgba(248,113,113,0.08)' : '#fef2f2') : T.inputBg,
+        color: T.text,
+    });
 
     return (
-        <div className="space-y-5">
+        <>
+        <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+            .lp-wrap * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+            .lp-row:hover td { background: ${T.rowHover}; }
+            .lp-inp:focus { border-color: ${T.borderFocus} !important; box-shadow: 0 0 0 3px ${T.primarySoft} !important; }
+            .lp-inp[type=number]::-webkit-outer-spin-button,
+            .lp-inp[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+            .lp-inp[type=number] { -moz-appearance: textfield; }
+            .lp-preset:hover { border-color: ${T.primary} !important; color: ${T.primary} !important; }
+            @keyframes lp-fade { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+            .lp-animate { animation: lp-fade 0.2s ease; }
+        `}</style>
 
-            {/* ── Delete Confirmation Modal ── */}
+        <div className="lp-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* ── Delete Confirm Modal ── */}
             {deleteTarget && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div
-                        className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
-                        onClick={() => !deleting && setDeleteTarget(null)}
-                    />
-                    <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                        </div>
-                        <h3 className="mt-4 text-center text-base font-bold text-gray-900">Delete Leave Type</h3>
-                        <p className="mt-2 text-center text-sm text-gray-500">Are you sure you want to delete</p>
-                        <p className="mt-1 text-center text-sm font-semibold text-gray-800 capitalize">"{deleteTarget.leave_type}"?</p>
-                        <p className="mt-1 text-center text-xs text-gray-400">This action cannot be undone.</p>
-                        <div className="mt-6 flex gap-3">
-                            <button
-                                onClick={() => !deleting && setDeleteTarget(null)}
-                                disabled={deleting}
-                                className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                            >
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+                    <div onClick={() => !deleting && setDeleteTarget(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}/>
+                    <div className="lp-animate" style={{ position: 'relative', background: T.panelSolid, border: `1px solid ${T.border}`, borderRadius: 20, width: '100%', maxWidth: 400, padding: '28px 28px 24px', boxShadow: T.shadow }}>
+                        <div style={{ width: 52, height: 52, borderRadius: 16, background: T.dangerSoft, border: `1px solid ${dark ? 'rgba(248,113,113,0.2)' : '#fecaca'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24 }}>🗑️</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>Delete Leave Type</div>
+                        <div style={{ fontSize: 13, color: T.textMute, textAlign: 'center', lineHeight: 1.6, marginBottom: 4 }}>Are you sure you want to delete</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{deleteTarget.leave_type}"?</div>
+                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>This action cannot be undone.</div>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                            <button onClick={() => !deleting && setDeleteTarget(null)} disabled={deleting}
+                                style={{ flex: 1, padding: '10px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                                 Cancel
                             </button>
-                            <button
-                                onClick={handleDeleteConfirm}
-                                disabled={deleting}
-                                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition-colors"
-                            >
-                                {deleting ? <><Spinner /> Deleting...</> : 'Yes, Delete'}
+                            <button onClick={handleDeleteConfirm} disabled={deleting}
+                                style={{ flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: `linear-gradient(135deg, #ef4444, #dc2626)`, color: '#fff', fontSize: 13, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1, boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}>
+                                {deleting ? '⏳ Deleting...' : 'Yes, Delete'}
                             </button>
                         </div>
                     </div>
@@ -156,54 +314,59 @@ export default function LeavePolicySection({ leavePolicies }) {
 
             {/* ── Table ── */}
             {leavePolicies.length > 0 ? (
-                <div className="overflow-hidden rounded-xl border border-gray-200">
-                    <table className="w-full text-sm">
+                <div style={{ borderRadius: 16, overflow: 'hidden', border: `1px solid ${T.border}`, boxShadow: T.shadowSoft }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                         <thead>
-                            <tr className="border-b border-gray-100 bg-gray-50/80 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                                <th className="px-4 py-3 text-left">Leave Type</th>
-                                <th className="px-4 py-3 text-center">Days/Year</th>
-                                <th className="px-4 py-3 text-center">Paid</th>
-                                <th className="px-4 py-3 text-center">Carry Over</th>
-                                <th className="px-4 py-3 text-center">Gender</th>
-                                <th className="px-4 py-3 text-center">Document</th>
-                                <th className="px-4 py-3 text-center">Status</th>
-                                <th className="px-4 py-3 text-center">Actions</th>
+                            <tr style={{ background: T.tableHead, borderBottom: `1px solid ${T.divider}` }}>
+                                {['Leave Type','Days/Yr','Paid','Carry Over','Gender','Document','Status','Actions'].map(h => (
+                                    <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, textAlign: h === 'Leave Type' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                                ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {leavePolicies.map((policy) => (
-                                <tr key={policy.id} className="hover:bg-gray-50/60 transition-colors">
-                                    <td className="px-4 py-3.5 font-semibold text-gray-800 capitalize">{policy.leave_type}</td>
-                                    <td className="px-4 py-3.5 text-center">
-                                        <span className="font-semibold text-gray-700">{policy.days_per_year}</span>
-                                        <span className="text-xs text-gray-400"> days</span>
+                        <tbody>
+                            {leavePolicies.map((policy, idx) => (
+                                <tr key={policy.id} className="lp-row" style={{ borderBottom: idx < leavePolicies.length - 1 ? `1px solid ${T.divider}` : 'none', transition: 'background 0.1s' }}>
+                                    <td style={{ padding: '12px 14px' }}>
+                                        <span style={{ fontWeight: 700, color: T.text, fontSize: 13 }}>{policy.leave_type}</span>
                                     </td>
-                                    <td className="px-4 py-3.5 text-center">
-                                        <Badge value={policy.is_paid} trueLabel="Paid" falseLabel="Unpaid" trueColor="green" falseColor="gray"/>
+                                    <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                        <span style={{ fontWeight: 800, color: T.primary, fontSize: 14 }}>{policy.days_per_year}</span>
+                                        <span style={{ fontSize: 10, color: T.textMute, marginLeft: 2 }}>d</span>
                                     </td>
-                                    <td className="px-4 py-3.5 text-center text-gray-600 text-xs">{policy.carry_over_days}d</td>
-                                    <td className="px-4 py-3.5 text-center capitalize text-gray-500 text-xs">{policy.applicable_gender ?? 'all'}</td>
-                                    <td className="px-4 py-3.5 text-center">
-                                        <Badge value={policy.requires_document} trueLabel="Required" falseLabel="No" trueColor="amber" falseColor="gray"/>
+                                    <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                        <LPBadge value={policy.is_paid} trueLabel="Paid" falseLabel="Unpaid" trueColor={T.success} trueSoft={T.successSoft} falseColor={T.textMute} falseSoft={T.panelSoft} dark={dark} />
                                     </td>
-                                    <td className="px-4 py-3.5 text-center">
-                                        <Badge value={policy.is_active} trueLabel="Active" falseLabel="Inactive" trueColor="green" falseColor="red"/>
+                                    <td style={{ padding: '12px 14px', textAlign: 'center', color: T.textSoft, fontSize: 12, fontWeight: 600 }}>{policy.carry_over_days}d</td>
+                                    <td style={{ padding: '12px 14px', textAlign: 'center', color: T.textSoft, fontSize: 12, fontWeight: 600, textTransform: 'capitalize' }}>{policy.applicable_gender ?? 'all'}</td>
+                                    <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                        <LPBadge value={policy.requires_document} trueLabel="Required" falseLabel="No" trueColor={T.warning} trueSoft={T.warningSoft} falseColor={T.textMute} falseSoft={T.panelSoft} dark={dark} />
                                     </td>
-                                    <td className="px-4 py-3.5 text-center">
-                                        <div className="flex items-center justify-center gap-1">
-                                            <button
-                                                onClick={() => handleEdit(policy)}
-                                                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-violet-600 hover:bg-violet-50 transition-colors"
-                                            >
-                                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                Edit
+                                    <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                        <LPBadge value={policy.is_active} trueLabel="Active" falseLabel="Inactive" trueColor={T.success} trueSoft={T.successSoft} falseColor={T.danger} falseSoft={T.dangerSoft} dark={dark} />
+                                    </td>
+                                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                            <button onClick={() => handleEdit(policy)}
+                                                style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textSoft, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = T.panelSofter; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = T.panelSoft; e.currentTarget.style.transform = 'translateY(0)'; }}
+                                                title="Edit">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M12 20h9"/>
+                                                    <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                                                </svg>
                                             </button>
-                                            <button
-                                                onClick={() => setDeleteTarget({ id: policy.id, leave_type: policy.leave_type })}
-                                                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors"
-                                            >
-                                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                Delete
+                                            <button onClick={() => setDeleteTarget({ id: policy.id, leave_type: policy.leave_type })}
+                                                style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.dangerSoft, color: T.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                                                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.85'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.opacity = '1'; }}
+                                                title="Delete">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"/>
+                                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                                    <path d="M10 11v6"/><path d="M14 11v6"/>
+                                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                                </svg>
                                             </button>
                                         </div>
                                     </td>
@@ -213,156 +376,152 @@ export default function LeavePolicySection({ leavePolicies }) {
                     </table>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/50 py-10 text-center">
-                    <svg className="mb-2 h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="1.5"/>
-                        <line x1="3" y1="10" x2="21" y2="10" strokeWidth="1.5"/>
-                    </svg>
-                    <p className="text-sm font-medium text-gray-400">No leave types configured yet</p>
-                    <p className="mt-0.5 text-xs text-gray-300">Click below to add your first leave type</p>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', borderRadius: 16, border: `1.5px dashed ${T.emptyBorder}`, background: T.panelSoft, textAlign: 'center', gap: 6 }}>
+                    <div style={{ fontSize: 32, marginBottom: 4 }}>📅</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.textSoft }}>No leave types configured yet</div>
+                    <div style={{ fontSize: 11, color: T.textMute }}>Click below to add your first leave type</div>
                 </div>
             )}
 
             {/* ── Add / Edit Form ── */}
             {showForm && (
-                <form onSubmit={handleSubmit} className="rounded-xl border border-violet-100 bg-violet-50/40 p-5 space-y-5">
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm font-bold text-gray-800">
-                            {editingId ? '✏️ Edit Leave Type' : '+ Add New Leave Type'}
-                        </p>
-                        <button type="button" onClick={handleCancel} className="text-gray-400 hover:text-gray-600">
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
+                <form onSubmit={handleSubmit} className="lp-animate" style={{ borderRadius: 16, border: `1.5px solid ${T.primarySoft === '#f3e8ff' ? 'rgba(124,58,237,0.2)' : 'rgba(124,58,237,0.25)'}`, background: dark ? 'rgba(124,58,237,0.06)' : 'rgba(124,58,237,0.03)', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                    {/* Form header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: 10, background: T.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
+                                {editingId ? '✏️' : '➕'}
+                            </div>
+                            <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>
+                                {editingId ? 'Edit Leave Type' : 'Add New Leave Type'}
+                            </div>
+                        </div>
+                        <button type="button" onClick={handleCancel} style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✕</button>
                     </div>
-                    {/* ── Quick Select ── */}
+
+                    {/* Quick Select */}
                     <div>
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Quick Select</p>
-                        <div className="flex flex-wrap gap-1.5">
-                            {PRESET_LEAVE_TYPES.map(preset => (
-                                <button
-                                    key={preset.name}
-                                    type="button"
-                                    disabled={processing}
-                                    onClick={() => {
-                                        setData({
-                                            ...data,
-                                            leave_type:        preset.name,
-                                            days_per_year:     preset.days,
-                                            is_paid:           preset.paid,
-                                            applicable_gender: preset.gender,
-                                        });
-                                        setFormErrors(p => ({ ...p, leave_type: '', days_per_year: '' }));
-                                    }}
-                                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                                        data.leave_type === preset.name
-                                            ? 'border-violet-400 bg-violet-100 text-violet-700'
-                                            : 'border-gray-200 bg-white text-gray-500 hover:border-violet-300 hover:text-violet-600'
-                                    }`}
-                                >
-                                    {preset.name}
-                                    <span className={`rounded px-1 py-0.5 text-xs font-bold ${
-                                        preset.paid
-                                            ? 'bg-green-100 text-green-600'
-                                            : 'bg-gray-100 text-gray-500'
-                                    }`}>
-                                        {preset.paid ? 'paid' : 'unpaid'}
-                                    </span>
-                                    {preset.gender !== 'all' && (
-                                        <span className="rounded px-1 py-0.5 text-xs font-bold bg-blue-100 text-blue-600">
-                                            {preset.gender}
+                        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 8 }}>Quick Select</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {PRESET_LEAVE_TYPES.map(preset => {
+                                const isSelected = data.leave_type === preset.name;
+                                return (
+                                    <button key={preset.name} type="button" disabled={processing}
+                                        className="lp-preset"
+                                        onClick={() => {
+                                            setData({ ...data, leave_type: preset.name, days_per_year: preset.days, is_paid: preset.paid, applicable_gender: preset.gender });
+                                            setFormErrors(p => ({ ...p, leave_type: '', days_per_year: '' }));
+                                        }}
+                                        style={{
+                                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                                            padding: '5px 12px', borderRadius: 99, fontSize: 11, fontWeight: 600,
+                                            cursor: 'pointer', transition: 'all 0.15s',
+                                            border: `1.5px solid ${isSelected ? T.primary : T.border}`,
+                                            background: isSelected ? T.primarySoft : T.panelSolid,
+                                            color: isSelected ? T.primary : T.textSoft,
+                                        }}>
+                                        {preset.name}
+                                        <span style={{ fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 99, background: preset.paid ? (dark ? 'rgba(52,211,153,0.15)' : '#d1fae5') : (dark ? 'rgba(148,163,184,0.12)' : '#f1f5f9'), color: preset.paid ? T.success : T.textMute }}>
+                                            {preset.paid ? 'paid' : 'unpaid'}
                                         </span>
-                                    )}
-                                </button>
-                            ))}
+                                        {preset.gender !== 'all' && (
+                                            <span style={{ fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 99, background: dark ? 'rgba(96,165,250,0.15)' : '#eff6ff', color: T.info }}>
+                                                {preset.gender}
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+
+                    {/* Fields grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                         <div>
-                            <label className="label">Leave Type Name</label>
-                            <input
-                                type="text"
-                                value={data.leave_type}
-                                onChange={e => { setData('leave_type', e.target.value); setFormErrors(p => ({...p, leave_type: ''})); }}
-                                className={`input mt-1 ${formErrors.leave_type ? 'border-red-400' : ''}`}
+                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                                Leave Type Name <span style={{ color: T.danger }}>*</span>
+                            </label>
+                            <input className="lp-inp" type="text" value={data.leave_type} disabled={processing}
+                                onChange={e => { setData('leave_type', e.target.value); setFormErrors(p => ({ ...p, leave_type: '' })); }}
                                 placeholder="e.g. Annual, Sick, Maternity"
-                                disabled={processing}
-                            />
-                            {formErrors.leave_type && (
-                                <p className="mt-1 flex items-center gap-1 text-xs font-medium text-red-500">
-                                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01"/></svg>
-                                    {formErrors.leave_type}
-                                </p>
-                            )}
+                                style={inp(!!formErrors.leave_type)} />
+                            {formErrors.leave_type && <ErrMsg msg={formErrors.leave_type} />}
                         </div>
 
                         <div>
-                            <label className="label">Days Per Year</label>
-                            <input
-                                type="number"
-                                value={data.days_per_year}
-                                onChange={e => { setData('days_per_year', e.target.value); setFormErrors(p => ({...p, days_per_year: ''})); }}
-                                className={`input mt-1 ${formErrors.days_per_year ? 'border-red-400' : ''}`}
-                                min="1"
-                                disabled={processing}
-                            />
-                            {formErrors.days_per_year && (
-                                <p className="mt-1 flex items-center gap-1 text-xs font-medium text-red-500">
-                                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01"/></svg>
-                                    {formErrors.days_per_year}
-                                </p>
-                            )}
+                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                                Days Per Year <span style={{ color: T.danger }}>*</span>
+                            </label>
+                            <input className="lp-inp" type="number" value={data.days_per_year} min="0" disabled={processing}
+                                onChange={e => {
+                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                    setData('days_per_year', val === '' ? '' : Math.max(0, parseInt(val, 10)));
+                                    setFormErrors(p => ({ ...p, days_per_year: '' }));
+                                }}
+                                onKeyDown={e => { if (['-','e','E','+','.'].includes(e.key)) e.preventDefault(); }}
+                                inputMode="numeric"
+                                style={{ ...inp(!!formErrors.days_per_year), MozAppearance: 'textfield' }} />
+                            {formErrors.days_per_year && <ErrMsg msg={formErrors.days_per_year} />}
                         </div>
 
                         <div>
-                            <label className="label">Carry Over Days</label>
-                            <input
-                                type="number"
-                                value={data.carry_over_days}
-                                onChange={e => setData('carry_over_days', e.target.value)}
-                                className="input mt-1"
-                                min="0"
-                                disabled={processing}
-                            />
+                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                                Carry Over Days <span style={{ color: T.danger }}>*</span>
+                            </label>
+                            <input className="lp-inp" type="number" value={data.carry_over_days} min="0" disabled={processing}
+                                onChange={e => {
+                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                    setData('carry_over_days', val === '' ? '' : Math.max(0, parseInt(val, 10)));
+                                }}
+                                onKeyDown={e => { if (['-','e','E','+','.'].includes(e.key)) e.preventDefault(); }}
+                                inputMode="numeric"
+                                style={{ ...inp(!!formErrors.carry_over_days), MozAppearance: 'textfield' }} />
+                            {formErrors.carry_over_days && <ErrMsg msg={formErrors.carry_over_days} />}
                         </div>
 
                         <div>
-                            <label className="label">Applicable Gender</label>
-                            <select
+                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                                Applicable Gender
+                            </label>
+                            <PremiumSelect
+                                options={[
+                                    { value: 'all', label: 'All' },
+                                    { value: 'male', label: 'Male only' },
+                                    { value: 'female', label: 'Female only' },
+                                ]}
                                 value={data.applicable_gender}
-                                onChange={e => setData('applicable_gender', e.target.value)}
-                                className="input mt-1"
+                                onChange={v => setData('applicable_gender', v)}
+                                placeholder="Select gender..."
+                                T={T} dark={dark}
                                 disabled={processing}
-                            >
-                                <option value="all">All</option>
-                                <option value="male">Male only</option>
-                                <option value="female">Female only</option>
-                            </select>
+                                zIndex={200}
+                            />
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-6 rounded-lg border border-gray-100 bg-white px-4 py-3">
-                        <Toggle label="Paid Leave"        checked={data.is_paid}           onChange={v => setData('is_paid', v)}           disabled={processing}/>
-                        <Toggle label="Requires Document" checked={data.requires_document}  onChange={v => setData('requires_document', v)}  disabled={processing}/>
-                        <Toggle label="Active"            checked={data.is_active}          onChange={v => setData('is_active', v)}          disabled={processing}/>
+                    {/* Toggles */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, padding: '14px 18px', borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, alignItems: 'center' }}>
+                        <LPToggle label="Paid Leave"        checked={data.is_paid}           onChange={v => setData('is_paid', v)}           disabled={processing} T={T} />
+                        <LPToggle label="Requires Document" checked={data.requires_document}  onChange={v => setData('requires_document', v)}  disabled={processing} T={T} />
+                        <LPToggle label="Active"            checked={data.is_active}          onChange={v => setData('is_active', v)}          disabled={processing} T={T} />
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60 transition-colors"
-                        >
+                    {/* Actions */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <button type="submit" disabled={processing}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 12, border: 'none', background: processing ? T.textMute : 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', boxShadow: processing ? 'none' : '0 4px 14px rgba(124,58,237,0.35)', transition: 'all 0.15s' }}
+                            onMouseEnter={e => { if (!processing) e.currentTarget.style.opacity = '0.9'; }}
+                            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                             {processing
-                                ? <><Spinner /> Saving...</>
-                                : <><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>{editingId ? 'Update Leave Type' : 'Add Leave Type'}</>
+                                ? <><LPSpinner /> Saving...</>
+                                : <>{editingId ? '✅ Update Leave Type' : '✅ Add Leave Type'}</>
                             }
                         </button>
-                        <button
-                            type="button"
-                            onClick={handleCancel}
-                            disabled={processing}
-                            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                        >
+                        <button type="button" onClick={handleCancel} disabled={processing}
+                            style={{ padding: '10px 18px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                            onMouseEnter={e => e.currentTarget.style.background = T.panelSoft}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                             Cancel
                         </button>
                     </div>
@@ -373,54 +532,65 @@ export default function LeavePolicySection({ leavePolicies }) {
             {!showForm && (
                 <button
                     onClick={() => { setEditingId(null); reset(); setFormErrors({}); setShowForm(true); }}
-                    className="inline-flex items-center gap-2 rounded-xl border border-dashed border-violet-300 px-4 py-2.5 text-sm font-semibold text-violet-600 hover:bg-violet-50 hover:border-violet-400 transition-all"
-                >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, border: `1.5px dashed ${T.primary}`, background: T.primarySoft, color: T.primary, fontSize: 13, fontWeight: 700, cursor: 'pointer', alignSelf: 'flex-start', transition: 'all 0.15s', opacity: 0.85 }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
                     Add Leave Type
                 </button>
             )}
         </div>
+        </>
     );
 }
 
 // ── Badge ─────────────────────────────────────────────────────
-function Badge({ value, trueLabel, falseLabel, trueColor = 'green', falseColor = 'gray' }) {
-    const colors = {
-        green: 'bg-green-100 text-green-700',
-        gray:  'bg-gray-100 text-gray-500',
-        red:   'bg-red-100 text-red-600',
-        amber: 'bg-amber-100 text-amber-700',
-    };
+function LPBadge({ value, trueLabel, falseLabel, trueColor, trueSoft, falseColor, falseSoft }) {
     return (
-        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${value ? colors[trueColor] : colors[falseColor]}`}>
+        <span style={{
+            display: 'inline-block', padding: '3px 10px', borderRadius: 99,
+            fontSize: 10, fontWeight: 800, letterSpacing: '0.03em',
+            background: value ? trueSoft : falseSoft,
+            color: value ? trueColor : falseColor,
+        }}>
             {value ? trueLabel : falseLabel}
         </span>
     );
 }
 
 // ── Toggle ────────────────────────────────────────────────────
-function Toggle({ label, checked, onChange, disabled }) {
+function LPToggle({ label, checked, onChange, disabled, T }) {
     return (
-        <label className={`flex items-center gap-2 select-none ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
-            <div
-                onClick={() => !disabled && onChange(!checked)}
-                className={`relative h-5 w-9 rounded-full transition-colors ${checked ? 'bg-violet-600' : 'bg-gray-300'}`}
-            >
-                <span className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-4' : ''}`}/>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1, userSelect: 'none' }}>
+            <div onClick={() => !disabled && onChange(!checked)}
+                style={{ position: 'relative', width: 38, height: 22, borderRadius: 99, transition: 'background 0.2s', background: checked ? T.primary : (T.panelSolid === '#0b1324' ? 'rgba(148,163,184,0.2)' : '#d1d5db'), flexShrink: 0, cursor: disabled ? 'not-allowed' : 'pointer' }}>
+                <span style={{ position: 'absolute', top: 3, left: checked ? 19 : 3, width: 16, height: 16, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.2)', transition: 'left 0.2s' }}/>
             </div>
-            <span className="text-sm text-gray-700">{label}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: T.textSoft }}>{label}</span>
         </label>
     );
 }
 
-// ── Spinner ───────────────────────────────────────────────────
-function Spinner() {
+// ── Error message ─────────────────────────────────────────────
+function ErrMsg({ msg }) {
     return (
-        <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5, fontSize: 11, fontWeight: 600, color: '#ef4444' }}>
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01"/>
+            </svg>
+            {msg}
+        </div>
+    );
+}
+
+// ── Spinner ───────────────────────────────────────────────────
+function LPSpinner() {
+    return (
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" style={{ animation: 'spin 0.7s linear infinite' }}>
+            <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="3" strokeLinecap="round"/>
         </svg>
     );
 }

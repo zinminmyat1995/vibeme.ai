@@ -113,15 +113,17 @@ public function store(Request $request)
         'avatar_url'        => $avatarPath,
         'is_active'         => true,
         'country'           => $request->country,
+        'country_id'        => $countryId,    
         'joined_date'       => $joinedDate,
         'employment_type'   => $employmentType,
         'contract_end_date' => $employmentType === 'contract' ? $request->contract_end_date : null,
     ]);
 
     if ($request->hasFile('avatar') || $request->boolean('remove_avatar')) {
+        // toOthers() မသုံးပါနဲ့ — everyone ရောက်ဖို့
         broadcast(new \App\Events\UserAvatarUpdated(
             $user->id,
-            $user->avatar_url,  // null = removed
+            $user->avatar_url,
         ));
     }
 
@@ -186,6 +188,7 @@ public function update(Request $request, User $user)
     $user->phone             = $request->phone;
     $user->is_active         = $request->boolean('is_active', true);
     $user->country           = $request->country;
+    $user->country_id        = $countryId;   
     $user->joined_date       = $joinedDate;
     $user->employment_type   = $employmentType;
     // Contract end date — contract ဆိုရင်ဘဲသိမ်း၊ တခြားဆိုရင် null
@@ -196,11 +199,21 @@ public function update(Request $request, User $user)
     }
 
     $user->save();
+    // DEBUG ONLY
+    \Log::info('Avatar broadcast attempt', [
+        'user_id' => $user->id,
+        'avatar_url' => $user->avatar_url,
+        'has_avatar' => $request->hasFile('avatar'),
+        'remove' => $request->boolean('remove_avatar'),
+    ]);
+
     if ($request->hasFile('avatar') || $request->boolean('remove_avatar')) {
+        \Log::info('Broadcasting UserAvatarUpdated');
         broadcast(new \App\Events\UserAvatarUpdated(
             $user->id,
             $user->avatar_url,
         ));
+        \Log::info('Broadcast done');
     }
 
     Mail::to($user->email)->send(new UserUpdatedMail($user));

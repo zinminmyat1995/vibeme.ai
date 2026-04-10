@@ -19,9 +19,9 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             AdminUserSeeder::class,
             CountrySeeder::class,
-            PublicHolidaySeeder::class,
-            SalaryRuleSeeder::class,
-            LeavePolicySeeder::class,
+            // PublicHolidaySeeder::class,
+            // SalaryRuleSeeder::class,
+            // LeavePolicySeeder::class,
             BrycenOfficeSeeder::class,   // ← ထည့်
             MailTemplateSeeder::class,   // ← ထည့်
         ]);

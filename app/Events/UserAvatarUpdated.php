@@ -14,13 +14,28 @@ class UserAvatarUpdated implements ShouldBroadcastNow
 
     public function __construct(
         public int     $userId,
-        public ?string $avatarUrl   // null = deleted
+        public ?string $avatarUrl
     ) {}
 
     public function broadcastOn(): array
     {
-        // Broadcast to the user's own private channel
-        return [new PrivateChannel("user.{$this->userId}")];
+        $channels = [];
+
+        // ── ဒီ user ပါဝင်တဲ့ conversation channels အားလုံးကို broadcast ──
+        // (conversation ထဲမှာ ရှိတဲ့ တဖက် user တွေ receive ရမယ်)
+        $conversationIds = \App\Models\ConversationMember::where('user_id', $this->userId)
+            ->pluck('conversation_id');
+
+        foreach ($conversationIds as $convId) {
+            $channels[] = new PrivateChannel("conversation.{$convId}");
+        }
+
+        // conversation မရှိသေးရင် user channel ထည့်
+        if (empty($channels)) {
+            $channels[] = new PrivateChannel("user.{$this->userId}");
+        }
+
+        return $channels;
     }
 
     public function broadcastAs(): string
