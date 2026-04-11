@@ -1,5 +1,6 @@
 import { useForm, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 /* ── useTheme ── */
 function useTheme() {
@@ -79,6 +80,14 @@ function to12h(t) {
 }
 const formatRate = v => { const n=parseFloat(v); return n%1===0?n.toLocaleString():n.toFixed(2); };
 
+/* ── Portal — renders children into document.body, bypasses ALL CSS containment ── */
+function Portal({ children }) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
+    if (!mounted) return null;
+    return createPortal(children, document.body);
+}
+
 /* ── PremiumSelect ── */
 function PremiumSelect({ options=[], value='', onChange, placeholder='Select...', T, dark, disabled=false, zIndex=300 }) {
     const [open, setOpen] = useState(false);
@@ -122,125 +131,145 @@ function PremiumSelect({ options=[], value='', onChange, placeholder='Select...'
     );
 }
 
-
-/* ── PremiumTimePicker ── */
+/* ── PremiumTimePicker ─────────────────────────────────────────
+   Dropdown rendered via Portal → document.body so it escapes ALL
+   CSS stacking contexts (overflow:hidden, transform, will-change).
+   Position computed from trigger's getBoundingClientRect.
+   ─────────────────────────────────────────────────────────── */
 function PremiumTimePicker({ value, onChange, T, dark, error }) {
     const [open, setOpen] = useState(false);
-    const ref = useRef(null);
+    const [dropPos, setDropPos] = useState({ top:0, left:0, width:280 });
+    const triggerRef = useRef(null);
+    const dropRef    = useRef(null);
+
     const parts = (value||'08:00').split(':');
     const hh = parseInt(parts[0]||0);
     const mm = parseInt(parts[1]||0);
     const period = hh >= 12 ? 'PM' : 'AM';
     const h12 = hh % 12 === 0 ? 12 : hh % 12;
 
+    /* Close on outside click — must check both trigger and portal dropdown */
     useEffect(() => {
-        const fn = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        if (!open) return;
+        const fn = e => {
+            if (triggerRef.current && triggerRef.current.contains(e.target)) return;
+            if (dropRef.current   && dropRef.current.contains(e.target))    return;
+            setOpen(false);
+        };
         document.addEventListener('mousedown', fn);
         return () => document.removeEventListener('mousedown', fn);
-    }, []);
+    }, [open]);
+
+    /* Recompute position whenever opened */
+    useEffect(() => {
+        if (open && triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            const dropH = 310;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const top = spaceBelow >= dropH ? rect.bottom + 6 : rect.top - dropH - 6;
+            setDropPos({ top, left: rect.left, width: Math.max(rect.width, 280) });
+        }
+    }, [open]);
 
     const setHour12 = h12v => {
         let h24 = h12v % 12;
         if (period === 'PM') h24 += 12;
-        const hStr = String(h24).padStart(2,'0');
-        const mStr = String(mm).padStart(2,'0');
-        onChange(`${hStr}:${mStr}`);
+        onChange(`${String(h24).padStart(2,'0')}:${String(mm).padStart(2,'0')}`);
     };
     const setMinute = mv => {
-        const hStr = String(hh).padStart(2,'0');
-        const mStr = String(mv).padStart(2,'0');
-        onChange(`${hStr}:${mStr}`);
+        onChange(`${String(hh).padStart(2,'0')}:${String(mv).padStart(2,'0')}`);
     };
     const togglePeriod = () => {
         let newH = period === 'AM' ? hh + 12 : hh - 12;
-        if (newH < 0) newH = 0;
-        if (newH > 23) newH = 23;
-        const hStr = String(newH).padStart(2,'0');
-        const mStr = String(mm).padStart(2,'0');
-        onChange(`${hStr}:${mStr}`);
+        newH = Math.max(0, Math.min(23, newH));
+        onChange(`${String(newH).padStart(2,'0')}:${String(mm).padStart(2,'0')}`);
     };
 
     const hours12 = [12,1,2,3,4,5,6,7,8,9,10,11];
-    const minutes = [0,5,10,15,20,25,30,35,40,45,50,55];
-
+    // Full 0–59 minutes
+    const minutes = Array.from({length:60},(_,i)=>i);
     const displayVal = value ? `${String(h12).padStart(2,'0')}:${String(mm).padStart(2,'0')} ${period}` : 'Select time...';
 
     return (
-        <div ref={ref} style={{position:'relative', zIndex:200}}>
+        <div ref={triggerRef} style={{position:'relative'}}>
             <button type="button" onClick={()=>setOpen(v=>!v)} style={{
-                width:'100%', height:44, padding:'0 14px', borderRadius:12,
+                width:'100%', height:40, padding:'0 12px', borderRadius:10,
                 border:`1.5px solid ${error?T.danger:open?T.primary:T.inputBorder}`,
                 background:T.inputBg, color:value?T.text:T.textMute,
                 display:'flex', alignItems:'center', justifyContent:'space-between', gap:8,
                 cursor:'pointer', outline:'none', transition:'all 0.15s',
                 boxShadow:open?`0 0 0 3px ${T.primarySoft}`:'none', fontFamily:'inherit',
             }}>
-                <div style={{display:'flex',alignItems:'center',gap:8}}>
-                    <span style={{fontSize:14}}>🕐</span>
-                    <span style={{fontSize:13,fontWeight:value?700:400}}>{displayVal}</span>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <span style={{fontSize:13}}>🕐</span>
+                    <span style={{fontSize:12,fontWeight:value?700:400}}>{displayVal}</span>
                 </div>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{transform:open?'rotate(180deg)':'rotate(0)',transition:'transform 0.18s',flexShrink:0}}>
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{transform:open?'rotate(180deg)':'rotate(0)',transition:'transform 0.18s',flexShrink:0}}>
                     <path d="M4 6L8 10L12 6" stroke={T.textMute} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
             </button>
             {open && (
-                <div style={{
-                    position:'absolute', top:'calc(100% + 8px)', left:0, zIndex:9999,
-                    background:dark?'#0f1729':'#fff',
-                    border:`1.5px solid ${T.borderStrong}`, borderRadius:16,
-                    boxShadow:T.shadow, padding:16, minWidth:260,
-                }}>
-                    <div style={{fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:12}}>Select Time</div>
-                    {/* Hour row */}
-                    <div style={{marginBottom:10}}>
-                        <div style={{fontSize:10,fontWeight:700,color:T.textMute,marginBottom:6}}>Hour</div>
-                        <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:4}}>
-                            {hours12.map(h=>{
-                                const isSel=h===h12;
-                                return <button key={h} type="button" onClick={()=>setHour12(h)} style={{
-                                    height:32, borderRadius:8, border:`1px solid ${isSel?T.primary:T.border}`,
-                                    background:isSel?T.primary:'transparent', color:isSel?'#fff':T.textSoft,
-                                    fontSize:12, fontWeight:isSel?800:600, cursor:'pointer', transition:'all 0.12s',
-                                }}>{String(h).padStart(2,'0')}</button>;
-                            })}
+                <Portal>
+                    <div ref={dropRef} style={{
+                        position:'fixed',
+                        top: dropPos.top,
+                        left: dropPos.left,
+                        width: Math.max(dropPos.width, 300),
+                        zIndex: 999999,
+                        background: dark ? '#0f1729' : '#fff',
+                        border: `1.5px solid ${T.borderStrong}`,
+                        borderRadius: 14,
+                        boxShadow: T.shadow,
+                        padding: '12px 12px 10px',
+                    }}>
+                        {/* Header: current time display + AM/PM */}
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+                            <div style={{fontSize:9,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.1em'}}>Select Time</div>
+                            <div style={{display:'flex',alignItems:'center',gap:8}}>
+                                <div style={{fontSize:16,fontWeight:900,color:T.primary,fontFamily:'monospace',letterSpacing:'-0.02em'}}>
+                                    {String(h12).padStart(2,'0')}:{String(mm).padStart(2,'0')}
+                                    <span style={{fontSize:11,marginLeft:4}}>{period}</span>
+                                </div>
+                                <div style={{display:'flex',gap:3}}>
+                                    {['AM','PM'].map(p=>{
+                                        const isSel=p===period;
+                                        return <button key={p} type="button" onClick={()=>{if(p!==period)togglePeriod();}} style={{padding:'3px 9px',borderRadius:6,border:`1px solid ${isSel?T.primary:T.border}`,background:isSel?T.primary:'transparent',color:isSel?'#fff':T.textSoft,fontSize:11,fontWeight:800,cursor:'pointer',transition:'all 0.12s'}}>{p}</button>;
+                                    })}
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Hour */}
+                        <div style={{marginBottom:8}}>
+                            <div style={{fontSize:9,fontWeight:700,color:T.textMute,marginBottom:4,letterSpacing:'0.06em',textTransform:'uppercase'}}>Hour</div>
+                            <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:3}}>
+                                {hours12.map(h=>{
+                                    const isSel=h===h12;
+                                    return <button key={h} type="button" onClick={()=>setHour12(h)} style={{height:26,borderRadius:6,border:`1px solid ${isSel?T.primary:T.border}`,background:isSel?T.primary:'transparent',color:isSel?'#fff':T.textSoft,fontSize:11,fontWeight:isSel?800:500,cursor:'pointer',transition:'all 0.1s'}}>{String(h).padStart(2,'0')}</button>;
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Minute — 0-59, scrollable */}
+                        <div style={{marginBottom:10}}>
+                            <div style={{fontSize:9,fontWeight:700,color:T.textMute,marginBottom:4,letterSpacing:'0.06em',textTransform:'uppercase'}}>Minute</div>
+                            <div style={{
+                                display:'grid', gridTemplateColumns:'repeat(10,1fr)', gap:3,
+                                maxHeight:86, overflowY:'auto',
+                                scrollbarWidth:'thin',
+                                scrollbarColor:`${T.primary}44 transparent`,
+                            }}>
+                                {minutes.map(m=>{
+                                    const isSel=m===mm;
+                                    return <button key={m} type="button" onClick={()=>setMinute(m)} style={{height:24,borderRadius:5,border:`1px solid ${isSel?T.primary:T.border}`,background:isSel?T.primary:'transparent',color:isSel?'#fff':T.textSoft,fontSize:10,fontWeight:isSel?800:500,cursor:'pointer',transition:'all 0.1s'}}>{String(m).padStart(2,'0')}</button>;
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Confirm */}
+                        <button type="button" onClick={()=>setOpen(false)} style={{width:'100%',padding:'7px',borderRadius:8,border:'none',background:T.primary,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}>✓ Confirm</button>
                     </div>
-                    {/* Minute row */}
-                    <div style={{marginBottom:12}}>
-                        <div style={{fontSize:10,fontWeight:700,color:T.textMute,marginBottom:6}}>Minute</div>
-                        <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:4}}>
-                            {minutes.map(m=>{
-                                const isSel=m===mm;
-                                return <button key={m} type="button" onClick={()=>setMinute(m)} style={{
-                                    height:32, borderRadius:8, border:`1px solid ${isSel?T.primary:T.border}`,
-                                    background:isSel?T.primary:'transparent', color:isSel?'#fff':T.textSoft,
-                                    fontSize:12, fontWeight:isSel?800:600, cursor:'pointer', transition:'all 0.12s',
-                                }}>{String(m).padStart(2,'0')}</button>;
-                            })}
-                        </div>
-                    </div>
-                    {/* AM/PM */}
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                        <div style={{display:'flex',gap:6}}>
-                            {['AM','PM'].map(p=>{
-                                const isSel=p===period;
-                                return <button key={p} type="button" onClick={()=>{ if(p!==period)togglePeriod(); }} style={{
-                                    padding:'6px 16px', borderRadius:9, border:`1px solid ${isSel?T.primary:T.border}`,
-                                    background:isSel?T.primary:'transparent', color:isSel?'#fff':T.textSoft,
-                                    fontSize:12, fontWeight:800, cursor:'pointer', transition:'all 0.12s',
-                                }}>{p}</button>;
-                            })}
-                        </div>
-                        <div style={{fontSize:20,fontWeight:900,color:T.primary,letterSpacing:'-0.02em',fontFamily:'monospace'}}>
-                            {String(h12).padStart(2,'0')}:{String(mm).padStart(2,'0')} <span style={{fontSize:13}}>{period}</span>
-                        </div>
-                    </div>
-                    <button type="button" onClick={()=>setOpen(false)} style={{
-                        marginTop:12, width:'100%', padding:'8px', borderRadius:10,
-                        border:`1.5px solid ${T.primary}`, background:T.primary,
-                        color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer',
-                    }}>✓ Confirm</button>
-                </div>
+                </Portal>
             )}
         </div>
     );
@@ -351,7 +380,7 @@ function SavedCard({ label, value, sub, T }) {
     );
 }
 
-/* ── ConfirmModal ── */
+/* ── ConfirmModal — via Portal ── */
 function ConfirmModal({ open, onClose, onConfirm, data, isEdit, processing, T, dark, currencies, banks }) {
     if (!open) return null;
     const bank=banks?.find(b=>b.id==data.bank_id);
@@ -385,46 +414,46 @@ function ConfirmModal({ open, onClose, onConfirm, data, isEdit, processing, T, d
         {icon:'📆',label:'Pay Dates',value:payDates()},
     ];
     return (
-        <div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
-            <div onClick={onClose} style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:T.overlay,backdropFilter:'blur(10px)'}}/>
-            <div style={{position:'relative',width:'100%',maxWidth:520,maxHeight:'90vh',display:'flex',flexDirection:'column',overflow:'hidden',borderRadius:24,background:T.panelSolid,border:`1px solid ${T.borderStrong}`,boxShadow:T.shadow,animation:'srFade 0.2s ease'}}>
-                <div style={{padding:'26px 24px 22px',background:'linear-gradient(135deg,#7c3aed,#4f46e5,#2563eb)',borderBottom:'1px solid rgba(255,255,255,0.12)',position:'relative',overflow:'hidden',flexShrink:0}}>
-                    <div style={{position:'absolute',inset:0,background:'radial-gradient(circle at top left,rgba(255,255,255,0.18),transparent 40%)',pointerEvents:'none'}}/>
-                    <div style={{position:'relative',display:'flex',alignItems:'flex-start',justifyContent:'space-between'}}>
-                        <div>
-                            <div style={{fontSize:11,color:'rgba(255,255,255,0.7)',fontWeight:800,letterSpacing:'0.14em',textTransform:'uppercase',marginBottom:8}}>Confirm Settings</div>
-                            <div style={{fontSize:19,fontWeight:900,color:'#fff'}}>{isEdit?'Update Settings?':'Save Settings?'}</div>
-                            <div style={{fontSize:12,color:'rgba(255,255,255,0.65)',marginTop:5}}>{isEdit?'This will overwrite existing payroll settings.':'General payroll settings will be saved.'}</div>
-                        </div>
-                        <button onClick={onClose} style={{width:44,height:44,borderRadius:14,border:'1px solid rgba(255,255,255,0.18)',background:'rgba(255,255,255,0.12)',color:'#fff',cursor:'pointer',fontSize:22,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,backdropFilter:'blur(8px)'}} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.2)'} onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.12)'}>×</button>
-                    </div>
-                </div>
-                <div style={{overflowY:'auto',padding:'18px 24px',flex:1}}>
-                    <div style={{fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:10}}>Review before saving</div>
-                    <div style={{display:'flex',flexDirection:'column',gap:2}}>
-                        {rows.map(r=>(
-                            <div key={r.label} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',borderRadius:10,transition:'background 0.1s'}} onMouseEnter={e=>e.currentTarget.style.background=T.panelSoft} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                                <div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:14}}>{r.icon}</span><span style={{fontSize:13,color:T.textSoft}}>{r.label}</span></div>
-                                <span style={{fontSize:13,fontWeight:700,color:T.text}}>{r.value}</span>
+        <Portal>
+            <div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',zIndex:99999,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+                <div onClick={onClose} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',background:T.overlay,backdropFilter:'blur(10px)'}}/>
+                <div style={{position:'relative',width:'100%',maxWidth:520,maxHeight:'90vh',display:'flex',flexDirection:'column',overflow:'hidden',borderRadius:24,background:T.panelSolid,border:`1px solid ${T.borderStrong}`,boxShadow:T.shadow,animation:'srFade 0.2s ease'}}>
+                    <div style={{padding:'12px 16px',background:'linear-gradient(135deg,#7c3aed,#4f46e5,#2563eb)',borderBottom:'1px solid rgba(255,255,255,0.12)',flexShrink:0}}>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
+                            <div>
+                                <div style={{fontSize:14,fontWeight:800,color:'#fff'}}>{isEdit?'✏️ Update Settings?':'💾 Save Settings?'}</div>
+                                <div style={{fontSize:11,color:'rgba(255,255,255,0.6)',marginTop:2}}>{isEdit?'This will overwrite existing settings.':'Payroll settings will be saved.'}</div>
                             </div>
-                        ))}
+                            <button onClick={onClose} style={{width:28,height:28,borderRadius:8,border:'1px solid rgba(255,255,255,0.2)',background:'rgba(255,255,255,0.12)',color:'#fff',cursor:'pointer',fontSize:16,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.22)'} onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.12)'}>×</button>
+                        </div>
                     </div>
-                    <div style={{marginTop:14,padding:'12px 14px',borderRadius:12,background:T.warningSoft,border:`1px solid ${dark?'rgba(251,191,36,0.25)':'#fde68a'}`}}>
-                        <div style={{fontSize:12,fontWeight:700,color:T.warning}}>⚠️ This will regenerate payroll period templates and affect future salary calculations.</div>
+                    <div className="sr-confirm-scroll" style={{overflowY:'auto',padding:'12px 16px',flex:1,scrollbarWidth:'none',msOverflowStyle:'none'}}>
+                        <div style={{fontSize:9,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:8}}>Review before saving</div>
+                        <div style={{display:'flex',flexDirection:'column',gap:2}}>
+                            {rows.map(r=>(
+                                <div key={r.label} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 10px',borderRadius:8,transition:'background 0.1s'}} onMouseEnter={e=>e.currentTarget.style.background=T.panelSoft} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                    <div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:14}}>{r.icon}</span><span style={{fontSize:13,color:T.textSoft}}>{r.label}</span></div>
+                                    <span style={{fontSize:13,fontWeight:700,color:T.text}}>{r.value}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{marginTop:14,padding:'12px 14px',borderRadius:12,background:T.warningSoft,border:`1px solid ${dark?'rgba(251,191,36,0.25)':'#fde68a'}`}}>
+                            <div style={{fontSize:12,fontWeight:700,color:T.warning}}>⚠️ This will regenerate payroll period templates and affect future salary calculations.</div>
+                        </div>
                     </div>
-                </div>
-                <div style={{padding:'16px 24px',borderTop:`1px solid ${T.border}`,display:'flex',gap:10,justifyContent:'flex-end',flexShrink:0}}>
-                    <button onClick={onClose} style={{padding:'10px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}} onMouseEnter={e=>e.currentTarget.style.background=T.panelSoft} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>Cancel</button>
-                    <button onClick={onConfirm} disabled={processing} style={{display:'inline-flex',alignItems:'center',gap:7,padding:'10px 22px',borderRadius:12,border:'none',background:processing?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:13,fontWeight:700,cursor:processing?'not-allowed':'pointer',boxShadow:processing?'none':'0 4px 14px rgba(124,58,237,0.35)',transition:'all 0.15s'}} onMouseEnter={e=>{if(!processing)e.currentTarget.style.opacity='0.9';}} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-                        {processing?<><SRSpinner/> Saving...</>:<>{isEdit?'✅ Yes, Update':'✅ Yes, Save'}</>}
-                    </button>
+                    <div style={{padding:'16px 24px',borderTop:`1px solid ${T.border}`,display:'flex',gap:10,justifyContent:'flex-end',flexShrink:0}}>
+                        <button onClick={onClose} style={{padding:'10px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}} onMouseEnter={e=>e.currentTarget.style.background=T.panelSoft} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>Cancel</button>
+                        <button onClick={onConfirm} disabled={processing} style={{display:'inline-flex',alignItems:'center',gap:7,padding:'10px 22px',borderRadius:12,border:'none',background:processing?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:13,fontWeight:700,cursor:processing?'not-allowed':'pointer',boxShadow:processing?'none':'0 4px 14px rgba(124,58,237,0.35)',transition:'all 0.15s'}} onMouseEnter={e=>{if(!processing)e.currentTarget.style.opacity='0.9';}} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                            {processing?<><SRSpinner/> Saving...</>:<>{isEdit?'✅ Yes, Update':'✅ Yes, Save'}</>}
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </Portal>
     );
 }
 
-/* ── BankModal ── */
+/* ── BankModal — via Portal ── */
 function BankModal({ banks, onClose, T, dark }) {
     const [showForm,setShowForm]=useState(false);
     const [editingId,setEditingId]=useState(null);
@@ -445,91 +474,93 @@ function BankModal({ banks, onClose, T, dark }) {
     };
     const inp=err=>({width:'100%',padding:'10px 14px',borderRadius:12,fontSize:13,fontWeight:500,outline:'none',boxSizing:'border-box',fontFamily:'inherit',transition:'all 0.15s',border:`1.5px solid ${err?T.danger:T.inputBorder}`,background:err?(dark?'rgba(248,113,113,0.08)':'#fef2f2'):T.inputBg,color:T.text});
     return (
-        <div style={{position:'fixed',inset:0,zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
-            <div onClick={onClose} style={{position:'absolute',inset:0,background:T.overlay,backdropFilter:'blur(10px)'}}/>
-            <div style={{position:'relative',width:'100%',maxWidth:560,borderRadius:24,background:T.panelSolid,border:`1px solid ${T.borderStrong}`,boxShadow:T.shadow,overflow:'hidden',display:'flex',flexDirection:'column',maxHeight:'90vh',animation:'srFade 0.2s ease'}}>
-                {deleteTarget&&(
-                    <div style={{position:'absolute',inset:0,zIndex:10,background:dark?'rgba(11,19,36,0.92)':'rgba(255,255,255,0.92)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',borderRadius:24}}>
-                        <div style={{textAlign:'center',padding:'0 32px'}}>
-                            <div style={{width:52,height:52,borderRadius:16,background:T.dangerSoft,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px',fontSize:22}}>🗑️</div>
-                            <div style={{fontSize:14,fontWeight:800,color:T.text,marginBottom:6}}>Delete "{deleteTarget.bank_name}"?</div>
-                            <div style={{fontSize:12,color:T.textMute,marginBottom:20}}>This action cannot be undone.</div>
-                            <div style={{display:'flex',gap:10,justifyContent:'center'}}>
-                                <button onClick={()=>setDeleteTarget(null)} disabled={deleting} style={{padding:'9px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>Cancel</button>
-                                <button onClick={handleDel} disabled={deleting} style={{padding:'9px 18px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#ef4444,#dc2626)',color:'#fff',fontSize:13,fontWeight:700,cursor:deleting?'not-allowed':'pointer',opacity:deleting?0.6:1,boxShadow:'0 4px 14px rgba(239,68,68,0.35)',display:'flex',alignItems:'center',gap:6}}>
-                                    {deleting?<><SRSpinner/> Deleting...</>:'Yes, Delete'}
-                                </button>
+        <Portal>
+            <div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',zIndex:99999,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+                <div onClick={onClose} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',background:T.overlay,backdropFilter:'blur(10px)'}}/>
+                <div style={{position:'relative',width:'100%',maxWidth:560,borderRadius:24,background:T.panelSolid,border:`1px solid ${T.borderStrong}`,boxShadow:T.shadow,overflow:'hidden',display:'flex',flexDirection:'column',maxHeight:'90vh',animation:'srFade 0.2s ease'}}>
+                    {deleteTarget&&(
+                        <div style={{position:'absolute',inset:0,zIndex:10,background:dark?'rgba(11,19,36,0.92)':'rgba(255,255,255,0.92)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',borderRadius:24}}>
+                            <div style={{textAlign:'center',padding:'0 32px'}}>
+                                <div style={{width:52,height:52,borderRadius:16,background:T.dangerSoft,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px',fontSize:22}}>🗑️</div>
+                                <div style={{fontSize:14,fontWeight:800,color:T.text,marginBottom:6}}>Delete "{deleteTarget.bank_name}"?</div>
+                                <div style={{fontSize:12,color:T.textMute,marginBottom:20}}>This action cannot be undone.</div>
+                                <div style={{display:'flex',gap:10,justifyContent:'center'}}>
+                                    <button onClick={()=>setDeleteTarget(null)} disabled={deleting} style={{padding:'9px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+                                    <button onClick={handleDel} disabled={deleting} style={{padding:'9px 18px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#ef4444,#dc2626)',color:'#fff',fontSize:13,fontWeight:700,cursor:deleting?'not-allowed':'pointer',opacity:deleting?0.6:1,boxShadow:'0 4px 14px rgba(239,68,68,0.35)',display:'flex',alignItems:'center',gap:6}}>
+                                        {deleting?<><SRSpinner/> Deleting...</>:'Yes, Delete'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                    )}
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:`1px solid ${T.border}`,background:T.panelSolid,flexShrink:0}}>
+                        <div><div style={{fontSize:15,fontWeight:800,color:T.text}}>🏦 Bank Management</div><div style={{fontSize:11,color:T.textMute,marginTop:2}}>Register banks for salary payment</div></div>
+                        <button onClick={onClose} style={{width:34,height:34,borderRadius:10,border:`1px solid ${T.border}`,background:T.panelSoft,color:T.textMute,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16}}>×</button>
                     </div>
-                )}
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:`1px solid ${T.border}`,background:T.panelSolid,flexShrink:0}}>
-                    <div><div style={{fontSize:15,fontWeight:800,color:T.text}}>🏦 Bank Management</div><div style={{fontSize:11,color:T.textMute,marginTop:2}}>Register banks for salary payment</div></div>
-                    <button onClick={onClose} style={{width:34,height:34,borderRadius:10,border:`1px solid ${T.border}`,background:T.panelSoft,color:T.textMute,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16}}>×</button>
-                </div>
-                <div style={{overflowY:'auto',padding:'16px 22px',flex:1,display:'flex',flexDirection:'column',gap:12}}>
-                    {banks?.length>0?(
-                        <div style={{borderRadius:14,overflow:'hidden',border:`1px solid ${T.border}`}}>
-                            <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
-                                <thead><tr style={{background:T.tableHead,borderBottom:`1px solid ${T.divider}`}}>{['Bank Name','Code','Status','Actions'].map((h,i)=><th key={h} style={{padding:'10px 14px',fontSize:10,fontWeight:800,letterSpacing:'0.07em',textTransform:'uppercase',color:T.textMute,textAlign:i===0?'left':'center'}}>{h}</th>)}</tr></thead>
-                                <tbody>{banks.map((bank,idx)=>(
-                                    <tr key={bank.id} style={{borderBottom:idx<banks.length-1?`1px solid ${T.divider}`:'none',transition:'background 0.1s'}} onMouseEnter={e=>e.currentTarget.style.background=T.rowHover} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                                        <td style={{padding:'10px 14px',fontWeight:700,color:T.text}}>{bank.bank_name}</td>
-                                        <td style={{padding:'10px 14px',textAlign:'center'}}>{bank.bank_code?<span style={{fontFamily:'monospace',fontSize:11,fontWeight:800,padding:'3px 8px',borderRadius:6,background:T.panelSofter,color:T.primary}}>{bank.bank_code}</span>:<span style={{color:T.textMute}}>—</span>}</td>
-                                        <td style={{padding:'10px 14px',textAlign:'center'}}><span style={{display:'inline-block',padding:'2px 8px',borderRadius:99,fontSize:10,fontWeight:800,background:bank.is_active?T.successSoft:T.panelSoft,color:bank.is_active?T.success:T.textMute}}>{bank.is_active?'Active':'Inactive'}</span></td>
-                                        <td style={{padding:'10px 14px',textAlign:'center'}}>
-                                            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-                                                <button onClick={()=>handleEdit(bank)} style={{width:34,height:34,borderRadius:10,border:`1px solid ${T.border}`,background:T.panelSoft,color:T.textSoft,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background=T.panelSofter;e.currentTarget.style.transform='translateY(-1px)';}} onMouseLeave={e=>{e.currentTarget.style.background=T.panelSoft;e.currentTarget.style.transform='translateY(0)';}}>
-                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-                                                </button>
-                                                <button onClick={()=>setDeleteTarget(bank)} style={{width:34,height:34,borderRadius:10,border:`1px solid ${T.border}`,background:T.dangerSoft,color:T.danger,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.opacity='0.75';}} onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.opacity='1';}}>
-                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}</tbody>
-                            </table>
-                        </div>
-                    ):(
-                        <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',borderRadius:14,border:`1.5px dashed ${T.border}`,background:T.panelSoft,padding:'28px 20px',gap:6}}>
-                            <div style={{fontSize:24,marginBottom:4}}>🏦</div><div style={{fontSize:13,fontWeight:700,color:T.textSoft}}>No banks registered yet</div>
-                        </div>
-                    )}
-                    {showForm&&(
-                        <form onSubmit={handleSubmit} style={{borderRadius:14,border:`1.5px solid ${dark?'rgba(124,58,237,0.25)':'rgba(124,58,237,0.2)'}`,background:dark?'rgba(124,58,237,0.06)':'rgba(124,58,237,0.03)',padding:16,display:'flex',flexDirection:'column',gap:12}}>
-                            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                                <div style={{fontSize:13,fontWeight:800,color:T.text}}>{editingId?'✏️ Edit Bank':'➕ Add Bank'}</div>
-                                <button type="button" onClick={()=>{reset();setBankErrors({});setShowForm(false);setEditingId(null);}} style={{width:26,height:26,borderRadius:7,border:`1px solid ${T.border}`,background:T.panelSoft,color:T.textMute,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13}}>✕</button>
+                    <div style={{overflowY:'auto',padding:'16px 22px',flex:1,display:'flex',flexDirection:'column',gap:12}}>
+                        {banks?.length>0?(
+                            <div style={{borderRadius:14,overflow:'hidden',border:`1px solid ${T.border}`}}>
+                                <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
+                                    <thead><tr style={{background:T.tableHead,borderBottom:`1px solid ${T.divider}`}}>{['Bank Name','Code','Status','Actions'].map((h,i)=><th key={h} style={{padding:'10px 14px',fontSize:10,fontWeight:800,letterSpacing:'0.07em',textTransform:'uppercase',color:T.textMute,textAlign:i===0?'left':'center'}}>{h}</th>)}</tr></thead>
+                                    <tbody>{banks.map((bank,idx)=>(
+                                        <tr key={bank.id} style={{borderBottom:idx<banks.length-1?`1px solid ${T.divider}`:'none',transition:'background 0.1s'}} onMouseEnter={e=>e.currentTarget.style.background=T.rowHover} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                                            <td style={{padding:'10px 14px',fontWeight:700,color:T.text}}>{bank.bank_name}</td>
+                                            <td style={{padding:'10px 14px',textAlign:'center'}}>{bank.bank_code?<span style={{fontFamily:'monospace',fontSize:11,fontWeight:800,padding:'3px 8px',borderRadius:6,background:T.panelSofter,color:T.primary}}>{bank.bank_code}</span>:<span style={{color:T.textMute}}>—</span>}</td>
+                                            <td style={{padding:'10px 14px',textAlign:'center'}}><span style={{display:'inline-block',padding:'2px 8px',borderRadius:99,fontSize:10,fontWeight:800,background:bank.is_active?T.successSoft:T.panelSoft,color:bank.is_active?T.success:T.textMute}}>{bank.is_active?'Active':'Inactive'}</span></td>
+                                            <td style={{padding:'10px 14px',textAlign:'center'}}>
+                                                <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+                                                    <button onClick={()=>handleEdit(bank)} style={{width:34,height:34,borderRadius:10,border:`1px solid ${T.border}`,background:T.panelSoft,color:T.textSoft,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background=T.panelSofter;e.currentTarget.style.transform='translateY(-1px)';}} onMouseLeave={e=>{e.currentTarget.style.background=T.panelSoft;e.currentTarget.style.transform='translateY(0)';}}>
+                                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                                    </button>
+                                                    <button onClick={()=>setDeleteTarget(bank)} style={{width:34,height:34,borderRadius:10,border:`1px solid ${T.border}`,background:T.dangerSoft,color:T.danger,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.opacity='0.75';}} onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.opacity='1';}}>
+                                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}</tbody>
+                                </table>
                             </div>
-                            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-                                <div>
-                                    <label style={{fontSize:11,fontWeight:800,color:T.textSoft,display:'block',marginBottom:5,letterSpacing:'0.04em',textTransform:'uppercase'}}>Bank Name <span style={{color:T.danger}}>*</span></label>
-                                    <input type="text" value={data.bank_name} onChange={e=>{setData('bank_name',e.target.value);setBankErrors(p=>({...p,bank_name:''}));}} placeholder="e.g. ABA Bank" disabled={processing} style={inp(!!bankErrors.bank_name)}/>
-                                    <ErrMsg msg={bankErrors.bank_name}/>
+                        ):(
+                            <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',borderRadius:14,border:`1.5px dashed ${T.border}`,background:T.panelSoft,padding:'28px 20px',gap:6}}>
+                                <div style={{fontSize:24,marginBottom:4}}>🏦</div><div style={{fontSize:13,fontWeight:700,color:T.textSoft}}>No banks registered yet</div>
+                            </div>
+                        )}
+                        {showForm&&(
+                            <form onSubmit={handleSubmit} style={{borderRadius:14,border:`1.5px solid ${dark?'rgba(124,58,237,0.25)':'rgba(124,58,237,0.2)'}`,background:dark?'rgba(124,58,237,0.06)':'rgba(124,58,237,0.03)',padding:16,display:'flex',flexDirection:'column',gap:12}}>
+                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                                    <div style={{fontSize:13,fontWeight:800,color:T.text}}>{editingId?'✏️ Edit Bank':'➕ Add Bank'}</div>
+                                    <button type="button" onClick={()=>{reset();setBankErrors({});setShowForm(false);setEditingId(null);}} style={{width:26,height:26,borderRadius:7,border:`1px solid ${T.border}`,background:T.panelSoft,color:T.textMute,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13}}>✕</button>
                                 </div>
-                                <div>
-                                    <label style={{fontSize:11,fontWeight:800,color:T.textSoft,display:'block',marginBottom:5,letterSpacing:'0.04em',textTransform:'uppercase'}}>Code <span style={{color:T.textMute,fontWeight:500,textTransform:'none'}}>(optional)</span></label>
-                                    <input type="text" value={data.bank_code} onChange={e=>setData('bank_code',e.target.value.toUpperCase())} placeholder="ABA" disabled={processing} style={{...inp(false),fontFamily:'monospace',letterSpacing:'0.08em'}}/>
+                                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                                    <div>
+                                        <label style={{fontSize:11,fontWeight:800,color:T.textSoft,display:'block',marginBottom:5,letterSpacing:'0.04em',textTransform:'uppercase'}}>Bank Name <span style={{color:T.danger}}>*</span></label>
+                                        <input type="text" value={data.bank_name} onChange={e=>{setData('bank_name',e.target.value);setBankErrors(p=>({...p,bank_name:''}));}} placeholder="e.g. ABA Bank" disabled={processing} style={inp(!!bankErrors.bank_name)}/>
+                                        <ErrMsg msg={bankErrors.bank_name}/>
+                                    </div>
+                                    <div>
+                                        <label style={{fontSize:11,fontWeight:800,color:T.textSoft,display:'block',marginBottom:5,letterSpacing:'0.04em',textTransform:'uppercase'}}>Code <span style={{color:T.textMute,fontWeight:500,textTransform:'none'}}>(optional)</span></label>
+                                        <input type="text" value={data.bank_code} onChange={e=>setData('bank_code',e.target.value.toUpperCase())} placeholder="ABA" disabled={processing} style={{...inp(false),fontFamily:'monospace',letterSpacing:'0.08em'}}/>
+                                    </div>
                                 </div>
-                            </div>
-                            <SRToggle label="Active" checked={data.is_active} onChange={v=>setData('is_active',v)} T={T} dark={dark}/>
-                            <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-                                <button type="button" onClick={()=>{reset();setBankErrors({});setShowForm(false);setEditingId(null);}} disabled={processing} style={{padding:'8px 14px',borderRadius:10,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:12,fontWeight:600,cursor:'pointer'}}>Cancel</button>
-                                <button type="submit" disabled={processing} style={{display:'inline-flex',alignItems:'center',gap:6,padding:'8px 16px',borderRadius:10,border:'none',background:processing?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:12,fontWeight:700,cursor:processing?'not-allowed':'pointer',boxShadow:processing?'none':'0 3px 10px rgba(124,58,237,0.3)'}}>
-                                    {processing?<><SRSpinner/> Saving...</>:<>{editingId?'Update':'Add Bank'}</>}
-                                </button>
-                            </div>
-                        </form>
-                    )}
-                </div>
-                <div style={{padding:'14px 22px',borderTop:`1px solid ${T.border}`,flexShrink:0}}>
-                    {!showForm&&<button onClick={()=>{setEditingId(null);reset();setBankErrors({});setShowForm(true);}} style={{display:'inline-flex',alignItems:'center',gap:7,padding:'9px 16px',borderRadius:11,border:`1.5px dashed ${T.primary}`,background:T.primarySoft,color:T.primary,fontSize:12,fontWeight:700,cursor:'pointer',opacity:0.85,transition:'opacity 0.15s'}} onMouseEnter={e=>e.currentTarget.style.opacity='1'} onMouseLeave={e=>e.currentTarget.style.opacity='0.85'}>
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>Add Bank
-                    </button>}
+                                <SRToggle label="Active" checked={data.is_active} onChange={v=>setData('is_active',v)} T={T} dark={dark}/>
+                                <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+                                    <button type="button" onClick={()=>{reset();setBankErrors({});setShowForm(false);setEditingId(null);}} disabled={processing} style={{padding:'8px 14px',borderRadius:10,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:12,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+                                    <button type="submit" disabled={processing} style={{display:'inline-flex',alignItems:'center',gap:6,padding:'8px 16px',borderRadius:10,border:'none',background:processing?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:12,fontWeight:700,cursor:processing?'not-allowed':'pointer',boxShadow:processing?'none':'0 3px 10px rgba(124,58,237,0.3)'}}>
+                                        {processing?<><SRSpinner/> Saving...</>:<>{editingId?'Update':'Add Bank'}</>}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
+                    <div style={{padding:'14px 22px',borderTop:`1px solid ${T.border}`,flexShrink:0}}>
+                        {!showForm&&<button onClick={()=>{setEditingId(null);reset();setBankErrors({});setShowForm(true);}} style={{display:'inline-flex',alignItems:'center',gap:7,padding:'9px 16px',borderRadius:11,border:`1.5px dashed ${T.primary}`,background:T.primarySoft,color:T.primary,fontSize:12,fontWeight:700,cursor:'pointer',opacity:0.85,transition:'opacity 0.15s'}} onMouseEnter={e=>e.currentTarget.style.opacity='1'} onMouseLeave={e=>e.currentTarget.style.opacity='0.85'}>
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>Add Bank
+                        </button>}
+                    </div>
                 </div>
             </div>
-        </div>
+        </Portal>
     );
 }
 
@@ -587,7 +618,6 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
         }
     );
 
-    /* Bonus Schedule state */
     const defSF={bonus_type_id:'',frequency:'yearly',pay_month:'',pay_quarter:'',notes:'',is_active:true};
     const [showSF,setShowSF]=useState(false);
     const [editingSFId,setEditingSFId]=useState(null);
@@ -596,7 +626,6 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
     const [sfErrors,setSFErrors]=useState({});
     const {data:sf,setData:setSF,post:storeSF,put:updateSF,processing:sfProc,reset:resetSF}=useForm(defSF);
 
-    /* Validate main form */
     const validate=()=>{
         const errs={};
         if(!data.probation_days&&data.probation_days!==0) errs.probation_days='Required.';
@@ -613,13 +642,8 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
     const handleSaveClick=e=>{
         e.preventDefault();
         const errs=validate();
-        if(Object.keys(errs).length>0){
-            setFormErrors(errs);
-            setTimeout(()=>scrollToFirstError(errs),60);
-            return;
-        }
-        setFormErrors({});
-        setShowConfirm(true);
+        if(Object.keys(errs).length>0){setFormErrors(errs);setTimeout(()=>scrollToFirstError(errs),60);return;}
+        setFormErrors({});setShowConfirm(true);
     };
 
     const handleConfirmedSave=()=>{
@@ -639,25 +663,23 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
         router.post('/payroll/hr-policy/salary-rule',{...data,period_days:periodDays},{preserveScroll:true});
     };
 
-    /* SF handlers */
     const validateSF=()=>{
         const errs={};
-        if(!sf.bonus_type_id) errs.bonus_type_id='Please select a bonus type.';
+        if(!sf.bonus_type_id||sf.bonus_type_id==='') errs.bonus_type_id='Please select a bonus type.';
         if((sf.frequency==='yearly'||sf.frequency==='once')&&!sf.pay_month) errs.pay_month='Pay month is required.';
-        if(sf.frequency==='quarterly'&&!sf.pay_quarter) errs.pay_quarter='Pay quarter is required.';
+        if(sf.frequency==='quarterly'&&(!sf.pay_quarter||sf.pay_quarter==='')) errs.pay_quarter='Pay quarter is required.';
         if(!sf.notes?.trim()) errs.notes='Notes is required.';
         return errs;
     };
 
-    const handleSFSubmit=e=>{
-        e.preventDefault();
+    const handleSFSubmit=()=>{
         const errs=validateSF();
         if(Object.keys(errs).length>0){
             setSFErrors(errs);
             setTimeout(()=>{
                 if(sfFormRef.current){
-                    const allSFErr=sfFormRef.current.querySelectorAll('[data-sf-error="true"]');
-                    if(allSFErr.length>0)allSFErr[0].scrollIntoView({behavior:'smooth',block:'center'});
+                    const firstErrEl=sfFormRef.current.querySelector('[data-sf-err="true"]');
+                    if(firstErrEl)firstErrEl.scrollIntoView({behavior:'smooth',block:'center'});
                 }
             },60);
             return;
@@ -690,7 +712,6 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
     const bankOpts=(banks||[]).filter(b=>b.is_active).map(b=>({value:String(b.id),label:b.bank_name+(b.bank_code?` (${b.bank_code})`:'')}));
     const currOpts=(currencies||[]).map(c=>({value:String(c.id),label:`${c.currency_code} – ${c.currency_name}`}));
     const btOpts=[{value:'',label:'Select bonus type...',disabled:true},...(bonusTypes||[]).filter(bt=>bt.is_active).map(bt=>({value:String(bt.id),label:`${bt.name} · ${bt.calculation_type==='percentage'?`${bt.value}%`:Number(bt.value).toLocaleString()}`}))];
-
     const lbl={fontSize:11,fontWeight:800,color:T.textSoft,display:'block',marginBottom:6,letterSpacing:'0.04em',textTransform:'uppercase'};
 
     return (
@@ -710,23 +731,25 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
         <ConfirmModal open={showConfirm} onClose={()=>setShowConfirm(false)} onConfirm={handleConfirmedSave} data={data} isEdit={isEdit} processing={processing} T={T} dark={dark} currencies={currencies} banks={banks}/>
         {showBankModal&&<BankModal banks={banks} onClose={()=>setShowBankModal(false)} T={T} dark={dark}/>}
 
-        {/* Delete SF modal */}
+        {/* Delete SF modal — via Portal */}
         {deleteSFTarget&&(
-            <div style={{position:'fixed',inset:0,zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
-                <div onClick={()=>!deletingSF&&setDeleteSFTarget(null)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.5)',backdropFilter:'blur(8px)'}}/>
-                <div className="sr-animate" style={{position:'relative',background:T.panelSolid,border:`1px solid ${T.border}`,borderRadius:20,width:'100%',maxWidth:400,padding:'28px 28px 24px',boxShadow:T.shadow}}>
-                    <div style={{width:52,height:52,borderRadius:16,background:T.dangerSoft,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:24}}>🗑️</div>
-                    <div style={{fontSize:16,fontWeight:800,color:T.text,textAlign:'center',marginBottom:8}}>Delete Bonus Schedule</div>
-                    <div style={{fontSize:13,fontWeight:700,color:T.text,textAlign:'center',marginBottom:4}}>"{deleteSFTarget.bonus_type?.name}" schedule?</div>
-                    <div style={{fontSize:11,color:T.textMute,textAlign:'center',marginBottom:24}}>This action cannot be undone.</div>
-                    <div style={{display:'flex',gap:10}}>
-                        <button onClick={()=>!deletingSF&&setDeleteSFTarget(null)} disabled={deletingSF} style={{flex:1,padding:'10px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:700,cursor:'pointer'}}>Cancel</button>
-                        <button onClick={handleSFDeleteConfirm} disabled={deletingSF} style={{flex:1,padding:'10px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#ef4444,#dc2626)',color:'#fff',fontSize:13,fontWeight:700,cursor:deletingSF?'not-allowed':'pointer',opacity:deletingSF?0.6:1,boxShadow:'0 4px 14px rgba(239,68,68,0.35)',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-                            {deletingSF?<><SRSpinner/> Deleting...</>:'Yes, Delete'}
-                        </button>
+            <Portal>
+                <div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',zIndex:99999,display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+                    <div onClick={()=>!deletingSF&&setDeleteSFTarget(null)} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.5)',backdropFilter:'blur(8px)'}}/>
+                    <div className="sr-animate" style={{position:'relative',background:T.panelSolid,border:`1px solid ${T.border}`,borderRadius:20,width:'100%',maxWidth:400,padding:'28px 28px 24px',boxShadow:T.shadow}}>
+                        <div style={{width:52,height:52,borderRadius:16,background:T.dangerSoft,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:24}}>🗑️</div>
+                        <div style={{fontSize:16,fontWeight:800,color:T.text,textAlign:'center',marginBottom:8}}>Delete Bonus Schedule</div>
+                        <div style={{fontSize:13,fontWeight:700,color:T.text,textAlign:'center',marginBottom:4}}>"{deleteSFTarget.bonus_type?.name}" schedule?</div>
+                        <div style={{fontSize:11,color:T.textMute,textAlign:'center',marginBottom:24}}>This action cannot be undone.</div>
+                        <div style={{display:'flex',gap:10}}>
+                            <button onClick={()=>!deletingSF&&setDeleteSFTarget(null)} disabled={deletingSF} style={{flex:1,padding:'10px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:700,cursor:'pointer'}}>Cancel</button>
+                            <button onClick={handleSFDeleteConfirm} disabled={deletingSF} style={{flex:1,padding:'10px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#ef4444,#dc2626)',color:'#fff',fontSize:13,fontWeight:700,cursor:deletingSF?'not-allowed':'pointer',opacity:deletingSF?0.6:1,boxShadow:'0 4px 14px rgba(239,68,68,0.35)',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+                                {deletingSF?<><SRSpinner/> Deleting...</>:'Yes, Delete'}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Portal>
         )}
 
         <div className="sr-wrap" style={{display:'flex',flexDirection:'column',gap:18}}>
@@ -801,7 +824,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                     <div>
                         <label style={lbl}><span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:'#fbbf24',marginRight:6,verticalAlign:'middle'}}/>Day shift starts <span style={{color:T.danger}}>*</span></label>
                         <div ref={el=>errorRefs.current.day_shift_start=el} data-error={!!formErrors.day_shift_start}>
-                        <PremiumTimePicker value={data.day_shift_start} onChange={v=>{setData('day_shift_start',v);setFormErrors(p=>({...p,day_shift_start:''}));}} T={T} dark={dark} error={!!formErrors.day_shift_start}/>
+                            <PremiumTimePicker value={data.day_shift_start} onChange={v=>{setData('day_shift_start',v);setFormErrors(p=>({...p,day_shift_start:''}));}} T={T} dark={dark} error={!!formErrors.day_shift_start}/>
                         </div>
                         <ErrMsg msg={formErrors.day_shift_start}/>
                     </div>
@@ -850,7 +873,6 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
 
             {/* ── 6. OT & Late ── */}
             <SectionCard emoji="⏰" title="Overtime & Late Deduction" T={T}>
-                {/* OT Base - full width */}
                 <div>
                     <label style={lbl}>OT Calculation Base</label>
                     <div style={{display:'flex',gap:10,marginTop:6}}>
@@ -868,9 +890,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         })}
                     </div>
                 </div>
-                {/* Divider */}
                 <div style={{height:1,background:T.divider}}/>
-                {/* Late Deduction Unit + Rate side by side */}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                     <div>
                         <label style={lbl}>Late Deduction Unit</label>
@@ -962,7 +982,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                 )}
 
                 {showSF&&(
-                    <form ref={sfFormRef} onSubmit={handleSFSubmit} className="sr-animate" style={{borderRadius:14,border:`1.5px solid ${dark?'rgba(124,58,237,0.25)':'rgba(124,58,237,0.2)'}`,background:dark?'rgba(124,58,237,0.06)':'rgba(124,58,237,0.03)',padding:16,display:'flex',flexDirection:'column',gap:14}}>
+                    <div ref={sfFormRef} className="sr-animate" style={{borderRadius:14,border:`1.5px solid ${dark?'rgba(124,58,237,0.25)':'rgba(124,58,237,0.2)'}`,background:dark?'rgba(124,58,237,0.06)':'rgba(124,58,237,0.03)',padding:16,display:'flex',flexDirection:'column',gap:14}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                             <div style={{display:'flex',alignItems:'center',gap:8}}>
                                 <div style={{width:30,height:30,borderRadius:9,background:T.primarySoft,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>{editingSFId?'✏️':'➕'}</div>
@@ -970,7 +990,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             </div>
                             <button type="button" onClick={()=>{resetSF();setSFErrors({});setShowSF(false);setEditingSFId(null);}} style={{width:26,height:26,borderRadius:7,border:`1px solid ${T.border}`,background:T.panelSoft,color:T.textMute,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13}}>✕</button>
                         </div>
-                        <div data-sf-error={!!sfErrors.bonus_type_id} style={{position:'relative',zIndex:300}}>
+                        <div data-sf-err={!!sfErrors.bonus_type_id} style={{position:'relative',zIndex:300}}>
                             <label style={lbl}>Bonus Type <span style={{color:T.danger}}>*</span></label>
                             <PremiumSelect options={btOpts} value={String(sf.bonus_type_id)} onChange={v=>{setSF('bonus_type_id',v);setSFErrors(p=>({...p,bonus_type_id:''}));}} placeholder="Select bonus type..." T={T} dark={dark} disabled={!bonusTypes?.length} zIndex={300}/>
                             <ErrMsg msg={sfErrors.bonus_type_id}/>
@@ -993,14 +1013,14 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             </div>
                         </div>
                         {(sf.frequency==='yearly'||sf.frequency==='once')&&(
-                            <div style={{position:'relative',zIndex:200}}>
+                            <div data-sf-err={!!sfErrors.pay_month} style={{position:'relative',zIndex:200}}>
                                 <label style={lbl}>Pay Month <span style={{color:T.danger}}>*</span></label>
                                 <PremiumSelect options={MONTHS.map(m=>({value:String(m.value),label:m.label}))} value={String(sf.pay_month)} onChange={v=>{setSF('pay_month',v);setSFErrors(p=>({...p,pay_month:''}));}} placeholder="Select month..." T={T} dark={dark} zIndex={200}/>
                                 <ErrMsg msg={sfErrors.pay_month}/>
                             </div>
                         )}
                         {sf.frequency==='quarterly'&&(
-                            <div>
+                            <div data-sf-err={!!sfErrors.pay_quarter}>
                                 <label style={lbl}>Pay Quarter <span style={{color:T.danger}}>*</span></label>
                                 <div style={{display:'flex',gap:8}}>
                                     {[1,2,3,4].map(q=>{
@@ -1011,7 +1031,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                 <ErrMsg msg={sfErrors.pay_quarter}/>
                             </div>
                         )}
-                        <div>
+                        <div data-sf-err={!!sfErrors.notes}>
                             <label style={lbl}>Notes <span style={{color:T.danger}}>*</span></label>
                             <input className="sr-inp" type="text" value={sf.notes} onChange={e=>{setSF('notes',e.target.value);setSFErrors(p=>({...p,notes:''}));}} placeholder="e.g. Paid with December payroll" disabled={sfProc} style={inp(!!sfErrors.notes)}/>
                             <ErrMsg msg={sfErrors.notes}/>
@@ -1019,12 +1039,13 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         <SRToggle label="Active" checked={sf.is_active} onChange={v=>setSF('is_active',v)} T={T} dark={dark}/>
                         <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
                             <button type="button" onClick={()=>{resetSF();setSFErrors({});setShowSF(false);setEditingSFId(null);}} disabled={sfProc} style={{padding:'10px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}} onMouseEnter={e=>e.currentTarget.style.background=T.panelSoft} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>Cancel</button>
-                            <button type="submit" disabled={sfProc} style={{display:'inline-flex',alignItems:'center',gap:7,padding:'10px 20px',borderRadius:12,border:'none',background:sfProc?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:13,fontWeight:700,cursor:sfProc?'not-allowed':'pointer',boxShadow:sfProc?'none':'0 4px 14px rgba(124,58,237,0.35)',transition:'all 0.15s'}} onMouseEnter={e=>{if(!sfProc)e.currentTarget.style.opacity='0.9';}} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                            <button type="button" onClick={handleSFSubmit} disabled={sfProc} style={{display:'inline-flex',alignItems:'center',gap:7,padding:'10px 20px',borderRadius:12,border:'none',background:sfProc?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:13,fontWeight:700,cursor:sfProc?'not-allowed':'pointer',boxShadow:sfProc?'none':'0 4px 14px rgba(124,58,237,0.35)',transition:'all 0.15s'}} onMouseEnter={e=>{if(!sfProc)e.currentTarget.style.opacity='0.9';}} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
                                 {sfProc?<><SRSpinner/> Saving...</>:<>{editingSFId?'✅ Update Schedule':'✅ Add Schedule'}</>}
                             </button>
                         </div>
-                    </form>
+                    </div>
                 )}
+
                 {!showSF&&<button type="button" onClick={()=>{setEditingSFId(null);resetSF();setSFErrors({});setShowSF(true);}} disabled={!bonusTypes?.length}
                     style={{display:'inline-flex',alignItems:'center',gap:8,padding:'10px 18px',borderRadius:12,border:`1.5px dashed ${T.primary}`,background:T.primarySoft,color:T.primary,fontSize:13,fontWeight:700,cursor:bonusTypes?.length?'pointer':'not-allowed',alignSelf:'flex-start',transition:'all 0.15s',opacity:bonusTypes?.length?0.85:0.4}} onMouseEnter={e=>{if(bonusTypes?.length)e.currentTarget.style.opacity='1';}} onMouseLeave={e=>{if(bonusTypes?.length)e.currentTarget.style.opacity='0.85';}}>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>Add Bonus Schedule
@@ -1040,18 +1061,18 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         </span>
                     </div>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
-                        <SavedCard label="Pay Cycle"      value={PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.label??'—'} sub={PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.hint} T={T}/>
-                        <SavedCard label="Probation"      value={salaryRule.probation_days!=null?`${salaryRule.probation_days} days`:'—'} T={T}/>
-                        <SavedCard label="Currency"       value={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_code??'—'} sub={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_name} T={T}/>
-                        <SavedCard label="Bank"           value={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_name??'—'} sub={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_code} T={T}/>
+                        <SavedCard label="Pay Cycle"       value={PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.label??'—'} sub={PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.hint} T={T}/>
+                        <SavedCard label="Probation"       value={salaryRule.probation_days!=null?`${salaryRule.probation_days} days`:'—'} T={T}/>
+                        <SavedCard label="Currency"        value={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_code??'—'} sub={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_name} T={T}/>
+                        <SavedCard label="Bank"            value={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_name??'—'} sub={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_code} T={T}/>
                         <SavedCard label="Working Hrs/Day" value={salaryRule.working_hours_per_day?`${salaryRule.working_hours_per_day}h / day`:'—'} T={T}/>
-                        <SavedCard label="Work Hours"     value={salaryRule.work_start&&salaryRule.work_end?`${to12h(salaryRule.work_start)} – ${to12h(salaryRule.work_end)}`:'—'} sub="Attendance window" T={T}/>
-                        <SavedCard label="Day Shift"      value={salaryRule.day_shift_start&&salaryRule.day_shift_end?`${to12h(salaryRule.day_shift_start)} – ${to12h(salaryRule.day_shift_end)}`:'—'} T={T}/>
-                        <SavedCard label="Night Shift"    value={salaryRule.day_shift_end&&salaryRule.day_shift_start?`${to12h(salaryRule.day_shift_end)} – ${to12h(salaryRule.day_shift_start)}`:'—'} sub="Auto-derived" T={T}/>
-                        <SavedCard label="Lunch Break"    value={salaryRule.lunch_start&&salaryRule.lunch_end?`${salaryRule.lunch_start?.substring(0,5)} – ${salaryRule.lunch_end?.substring(0,5)}`:'12:00 – 13:00'} sub="Auto-deducted" T={T}/>
-                        <SavedCard label="OT Base"        value={salaryRule.overtime_base==='hourly_rate'?'Hourly Rate':'Daily Rate'} sub={salaryRule.overtime_base==='hourly_rate'?'Daily ÷ working hrs':'Monthly ÷ working days'} T={T}/>
-                        <SavedCard label="Late Deduction" value={`${salaryRule.late_deduction_rate??0} / ${salaryRule.late_deduction_unit==='per_minute'?'min':'hr'}`} T={T}/>
-                        <SavedCard label="Payment Date"   value={(() => {
+                        <SavedCard label="Work Hours"      value={salaryRule.work_start&&salaryRule.work_end?`${to12h(salaryRule.work_start)} – ${to12h(salaryRule.work_end)}`:'—'} sub="Attendance window" T={T}/>
+                        <SavedCard label="Day Shift"       value={salaryRule.day_shift_start&&salaryRule.day_shift_end?`${to12h(salaryRule.day_shift_start)} – ${to12h(salaryRule.day_shift_end)}`:'—'} T={T}/>
+                        <SavedCard label="Night Shift"     value={salaryRule.day_shift_end&&salaryRule.day_shift_start?`${to12h(salaryRule.day_shift_end)} – ${to12h(salaryRule.day_shift_start)}`:'—'} sub="Auto-derived" T={T}/>
+                        <SavedCard label="Lunch Break"     value={salaryRule.lunch_start&&salaryRule.lunch_end?`${salaryRule.lunch_start?.substring(0,5)} – ${salaryRule.lunch_end?.substring(0,5)}`:'12:00 – 13:00'} sub="Auto-deducted" T={T}/>
+                        <SavedCard label="OT Base"         value={salaryRule.overtime_base==='hourly_rate'?'Hourly Rate':'Daily Rate'} sub={salaryRule.overtime_base==='hourly_rate'?'Daily ÷ working hrs':'Monthly ÷ working days'} T={T}/>
+                        <SavedCard label="Late Deduction"  value={`${salaryRule.late_deduction_rate??0} / ${salaryRule.late_deduction_unit==='per_minute'?'min':'hr'}`} T={T}/>
+                        <SavedCard label="Payment Date"    value={(() => {
                             const d=salaryRule?.payroll_cutoff_day??25;const cycle=salaryRule?.pay_cycle??'monthly';
                             const now=new Date();const y=now.getFullYear();const m=now.getMonth();
                             const lastDay=new Date(y,m+1,0).getDate();const cutoff=Math.min(d,lastDay);
