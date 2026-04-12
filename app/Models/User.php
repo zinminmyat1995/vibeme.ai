@@ -29,6 +29,7 @@ class User extends Authenticatable
         'employment_type',
         'contract_end_date',
         'country',
+        'country_id'
     ];
 
     protected $hidden = [

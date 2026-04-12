@@ -24,6 +24,7 @@ use App\Http\Controllers\Payroll\PayslipController;
 use App\Http\Controllers\Payroll\BankExportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecruitmentController;
+use App\Http\Controllers\NotificationController;
 
 // Home page (existing route ကို replace)
 Route::get('/', [RecruitmentController::class, 'home']);
@@ -323,6 +324,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('payroll.payslip.pdf');
     Route::get('/payroll/payslip/{payrollRecord}/excel', [PayslipController::class, 'downloadExcel'])
         ->name('payroll.payslip.excel');
+
+    // ── Notifications ─────────────────────────────────────────
+    Route::get   ('/notifications',          [NotificationController::class, 'index'])      ->name('notifications.index');
+    Route::patch ('/notifications/{notification}/read', [NotificationController::class, 'markRead'])   ->name('notifications.read');
+    Route::patch ('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
                     
 });
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LeaveBalance;
 use App\Models\LeavePolicy;
 use App\Models\LeaveRequest;
+use App\Models\Notification;        // ← NEW
 use App\Models\User;
 use App\Models\AttendanceRecord;
 use Carbon\Carbon;
@@ -271,6 +272,17 @@ class LeaveRequestController extends Controller
                 'document_path' => $documentPath,
             ]);
 
+            // ── Notify approver ── (NEW)
+            $this->notifyApprover(
+                $userId,
+                $user->name,
+                $isAdmin ? null : $request->approver_id,
+                $request->leave_type,
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+                $totalDays,
+            );
+
             $paidMsg   = $remaining > 0 ? "{$remaining} day(s) as {$request->leave_type}" : null;
             $absentMsg = "{$absentDays} day(s) as Absent";
             $msg       = implode(', ', array_filter([$paidMsg, $absentMsg]));
@@ -293,6 +305,17 @@ class LeaveRequestController extends Controller
             'approved_by'   => $approvedBy,
             'document_path' => $documentPath,
         ]);
+
+        // ── Notify approver ── (NEW)
+        $this->notifyApprover(
+            $userId,
+            $user->name,
+            $isAdmin ? null : $request->approver_id,
+            $request->leave_type,
+            $request->start_date,
+            $isHalfDay ? $request->start_date : $request->end_date,
+            $totalDays,
+        );
 
         if ($isAdmin) {
             $this->deductBalance($userId, $request->leave_type, $totalDays, $startDate->year, $countryId);
@@ -365,5 +388,46 @@ class LeaveRequestController extends Controller
             'used_days'      => $balance->used_days + $days,
             'remaining_days' => max(0, $balance->remaining_days - $days),
         ]);
+    }
+
+    // ── NEW: Real-time notification to approver ───────────────────────────────
+    private function notifyApprover(
+        int    $requesterId,
+        string $requesterName,
+        ?int   $approverId,
+        string $leaveType,
+        string $startDate,
+        string $endDate,
+        float  $totalDays
+    ): void {
+        // approver_id မရှိရင် skip
+        if (!$approverId) return;
+
+        // requester ကိုယ်တိုင် approver ဆိုလည်း skip (admin auto-approve case)
+        if ($approverId === $requesterId) return;
+
+        $dateRange = $startDate === $endDate
+            ? $startDate
+            : "{$startDate} – {$endDate}";
+
+        $dayLabel = $totalDays === 0.5
+            ? '0.5 day'
+            : ($totalDays == 1 ? '1 day' : "{$totalDays} days");
+
+        Notification::send(
+            userId: $approverId,
+            type:   'leave_request',
+            title:  'New Leave Request',
+            body:   "{$requesterName} requested {$leaveType} ({$dayLabel}) on {$dateRange}.",
+            url:    '/payroll/leaves',
+            data:   [
+                'requester_id'   => $requesterId,
+                'requester_name' => $requesterName,
+                'leave_type'     => $leaveType,
+                'start_date'     => $startDate,
+                'end_date'       => $endDate,
+                'total_days'     => $totalDays,
+            ]
+        );
     }
 }

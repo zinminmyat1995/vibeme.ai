@@ -95,7 +95,7 @@ public function store(Request $request)
     }
 
     // ── Target user's country_id for probation calculation ──
-    $country   = \App\Models\Country::where('name', $request->country)->first();
+    $country = \App\Models\Country::whereRaw('LOWER(name) = ?', [strtolower($request->country)])->first();
     $countryId = $country?->id;
 
     $joinedDate     = $request->joined_date ?? now()->toDateString();
@@ -173,7 +173,7 @@ public function update(Request $request, User $user)
     }
 
     // ── Resolve employment type with probation auto-detect ──
-    $country   = \App\Models\Country::where('name', $request->country)->first();
+    $country = \App\Models\Country::whereRaw('LOWER(name) = ?', [strtolower($request->country)])->first();
     $countryId = $country?->id;
 
     $joinedDate     = $request->joined_date ?? $user->joined_date ?? now()->toDateString();
