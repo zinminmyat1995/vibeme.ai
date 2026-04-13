@@ -97,7 +97,6 @@ class AttendanceImportController extends Controller
             $ws->getTabColor()->setRGB($tabColors[$idx % count($tabColors)]);
             $ws->freezePane('A7');
 
-            // Row 1: Title
             $ws->mergeCells('A1:E1');
             $ws->setCellValue('A1', 'ATTENDANCE RECORD  -  ' . strtoupper($name));
             $ws->getStyle('A1')->applyFromArray([
@@ -107,7 +106,6 @@ class AttendanceImportController extends Controller
             ]);
             $ws->getRowDimension(1)->setRowHeight(32);
 
-            // Row 2: A=Year B=Month C=Period D+E=DateRange(merged)
             $ws->mergeCells('D2:E2');
             foreach ([
                 'A2' => "Year: {$year}",
@@ -126,7 +124,6 @@ class AttendanceImportController extends Controller
             $ws->getColumnDimension('E')->setWidth(16);
             $ws->getRowDimension(2)->setRowHeight(20);
 
-            // Row 3: Employee ID (full width)
             $ws->mergeCells('A3:E3');
             $ws->setCellValue('A3', "Employee ID: {$profile->user_id}  |  {$name}");
             $ws->getStyle('A3')->applyFromArray([
@@ -136,11 +133,9 @@ class AttendanceImportController extends Controller
             ]);
             $ws->getRowDimension(3)->setRowHeight(16);
 
-            // Row 4: Spacer
             $ws->getStyle('A4:E4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8F9FF');
             $ws->getRowDimension(4)->setRowHeight(4);
 
-            // Row 5: Instructions
             $ws->mergeCells('A5:E5');
             $ws->setCellValue('A5', '  Select Check In / Check Out from dropdown OR type manually (HH:MM 24-hour). Weekends are shaded - leave blank if not working.');
             $ws->getStyle('A5')->applyFromArray([
@@ -150,7 +145,6 @@ class AttendanceImportController extends Controller
             ]);
             $ws->getRowDimension(5)->setRowHeight(20);
 
-            // Row 6: Headers
             foreach ([
                 'A' => ['Date',      16, Alignment::HORIZONTAL_CENTER],
                 'B' => ['Day',       11, Alignment::HORIZONTAL_CENTER],
@@ -169,7 +163,6 @@ class AttendanceImportController extends Controller
             }
             $ws->getRowDimension(6)->setRowHeight(26);
 
-            // DataValidation — start from row 7
             $ciSqref = [];
             $coSqref = [];
             $tmp = $startDate->copy();
@@ -191,7 +184,6 @@ class AttendanceImportController extends Controller
                      ->setAllowBlank(true)->setShowDropDown(false)->setShowErrorMessage(false);
             }
 
-            // Data rows — start from row 7
             $current = $startDate->copy();
             $row     = 7;
             while ($current <= $endDate) {
@@ -238,7 +230,6 @@ class AttendanceImportController extends Controller
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
                 ]));
 
-                // E: Note — pre-fill if existing
                 if ($exNote) $ws->setCellValue("E{$row}", $exNote);
                 $ws->getStyle("E{$row}")->applyFromArray(array_merge($allThin, [
                     'font'      => ['color' => ['rgb' => '6B7280'], 'size' => 9, 'name' => 'Arial'],
@@ -251,7 +242,6 @@ class AttendanceImportController extends Controller
                 $row++;
             }
 
-            // Summary row
             $lastData = $row - 1;
             $ws->mergeCells("A{$row}:B{$row}");
             $ws->setCellValue("A{$row}", 'Total Filled');
@@ -310,7 +300,6 @@ class AttendanceImportController extends Controller
             }
 
             foreach ($spreadsheet->getAllSheets() as $ws) {
-                // Scan Row 2 + Row 3 cols 1-5 for "Employee ID: X"
                 $employeeId = null;
                 foreach ([2, 3] as $scanRow) {
                     for ($col = 1; $col <= 5; $col++) {
@@ -378,7 +367,6 @@ class AttendanceImportController extends Controller
                 }
             }
         } else {
-            // CSV fallback
             $handle = fopen($file->getRealPath(), 'r');
             $header = null;
             while (($line = fgetcsv($handle)) !== false) {
@@ -430,18 +418,15 @@ class AttendanceImportController extends Controller
         $raw = $cell->getValue();
         if ($raw === null || $raw === '') return '';
 
-        // DateTime object (PhpSpreadsheet returns this for time cells with HH:MM format)
         if ($raw instanceof \DateTimeInterface) {
             return $raw->format('H:i');
         }
 
-        // Float fraction 0.333 = 08:00
         if (is_float($raw) && $raw > 0 && $raw < 1) {
             $totalMin = (int) round($raw * 24 * 60);
             return sprintf('%02d:%02d', intdiv($totalMin, 60), $totalMin % 60);
         }
 
-        // String "08:00" or "08:00:00"
         $str = trim((string) $cell->getFormattedValue());
         if (preg_match('/^(\d{1,2}):(\d{2})/', $str, $m)) {
             return sprintf('%02d:%02d', (int) $m[1], (int) $m[2]);
@@ -476,10 +461,7 @@ class AttendanceImportController extends Controller
         $lsM  = $this->toMin($ls);
         $leM  = $this->toMin($le);
 
-        // Lunch deduction — only if employee was actually present during lunch period
-        // overlap = actual time worked that falls within lunch window
         $lunchOverlap = max(0, min($outM, $leM) - max($inM, $lsM));
-
         $grossMinutes = max(0, $outM - $inM);
         $netMinutes   = max(0, $grossMinutes - $lunchOverlap);
         $wh           = round($netMinutes / 60, 2);
@@ -497,30 +479,93 @@ class AttendanceImportController extends Controller
         return (int) $h * 60 + (int) $m;
     }
 
+    /**
+     * getPeriodRange — exact logic as specified:
+     *
+     * request month M → base month = M - 1
+     *
+     * semi_monthly (P1.day=24, P2.day=9), request=April → base=March:
+     *   P1 start = base[P2.day + 1]  = Mar 10
+     *   P1 end   = base[P1.day]      = Mar 24
+     *   P2 start = base[P1.day + 1]  = Mar 25
+     *   P2 end   = request[P2.day]   = Apr 9
+     *
+     * ten_day (P1.day=X, P2.day=Y, P3.day=Z), request=April → base=March:
+     *   P1 start = base[P3.day + 1]
+     *   P1 end   = base[P1.day]
+     *   P2 start = base[P1.day + 1]
+     *   P2 end   = base[P2.day]
+     *   P3 start = base[P2.day + 1]
+     *   P3 end   = request[P3.day]
+     *
+     * monthly (P1.day=25), request=April → base=March:
+     *   P1 start = base[P1.day + 1]  = Mar 26
+     *   P1 end   = request[P1.day]   = Apr 25
+     */
     private function getPeriodRange(?SalaryRule $rule, int $year, int $month, int $pNum): array
     {
-        $cutoff    = $rule?->payroll_cutoff_day ?? 25;
-        $lastDay   = Carbon::create($year, $month, 1)->daysInMonth;
-        $countryId = $rule?->country_id;
+        $countryId   = $rule?->country_id;
+        $cutoff      = $rule?->payroll_cutoff_day ?? 25;
+        $periodCount = $this->getPeriodCount($rule);
 
-        $thisPeriod = PayrollPeriod::where('country_id', $countryId)->where('period_number', $pNum)->first();
-        $endDay     = min($thisPeriod?->day ?? $cutoff, $lastDay);
-        $end        = Carbon::create($year, $month, $endDay)->endOfDay();
+        // Load all period end-days keyed by period_number
+        $periods = PayrollPeriod::where('country_id', $countryId)
+            ->orderBy('period_number')
+            ->get()
+            ->keyBy('period_number');
 
-        if ($pNum === 1) {
-            $prev    = Carbon::create($year, $month, 1)->subMonth();
-            $prevEnd = min($cutoff, $prev->daysInMonth);
-            $start   = Carbon::create($prev->year, $prev->month, $prevEnd + 1)->startOfDay();
-        } else {
-            $prevPeriod = PayrollPeriod::where('country_id', $countryId)->where('period_number', $pNum - 1)->first();
-            $prevEndDay = min($prevPeriod?->day ?? (int) round($cutoff * ($pNum-1) / $this->getPeriodCount($rule)), $lastDay);
-            $start      = Carbon::create($year, $month, $prevEndDay + 1)->startOfDay();
+        // Get end-day for period N (fallback to cutoff)
+        $dayOf = fn(int $n): int => (int) ($periods->get($n)?->day ?? $cutoff);
+
+        // base = request month - 1
+        $base        = Carbon::create($year, $month, 1)->subMonth();
+        $baseY       = $base->year;
+        $baseM       = $base->month;
+        $baseLast    = $base->daysInMonth;
+        $reqLast     = Carbon::create($year, $month, 1)->daysInMonth;
+
+        // Clamp day to month's last day, then return Carbon
+        $baseDate = fn(int $day): Carbon =>
+            Carbon::create($baseY, $baseM, min($day, $baseLast));
+        $reqDate  = fn(int $day): Carbon =>
+            Carbon::create($year, $month, min($day, $reqLast));
+
+        if ($periodCount === 1) {
+            // monthly: start = base[P1.day]+1, end = request[P1.day]
+            $start = $baseDate($dayOf(1))->addDay()->startOfDay();
+            $end   = $reqDate($dayOf(1))->endOfDay();
+            return [$start, $end];
         }
+
+        // multi-period (2 or 3):
+        // - Last period (pNum == periodCount): end in request month
+        // - All other periods: start and end in base month
+        // - start of each period = previous period's end day + 1
+        // - start of P1 = last period's end day (in base) + 1
+
+        if ($pNum === $periodCount) {
+            // Last period
+            $start = $baseDate($dayOf($periodCount - 1))->addDay()->startOfDay();
+            $end   = $reqDate($dayOf($periodCount))->endOfDay();
+        } elseif ($pNum === 1) {
+            // First period: start after last period's day in base month
+            $start = $baseDate($dayOf($periodCount))->addDay()->startOfDay();
+            $end   = $baseDate($dayOf(1))->endOfDay();
+        } else {
+            // Middle period(s): entirely within base month
+            $start = $baseDate($dayOf($pNum - 1))->addDay()->startOfDay();
+            $end   = $baseDate($dayOf($pNum))->endOfDay();
+        }
+
         return [$start, $end];
     }
 
     private function getPeriodCount(?SalaryRule $rule): int
     {
-        return match ($rule?->pay_cycle ?? 'monthly') { 'semi_monthly' => 2, 'ten_day' => 3, default => 1 };
+        return match ($rule?->pay_cycle ?? 'monthly') {
+            'semi_monthly' => 2,
+            'ten_day'      => 3,
+            default        => 1,
+        };
     }
 }

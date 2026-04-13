@@ -405,7 +405,6 @@ export default function NotificationBell({ userId, theme, darkMode }) {
                                         <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                                     </svg>
                                 </div>
-                                <div style={{ fontSize: 14, fontWeight: 700, color: T.textSoft, marginBottom: 4 }}>All caught up!</div>
                                 <div style={{ fontSize: 12, color: T.textMute }}>No notifications yet</div>
                             </div>
                         ) : (

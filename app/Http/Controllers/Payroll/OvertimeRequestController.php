@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\Notification;
 
 class OvertimeRequestController extends Controller
 {
@@ -226,6 +227,32 @@ class OvertimeRequestController extends Controller
             ? "Overtime created & auto-approved. ({$days} day(s), {$segCount} segments, {$totalHours} hrs total)"
             : "Overtime submitted. ({$days} day(s), {$segCount} segments, {$totalHours} hrs total)";
 
+
+
+        // ── Notify approver ──
+        if (!$isAdmin && !empty($validated['approver_id'])) {
+            $dateRange = $startDate === $endDate
+                ? $startDate
+                : "{$startDate} – {$endDate}";
+
+            $hrsLabel = "{$totalHours} hr" . ($totalHours != 1 ? 's' : '');
+
+            Notification::send(
+                userId: $validated['approver_id'],
+                type:   'overtime_request',
+                title:  'New Overtime Request',
+                body:   "{$user->name} requested overtime ({$hrsLabel}) on {$dateRange}.",
+                url:    '/payroll/overtimes',
+                data:   [
+                    'requester_id'   => $userId,
+                    'requester_name' => $user->name,
+                    'start_date'     => $startDate,
+                    'end_date'       => $endDate,
+                    'total_hours'    => $totalHours,
+                ]
+            );
+        }
+  
         return back()->with('success', $msg);
     }
 

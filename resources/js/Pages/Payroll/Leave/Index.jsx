@@ -333,7 +333,7 @@ function RequestRow({ req, leaveTypeConfig, dark, theme, canApprove, userId, onA
                     {req.note && (
                         <div style={{ display:'flex', gap:8, background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb',
                             border:`1px solid ${theme.border}`, borderRadius:10, padding:'8px 12px' }}>
-                            <span style={{ fontSize:10, fontWeight:800, color:theme.textMute, flexShrink:0, marginTop:1, textTransform:'uppercase', letterSpacing:'0.4px' }}>Reason</span>
+                            <span style={{ fontSize:12, fontWeight:800, color:theme.textMute, flexShrink:0, marginTop:1, textTransform:'uppercase', letterSpacing:'0.4px' }}>Reason</span>
                             <span style={{ fontSize:12, color:theme.textSoft, lineHeight:1.5 }}>{req.note}</span>
                         </div>
                     )}

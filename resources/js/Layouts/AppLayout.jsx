@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import GlobalToast from '@/Components/Toast';
+import NotificationBell from '@/Components/NotificationBell';
 
 const roleConfig = {
     admin:      { label: 'Administrator', color: '#7c3aed', bg: '#ede9fe', dot: '#7c3aed' },
@@ -728,42 +729,7 @@ export default function AppLayout({ children, title = 'Dashboard' }) {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <button
-                            type="button"
-                            style={{
-                                position: 'relative',
-                                width: 46,
-                                height: 46,
-                                borderRadius: 15,
-                                border: `1px solid ${theme.iconBtnBorder}`,
-                                background: theme.iconBtnBg,
-                                color: theme.iconBtnColor,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
-                            }}
-                        >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                            </svg>
-
-                            <span
-                                style={{
-                                    position: 'absolute',
-                                    top: 9,
-                                    right: 9,
-                                    width: 9,
-                                    height: 9,
-                                    borderRadius: '50%',
-                                    background: '#8b5cf6',
-                                    border: darkMode ? '2px solid #0f172a' : '2px solid #ffffff',
-                                    boxShadow: '0 0 0 3px rgba(139,92,246,0.15)',
-                                }}
-                            />
-                        </button>
+                        <NotificationBell userId={user?.id} theme={theme} darkMode={darkMode} />
 
                         <button
                             type="button"

@@ -106,7 +106,7 @@ class SalaryCalculationService
         // IMPORTANT: count WD from fullStart to fullEnd (entire payroll month)
         // NOT just this period's range
         $fullMonthWD  = $this->countWorkingDays($fullStart, $fullEnd, $countryId);
-        $hoursPerDay  = (float) ($salaryRule?->working_hours_per_day ?? 8);
+        $hoursPerDay  = $this->resolveHoursPerDay($salaryRule);
         $dailyRate    = $fullMonthWD > 0 ? $profile->base_salary / $fullMonthWD : 0;
         $hourlyRate   = $hoursPerDay > 0 ? $dailyRate / $hoursPerDay : 0;
 
@@ -129,7 +129,7 @@ class SalaryCalculationService
 
         // ── Short hour deduction (this period, per day) ───────────
         $shortDeduct = $this->calculateShortHourDeduction(
-            $profile->user_id, $startDate, $endDate, $hoursPerDay, $hourlyRate
+            $profile->user_id, $startDate, $endDate, $hoursPerDay, $hourlyRate, $salaryRule
         );
 
         // ── OT: each period pays its OWN period's OT ─────────────
@@ -248,46 +248,55 @@ class SalaryCalculationService
         int $year, int $month, int $cutoff,
         string $cycle, int $periodNumber, int $endDay, int $countryId = 0
     ): array {
-        $lastDay         = Carbon::create($year, $month, 1)->daysInMonth;
-        $effectiveEndDay = min($endDay, $lastDay);
-        $periodEnd       = Carbon::create($year, $month, $effectiveEndDay)->endOfDay();
+        $totalPeriods = $this->getTotalPeriods($cycle);
 
-        if ($periodNumber === 1) {
-            // P1 start = prev month's LAST period end day + 1
-            // Get last period's day from payroll_periods table
-            $totalPeriods = $this->getTotalPeriods($cycle);
-            $lastPeriod   = $countryId
-                ? PayrollPeriod::where('country_id', $countryId)
-                    ->where('period_number', $totalPeriods)
-                    ->first()
-                : null;
+        // base month = request month - 1
+        $base      = Carbon::create($year, $month, 1)->subMonth();
+        $baseY     = $base->year;
+        $baseM     = $base->month;
+        $baseLast  = $base->daysInMonth;
+        $reqLast   = Carbon::create($year, $month, 1)->daysInMonth;
 
-            $prev            = Carbon::create($year, $month, 1)->subMonth();
-            $prevLastDay     = $prev->daysInMonth;
+        // Clamp a day to the month's last day
+        $baseDate = fn(int $day): Carbon => Carbon::create($baseY, $baseM, min($day, $baseLast));
+        $reqDate  = fn(int $day): Carbon => Carbon::create($year, $month, min($day, $reqLast));
 
-            // Use last period's day as cutoff (e.g. P2.day=24 for semi_monthly)
-            $prevPeriodEndDay = $lastPeriod
-                ? min((int)$lastPeriod->day, $prevLastDay)
-                : min($cutoff, $prevLastDay);
-
-            $periodStart = Carbon::create($prev->year, $prev->month, $prevPeriodEndDay + 1)->startOfDay();
-
-        } else {
-            // Pn start = previous period end day + 1
-            $prevPeriod = $countryId
-                ? PayrollPeriod::where('country_id', $countryId)
-                    ->where('period_number', $periodNumber - 1)
-                    ->first()
-                : null;
-
-            $prevEndDay  = $prevPeriod
-                ? min((int)$prevPeriod->day, $lastDay)
-                : min((int)round($cutoff * ($periodNumber - 1) / $this->getTotalPeriods($cycle)), $lastDay);
-
-            $periodStart = Carbon::create($year, $month, $prevEndDay + 1)->startOfDay();
+        // ── monthly (1 period) ───────────────────────────────────
+        if ($totalPeriods === 1) {
+            $p1Day = $this->getPeriodEndDay(1, $cycle, $cutoff, $countryId);
+            $start = $baseDate($p1Day)->addDay()->startOfDay();
+            $end   = $reqDate($p1Day)->endOfDay();
+            return [$start, $end];
         }
 
-        return [$periodStart, $periodEnd];
+        // ── multi-period (semi_monthly=2 or ten_day=3) ───────────
+        //  Last period  → end in request month
+        //  Other periods → start & end in base month
+        //  Start of each period = previous period's end day + 1
+
+        if ($periodNumber === $totalPeriods) {
+            // Last period
+            $prevDay = $this->getPeriodEndDay($totalPeriods - 1, $cycle, $cutoff, $countryId);
+            $thisDay = $this->getPeriodEndDay($totalPeriods,     $cycle, $cutoff, $countryId);
+            $start   = $baseDate($prevDay)->addDay()->startOfDay();
+            $end     = $reqDate($thisDay)->endOfDay();
+
+        } elseif ($periodNumber === 1) {
+            // First period — start after last period's day in base month
+            $lastDay = $this->getPeriodEndDay($totalPeriods, $cycle, $cutoff, $countryId);
+            $thisDay = $this->getPeriodEndDay(1,             $cycle, $cutoff, $countryId);
+            $start   = $baseDate($lastDay)->addDay()->startOfDay();
+            $end     = $baseDate($thisDay)->endOfDay();
+
+        } else {
+            // Middle period(s) — entirely in base month
+            $prevDay = $this->getPeriodEndDay($periodNumber - 1, $cycle, $cutoff, $countryId);
+            $thisDay = $this->getPeriodEndDay($periodNumber,     $cycle, $cutoff, $countryId);
+            $start   = $baseDate($prevDay)->addDay()->startOfDay();
+            $end     = $baseDate($thisDay)->endOfDay();
+        }
+
+        return [$start, $end];
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -298,29 +307,15 @@ class SalaryCalculationService
         int $year, int $month, int $cutoff,
         string $cycle, int $totalPeriods, int $endDay, int $countryId = 0
     ): array {
-        // ── P1 start ──────────────────────────────────────────────
-        $p1Period = $countryId
-            ? PayrollPeriod::where('country_id', $countryId)
-                ->where('period_number', 1)->first()
-            : null;
-        $p1EndDay = $p1Period
-            ? (int)$p1Period->day
-            : $this->fallbackPeriodEndDay($cycle, $cutoff, 1, $totalPeriods);
-
+        // P1 start (uses corrected getPeriodRange)
+        $p1EndDay = $this->getPeriodEndDay(1, $cycle, $cutoff, $countryId);
         [$fullStart] = $this->getPeriodRange(
             $year, $month, $cutoff, $cycle, 1, $p1EndDay, $countryId
         );
 
-        // ── LAST period end — always fetch from DB ────────────────
-        $lastPeriod = $countryId
-            ? PayrollPeriod::where('country_id', $countryId)
-                ->where('period_number', $totalPeriods)->first()
-            : null;
-        $lastEndDay = $lastPeriod
-            ? (int)$lastPeriod->day
-            : $cutoff;
-
-        [,$fullEnd] = $this->getPeriodRange(
+        // Last period end (uses corrected getPeriodRange)
+        $lastEndDay = $this->getPeriodEndDay($totalPeriods, $cycle, $cutoff, $countryId);
+        [, $fullEnd] = $this->getPeriodRange(
             $year, $month, $cutoff, $cycle, $totalPeriods, $lastEndDay, $countryId
         );
 
@@ -529,7 +524,8 @@ class SalaryCalculationService
     // ══════════════════════════════════════════════════════════════
     private function calculateShortHourDeduction(
         int $userId, Carbon $start, Carbon $end,
-        float $hoursPerDay, float $hourlyRate
+        float $hoursPerDay, float $hourlyRate,
+        ?SalaryRule $rule = null          // ← NEW parameter
     ): float {
         if ($hourlyRate <= 0) return 0;
 
@@ -539,10 +535,29 @@ class SalaryCalculationService
             ->whereNotNull('work_hours_actual')
             ->get();
 
+             \Log::info('SHORT_DEBUG_RECORDS', [
+        'start'   => $start->toDateString(),
+        'end'     => $end->toDateString(),
+        'count'   => $records->count(),
+        'records' => $records->map(fn($r) => [
+            'date'  => $r->date,
+            'hours' => $r->work_hours_actual,
+            'late'  => $r->late_minutes,
+        ])->toArray(),
+        'fullDayHrs' => $fullDayHrs ?? $hoursPerDay,
+    ]);
+
         if ($records->isEmpty()) return 0;
 
-        // Get half-day leave dates
-        $halfDates = [];
+        // ── standard hours per full day ───────────────────────────
+        // resolveHoursPerDay() — work_start→work_end-lunch နဲ့ တွက်
+        // (rule NULL ဆိုရင် fallback = hoursPerDay parameter)
+        $fullDayHrs = $rule
+            ? $this->resolveHoursPerDay($rule)
+            : $hoursPerDay;
+
+        // ── half-day leave dates ───────────────────────────────────
+        $halfDates  = [];
         $halfLeaves = LeaveRequest::where('user_id', $userId)
             ->where('status', 'approved')
             ->where(function ($q) use ($start, $end) {
@@ -569,12 +584,16 @@ class SalaryCalculationService
 
         foreach ($records as $rec) {
             $dateStr     = Carbon::parse($rec->date)->toDateString();
-            $actualHours = (float)$rec->work_hours_actual;
-            $lateHours   = (float)$rec->late_minutes / 60;
-            $standardHrs = isset($halfDates[$dateStr]) ? $hoursPerDay / 2 : $hoursPerDay;
+            $actualHours = (float) $rec->work_hours_actual;
+            $lateHours   = (float) $rec->late_minutes / 60;
 
-            // short = standard - actual_work_hours - late_hours
-            // Late is penalized separately, so subtract from effective hours
+            // half_day ဆိုရင် standard = full ÷ 2
+            $standardHrs = isset($halfDates[$dateStr])
+                ? $fullDayHrs / 2
+                : $fullDayHrs;
+
+            // short = standard - actual - late
+            // (late ကိုနှုတ်: late_deduction မှာ ဖြတ်ပြီးသားမို့ double-penalize မဖြစ်ရ)
             $shortHours = $standardHrs - $actualHours - $lateHours;
             $deductAmt  = $shortHours > 0 ? round($hourlyRate * $shortHours, 4) : 0;
 
@@ -583,6 +602,7 @@ class SalaryCalculationService
                 'actual_hrs'  => $actualHours,
                 'late_hrs'    => round($lateHours, 4),
                 'standard'    => $standardHrs,
+                'full_day_hrs'=> $fullDayHrs,
                 'short_hrs'   => round($shortHours, 4),
                 'deduct'      => $deductAmt,
                 'half_day'    => isset($halfDates[$dateStr]),
@@ -594,11 +614,11 @@ class SalaryCalculationService
         }
 
         \Log::info('SHORT_HOUR_DEBUG', [
-            'user_id'     => $userId,
-            'period'      => $start->toDateString().' → '.$end->toDateString(),
-            'hourly_rate' => $hourlyRate,
-            'hours_per_day' => $hoursPerDay,
-            'rows'        => $debugRows,
+            'user_id'            => $userId,
+            'period'             => $start->toDateString().' → '.$end->toDateString(),
+            'hourly_rate'        => $hourlyRate,
+            'full_day_hrs'       => $fullDayHrs,
+            'rows'               => $debugRows,
             'total_short_deduct' => round($totalDeduct, 2),
         ]);
 
@@ -743,5 +763,50 @@ class SalaryCalculationService
             'ten_day'      => (int)round($cutoff * $pNum / $total),
             default        => $cutoff,
         };
+    }
+
+
+    private function getPeriodEndDay(int $periodNumber, string $cycle, int $cutoff, int $countryId): int
+    {
+        if ($countryId) {
+            $record = PayrollPeriod::where('country_id', $countryId)
+                ->where('period_number', $periodNumber)
+                ->first();
+            if ($record) return (int) $record->day;
+        }
+        return $this->fallbackPeriodEndDay($cycle, $cutoff, $periodNumber, $this->getTotalPeriods($cycle));
+    }
+
+    private function resolveHoursPerDay(?SalaryRule $rule): float
+    {
+        $workStart  = $rule?->work_start;
+        $workEnd    = $rule?->work_end;
+        $lunchStart = $rule?->lunch_start;
+        $lunchEnd   = $rule?->lunch_end;
+
+        if ($workStart && $workEnd) {
+            $wsMin    = $this->timeToMinutes($workStart);
+            $weMin    = $this->timeToMinutes($workEnd);
+            $grossMin = $weMin - $wsMin;
+
+            if ($grossMin > 0) {
+                $lunchMin = 0;
+                if ($lunchStart && $lunchEnd) {
+                    $lsMin    = $this->timeToMinutes($lunchStart);
+                    $leMin    = $this->timeToMinutes($lunchEnd);
+                    $lunchMin = max(0, min($leMin, $weMin) - max($lsMin, $wsMin));
+                }
+                $netHours = ($grossMin - $lunchMin) / 60;
+                if ($netHours > 0) return round($netHours, 4);
+            }
+        }
+
+        return 8.0;
+    }
+
+    private function timeToMinutes(string $time): int
+    {
+        $parts = explode(':', $time);
+        return (int)($parts[0] ?? 0) * 60 + (int)($parts[1] ?? 0);
     }
 }
