@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use App\Models\PayrollBonusSchedule;
 
 class PayrollRecordController extends Controller
 {
@@ -31,7 +32,6 @@ class PayrollRecordController extends Controller
         $countryId  = $hr->country_id;
         $salaryRule = SalaryRule::where('country_id', $countryId)->first();
 
-        // ── Period templates for this country ──
         $periodTemplates = PayrollPeriod::where('country_id', $countryId)
             ->orderBy('period_number')
             ->get()
@@ -42,7 +42,6 @@ class PayrollRecordController extends Controller
                 'status'        => $p->status,
             ]);
 
-        // ── Employees with active profile ──
         $employees = EmployeePayrollProfile::with('user')
             ->where('country_id', $countryId)
             ->where('is_active', true)
@@ -68,7 +67,7 @@ class PayrollRecordController extends Controller
     }
 
     // ──────────────────────────────────────────────────────────────
-    // GET /payroll/records/list  (JSON — for current period)
+    // GET /payroll/records/list
     // ──────────────────────────────────────────────────────────────
     public function index(Request $request): JsonResponse
     {
@@ -94,7 +93,6 @@ class PayrollRecordController extends Controller
 
     // ──────────────────────────────────────────────────────────────
     // POST /payroll/records/calculate-single
-    // Calculate salary for one employee
     // ──────────────────────────────────────────────────────────────
     public function calculateSingle(Request $request): JsonResponse
     {
@@ -122,7 +120,6 @@ class PayrollRecordController extends Controller
             (int) $request->month
         );
 
-        // Save year/month on record for filtering
         $record->update(['year' => $request->year, 'month' => $request->month]);
 
         return response()->json([
@@ -132,8 +129,7 @@ class PayrollRecordController extends Controller
     }
 
     // ──────────────────────────────────────────────────────────────
-    // POST /payroll/records/calculate-all  (SSE streaming)
-    // Calculate all employees one-by-one with real-time progress
+    // GET /payroll/records/calculate-all  (SSE streaming)
     // ──────────────────────────────────────────────────────────────
     public function calculateAll(Request $request)
     {
@@ -141,10 +137,10 @@ class PayrollRecordController extends Controller
             'period_id'    => 'required|exists:payroll_periods,id',
             'year'         => 'required|integer|min:2020|max:2099',
             'month'        => 'required|integer|min:1|max:12',
-            'resume_from'  => 'nullable|integer', // user_id to resume from after error
+            'resume_from'  => 'nullable|integer',
         ]);
 
-        $period    = PayrollPeriod::findOrFail($request->period_id);
+        $period     = PayrollPeriod::findOrFail($request->period_id);
         $resumeFrom = $request->resume_from ? (int) $request->resume_from : null;
 
         $profiles = EmployeePayrollProfile::with('user')
@@ -160,15 +156,13 @@ class PayrollRecordController extends Controller
         $year  = (int) $request->year;
         $month = (int) $request->month;
 
-        // SSE streaming response
         return response()->stream(function () use ($profiles, $period, $year, $month, $resumeFrom) {
-            $total     = $profiles->count();
-            $done      = 0;
-            $errors    = [];
-            $skipping  = $resumeFrom !== null;
+            $total    = $profiles->count();
+            $done     = 0;
+            $errors   = [];
+            $skipping = $resumeFrom !== null;
 
             foreach ($profiles as $profile) {
-                // Resume: skip already-processed employees
                 if ($skipping) {
                     if ($profile->user_id == $resumeFrom) {
                         $skipping = false;
@@ -180,7 +174,6 @@ class PayrollRecordController extends Controller
 
                 $name = $profile->user?->name ?? "Employee #{$profile->user_id}";
 
-                // Send "calculating" event
                 echo "data: " . json_encode([
                     'type'     => 'calculating',
                     'name'     => $name,
@@ -188,19 +181,15 @@ class PayrollRecordController extends Controller
                     'progress' => $done,
                     'total'    => $total,
                 ]) . "\n\n";
-                ob_flush();
-                flush();
+                ob_flush(); flush();
 
                 try {
                     $record = $this->salaryCalculationService->calculateForEmployee(
                         $period, $profile, $year, $month
                     );
-
                     $record->update(['year' => $year, 'month' => $month]);
-
                     $done++;
 
-                    // Send "done" event for this employee
                     echo "data: " . json_encode([
                         'type'       => 'done',
                         'name'       => $name,
@@ -209,8 +198,7 @@ class PayrollRecordController extends Controller
                         'progress'   => $done,
                         'total'      => $total,
                     ]) . "\n\n";
-                    ob_flush();
-                    flush();
+                    ob_flush(); flush();
 
                 } catch (\Exception $e) {
                     $errors[] = ['user_id' => $profile->user_id, 'name' => $name, 'error' => $e->getMessage()];
@@ -223,10 +211,8 @@ class PayrollRecordController extends Controller
                         'progress' => $done,
                         'total'    => $total,
                     ]) . "\n\n";
-                    ob_flush();
-                    flush();
+                    ob_flush(); flush();
 
-                    // Stop on error — HR can continue from here
                     echo "data: " . json_encode([
                         'type'        => 'stopped',
                         'resume_from' => $profile->user_id,
@@ -234,33 +220,29 @@ class PayrollRecordController extends Controller
                         'total'       => $total,
                         'errors'      => $errors,
                     ]) . "\n\n";
-                    ob_flush();
-                    flush();
+                    ob_flush(); flush();
                     return;
                 }
             }
 
-            // All done
             echo "data: " . json_encode([
                 'type'   => 'complete',
                 'done'   => $done,
                 'total'  => $total,
                 'errors' => $errors,
             ]) . "\n\n";
-            ob_flush();
-            flush();
+            ob_flush(); flush();
 
         }, 200, [
             'Content-Type'      => 'text/event-stream',
             'Cache-Control'     => 'no-cache',
-            'X-Accel-Buffering' => 'no', // disable nginx buffering
+            'X-Accel-Buffering' => 'no',
             'Connection'        => 'keep-alive',
         ]);
     }
 
     // ──────────────────────────────────────────────────────────────
     // GET /payroll/records/preview
-    // Preview list for a period/year/month
     // ──────────────────────────────────────────────────────────────
     public function preview(Request $request): JsonResponse
     {
@@ -270,12 +252,9 @@ class PayrollRecordController extends Controller
             'month'     => 'required|integer',
         ]);
 
-        // Query by period_id — always works
-        // year/month filter added only if columns exist (after migration)
         $query = PayrollRecord::with(['user', 'payrollPeriod', 'bonuses'])
             ->where('payroll_period_id', $request->period_id);
 
-        // Add year/month filter only if columns exist
         if (\Schema::hasColumn('payroll_records', 'year')) {
             $query->where('year',  $request->year)
                   ->where('month', $request->month);
@@ -294,14 +273,11 @@ class PayrollRecordController extends Controller
             'total_net_salary'  => $records->sum('net_salary'),
         ];
 
-        return response()->json([
-            'records' => $records,
-            'summary' => $summary,
-        ]);
+        return response()->json(['records' => $records, 'summary' => $summary]);
     }
 
     // ──────────────────────────────────────────────────────────────
-    // GET /payroll/records/{id}  — single record detail
+    // GET /payroll/records/{id}
     // ──────────────────────────────────────────────────────────────
     public function show(PayrollRecord $payrollRecord): JsonResponse
     {
@@ -331,7 +307,6 @@ class PayrollRecordController extends Controller
 
     // ──────────────────────────────────────────────────────────────
     // PATCH /payroll/records/approve-all
-    // Approve all draft/calculated records for a period
     // ──────────────────────────────────────────────────────────────
     public function approveAll(Request $request): JsonResponse
     {
@@ -347,73 +322,68 @@ class PayrollRecordController extends Controller
             ->whereIn('status', ['draft', 'calculated'])
             ->update(['status' => 'approved']);
 
+        return response()->json(['message' => "{$updated} records approved.", 'updated' => $updated]);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // PATCH /payroll/records/{id}/confirm
+    // ──────────────────────────────────────────────────────────────
+    public function confirm(PayrollRecord $payrollRecord): JsonResponse
+    {
+        if ($payrollRecord->status !== 'approved') {
+            return response()->json(['message' => 'Only approved records can be confirmed.'], 422);
+        }
+
+        $payrollRecord->update(['status' => 'confirmed']);
+
         return response()->json([
-            'message' => "{$updated} records approved.",
+            'message' => 'Record confirmed.',
+            'record'  => $this->formatRecord($payrollRecord->fresh(['user', 'payrollPeriod', 'bonuses'])),
+        ]);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // PATCH /payroll/records/confirm-all
+    // ──────────────────────────────────────────────────────────────
+    public function confirmAll(Request $request): JsonResponse
+    {
+        $request->validate([
+            'period_id' => 'required|exists:payroll_periods,id',
+            'year'      => 'required|integer',
+            'month'     => 'required|integer',
+        ]);
+
+        $total = PayrollRecord::where('payroll_period_id', $request->period_id)
+            ->where('year',  $request->year)
+            ->where('month', $request->month)
+            ->count();
+
+        $approvedCount = PayrollRecord::where('payroll_period_id', $request->period_id)
+            ->where('year',  $request->year)
+            ->where('month', $request->month)
+            ->where('status', 'approved')
+            ->count();
+
+        if ($approvedCount < $total) {
+            return response()->json([
+                'message' => "Cannot confirm — {$approvedCount} of {$total} records are approved. Please approve all records first.",
+            ], 422);
+        }
+
+        $updated = PayrollRecord::where('payroll_period_id', $request->period_id)
+            ->where('year',  $request->year)
+            ->where('month', $request->month)
+            ->where('status', 'approved')
+            ->update(['status' => 'confirmed']);
+
+        return response()->json([
+            'message' => "{$updated} records confirmed and locked.",
             'updated' => $updated,
         ]);
     }
 
-// ──────────────────────────────────────────────────────────────
-// PATCH /payroll/records/{id}/confirm
-// Confirm (lock) a single approved record
-// ──────────────────────────────────────────────────────────────
-public function confirm(PayrollRecord $payrollRecord): JsonResponse
-{
-    if ($payrollRecord->status !== 'approved') {
-        return response()->json(['message' => 'Only approved records can be confirmed.'], 422);
-    }
-
-    $payrollRecord->update(['status' => 'confirmed']);
-
-    return response()->json([
-        'message' => 'Record confirmed.',
-        'record'  => $this->formatRecord($payrollRecord->fresh(['user', 'payrollPeriod', 'bonuses'])),
-    ]);
-}
-
-// ──────────────────────────────────────────────────────────────
-// PATCH /payroll/records/confirm-all
-// Confirm all approved records for a period
-// ──────────────────────────────────────────────────────────────
-public function confirmAll(Request $request): JsonResponse
-{
-    $request->validate([
-        'period_id' => 'required|exists:payroll_periods,id',
-        'year'      => 'required|integer',
-        'month'     => 'required|integer',
-    ]);
-
-    $total = PayrollRecord::where('payroll_period_id', $request->period_id)
-        ->where('year',  $request->year)
-        ->where('month', $request->month)
-        ->count();
-
-    $approvedCount = PayrollRecord::where('payroll_period_id', $request->period_id)
-        ->where('year',  $request->year)
-        ->where('month', $request->month)
-        ->where('status', 'approved')
-        ->count();
-
-    if ($approvedCount < $total) {
-        return response()->json([
-            'message' => "Cannot confirm — {$approvedCount} of {$total} records are approved. Please approve all records first.",
-        ], 422);
-    }
-
-    $updated = PayrollRecord::where('payroll_period_id', $request->period_id)
-        ->where('year',  $request->year)
-        ->where('month', $request->month)
-        ->where('status', 'approved')
-        ->update(['status' => 'confirmed']);
-
-    return response()->json([
-        'message' => "{$updated} records confirmed and locked.",
-        'updated' => $updated,
-    ]);
-}
     // ──────────────────────────────────────────────────────────────
-    // PATCH /payroll/records/{id}/add-bonus
-    // Add / update bonus amount for a record
+    // POST /payroll/records/{id}/bonus
     // ──────────────────────────────────────────────────────────────
     public function addBonus(Request $request, PayrollRecord $payrollRecord): JsonResponse
     {
@@ -423,7 +393,6 @@ public function confirmAll(Request $request): JsonResponse
             'note'          => 'nullable|string|max:255',
         ]);
 
-        // Create bonus entry
         $bonus = PayrollBonus::updateOrCreate(
             [
                 'payroll_record_id' => $payrollRecord->id,
@@ -436,13 +405,12 @@ public function confirmAll(Request $request): JsonResponse
             ]
         );
 
-        // Recalculate total bonus on record
         $totalBonus = PayrollBonus::where('payroll_record_id', $payrollRecord->id)->sum('amount');
         $payrollRecord->update([
             'bonus_amount' => $totalBonus,
             'net_salary'   => $payrollRecord->net_salary
-                - $payrollRecord->bonus_amount    // remove old bonus
-                + $totalBonus,                    // add new total
+                - $payrollRecord->bonus_amount
+                + $totalBonus,
         ]);
 
         return response()->json([
@@ -477,7 +445,7 @@ public function confirmAll(Request $request): JsonResponse
     }
 
     // ──────────────────────────────────────────────────────────────
-    // Bank Export (existing)
+    // Bank Export
     // ──────────────────────────────────────────────────────────────
     public function exportBank(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
@@ -491,12 +459,49 @@ public function confirmAll(Request $request): JsonResponse
         );
     }
 
-    /**
-     * Back-calculate short hours from stored shortDeduct amount
-     * shortDeduct = hourly_rate × short_hours
-     * hourly_rate = (base_salary_full / full_month_WD) / hours_per_day
-     * We approximate using salary rule
-     */
+    // ──────────────────────────────────────────────────────────────
+    // ✅ FIX: resolveHoursPerDay helper (work_start→work_end−lunch)
+    // working_hours_per_day field ကို လုံးဝမသုံး
+    // SalaryCalculationService::resolveHoursPerDay() နဲ့ logic တူညီ
+    // ──────────────────────────────────────────────────────────────
+    private function resolveHoursPerDay(?\App\Models\SalaryRule $rule): float
+    {
+        $workStart  = $rule?->work_start;
+        $workEnd    = $rule?->work_end;
+        $lunchStart = $rule?->lunch_start;
+        $lunchEnd   = $rule?->lunch_end;
+
+        if ($workStart && $workEnd) {
+            $wsMin    = $this->timeToMinutes($workStart);
+            $weMin    = $this->timeToMinutes($workEnd);
+            $grossMin = $weMin - $wsMin;
+
+            if ($grossMin > 0) {
+                $lunchMin = 0;
+                if ($lunchStart && $lunchEnd) {
+                    $lsMin    = $this->timeToMinutes($lunchStart);
+                    $leMin    = $this->timeToMinutes($lunchEnd);
+                    $lunchMin = max(0, min($leMin, $weMin) - max($lsMin, $wsMin));
+                }
+                $netHours = ($grossMin - $lunchMin) / 60;
+                if ($netHours > 0) return round($netHours, 4);
+            }
+        }
+
+        // Fallback: 8h
+        return 8.0;
+    }
+
+    private function timeToMinutes(string $time): int
+    {
+        $parts = explode(':', $time);
+        return (int)($parts[0] ?? 0) * 60 + (int)($parts[1] ?? 0);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // ✅ FIX: calcShortHours — working_hours_per_day မသုံး
+    // resolveHoursPerDay() (work_start→work_end−lunch) သုံး
+    // ──────────────────────────────────────────────────────────────
     private function calcShortHours(PayrollRecord $r): float
     {
         $shortDeduct = (float) $r->social_security_amount;
@@ -506,7 +511,9 @@ public function confirmAll(Request $request): JsonResponse
         $salaryRule = $countryId
             ? \App\Models\SalaryRule::where('country_id', $countryId)->first()
             : null;
-        $hoursPerDay = (float)($salaryRule?->working_hours_per_day ?? 8);
+
+        // ✅ working_hours_per_day မသုံး — work_start/end/lunch နဲ့ တွက်
+        $hoursPerDay = $this->resolveHoursPerDay($salaryRule);
 
         $profile = \App\Models\EmployeePayrollProfile::where('user_id', $r->user_id)
             ->where('country_id', $countryId)
@@ -514,13 +521,12 @@ public function confirmAll(Request $request): JsonResponse
             ->first();
         if (!$profile || $hoursPerDay <= 0) return 0;
 
-        // Approximate full_month_WD — use working_days from record × totalPeriods
         $cycle        = $salaryRule?->pay_cycle ?? 'monthly';
         $totalPeriods = match ($cycle) { 'semi_monthly' => 2, 'ten_day' => 3, default => 1 };
         $approxFullWD = ($r->working_days ?? 10) * $totalPeriods;
         if ($approxFullWD <= 0) return 0;
 
-        $hourlyRate  = ((float)$profile->base_salary / $approxFullWD) / $hoursPerDay;
+        $hourlyRate = ((float)$profile->base_salary / $approxFullWD) / $hoursPerDay;
         if ($hourlyRate <= 0) return 0;
 
         return round($shortDeduct / $hourlyRate, 2);
@@ -531,21 +537,21 @@ public function confirmAll(Request $request): JsonResponse
     // ──────────────────────────────────────────────────────────────
     private function formatRecord(PayrollRecord $r): array
     {
-        // Get salary deductions breakdown for this country
         $period    = $r->payrollPeriod;
         $countryId = $period?->country_id;
+
+        // ── Salary deductions breakdown ───────────────────────────
         $salaryDeductionBreakdown = [];
+        $profile = null;
         if ($countryId) {
             $deductions = \App\Models\SalaryDeduction::where('country_id', $countryId)
                 ->where('is_active', true)
                 ->get();
-            $baseSalary = (float) $r->base_salary; // stored base_pay for this period
-            // Use full base for percentage calc (same as SalaryCalculationService)
             $profile = \App\Models\EmployeePayrollProfile::where('user_id', $r->user_id)
                 ->where('country_id', $countryId)
                 ->where('is_active', true)
                 ->first();
-            $fullBase = $profile ? (float)$profile->base_salary : $baseSalary;
+            $fullBase = $profile ? (float)$profile->base_salary : (float)$r->base_salary;
 
             foreach ($deductions as $d) {
                 $type   = $d->deduction_type ?? $d->unit_type ?? 'flat';
@@ -561,46 +567,41 @@ public function confirmAll(Request $request): JsonResponse
             }
         }
 
-        // Determine if this is the last period
+        // ── SalaryRule & cycle ────────────────────────────────────
         $salaryRule   = \App\Models\SalaryRule::where('country_id', $countryId)->first();
         $cycle        = $salaryRule?->pay_cycle ?? 'monthly';
         $totalPeriods = match ($cycle) { 'semi_monthly' => 2, 'ten_day' => 3, default => 1 };
         $isLastPeriod = ($r->payrollPeriod?->period_number ?? 1) === $totalPeriods;
 
-        // Calculate late & short = total_deductions - salary_deductions - unpaid_leave
-        // salary_deductions only applies on last period
+        // ✅ FIX: hours_per_day — working_hours_per_day မသုံး
+        $hoursPerDay = $this->resolveHoursPerDay($salaryRule);
+
+        // ── Deduction amounts stored ──────────────────────────────
+        $lateDeductStored  = (float) $r->tax_amount;
+        $shortDeductStored = (float) $r->social_security_amount;
+
         $salaryDeductTotal = $isLastPeriod
             ? collect($salaryDeductionBreakdown)->sum('amount')
             : 0;
 
-        $unpaidLeaveDeduct = 0;
+        // ── Period date range (this period) ──────────────────────
+        $cutoff    = $salaryRule?->payroll_cutoff_day ?? 25;
+        $periodNum = $r->payrollPeriod?->period_number ?? 1;
+        $endDay    = $r->payrollPeriod?->day ?? $cutoff;
+        $year      = $r->year ?? now()->year;
+        $month     = $r->month ?? now()->month;
 
-        $lateAndShort = max(0, round((float)$r->total_deductions - $salaryDeductTotal - $unpaidLeaveDeduct, 2));
-
-        // late_deduction stored in tax_amount, short_deduction in social_security_amount
-        $lateDeductStored  = (float) $r->tax_amount;
-        $shortDeductStored = (float) $r->social_security_amount;
-
-        // ── Period date range ─────────────────────────────────────
-        $salaryRule2  = \App\Models\SalaryRule::where('country_id', $countryId)->first();
-        $cutoff       = $salaryRule2?->payroll_cutoff_day ?? 25;
-        $cycle2       = $salaryRule2?->pay_cycle ?? 'monthly';
-        $periodNum    = $r->payrollPeriod?->period_number ?? 1;
-        $endDay       = $r->payrollPeriod?->day ?? $cutoff;
-        $year         = $r->year ?? now()->year;
-        $month        = $r->month ?? now()->month;
-
-        $periodService = new \App\Services\Payroll\SalaryCalculationService();
-        // Use helper to get period range
-        $lastDay     = \Carbon\Carbon::create($year, $month, 1)->daysInMonth;
+        $lastDay      = \Carbon\Carbon::create($year, $month, 1)->daysInMonth;
         $effectiveEnd = min($endDay, $lastDay);
-        $periodEnd   = \Carbon\Carbon::create($year, $month, $effectiveEnd);
+        $periodEnd    = \Carbon\Carbon::create($year, $month, $effectiveEnd);
 
         if ($periodNum === 1) {
-            $prev      = \Carbon\Carbon::create($year, $month, 1)->subMonth();
+            $prev             = \Carbon\Carbon::create($year, $month, 1)->subMonth();
             $lastPeriodRecord = \App\Models\PayrollPeriod::where('country_id', $countryId)
                 ->where('period_number', $totalPeriods)->first();
-            $prevEndDay = $lastPeriodRecord ? min((int)$lastPeriodRecord->day, $prev->daysInMonth) : min($cutoff, $prev->daysInMonth);
+            $prevEndDay  = $lastPeriodRecord
+                ? min((int)$lastPeriodRecord->day, $prev->daysInMonth)
+                : min($cutoff, $prev->daysInMonth);
             $periodStart = \Carbon\Carbon::create($prev->year, $prev->month, $prevEndDay + 1);
         } else {
             $prevPeriodRecord = \App\Models\PayrollPeriod::where('country_id', $countryId)
@@ -609,41 +610,84 @@ public function confirmAll(Request $request): JsonResponse
             $periodStart = \Carbon\Carbon::create($year, $month, $prevEndDay + 1);
         }
 
-        // ── Leave details for this period ─────────────────────────
+        // ✅ FIX: Full month range for attendance_details query
+        // attendance records (late/short) က payroll period ထက် ပိုကျယ်တဲ့
+        // full month range ထဲမှာ ရှိတဲ့အတွက် fullStart→fullEnd သုံးရမယ်
+        //
+        // Full month = P1 start → last period end
+        // P1 start: previous month's last period end day + 1
+        // Last period end: this month's last period day
+        if ($totalPeriods > 1) {
+            // P1 start (always from previous month's last period + 1)
+            $prevMonth       = \Carbon\Carbon::create($year, $month, 1)->subMonth();
+            $lastPRevRecord  = \App\Models\PayrollPeriod::where('country_id', $countryId)
+                ->where('period_number', $totalPeriods)->first();
+            $prevLastDay     = $lastPRevRecord
+                ? min((int)$lastPRevRecord->day, $prevMonth->daysInMonth)
+                : min($cutoff, $prevMonth->daysInMonth);
+            $fullStart = \Carbon\Carbon::create($prevMonth->year, $prevMonth->month, $prevLastDay + 1)->startOfDay();
+
+            // Last period end: this month's last period day
+            $lastPRecord = \App\Models\PayrollPeriod::where('country_id', $countryId)
+                ->where('period_number', $totalPeriods)->first();
+            $lastPEndDay = $lastPRecord ? min((int)$lastPRecord->day, $lastDay) : min($cutoff, $lastDay);
+            $fullEnd     = \Carbon\Carbon::create($year, $month, $lastPEndDay)->endOfDay();
+        } else {
+            // Monthly: full month = periodStart → periodEnd (same as this period)
+            $fullStart = $periodStart->copy()->startOfDay();
+            $fullEnd   = $periodEnd->copy()->endOfDay();
+        }
+
+        // ── Leave details ─────────────────────────────────────────
+        // IMPORTANT:
+        // leave badge summary က payroll full month range ကိုအခြေခံပြီးတွက်ထားတာဖြစ်လို့
+        // modal detail query ကလည်း fullStart → fullEnd နဲ့တူရမယ်
         $leaveDetails = \App\Models\LeaveRequest::where('user_id', $r->user_id)
             ->where('status', 'approved')
-            ->where(function ($q) use ($periodStart, $periodEnd) {
-                $q->whereBetween('start_date', [$periodStart, $periodEnd])
-                  ->orWhereBetween('end_date',  [$periodStart, $periodEnd]);
+            ->where(function ($q) use ($fullStart, $fullEnd) {
+                $q->whereBetween('start_date', [$fullStart->toDateString(), $fullEnd->toDateString()])
+                ->orWhereBetween('end_date',  [$fullStart->toDateString(), $fullEnd->toDateString()])
+                ->orWhere(function ($q2) use ($fullStart, $fullEnd) {
+                    $q2->where('start_date', '<=', $fullStart->toDateString())
+                        ->where('end_date',   '>=', $fullEnd->toDateString());
+                });
             })
+            ->orderBy('start_date')
             ->get()
             ->map(fn($l) => [
                 'start_date' => \Carbon\Carbon::parse($l->start_date)->format('d M Y'),
                 'end_date'   => \Carbon\Carbon::parse($l->end_date)->format('d M Y'),
                 'leave_type' => $l->leave_type,
                 'day_type'   => $l->day_type ?? null,
-                'total_days' => $l->total_days,
-                'is_paid'    => $l->is_paid,
+                'total_days' => (float) $l->total_days,
+                'is_paid'    => (bool) $l->is_paid,
                 'note'       => $l->note,
             ])->values()->toArray();
 
-        // ── OT details for this period ────────────────────────────
-        $otDetails = \App\Models\OvertimeRequestSegment::with('overtimePolicy')
-            ->whereHas('overtimeRequest', function ($q) use ($r) {
-                $q->where('user_id', $r->user_id)->where('status', 'approved');
-            })
-            ->whereBetween('segment_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
-            ->where('hours_approved', '>', 0)
-            ->get()
-            ->map(fn($s) => [
-                'date'          => \Carbon\Carbon::parse($s->segment_date)->format('d M Y'),
-                'policy'        => $s->overtimePolicy?->title ?? 'OT',
-                'rate_type'     => $s->overtimePolicy?->rate_type ?? 'multiplier',
-                'rate_value'    => (float)($s->overtimePolicy?->rate_value ?? 1.5),
-                'hours'         => (float)$s->hours_approved,
-                'start_time'    => $s->start_time,
-                'end_time'      => $s->end_time,
-            ])->values()->toArray();
+            // ── OT details ────────────────────────────────────────────
+            // IMPORTANT:
+            // OT summary (overtime_hours / overtime_amount) က full payroll range အပေါ်မူတည်ပြီးတွက်ထားတာဖြစ်လို့
+            // modal detail query ကလည်း fullStart → fullEnd သုံးရမယ်
+            $otDetails = \App\Models\OvertimeRequestSegment::with('overtimePolicy')
+                ->whereHas('overtimeRequest', function ($q) use ($r) {
+                    $q->where('user_id', $r->user_id)
+                    ->where('status', 'approved');
+                })
+                ->whereBetween('segment_date', [
+                    $fullStart->toDateString(),
+                    $fullEnd->toDateString()
+                ])
+                ->where('hours_approved', '>', 0)
+                ->get()
+                ->map(fn($s) => [
+                    'date'       => \Carbon\Carbon::parse($s->segment_date)->format('d M Y'),
+                    'policy'     => $s->overtimePolicy?->title ?? 'OT',
+                    'rate_type'  => $s->overtimePolicy?->rate_type ?? 'multiplier',
+                    'rate_value' => (float)($s->overtimePolicy?->rate_value ?? 1.5),
+                    'hours'      => (float)$s->hours_approved,
+                    'start_time' => $s->start_time,
+                    'end_time'   => $s->end_time,
+                ])->values()->toArray();
 
         // ── Allowance details ─────────────────────────────────────
         $allowanceDetails = [];
@@ -661,23 +705,98 @@ public function confirmAll(Request $request): JsonResponse
             }
         }
 
-        // ── Late & Short attendance details ───────────────────────
+        // ✅ FIX: attendance_details — fullStart→fullEnd သုံး
+        // (payroll period range မဟုတ်ဘဲ full month range သုံးမှ
+        //  late records တွေ ပါလာမှာ — e.g. March 25 late)
         $attendanceDetails = \App\Models\AttendanceRecord::where('user_id', $r->user_id)
-            ->whereBetween('date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+            ->whereBetween('date', [$fullStart->toDateString(), $fullEnd->toDateString()])
             ->whereIn('status', ['late', 'present', 'half_day'])
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->where('late_minutes', '>', 0)
                   ->orWhere('work_hours_actual', '>', 0);
             })
+            ->orderBy('date')
             ->get()
             ->map(fn($a) => [
                 'date'         => \Carbon\Carbon::parse($a->date)->format('d M Y'),
-                'check_in'     => $a->check_in_time  ? substr($a->check_in_time, 0, 5)  : null,
+                'check_in'     => $a->check_in_time  ? substr($a->check_in_time,  0, 5) : null,
                 'check_out'    => $a->check_out_time ? substr($a->check_out_time, 0, 5) : null,
                 'work_hours'   => (float)$a->work_hours_actual,
                 'late_minutes' => (int)$a->late_minutes,
                 'status'       => $a->status,
             ])->values()->toArray();
+
+        // ── Bonus details ─────────────────────────────────────
+        $bonusDetails = $r->bonuses?->map(fn($b) => [
+            'id'               => $b->id,
+            'bonus_type_id'    => $b->bonus_type_id,
+            'type_name'        => $b->bonusType?->name ?? 'Bonus',
+            'calculation_type' => $b->bonusType?->calculation_type ?? 'flat',
+            'rate'             => (float)($b->bonusType?->value ?? 0),
+            'amount'           => (float) $b->amount,
+            'note'             => $b->note,
+        ])->values()->toArray() ?? [];
+
+        // Fallback for scheduled bonus:
+        // manual bonus rows မရှိပေမယ့် bonus_amount ရှိနေတဲ့ case
+        if (empty($bonusDetails) && (float)$r->bonus_amount > 0 && $countryId && $profile) {
+            $payMonth = (int)($r->month ?? now()->month);
+            $quarter  = (int) ceil($payMonth / 3);
+            $empType  = $profile->user?->employment_type ?? 'permanent';
+
+            $scheduledRows = [];
+
+            foreach (
+                PayrollBonusSchedule::with('bonusType')
+                    ->where('country_id', $countryId)
+                    ->where('is_active', true)
+                    ->get() as $sched
+            ) {
+                $bt = $sched->bonusType;
+                if (!$bt || !$bt->is_active) continue;
+
+                if ($empType === 'probation' && !($salaryRule?->bonus_during_probation ?? false)) continue;
+                if ($empType === 'contract'  && !($salaryRule?->bonus_for_contract ?? true)) continue;
+
+                $qualifies = match ($sched->frequency) {
+                    'monthly'   => true,
+
+                    // quarter end month only
+                    'quarterly' => match ((int)$sched->pay_quarter) {
+                        1 => $payMonth === 3,
+                        2 => $payMonth === 6,
+                        3 => $payMonth === 9,
+                        4 => $payMonth === 12,
+                        default => false,
+                    },
+
+                    'yearly',
+                    'once'      => (int)$sched->pay_month === $payMonth,
+
+                    default     => false,
+                };
+
+                if (!$qualifies) continue;
+
+                $amount = $bt->calculation_type === 'percentage'
+                    ? round((float)$profile->base_salary * ((float)$bt->value / 100), 2)
+                    : round((float)$bt->value, 2);
+
+                $scheduledRows[] = [
+                    'id'               => null,
+                    'bonus_type_id'    => $bt->id,
+                    'type_name'        => $bt->name,
+                    'calculation_type' => $bt->calculation_type,
+                    'rate'             => (float)$bt->value,
+                    'amount'           => $amount,
+                    'note'             => null,
+                ];
+            }
+
+            if (!empty($scheduledRows)) {
+                $bonusDetails = $scheduledRows;
+            }
+        }
 
         return [
             'id'                     => $r->id,
@@ -709,23 +828,19 @@ public function confirmAll(Request $request): JsonResponse
             'short_hours_total'      => $this->calcShortHours($r),
             'late_minutes_total'     => $r->late_minutes_total,
             'status'                 => $r->status,
+            // ✅ FIX: hours_per_day ထည့် — JSX မှာ hard-coded 8 မသုံးနဲ့တော့
+            'hours_per_day'               => $hoursPerDay,
             // Deduction breakdown
             'late_deduction'              => $lateDeductStored,
             'short_hour_deduction'        => $shortDeductStored,
             'salary_deduction_breakdown'  => $isLastPeriod ? $salaryDeductionBreakdown : [],
-            'unpaid_leave_deduction'      =>  0,
+            'unpaid_leave_deduction'      => 0,
             // Detail data for click-to-expand
-            'leave_details'          => $leaveDetails,
-            'ot_details'             => $otDetails,
-            'allowance_details'      => $allowanceDetails,
-            'attendance_details'     => $attendanceDetails,
-            'bonuses'                => $r->bonuses?->map(fn($b) => [
-                'id'            => $b->id,
-                'bonus_type_id' => $b->bonus_type_id,
-                'type_name'     => $b->bonusType?->name ?? 'Bonus',
-                'amount'        => (float) $b->amount,
-                'note'          => $b->note,
-            ]) ?? [],
+            'leave_details'      => $leaveDetails,
+            'ot_details'         => $otDetails,
+            'allowance_details'  => $allowanceDetails,
+            'attendance_details' => $attendanceDetails,
+            'bonuses' => $bonusDetails,
         ];
     }
 }

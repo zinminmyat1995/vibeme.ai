@@ -733,7 +733,13 @@ class SalaryCalculationService
 
             $qualifies = match ($sched->frequency) {
                 'monthly'   => true,
-                'quarterly' => (int)$sched->pay_quarter === $quarter,
+                'quarterly' => match ((int)$sched->pay_quarter) {
+                    1 => $month === 3,
+                    2 => $month === 6,
+                    3 => $month === 9,
+                    4 => $month === 12,
+                    default => false,
+                },
                 'yearly',
                 'once'      => (int)$sched->pay_month === $month,
                 default     => false,

@@ -214,6 +214,7 @@ function DownloadBtn({ recordId, type, name, year, month, periodLabel, onToast, 
             const safeDate=(periodLabel||`${year}_${month}`).replace(/\s+–\s+/g,'_to_').replace(/\s+/g,'_');
             a.download=`payslip_${safeName}_${safeDate}.${isPdf?'pdf':'xlsx'}`;
             a.click();URL.revokeObjectURL(url);
+            onToast('Payslip downloaded successfully');
         } catch(e){onToast(e.message,'error');}
         finally{setLoading(false);}
     };
@@ -257,7 +258,13 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
     const [bulkPdfLoad,  setBulkPdfLoad]  = useState(false);
     const [bulkXlsLoad,  setBulkXlsLoad]  = useState(false);
 
-    const showToast = (msg, type='success') => { setToast({msg,type}); setTimeout(()=>setToast(null),4500); };
+    const showToast = (msg, type='success') => {
+        window.dispatchEvent(
+            new CustomEvent('global-toast', {
+                detail: { message: msg, type }
+            })
+        );
+    };
 
     const load = useCallback(async()=>{
         setLoading(true);
@@ -307,7 +314,7 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
             a.href=url;
             a.download=`payslips_${filterYear}_${filterMonth?MONTHS_SHORT[filterMonth-1]:'all'}${ext}`;
             a.click();URL.revokeObjectURL(url);
-            showToast('Download complete!');
+            onToast('Payslip downloaded successfully');
         }catch(e){showToast(e.message,'error');}
         finally{setLoad(false);}
     };
@@ -336,16 +343,6 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
                 .ps-row:hover td { background:${dark?'rgba(139,92,246,0.05)':'#faf5ff'} !important; }
                 .ps-row td { transition:background 0.12s; }
             `}</style>
-
-            {/* Toast */}
-            {toast && createPortal(
-                <div style={{ position:'fixed', top:22, right:22, zIndex:9999, background:toast.type==='error'?(dark?'rgba(40,10,10,0.97)':'#fef2f2'):(dark?'rgba(5,30,20,0.97)':'#ecfdf5'), border:`1px solid ${toast.type==='error'?(dark?'rgba(248,113,113,0.4)':'#fca5a5'):(dark?'rgba(16,185,129,0.4)':'#6ee7b7')}`, borderRadius:14, padding:'13px 18px', display:'flex', alignItems:'center', gap:10, minWidth:260, boxShadow:'0 12px 40px rgba(0,0,0,0.22)', animation:'psFadeIn 0.22s ease' }}>
-                    <span style={{fontSize:16}}>{toast.type==='error'?'❌':'✅'}</span>
-                    <span style={{fontSize:13,fontWeight:700,color:toast.type==='error'?theme.danger:theme.success,flex:1}}>{toast.msg}</span>
-                    <button onClick={()=>setToast(null)} style={{background:'none',border:'none',cursor:'pointer',fontSize:16,color:theme.textMute}}>×</button>
-                </div>,
-                document.body
-            )}
 
             <div style={{display:'flex',flexDirection:'column',gap:20}}>
 

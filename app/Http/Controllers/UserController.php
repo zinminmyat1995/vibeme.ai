@@ -43,6 +43,10 @@ class UserController extends Controller
             'users'    => $users,
             'roles'    => Role::all(),
             'roleName' => $roleName,
+            'currentUser' => [                    // ← ဒါထပ်ထည့်
+                'country' => $user->country,
+                'role'    => $roleName,
+            ],
         ]);
 
 

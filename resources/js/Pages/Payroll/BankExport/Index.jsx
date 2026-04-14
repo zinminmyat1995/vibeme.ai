@@ -1,130 +1,244 @@
 // resources/js/Pages/Payroll/BankExport/Index.jsx
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { createPortal } from 'react-dom';
 
-// ── Helpers ──────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-
+const fmt  = (v) => Number(v ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-function Toast({ msg, type, onClose }) {
+// ── Global toast helper ───────────────────────────────────────────
+const toast = (message, type = 'success') =>
+    window.dispatchEvent(new CustomEvent('global-toast', { detail: { message, type } }));
+
+// ── Dark mode hook ────────────────────────────────────────────────
+function useReactiveTheme() {
+    const getDark = () => {
+        if (typeof window === 'undefined') return false;
+        return document.documentElement.getAttribute('data-theme') === 'dark'
+            || localStorage.getItem('vibeme-theme') === 'dark';
+    };
+    const [dark, setDark] = useState(getDark);
     useEffect(() => {
-        if (!msg) return;
-        const t = setTimeout(onClose, 3000);
-        return () => clearTimeout(t);
-    }, [msg]);
-
-    if (!msg) return null;
-    const bg     = type === 'error' ? '#fef2f2' : '#f0fdf4';
-    const border = type === 'error' ? '#fca5a5' : '#86efac';
-    const color  = type === 'error' ? '#dc2626' : '#16a34a';
-    return (
-        <div style={{ position:'fixed', top:20, right:24, zIndex:9999, background:bg, border:`1.5px solid ${border}`, borderRadius:12, padding:'12px 18px', display:'flex', alignItems:'center', gap:10, boxShadow:'0 4px 20px rgba(0,0,0,0.1)', animation:'slideIn 0.2s ease', maxWidth:360 }}>
-            <span style={{ fontSize:16 }}>{type === 'error' ? '⚠️' : '✅'}</span>
-            <span style={{ fontSize:13, fontWeight:600, color, flex:1 }}>{msg}</span>
-            <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color, fontSize:16, lineHeight:1 }}>×</button>
-        </div>
-    );
+        const sync = () => setDark(getDark());
+        window.addEventListener('vibeme-theme-change', sync);
+        window.addEventListener('storage', sync);
+        return () => {
+            window.removeEventListener('vibeme-theme-change', sync);
+            window.removeEventListener('storage', sync);
+        };
+    }, []);
+    return dark;
 }
 
-function Spinner({ size = 14, color = '#fff' }) {
-    return (
-        <span style={{ display:'inline-block', width:size, height:size, border:`2px solid ${color}33`, borderTop:`2px solid ${color}`, borderRadius:'50%', animation:'spin 0.7s linear infinite', flexShrink:0 }} />
-    );
+// ── Theme tokens ──────────────────────────────────────────────────
+function getTheme(dark) {
+    if (dark) return {
+        bg:          '#0b1324',
+        surface:     '#1e293b',
+        surfaceSoft: 'rgba(255,255,255,0.04)',
+        border:      'rgba(148,163,184,0.12)',
+        borderMed:   'rgba(148,163,184,0.2)',
+        text:        '#f8fafc',
+        textSoft:    '#cbd5e1',
+        textMute:    '#64748b',
+        inputBg:     'rgba(255,255,255,0.06)',
+        inputBorder: 'rgba(148,163,184,0.18)',
+        tableHead:   'rgba(255,255,255,0.03)',
+        rowAlt:      'rgba(255,255,255,0.02)',
+        shadow:      '0 1px 3px rgba(0,0,0,0.3)',
+        primary:     '#8b5cf6',
+        primarySoft: 'rgba(139,92,246,0.16)',
+        success:     '#34d399',
+        successSoft: 'rgba(52,211,153,0.14)',
+        warning:     '#fbbf24',
+        danger:      '#f87171',
+        dangerSoft:  'rgba(248,113,113,0.14)',
+        menuBg:      'linear-gradient(180deg,rgba(15,23,42,0.99) 0%,rgba(10,18,36,0.99) 100%)',
+    };
+    return {
+        bg:          '#f1f5f9',
+        surface:     '#ffffff',
+        surfaceSoft: '#f8fafc',
+        border:      '#e5e7eb',
+        borderMed:   '#d1d5db',
+        text:        '#111827',
+        textSoft:    '#374151',
+        textMute:    '#9ca3af',
+        inputBg:     '#ffffff',
+        inputBorder: '#e5e7eb',
+        tableHead:   '#f9fafb',
+        rowAlt:      '#fafafa',
+        shadow:      '0 1px 3px rgba(0,0,0,0.06)',
+        primary:     '#7c3aed',
+        primarySoft: '#ede9fe',
+        success:     '#059669',
+        successSoft: '#d1fae5',
+        warning:     '#d97706',
+        danger:      '#dc2626',
+        dangerSoft:  '#fef2f2',
+        menuBg:      '#ffffff',
+    };
 }
 
-function StatusBadge({ count, total, currency }) {
-    const hasRecords = count > 0;
+// ── PremiumSelect ─────────────────────────────────────────────────
+function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Select…', disabled = false, width = 'auto', zIndex = 3000, dark, theme }) {
+    const [open, setOpen] = useState(false);
+    const [pos,  setPos]  = useState({ top: 0, left: 0, width: 0 });
+    const triggerRef      = useRef(null);
+    const menuRef         = useRef(null);
+    const selected        = options.find(o => String(o.value) === String(value) && !o.disabled);
+
+    useEffect(() => {
+        const h = e => {
+            if (triggerRef.current?.contains(e.target) || menuRef.current?.contains(e.target)) return;
+            setOpen(false);
+        };
+        document.addEventListener('mousedown', h);
+        return () => document.removeEventListener('mousedown', h);
+    }, []);
+
+    function handleOpen() {
+        if (disabled) return;
+        const rect = triggerRef.current?.getBoundingClientRect();
+        if (rect) {
+            const menuH = Math.min(options.length * 40 + 12, 260);
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const top = spaceBelow < menuH
+                ? rect.top + window.scrollY - menuH - 4
+                : rect.bottom + window.scrollY + 4;
+            setPos({ top, left: rect.left + window.scrollX, width: rect.width });
+        }
+        setOpen(v => !v);
+    }
+
+    const triggerBg = dark
+        ? 'linear-gradient(180deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.04) 100%)'
+        : 'linear-gradient(180deg,#fff 0%,#f8fafc 100%)';
+
     return (
-        <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:6, background: hasRecords ? '#f0fdf4' : '#fefce8', border:`1.5px solid ${hasRecords ? '#86efac' : '#fde047'}`, borderRadius:99, padding:'4px 12px' }}>
-                <span style={{ width:6, height:6, borderRadius:'50%', background: hasRecords ? '#22c55e' : '#eab308', display:'inline-block', flexShrink:0 }} />
-                <span style={{ fontSize:12, fontWeight:700, color: hasRecords ? '#16a34a' : '#854d0e' }}>
-                    {hasRecords ? `${count} Records Ready` : 'No Confirmed Records'}
+        <>
+            <button
+                ref={triggerRef} type="button" onClick={handleOpen}
+                style={{
+                    width, height: 38, padding: '0 12px',
+                    borderRadius: 8,
+                    border: `1.5px solid ${open ? theme.primary : theme.inputBorder}`,
+                    background: disabled ? theme.surfaceSoft : triggerBg,
+                    color: selected ? theme.text : theme.textMute,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    fontSize: 13, fontWeight: selected ? 600 : 400,
+                    boxShadow: open ? `0 0 0 3px ${dark ? 'rgba(139,92,246,0.18)' : 'rgba(124,58,237,0.12)'}` : 'none',
+                    transition: 'all 0.16s', opacity: disabled ? 0.5 : 1, outline: 'none',
+                    fontFamily: 'inherit',
+                }}
+            >
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {selected?.label ?? placeholder}
                 </span>
-            </div>
-            {hasRecords && (
-                <div style={{ background:'#ede9fe', border:'1.5px solid #c4b5fd', borderRadius:99, padding:'4px 14px' }}>
-                    {/* FIX 3: currency comes from salary_rules via backend, shown in badge */}
-                    <span style={{ fontSize:12, fontWeight:800, color:'#6d28d9' }}>
-                        Total: {currency} {Number(total).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })}
-                    </span>
-                </div>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2.5"
+                    style={{ flexShrink: 0, transition: 'transform 0.18s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </button>
+
+            {open && createPortal(
+                <div ref={menuRef} style={{
+                    position: 'absolute', top: pos.top, left: pos.left, width: pos.width,
+                    zIndex,
+                    background: theme.menuBg,
+                    border: `1px solid ${theme.borderMed}`,
+                    borderRadius: 10,
+                    boxShadow: dark
+                        ? '0 16px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)'
+                        : '0 16px 40px rgba(15,23,42,0.14)',
+                    overflow: 'hidden',
+                    animation: 'beDropIn 0.15s ease',
+                    backdropFilter: dark ? 'blur(20px)' : 'none',
+                }}>
+                    <div style={{ maxHeight: 260, overflowY: 'auto', padding: '4px' }}>
+                        {options.map(opt => {
+                            const isSel = String(opt.value) === String(value);
+                            return (
+                                <button key={opt.value} type="button"
+                                    onClick={() => { if (!opt.disabled) { onChange(opt.value); setOpen(false); } }}
+                                    style={{
+                                        width: '100%', padding: '8px 11px', border: 'none', borderRadius: 7,
+                                        background: isSel ? (dark ? theme.primarySoft : '#ede9fe') : 'transparent',
+                                        color: isSel ? theme.primary : opt.disabled ? theme.textMute : theme.text,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                        cursor: opt.disabled ? 'not-allowed' : 'pointer',
+                                        fontSize: 13, fontWeight: isSel ? 700 : 500,
+                                        textAlign: 'left', marginBottom: 1,
+                                        opacity: opt.disabled ? 0.45 : 1,
+                                        transition: 'background 0.1s',
+                                        fontFamily: 'inherit',
+                                    }}
+                                    onMouseEnter={e => { if (!isSel && !opt.disabled) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.06)' : '#f5f3ff'; }}
+                                    onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                    <span>{opt.label}</span>
+                                    {isSel && (
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>,
+                document.body
             )}
-        </div>
+        </>
     );
 }
 
+// ── Spinner ───────────────────────────────────────────────────────
+function Spinner({ size = 14, color = '#7c3aed' }) {
+    return <div style={{ width: size, height: size, border: `2px solid ${color}33`, borderTopColor: color, borderRadius: '50%', animation: 'beSpin 0.7s linear infinite', flexShrink: 0 }} />;
+}
+
+// ── StatusPill ────────────────────────────────────────────────────
+function StatusPill({ status, dark }) {
+    const c = status === 'paid'
+        ? { bg: dark ? 'rgba(52,211,153,0.16)' : '#d1fae5', color: dark ? '#34d399' : '#059669', label: 'Paid', dot: '#34d399' }
+        : { bg: dark ? 'rgba(139,92,246,0.18)' : '#ede9fe', color: dark ? '#a78bfa' : '#7c3aed', label: 'Confirmed', dot: '#a78bfa' };
+    return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: c.color, background: c.bg, borderRadius: 99, padding: '3px 10px', whiteSpace: 'nowrap' }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
+            {c.label}
+        </span>
+    );
+}
+
+// ── Main ──────────────────────────────────────────────────────────
 export default function BankExportIndex({ salaryRule, periodTemplates, employees }) {
-    const now          = new Date();
-    const cycle        = salaryRule?.pay_cycle ?? 'monthly';
-    const periodCount  = cycle === 'semi_monthly' ? 2 : cycle === 'ten_day' ? 3 : 1;
-    const years        = Array.from({ length: 3 }, (_, i) => now.getFullYear() - 1 + i);
+    const dark  = useReactiveTheme();
+    const theme = React.useMemo(() => getTheme(dark), [dark]);
 
-    // FIX 1: For non-monthly, default to first period (no "All Periods" option)
+    const now         = new Date();
+    const cycle       = salaryRule?.pay_cycle ?? 'monthly';
+    const periodCount = cycle === 'semi_monthly' ? 2 : cycle === 'ten_day' ? 3 : 1;
+    const years       = Array.from({ length: 3 }, (_, i) => now.getFullYear() - 1 + i);
+
     const defaultPeriodId = periodCount > 1 && periodTemplates.length > 0
-        ? String(periodTemplates[0].id)
-        : '';
+        ? String(periodTemplates[0].id) : '';
 
-    const [year,      setYear]      = useState(now.getFullYear());
-    const [month,     setMonth]     = useState(now.getMonth() + 1);
-    const [periodId,  setPeriodId]  = useState(defaultPeriodId);
-    const [userId,    setUserId]    = useState('');
-
-    const [preview,   setPreview]   = useState(null);
-    const [loading,   setLoading]   = useState(false);
-    const [excelLoad, setExcelLoad] = useState(false);
-    const [pdfLoad,   setPdfLoad]   = useState(false);
-    const [toast,     setToast]     = useState(null);
-    const [paying,    setPaying]    = useState(null);
+    const [year,       setYear]       = useState(now.getFullYear());
+    const [month,      setMonth]      = useState(now.getMonth() + 1);
+    const [periodId,   setPeriodId]   = useState(defaultPeriodId);
+    const [userId,     setUserId]     = useState('');
+    const [preview,    setPreview]    = useState(null);
+    const [loading,    setLoading]    = useState(false);
+    const [excelLoad,  setExcelLoad]  = useState(false);
+    const [pdfLoad,    setPdfLoad]    = useState(false);
+    const [paying,     setPaying]     = useState(null);
     const [markingAll, setMarkingAll] = useState(false);
 
-    const showToast = (msg, type = 'success') => setToast({ msg, type });
-
-    const markAllPaid = async () => {
-        setMarkingAll(true);
-        try {
-            const res = await fetch(`/payroll/export/mark-all-paid?${buildParams()}`, {
-                method: 'PATCH',
-                headers: { 'X-CSRF-TOKEN': csrf(), 'Content-Type': 'application/json' },
-            });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.message ?? 'Failed');
-            setPreview(prev => prev ? {
-                ...prev,
-                records: prev.records.map(r => ({ ...r, status: 'paid' })),
-            } : prev);
-            showToast(`${data.updated ?? ''} records marked as paid`);
-        } catch (e) {
-            showToast(e.message, 'error');
-        } finally {
-            setMarkingAll(false);
-        }
-    };
-
-    const markAsPaid = async (recordId) => {
-        setPaying(recordId);
-        try {
-            const res = await fetch(`/payroll/export/mark-paid/${recordId}`, {
-                method: 'PATCH',
-                headers: { 'X-CSRF-TOKEN': csrf(), 'Content-Type': 'application/json' },
-            });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.message ?? 'Failed to mark as paid');
-            setPreview(prev => prev ? {
-                ...prev,
-                records: prev.records.map(r => r.id === recordId ? { ...r, status: 'paid' } : r),
-            } : prev);
-            showToast('Marked as paid successfully');
-        } catch (e) {
-            showToast(e.message, 'error');
-        } finally {
-            setPaying(null);
-        }
-    };
-
-    // ── Build query params ──
     const buildParams = useCallback(() => {
         const p = new URLSearchParams();
         if (year)     p.set('year',      year);
@@ -134,7 +248,6 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
         return p.toString();
     }, [year, month, periodId, userId]);
 
-    // ── Load preview ──
     const loadPreview = useCallback(async () => {
         setLoading(true);
         setPreview(null);
@@ -143,7 +256,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
             const data = await res.json();
             setPreview(data);
         } catch {
-            showToast('Failed to load preview', 'error');
+            toast('Failed to load preview', 'error');
         } finally {
             setLoading(false);
         }
@@ -151,347 +264,315 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
 
     useEffect(() => { loadPreview(); }, [loadPreview]);
 
-    // ── Download ──
     const download = async (type, setLoad) => {
         setLoad(true);
         try {
-            const res = await fetch(`/payroll/export/${type}?${buildParams()}`, {
-                headers: { 'X-CSRF-TOKEN': csrf() },
-            });
-            if (!res.ok) {
-                const d = await res.json().catch(() => ({}));
-                throw new Error(d.message ?? 'Download failed');
-            }
+            const res = await fetch(`/payroll/export/${type}?${buildParams()}`, { headers: { 'X-CSRF-TOKEN': csrf() } });
+            if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message ?? 'Download failed');
             const blob = await res.blob();
             const url  = URL.createObjectURL(blob);
             const a    = document.createElement('a');
             a.href     = url;
-            const label = preview?.period_label?.replace(/[^a-zA-Z0-9]/g, '_') ?? 'export';
-            a.download = `bank_transfer_${label}.${type === 'excel' ? 'xlsx' : 'pdf'}`;
+            a.download = `bank_transfer_${preview?.period_label?.replace(/[^a-zA-Z0-9]/g, '_') ?? 'export'}.${type === 'excel' ? 'xlsx' : 'pdf'}`;
             a.click();
             URL.revokeObjectURL(url);
-            showToast(`${type === 'excel' ? 'Excel' : 'PDF'} downloaded successfully!`);
+            toast(`${type === 'excel' ? 'Excel' : 'PDF'} downloaded successfully!`);
         } catch (e) {
-            showToast(e.message, 'error');
+            toast(e.message, 'error');
         } finally {
             setLoad(false);
         }
     };
 
-    const sel = {
-        padding: '8px 12px', borderRadius: 9, border: '1.5px solid #e5e7eb',
-        fontSize: 13, fontWeight: 600, color: '#374151', background: '#fff',
-        cursor: 'pointer', outline: 'none',
+    const markAsPaid = async (recordId) => {
+        setPaying(recordId);
+        try {
+            const res  = await fetch(`/payroll/export/mark-paid/${recordId}`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': csrf(), 'Content-Type': 'application/json' } });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message ?? 'Failed');
+            setPreview(prev => prev ? { ...prev, records: prev.records.map(r => r.id === recordId ? { ...r, status: 'paid' } : r) } : prev);
+            toast('Marked as paid');
+        } catch (e) {
+            toast(e.message, 'error');
+        } finally {
+            setPaying(null);
+        }
     };
 
-    const records = preview?.records ?? [];
-    const hasData = records.length > 0;
+    const markAllPaid = async () => {
+        setMarkingAll(true);
+        try {
+            const res  = await fetch(`/payroll/export/mark-all-paid?${buildParams()}`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': csrf(), 'Content-Type': 'application/json' } });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message ?? 'Failed');
+            setPreview(prev => prev ? { ...prev, records: prev.records.map(r => ({ ...r, status: 'paid' })) } : prev);
+            toast(`${data.updated ?? ''} records marked as paid`);
+        } catch (e) {
+            toast(e.message, 'error');
+        } finally {
+            setMarkingAll(false);
+        }
+    };
 
-    // FIX 3: currency comes from backend preview response, fallback to salaryRule
-    const displayCurrency = preview?.currency ?? salaryRule?.currency_code ?? 'USD';
+    const records    = preview?.records ?? [];
+    const hasData    = records.length > 0;
+    const currency   = preview?.currency ?? salaryRule?.currency_code ?? 'USD';
+    const totalAmt   = preview?.total ?? 0;
+    const hasPending = records.some(r => r.status !== 'paid');
+
+    // ── Options ──
+    const yearOpts   = years.map(y => ({ value: y, label: String(y) }));
+    const monthOpts  = MONTHS.map((m, i) => ({ value: i + 1, label: m }));
+    const periodOpts = periodTemplates.map(p => ({ value: p.id, label: `Period ${p.period_number}` }));
+    const empOpts    = [{ value: '', label: 'All Employees' }, ...employees.map(e => ({ value: e.id, label: e.name }))];
 
     return (
         <AppLayout title="Bank Export">
             <Head title="Bank Export" />
             <style>{`
-                @keyframes spin    { to { transform: rotate(360deg) } }
-                @keyframes slideIn { from { opacity:0; transform: translateX(12px) } to { opacity:1; transform: translateX(0) } }
-                @keyframes fadeUp  { from { opacity:0; transform: translateY(8px)  } to { opacity:1; transform: translateY(0) } }
-                .be-row:hover td { background: #faf5ff !important; transition: background 0.1s; }
-                .btn-excel:hover { background: linear-gradient(135deg,#047857,#059669) !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(5,150,105,0.35) !important; }
-                .btn-pdf:hover   { background: linear-gradient(135deg,#b91c1c,#dc2626) !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(220,38,38,0.35) !important; }
-                .filter-select:focus { border-color: #7c3aed !important; box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
+                @keyframes beSpin   { to { transform: rotate(360deg) } }
+                @keyframes beDropIn { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:translateY(0) } }
+                @keyframes beFadeUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+                .be-row:hover td { background: ${dark ? 'rgba(139,92,246,0.05)' : '#faf5ff'} !important; }
+                .be-icon-btn:hover { opacity: 0.8; transform: translateY(-1px); }
             `}</style>
 
-            <Toast msg={toast?.msg} type={toast?.type} onClose={() => setToast(null)} />
+            <div style={{ animation: 'beFadeUp 0.25s ease' }}>
 
-            <div style={{ margin: '0 auto', animation: 'fadeUp 0.3s ease' }}>
-
-                {/* ── Filter Panel ── */}
-                <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 22px', marginBottom:16, boxShadow:'0 1px 6px rgba(0,0,0,0.04)' }}>
-                    <div style={{ fontSize:11, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'1px', marginBottom:12 }}>
-                        🔍 Filter Records
+                {/* ── Filter card ───────────────────────────────── */}
+                <div style={{ background: theme.surface, borderRadius: 14, border: `1px solid ${theme.border}`, padding: '16px 20px', marginBottom: 16, boxShadow: theme.shadow }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12 }}>
+                        Pay Period Filter
                     </div>
-                    <div style={{ display:'flex', alignItems:'flex-end', gap:10, flexWrap:'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
 
                         {/* Year */}
                         <div>
-                            <div style={{ fontSize:10, fontWeight:700, color:'#6b7280', marginBottom:4, textTransform:'uppercase', letterSpacing:'0.5px' }}>Year</div>
-                            <select value={year} onChange={e => setYear(Number(e.target.value))} style={sel} className="filter-select">
-                                {years.map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Year</div>
+                            <PremiumSelect options={yearOpts} value={year} onChange={v => setYear(Number(v))} width={90} dark={dark} theme={theme} />
                         </div>
 
                         {/* Month */}
                         <div>
-                            <div style={{ fontSize:10, fontWeight:700, color:'#6b7280', marginBottom:4, textTransform:'uppercase', letterSpacing:'0.5px' }}>Month</div>
-                            <select value={month} onChange={e => setMonth(Number(e.target.value))} style={sel} className="filter-select">
-                                {MONTHS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
-                            </select>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Month</div>
+                            <PremiumSelect options={monthOpts} value={month} onChange={v => setMonth(Number(v))} width={130} dark={dark} theme={theme} />
                         </div>
 
-                        {/* FIX 1: Period — only show for non-monthly, NO "All Periods" option */}
+                        {/* Period */}
                         {periodCount > 1 && (
                             <div>
-                                <div style={{ fontSize:10, fontWeight:700, color:'#6b7280', marginBottom:4, textTransform:'uppercase', letterSpacing:'0.5px' }}>Period</div>
-                                <select value={periodId} onChange={e => setPeriodId(e.target.value)} style={sel} className="filter-select">
-                                    {periodTemplates.map(p => (
-                                        <option key={p.id} value={p.id}>Period {p.period_number}</option>
-                                    ))}
-                                </select>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Period</div>
+                                <PremiumSelect options={periodOpts} value={periodId} onChange={v => setPeriodId(v)} width={120} dark={dark} theme={theme} />
                             </div>
                         )}
 
                         {/* Divider */}
-                        <div style={{ width:1, height:36, background:'#e5e7eb', margin:'0 4px' }} />
+                        <div style={{ width: 1, height: 38, background: theme.border, margin: '0 4px', alignSelf: 'flex-end' }} />
 
                         {/* Employee */}
                         <div>
-                            <div style={{ fontSize:10, fontWeight:700, color:'#6b7280', marginBottom:4, textTransform:'uppercase', letterSpacing:'0.5px' }}>Employee</div>
-                            <select value={userId} onChange={e => setUserId(e.target.value)} style={{ ...sel, minWidth:200 }} className="filter-select">
-                                <option value="">All Employees</option>
-                                {employees.map(e => (
-                                    <option key={e.id} value={e.id}>{e.name}</option>
-                                ))}
-                            </select>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Employee</div>
+                            <PremiumSelect options={empOpts} value={userId} onChange={v => setUserId(v)} width={200} dark={dark} theme={theme} />
                         </div>
 
                         {/* Refresh */}
-                        <button onClick={loadPreview} disabled={loading} style={{ padding:'8px 16px', borderRadius:9, border:'1.5px solid #e5e7eb', background:'#f9fafb', color:'#374151', fontSize:12, fontWeight:700, cursor: loading ? 'not-allowed' : 'pointer', display:'flex', alignItems:'center', gap:6 }}>
-                            {loading ? <><Spinner size={12} color="#6b7280" /> Loading…</> : '🔄 Refresh'}
+                        <button
+                            onClick={loadPreview} disabled={loading}
+                            style={{ alignSelf: 'flex-end', height: 38, padding: '0 16px', borderRadius: 8, border: `1.5px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, fontSize: 12, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit', transition: 'all 0.15s' }}
+                        >
+                            {loading ? <><Spinner size={12} color={theme.textMute} />Loading…</> : <>🔄 Refresh</>}
                         </button>
                     </div>
                 </div>
 
+                {/* ── Main table card ───────────────────────────── */}
+                <div style={{ background: theme.surface, borderRadius: 14, border: `1px solid ${theme.border}`, overflow: 'hidden', boxShadow: theme.shadow }}>
 
+                    {/* Toolbar */}
+                    <div style={{ padding: '12px 18px', borderBottom: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
 
-                {/* ── Preview Table ── */}
-                <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden', boxShadow:'0 1px 6px rgba(0,0,0,0.04)' }}>
-
-                    {/* ── Table toolbar: count + period + total + export buttons ── */}
-                    <div style={{ padding:'10px 18px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
-
-                        {/* Left: count pill + "ready for transfer" + period label */}
-                        <div style={{ display:'flex', alignItems:'center', gap:9 }}>
+                        {/* Left */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             {loading ? (
-                                <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-                                    <Spinner size={12} color="#7c3aed" />
-                                    <span style={{ fontSize:12, color:'#9ca3af' }}>Loading…</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                                    <Spinner size={13} />
+                                    <span style={{ fontSize: 12, color: theme.textMute }}>Loading…</span>
                                 </div>
                             ) : hasData ? (
                                 <>
-                                    <span style={{ display:'inline-flex', alignItems:'center', background:'#6d28d9', color:'#fff', fontSize:12, fontWeight:700, borderRadius:7, padding:'4px 11px', letterSpacing:'-0.1px' }}>
+                                    <span style={{ background: theme.primary, color: '#fff', fontSize: 12, fontWeight: 700, borderRadius: 7, padding: '3px 10px' }}>
                                         {records.length} {records.length === 1 ? 'Record' : 'Records'}
                                     </span>
-                                    <span style={{ fontSize:11, color:'#9ca3af' }}>ready for transfer</span>
-                                   
+                                    <span style={{ fontSize: 11, color: theme.textMute }}>ready for transfer</span>
+                                    {/* Total */}
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginLeft: 8 }}>
+                                        <span style={{ fontSize: 10, fontWeight: 600, color: theme.textMute }}>{currency}</span>
+                                        <span style={{ fontSize: 18, fontWeight: 800, color: theme.success, letterSpacing: '-0.5px' }}>{fmt(totalAmt)}</span>
+                                    </div>
                                 </>
                             ) : (
-                                <span style={{ fontSize:12, color:'#9ca3af' }}>No confirmed records found</span>
+                                <span style={{ fontSize: 12, color: theme.textMute }}>No confirmed records found</span>
                             )}
                         </div>
 
-                        {/* Right: total + thin divider + export buttons */}
-                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        {/* Right — action buttons */}
+                        {hasData && !loading && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 
-                            {/* Total amount */}
-                            {hasData && !loading && (
-                                <>
-                                    <div>
-                                        <div style={{ fontSize:9, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'0.7px', marginBottom:1 }}>Total</div>
-                                        <div style={{ fontSize:16, fontWeight:800, color:'#059669', letterSpacing:'-0.4px', lineHeight:1 }}>
-                                            <span style={{ fontSize:10, fontWeight:600, color:'#6b7280', marginRight:3 }}>{displayCurrency}</span>
-                                            {Number(preview?.total ?? 0).toLocaleString('en-US', { minimumFractionDigits:2 })}
-                                        </div>
-                                    </div>
-                                    <div style={{ width:1, height:30, background:'#e5e7eb' }} />
-                                </>
-                            )}
+                                {/* Excel */}
+                                <button
+                                    onClick={() => download('excel', setExcelLoad)} disabled={excelLoad}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: 'none', background: '#059669', color: '#fff', fontSize: 12, fontWeight: 700, cursor: excelLoad ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.15s', opacity: excelLoad ? 0.7 : 1 }}
+                                >
+                                    {excelLoad ? <Spinner size={12} color="#fff" /> : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/></svg>}
+                                    {excelLoad ? 'Exporting…' : 'Excel'}
+                                </button>
 
-                            {/* Excel button */}
-                            <button
-                                className="btn-excel"
-                                onClick={() => download('excel', setExcelLoad)}
-                                disabled={excelLoad || !hasData}
-                                style={{
-                                    display:'flex', alignItems:'center', gap:6,
-                                    padding:'7px 13px', borderRadius:8, border:'none',
-                                    background: hasData ? '#059669' : '#e5e7eb',
-                                    color: hasData ? '#fff' : '#9ca3af',
-                                    fontSize:12, fontWeight:700,
-                                    cursor: hasData && !excelLoad ? 'pointer' : 'not-allowed',
-                                    transition:'all 0.15s ease',
-                                }}>
-                                {excelLoad
-                                    ? <Spinner size={12} />
-                                    : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-                                }
-                                {excelLoad ? 'Exporting…' : 'Excel'}
-                            </button>
+                                {/* PDF */}
+                                <button
+                                    onClick={() => download('pdf', setPdfLoad)} disabled={pdfLoad}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 700, cursor: pdfLoad ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.15s', opacity: pdfLoad ? 0.7 : 1 }}
+                                >
+                                    {pdfLoad ? <Spinner size={12} color="#fff" /> : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>}
+                                    {pdfLoad ? 'Generating…' : 'PDF'}
+                                </button>
 
-                            {/* PDF button */}
-                            <button
-                                className="btn-pdf"
-                                onClick={() => download('pdf', setPdfLoad)}
-                                disabled={pdfLoad || !hasData}
-                                style={{
-                                    display:'flex', alignItems:'center', gap:6,
-                                    padding:'7px 13px', borderRadius:8, border:'none',
-                                    background: hasData ? '#dc2626' : '#e5e7eb',
-                                    color: hasData ? '#fff' : '#9ca3af',
-                                    fontSize:12, fontWeight:700,
-                                    cursor: hasData && !pdfLoad ? 'pointer' : 'not-allowed',
-                                    transition:'all 0.15s ease',
-                                }}>
-                                {pdfLoad
-                                    ? <Spinner size={12} />
-                                    : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                                }
-                                {pdfLoad ? 'Generating…' : 'PDF'}
-                            </button>
-
-                            {/* Mark All Paid */}
-                            {hasData && !loading && records.some(r => r.status !== 'paid') && (
-                                <>
-                                    <div style={{ width:1, height:24, background:'#e5e7eb' }} />
-                                    <button
-                                        onClick={markAllPaid}
-                                        disabled={markingAll}
-                                        style={{
-                                            display:'flex', alignItems:'center', gap:6,
-                                            padding:'7px 13px', borderRadius:8, border:'1px solid #e5e7eb',
-                                            background:'#36599fff', color: markingAll ? '#ffffffff' : '#ffffffff',
-                                            fontSize:12, fontWeight:700,
-                                            cursor: markingAll ? 'not-allowed' : 'pointer',
-                                            transition:'all 0.15s ease',
-                                            whiteSpace:'nowrap',
-                                        }}>
-                                        {markingAll
-                                            ? <><Spinner size={12} color="#9ca3af" /> Saving…</>
-                                            : <>
-                                                <span style={{ width:6, height:6, borderRadius:'50%', background:'#22c55e' }} />
-                                                    Pay Done
-                                                </>
-                                        }
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                                {/* Mark All Paid */}
+                                {hasPending && (
+                                    <>
+                                        <div style={{ width: 1, height: 24, background: theme.border }} />
+                                        <button
+                                            onClick={markAllPaid} disabled={markingAll}
+                                            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: `1.5px solid ${theme.border}`, background: dark ? 'rgba(52,211,153,0.12)' : '#f0fdf4', color: dark ? '#34d399' : '#059669', fontSize: 12, fontWeight: 700, cursor: markingAll ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}
+                                        >
+                                            {markingAll ? <><Spinner size={12} color={dark ? '#34d399' : '#059669'} />Saving…</> : <>✓ Mark All Paid</>}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Loading */}
+                    {/* Loading state */}
                     {loading && (
-                        <div style={{ padding:'40px 22px', textAlign:'center' }}>
-                            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, color:'#9ca3af', fontSize:13, fontWeight:600 }}>
-                                <Spinner size={16} color="#7c3aed" />
-                                Loading records…
-                            </div>
+                        <div style={{ padding: '48px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                            <Spinner size={28} />
+                            <span style={{ fontSize: 13, color: theme.textMute, fontWeight: 600 }}>Loading records…</span>
                         </div>
                     )}
 
-                    {/* Empty */}
+                    {/* Empty state */}
                     {!loading && !hasData && (
-                        <div style={{ padding:'48px 22px', textAlign:'center' }}>
-                            <div style={{ fontSize:36, marginBottom:12 }}>🏦</div>
-                            <div style={{ fontSize:14, fontWeight:700, color:'#374151', marginBottom:6 }}>No confirmed payroll records</div>
-                            <div style={{ fontSize:12, color:'#9ca3af' }}>
-                                Payroll records must be <strong>confirmed</strong> before they appear here.
+                        <div style={{ padding: '56px 22px', textAlign: 'center' }}>
+                            <div style={{ fontSize: 40, marginBottom: 14 }}>🏦</div>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 6 }}>No confirmed payroll records</div>
+                            <div style={{ fontSize: 12, color: theme.textMute, lineHeight: 1.6 }}>
+                                Payroll records must be <strong>confirmed</strong> before they appear here.<br />
+                                Go to Payroll → Preview &amp; Approve to confirm records.
                             </div>
                         </div>
                     )}
 
-                    {/* Data table */}
+                    {/* Table */}
                     {!loading && hasData && (
-                        <div style={{ overflowX:'auto' }}>
-                            <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                        <div style={{ overflowX: 'auto', scrollbarWidth: 'none' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                                 <thead>
-                                    <tr style={{ background:'#f9fafb', borderBottom:'2px solid #e5e7eb' }}>
-                                        {/* FIX 2: Branch column removed */}
+                                    <tr style={{ background: theme.tableHead, borderBottom: `2px solid ${theme.border}` }}>
                                         {[
-                                            ['#',                   'center', 40],
-                                            ['Account Holder Name', 'left',   null],
-                                            ['Bank Name',           'left',   null],
-                                            ['Account Number',      'left',   null],
-                                            ['Department',          'center', null],
-                                            ['Status',              'center', 110],
-                                            ['Net Salary',          'right',  150],
+                                            ['#',          'center', 40],
+                                            ['Employee',   'left',   null],
+                                            ['Bank',       'left',   null],
+                                            ['Account No', 'left',   null],
+                                            ['Dept',       'center', null],
+                                            ['Status',     'center', 110],
+                                            ['Net Salary', 'right',  160],
+                                            ['',           'center', 80],
                                         ].map(([label, align, width]) => (
-                                            <th key={label} style={{
-                                                padding:'10px 14px', textAlign: align,
-                                                fontSize:10, fontWeight:800, color:'#6b7280',
-                                                textTransform:'uppercase', letterSpacing:'0.7px',
-                                                ...(width ? { width } : {}),
-                                            }}>{label}</th>
+                                            <th key={label} style={{ padding: '10px 14px', textAlign: align, fontSize: 10, fontWeight: 800, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', ...(width ? { width } : {}) }}>
+                                                {label}
+                                            </th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {records.map((r, i) => (
-                                        <tr key={i} className="be-row">
-                                            <td style={{ padding:'10px 14px', textAlign:'center', fontSize:11, color:'#d1d5db', fontWeight:600 }}>{i + 1}</td>
-                                            <td style={{ padding:'10px 14px' }}>
-                                                <div style={{ fontWeight:700, fontSize:13, color:'#111827' }}>{r.account_holder_name}</div>
+                                        <tr key={r.id ?? i} className="be-row" style={{ background: i % 2 === 0 ? theme.surface : theme.rowAlt, borderBottom: `1px solid ${theme.border}` }}>
+                                            {/* # */}
+                                            <td style={{ padding: '10px 14px', textAlign: 'center', color: theme.textMute, fontSize: 11, fontWeight: 600 }}>{i + 1}</td>
+
+                                            {/* Employee */}
+                                            <td style={{ padding: '10px 14px' }}>
+                                                <div style={{ fontWeight: 700, color: theme.text, fontSize: 13 }}>{r.account_holder_name}</div>
                                                 {r.employee_name !== r.account_holder_name && (
-                                                    <div style={{ fontSize:10, color:'#9ca3af', marginTop:1 }}>{r.employee_name}</div>
+                                                    <div style={{ fontSize: 10, color: theme.textMute, marginTop: 1 }}>{r.employee_name}</div>
                                                 )}
                                             </td>
-                                            <td style={{ padding:'10px 14px', fontSize:12, color:'#374151' }}>
+
+                                            {/* Bank */}
+                                            <td style={{ padding: '10px 14px', color: r.bank_name === '-' ? theme.warning : theme.textSoft }}>
                                                 {r.bank_name === '-'
-                                                    ? <span style={{ color:'#f59e0b', fontSize:11, fontWeight:600 }}>⚠ Not set</span>
+                                                    ? <span style={{ fontSize: 11, fontWeight: 600 }}>⚠ Not set</span>
                                                     : r.bank_name}
                                             </td>
-                                            <td style={{ padding:'10px 14px', fontFamily:'monospace', fontSize:12, color:'#374151', letterSpacing:'0.5px' }}>
+
+                                            {/* Account */}
+                                            <td style={{ padding: '10px 14px', fontFamily: 'monospace', letterSpacing: '0.5px', color: r.account_number === '-' ? theme.warning : theme.textSoft }}>
                                                 {r.account_number === '-'
-                                                    ? <span style={{ color:'#f59e0b', fontSize:11, fontWeight:600 }}>⚠ Not set</span>
+                                                    ? <span style={{ fontSize: 11, fontWeight: 600 }}>⚠ Not set</span>
                                                     : r.account_number}
                                             </td>
-                                            {/* FIX 2: Branch td removed */}
-                                            <td style={{ padding:'10px 14px', textAlign:'center', fontSize:11, color:'#6b7280' }}>
+
+                                            {/* Dept */}
+                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                                                 {r.department && r.department !== '-'
-                                                    ? <span style={{ background:'#f3f4f6', padding:'2px 8px', borderRadius:99, fontWeight:600 }}>{r.department}</span>
-                                                    : '—'}
+                                                    ? <span style={{ background: theme.surfaceSoft, border: `1px solid ${theme.border}`, color: theme.textSoft, padding: '2px 8px', borderRadius: 99, fontSize: 11, fontWeight: 600 }}>{r.department}</span>
+                                                    : <span style={{ color: theme.border }}>—</span>
+                                                }
                                             </td>
-                                            {/* Status label — read only */}
-                                            <td style={{ padding:'10px 14px', textAlign:'center' }}>
-                                                {r.status === 'paid' ? (
-                                                    <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, fontWeight:700, color:'#059669', background:'#f0fdf4', border:'1px solid #86efac', borderRadius:99, padding:'3px 9px' }}>
-                                                        <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', flexShrink:0 }} />
-                                                        Paid
-                                                    </span>
-                                                ) : (
-                                                    <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, fontWeight:700, color:'#7c3aed', background:'#ede9fe', border:'1px solid #c4b5fd', borderRadius:99, padding:'3px 9px' }}>
-                                                        <span style={{ width:5, height:5, borderRadius:'50%', background:'#a78bfa', flexShrink:0 }} />
-                                                        Confirmed
-                                                    </span>
-                                                )}
+
+                                            {/* Status */}
+                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                                <StatusPill status={r.status} dark={dark} />
                                             </td>
+
                                             {/* Net Salary */}
-                                            <td style={{ padding:'10px 14px', textAlign:'right' }}>
-                                                <span style={{ fontSize:10, fontWeight:700, color:'#7c3aed', marginRight:5 }}>{displayCurrency}</span>
-                                                <span style={{ fontSize:14, fontWeight:800, color:'#059669' }}>
-                                                    {Number(r.net_salary).toLocaleString('en-US', { minimumFractionDigits:2 })}
-                                                </span>
+                                            <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                                                <span style={{ fontSize: 10, fontWeight: 600, color: theme.textMute, marginRight: 4 }}>{currency}</span>
+                                                <span style={{ fontSize: 14, fontWeight: 800, color: theme.success }}>{fmt(r.net_salary)}</span>
+                                            </td>
+
+                                            {/* Mark Paid */}
+                                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                                {r.status !== 'paid' ? (
+                                                    <button
+                                                        onClick={() => markAsPaid(r.id)}
+                                                        disabled={paying === r.id}
+                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: 'none', background: dark ? 'rgba(52,211,153,0.12)' : '#f0fdf4', color: dark ? '#34d399' : '#059669', fontSize: 11, fontWeight: 700, cursor: paying === r.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
+                                                    >
+                                                        {paying === r.id ? <Spinner size={10} color={dark ? '#34d399' : '#059669'} /> : '✓'}
+                                                        {paying === r.id ? '' : 'Paid'}
+                                                    </button>
+                                                ) : (
+                                                    <span style={{ fontSize: 11, color: theme.textMute }}>—</span>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
-
-                                {/* FIX 4: tfoot (duplicate total row) removed — total is shown in StatusBadge above */}
-
                             </table>
                         </div>
                     )}
                 </div>
 
-                {/* ── Info note ── */}
-                <div style={{ marginTop:14, padding:'10px 16px', background:'#fffbeb', border:'1.5px solid #fde68a', borderRadius:10, display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{ fontSize:14 }}>💡</span>
-                    <span style={{ fontSize:11, color:'#92400e', fontWeight:500 }}>
+                {/* ── Info note ──────────────────────────────────── */}
+                <div style={{ marginTop: 14, padding: '10px 16px', background: dark ? 'rgba(251,191,36,0.06)' : '#fffbeb', border: `1.5px solid ${dark ? 'rgba(251,191,36,0.2)' : '#fde68a'}`, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
+                    <span style={{ fontSize: 11, color: dark ? '#fbbf24' : '#92400e', fontWeight: 500, lineHeight: 1.6 }}>
                         Only <strong>confirmed</strong> payroll records are included. Bank account details come from Employee Salary profiles.
                         Employees with missing bank info are marked with ⚠.
                     </span>
                 </div>
-
             </div>
         </AppLayout>
     );

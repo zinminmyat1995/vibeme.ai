@@ -97,6 +97,7 @@ export default function Country({ office, jobs = [] }) {
             onSuccess: (page) => {
                 const code = page.props.flash?.reference_code;
                 setRefCode(code || "SUCCESS");
+                reset();
             },
         });
     };
@@ -195,8 +196,8 @@ export default function Country({ office, jobs = [] }) {
                 }
 
                 .brand-logo {
-                    width: 34px;
-                    height: 34px;
+                    width: 40px;
+                    height: 40px;
                     object-fit: contain;
                     flex-shrink: 0;
                 }
@@ -1134,6 +1135,8 @@ export default function Country({ office, jobs = [] }) {
                     .modal-btns {
                         flex-direction: column;
                     }
+                    .nav-logo-txt{font-family:'DM Serif Display',serif;font-size:16px;color:var(--text);}
+                    .nav-logo-txt b{color:var(--green);font-weight:400;}
                 }
             `}</style>
 
@@ -1148,10 +1151,7 @@ export default function Country({ office, jobs = [] }) {
                                 alt="VibeMe.AI"
                                 className="brand-logo"
                             />
-                            <div className="brand-meta">
-                                <div className="brand-name">VibeMe.AI</div>
-                                <div className="brand-sub">Premium Recruitment Platform</div>
-                            </div>
+                            <span className="nav-logo-txt" style={{fontFamily: "DM Serif Display",fontSize: "16px", color: "var(--text)"}}>VibeMe<b style={{color: "var(--green)", fontWeight: "400"}}>.AI</b></span>
                         </Link>
                     </div>
 
@@ -1520,7 +1520,7 @@ export default function Country({ office, jobs = [] }) {
                                                 className="btn-submit"
                                                 disabled={processing}
                                             >
-                                                {processing ? "Submitting..." : "Submit Application →"}
+                                                {processing ? "Applying..." : "Apply Application →"}
                                             </button>
                                         </div>
                                     </form>

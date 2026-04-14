@@ -223,7 +223,7 @@ const SECTIONS = [
     },
     {
         key: 'salary',
-        label: 'Payroll Settings',
+        label: 'General Settings',
         summary: 'Pay cycle · Probation · Bank export',
         emoji: '⚙️',
         icon: (

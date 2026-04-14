@@ -416,8 +416,11 @@ function DetailRow({ label, val, color, bold, dark }) {
 function ShortHourRow({ detail, curr, theme, dark }) {
     const [popup, setPopup] = React.useState(false);
     const shortAmt = detail.short_hour_deduction ?? 0;
-    const attRows  = (detail.attendance_details ?? []).filter(a => (8 - a.work_hours - (a.late_minutes/60)) > 0.01);
-    const totalSH  = attRows.reduce((s,a) => s + Math.max(0, 8 - a.work_hours - (a.late_minutes/60)), 0);
+    // ✅ FIX: working_hours_per_day မသုံး — server ကနေ resolve လုပ်ထားတဲ့
+    // hours_per_day သုံး (work_start→work_end−lunch တွက်ထားတာ)
+    const hpd = detail.hours_per_day ?? 8;
+    const attRows  = (detail.attendance_details ?? []).filter(a => (hpd - a.work_hours - (a.late_minutes/60)) > 0.01);
+    const totalSH  = attRows.reduce((s,a) => s + Math.max(0, hpd - a.work_hours - (a.late_minutes/60)), 0);
     const label    = totalSH > 0.01 ? fmtHours(totalSH) : '';
     const rowBg  = dark ? 'rgba(255,255,255,0.02)' : '#fff';
     const rowBdr = dark ? 'rgba(255,255,255,0.06)' : '#f3f4f6';
@@ -435,7 +438,8 @@ function ShortHourRow({ detail, curr, theme, dark }) {
                 <MiniModal title="Insufficient Hours" subtitle="Working Hours" icon="⏱" onClose={()=>setPopup(false)} theme={theme}>
                     {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>No short records.</p>
                     : attRows.map((a,i) => {
-                        const sh = Math.max(0, 8 - a.work_hours - (a.late_minutes/60));
+                        // ✅ FIX: hard-coded 8 မသုံး
+                        const sh = Math.max(0, hpd - a.work_hours - (a.late_minutes/60));
                         return (
                             <div key={i} style={{ padding:'10px 0', borderBottom:'1px solid #f3f4f6' }}>
                                 <div style={{ fontWeight:700, fontSize:13, color:'#374151', marginBottom:4 }}>{a.date}</div>
@@ -492,6 +496,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
     const [leavePop,  setLeavePop]  = React.useState(false);
     const [otPop,     setOtPop]     = React.useState(false);
     const [allowPop,  setAllowPop]  = React.useState(false);
+    const [bonusPop,  setBonusPop]  = React.useState(false);
     const otHrs   = detail.overtime_hours ?? 0;
     const otLabel = otHrs > 0 ? fmtHours(otHrs) : null;
     const gross   = (detail.base_salary??0)+(detail.total_allowances??0)+(detail.overtime_amount??0)+(detail.bonus_amount??0);
@@ -542,7 +547,17 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                         <span onClick={()=>setOtPop(true)} style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}>+ {fmt(detail.overtime_amount, curr)}</span>
                     </div>
                 )}
-                {(detail.bonus_amount??0)>0 && <DetailRow label="Bonus" val={`+ ${fmt(detail.bonus_amount, curr)}`} color="#059669" dark={dark} />}
+                {(detail.bonus_amount ?? 0) > 0 && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Bonus</span>
+                        <span
+                            onClick={() => setBonusPop(true)}
+                            style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}
+                        >
+                            + {fmt(detail.bonus_amount, curr)}
+                        </span>
+                    </div>
+                )}
                 <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 16px', background: dark?'rgba(5,150,105,0.1)':'#f0fdf4' }}>
                     <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>Total Before Deductions</span>
                     <span style={{ fontSize:12, fontWeight:800, color:'#059669' }}>{fmt(gross, curr)}</span>
@@ -632,6 +647,59 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                     <div style={{ marginTop:10, paddingTop:10, borderTop:'1px solid #e5e7eb', display:'flex', justifyContent:'space-between' }}>
                         <span style={{ fontSize:11, fontWeight:700, color:'#6b7280' }}>Total Allowances</span>
                         <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>+ {fmt(detail.total_allowances??0, curr)}</span>
+                    </div>
+                </MiniModal>
+            )}
+
+            {bonusPop && (
+                <MiniModal title="Bonuses" subtitle="Breakdown" icon="🎁" onClose={() => setBonusPop(false)} theme={theme}>
+                    {(detail.bonuses ?? []).length === 0 ? (
+                        <p style={{ fontSize:12, color: theme.textMute }}>No bonus details.</p>
+                    ) : (
+                        (detail.bonuses ?? []).map((b, i) => (
+                            <div
+                                key={b.id ?? `${b.bonus_type_id ?? 'bonus'}-${i}`}
+                                style={{
+                                    padding:'12px 0',
+                                    borderBottom:`1px solid ${theme.border}`,
+                                    display:'flex',
+                                    justifyContent:'space-between',
+                                    alignItems:'center'
+                                }}
+                            >
+                                <div>
+                                    <div style={{ fontWeight:700, fontSize:13, color: theme.textSoft }}>
+                                        {b.type_name}
+                                    </div>
+                                    <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>
+                                        {b.calculation_type === 'percentage'
+                                            ? `${b.rate}% of base salary`
+                                            : 'Fixed amount'}
+                                    </div>
+                                </div>
+
+                                <span style={{ fontSize:13, fontWeight:700, color:'#059669' }}>
+                                    + {fmt(b.amount, curr)}
+                                </span>
+                            </div>
+                        ))
+                    )}
+
+                    <div
+                        style={{
+                            marginTop:10,
+                            paddingTop:10,
+                            borderTop:`1px solid ${theme.border}`,
+                            display:'flex',
+                            justifyContent:'space-between'
+                        }}
+                    >
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>
+                            Total Bonus
+                        </span>
+                        <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>
+                            + {fmt(detail.bonus_amount ?? 0, curr)}
+                        </span>
                     </div>
                 </MiniModal>
             )}
@@ -1041,10 +1109,16 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
     const [period,    setPeriod]    = useState({ year:now.getFullYear(), month:now.getMonth()+1, period_number:1 });
     const [activeKey, setActiveKey] = useState('attendance');
     const [completed, setCompleted] = useState(new Set());
-    const [toast,     setToast]     = useState(null);
     const [calcVer,   setCalcVer]   = useState(0);
 
-    const showToast  = (msg, type='success') => setToast({ msg, type });
+    const showToast = (msg, type = 'success') => {
+        window.dispatchEvent(
+            new CustomEvent('global-toast', {
+                detail: { message: msg, type }
+            })
+        );
+    };
+
     const handleDone = (key) => {
         setCompleted(prev => new Set([...prev, key]));
         if (key === 'attendance') setActiveKey('calculate');
@@ -1070,7 +1144,7 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                 .pr-hide-scroll::-webkit-scrollbar { display:none; }
                 .sd-hide-scroll::-webkit-scrollbar { display:none; }
             `}</style>
-            <Toast msg={toast?.msg} type={toast?.type} onClose={()=>setToast(null)} dark={dark} theme={theme}/>
+
 
             <div style={{ background: dark ? '#0b1324' : '#f8fafc', minHeight:'100vh' }}>
                 <div style={{ paddingBottom:32 }}>

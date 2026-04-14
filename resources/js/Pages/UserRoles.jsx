@@ -230,6 +230,7 @@ function UIButton({ children, onClick, type = 'button', variant = 'primary', dis
     );
 }
 
+// FIX 1: scrollbar hidden inside dropdown list
 function PremiumSelect({
     options = [],
     value = '',
@@ -338,58 +339,62 @@ function PremiumSelect({
                         backdropFilter: 'blur(16px)',
                     }}
                 >
-                    {options.map((opt, index) => {
-                        const isSelected = String(opt.value) === String(value);
-                        const isDisabled = !!opt.disabled;
+                    {/* FIX 1: scrollbar hidden */}
+                    <div style={{ maxHeight: 260, overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        {options.map((opt, index) => {
+                            const isSelected = String(opt.value) === String(value);
+                            const isDisabled = !!opt.disabled;
 
-                        return (
-                            <button
-                                key={String(opt.value) || `opt-${index}`}
-                                type="button"
-                                onClick={() => {
-                                    if (isDisabled) return;
-                                    onChange(opt.value);
-                                    setOpen(false);
-                                }}
-                                style={{
-                                    width: '100%',
-                                    minHeight: 54,
-                                    padding: '0 16px',
-                                    border: 'none',
-                                    borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none',
-                                    background: isSelected ? selectedBg : 'transparent',
-                                    color: isSelected ? selectedText : theme.textSoft,
-                                    opacity: isDisabled ? 0.45 : 1,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    textAlign: 'left',
-                                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                    transition: 'all 0.15s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!isSelected && !isDisabled) {
-                                        e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.03)' : '#f8fafc';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!isSelected && !isDisabled) {
-                                        e.currentTarget.style.background = 'transparent';
-                                    }
-                                }}
-                            >
-                                {renderOption ? renderOption(opt, false, isSelected) : (
-                                    <span style={{ fontSize: 13, fontWeight: isSelected ? 800 : 600 }}>
-                                        {opt.label}
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
+                            return (
+                                <button
+                                    key={String(opt.value) || `opt-${index}`}
+                                    type="button"
+                                    onClick={() => {
+                                        if (isDisabled) return;
+                                        onChange(opt.value);
+                                        setOpen(false);
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        minHeight: 54,
+                                        padding: '0 16px',
+                                        border: 'none',
+                                        borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none',
+                                        background: isSelected ? selectedBg : 'transparent',
+                                        color: isSelected ? selectedText : theme.textSoft,
+                                        opacity: isDisabled ? 0.45 : 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        textAlign: 'left',
+                                        cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.15s ease',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!isSelected && !isDisabled) {
+                                            e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.03)' : '#f8fafc';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isSelected && !isDisabled) {
+                                            e.currentTarget.style.background = 'transparent';
+                                        }
+                                    }}
+                                >
+                                    {renderOption ? renderOption(opt, false, isSelected) : (
+                                        <span style={{ fontSize: 13, fontWeight: isSelected ? 800 : 600 }}>
+                                            {opt.label}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             )}
         </div>
     );
 }
+
 function CountryFlag({ code, size = 20 }) {
     const h = Math.round(size * 0.6);
     const flags = {
@@ -544,6 +549,7 @@ function ActionGlyph({ type, color }) {
     return null;
 }
 
+// FIX 4: Modal scrollbar hidden
 function Modal({ open, onClose, title, subtitle, children, darkMode = false }) {
     if (!open) return null;
     const theme = getTheme(darkMode);
@@ -584,6 +590,8 @@ function Modal({ open, onClose, title, subtitle, children, darkMode = false }) {
                             ? '1px solid rgba(255,255,255,0.10)'
                             : '1px solid rgba(255,255,255,0.22)',
                         overflow: 'hidden',
+                        position: 'relative',
+                        flexShrink: 0,
                     }}
                 >
                     <div
@@ -684,7 +692,8 @@ function Modal({ open, onClose, title, subtitle, children, darkMode = false }) {
                     </div>
                 </div>
 
-                <div style={{ overflowY: 'auto', padding: '22px 24px 24px' }}>
+                {/* FIX 4: scrollbarWidth none */}
+                <div style={{ overflowY: 'auto', padding: '22px 24px 24px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     {children}
                 </div>
             </div>
@@ -703,9 +712,11 @@ function FieldError({ msg, darkMode = false }) {
     );
 }
 
-function UserForm({ roles, editUser, onClose, darkMode = false }) {
+// FIX 3: currentUser prop added — HR role sees read-only country badge
+function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = null }) {
     const theme = getTheme(darkMode);
     const isEdit = !!editUser;
+    const isHR = currentUser?.role === 'hr';
 
     const form = useForm({
         name: editUser?.name || '',
@@ -719,12 +730,12 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
         avatar: null,
         remove_avatar: false,
         _method: isEdit ? 'PUT' : 'POST',
-        country: editUser?.country || '',
+        // FIX 3: HR → auto-fill own country; admin → empty for manual selection
+        country: editUser?.country || (isHR ? (currentUser?.country || '') : ''),
         joined_date: editUser?.joined_date ? String(editUser.joined_date).split('T')[0] : new Date().toISOString().split('T')[0],
         employment_type: editUser?.employment_type || 'probation',
         contract_end_date: editUser?.contract_end_date ? String(editUser.contract_end_date).split('T')[0] : '',
     });
-
 
     const fileInputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(editUser?.avatar_url ? `/storage/${editUser.avatar_url}` : null);
@@ -759,6 +770,7 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
             code: c.code,
         })),
     ];
+
     const submit = (e) => {
         e.preventDefault();
 
@@ -802,44 +814,68 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
                     <FieldError msg={form.errors.email} darkMode={darkMode} />
                 </div>
 
-                <div style={{ gridColumn: '1/-1', position: 'relative', zIndex: 900 }}>
-                    <label style={lbl}>Country <span style={{ color: theme.danger }}>*</span></label>
-
-                    <PremiumSelect
-                        options={countryOptions}
-                        value={form.data.country}
-                        onChange={(val) => form.setData('country', val)}
-                        placeholder="Select country..."
-                        theme={theme}
-                        darkMode={darkMode}
-                        minWidth={0}
-                        width="100%"
-                        zIndex={900}
-                        renderOption={(opt, isTriggerView, isSelectedItem) => (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, width: '100%' }}>
-                                {opt.code ? <CountryFlag code={opt.code} size={22} /> : null}
-                                <span
-                                    style={{
-                                        fontSize: 13,
-                                        fontWeight: isTriggerView || isSelectedItem ? 800 : 600,
-                                        color: isTriggerView
-                                            ? theme.text
-                                            : isSelectedItem
-                                                ? '#ffffff'
-                                                : theme.textSoft,
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                    }}
-                                >
-                                    {opt.label}
-                                </span>
-                            </div>
-                        )}
-                    />
-
-                    <FieldError msg={form.errors.country} darkMode={darkMode} />
-                </div>
+                {/* FIX 3: HR → read-only country badge; admin → dropdown selector */}
+                {isHR ? (
+                    <div style={{ gridColumn: '1/-1' }}>
+                        <label style={lbl}>Country</label>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            padding: '12px 15px',
+                            borderRadius: 16,
+                            background: theme.panelSoft,
+                            border: `1px solid ${theme.border}`,
+                        }}>
+                            {currentUser?.country && <CountryFlag code={currentUser.country} size={20} />}
+                            <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>
+                                {currentUser?.country
+                                    ? currentUser.country.charAt(0).toUpperCase() + currentUser.country.slice(1)
+                                    : '—'}
+                            </span>
+                            <span style={{ fontSize: 11, color: theme.textMute, marginLeft: 'auto' }}>
+                                Auto-assigned
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{ gridColumn: '1/-1', position: 'relative', zIndex: 900 }}>
+                        <label style={lbl}>Country <span style={{ color: theme.danger }}>*</span></label>
+                        <PremiumSelect
+                            options={countryOptions}
+                            value={form.data.country}
+                            onChange={(val) => form.setData('country', val)}
+                            placeholder="Select country..."
+                            theme={theme}
+                            darkMode={darkMode}
+                            minWidth={0}
+                            width="100%"
+                            zIndex={900}
+                            renderOption={(opt, isTriggerView, isSelectedItem) => (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, width: '100%' }}>
+                                    {opt.code ? <CountryFlag code={opt.code} size={22} /> : null}
+                                    <span
+                                        style={{
+                                            fontSize: 13,
+                                            fontWeight: isTriggerView || isSelectedItem ? 800 : 600,
+                                            color: isTriggerView
+                                                ? theme.text
+                                                : isSelectedItem
+                                                    ? '#ffffff'
+                                                    : theme.textSoft,
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                        }}
+                                    >
+                                        {opt.label}
+                                    </span>
+                                </div>
+                            )}
+                        />
+                        <FieldError msg={form.errors.country} darkMode={darkMode} />
+                    </div>
+                )}
 
                 <div style={{ gridColumn: '1/-1' }}>
                     <label style={lbl}>{isEdit ? 'New Password' : 'Password'} {!isEdit && <span style={{ color: theme.danger }}>*</span>}</label>
@@ -849,7 +885,6 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
 
                 <div>
                     <label style={lbl}>Role <span style={{ color: theme.danger }}>*</span></label>
-
                     <PremiumSelect
                         options={roleOptions}
                         value={form.data.role_id}
@@ -861,7 +896,6 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
                         width="100%"
                         zIndex={300}
                     />
-
                     <FieldError msg={form.errors.role_id} darkMode={darkMode} />
                 </div>
 
@@ -891,7 +925,6 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
 
                 <div>
                     <label style={lbl}>Employment Type</label>
-
                     <PremiumSelect
                         options={employmentTypeOptions}
                         value={form.data.employment_type || 'probation'}
@@ -902,7 +935,6 @@ function UserForm({ roles, editUser, onClose, darkMode = false }) {
                         minWidth={0}
                         width="100%"
                     />
-
                     <FieldError msg={form.errors.employment_type} darkMode={darkMode} />
                 </div>
 
@@ -1076,7 +1108,8 @@ function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) 
     );
 }
 
-export default function UserRoles({ users = [], roles = [], roleName = '' }) {
+// FIX 3: currentUser prop added to component signature
+export default function UserRoles({ users = [], roles = [], roleName = '', currentUser = null }) {
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
@@ -1175,6 +1208,13 @@ export default function UserRoles({ users = [], roles = [], roleName = '' }) {
                     from { opacity:0; transform:translateY(10px) scale(0.98); }
                     to { opacity:1; transform:translateY(0) scale(1); }
                 }
+                /* FIX 1: dropdown inner scrollbar webkit hidden */
+                .ur-dd-inner::-webkit-scrollbar { display: none; }
+                /* FIX 2: table horizontal scrollbar hidden */
+                .ur-table-wrap { scrollbar-width: none; -ms-overflow-style: none; }
+                .ur-table-wrap::-webkit-scrollbar { display: none; }
+                /* FIX 4: modal body scrollbar webkit hidden */
+                .ur-modal-body::-webkit-scrollbar { display: none; }
             `}</style>
 
             <div style={{ display: 'grid', gap: 18 }}>
@@ -1337,7 +1377,8 @@ export default function UserRoles({ users = [], roles = [], roleName = '' }) {
                         </div>
                     </div>
 
-                    <div style={{ overflowX: 'auto' }}>
+                    {/* FIX 2: horizontal scrollbar hidden */}
+                    <div className="ur-table-wrap" style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
@@ -1522,13 +1563,14 @@ export default function UserRoles({ users = [], roles = [], roleName = '' }) {
                 </div>
             </div>
 
+            {/* FIX 3: pass currentUser to UserForm */}
             <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add New User" subtitle="User Management" darkMode={darkMode}>
-                <UserForm roles={roles} onClose={() => setShowCreate(false)} darkMode={darkMode} />
+                <UserForm roles={roles} onClose={() => setShowCreate(false)} darkMode={darkMode} currentUser={currentUser} />
             </Modal>
 
             <Modal open={!!editUser} onClose={() => setEditUser(null)} title="Edit User" subtitle="Update Profile" darkMode={darkMode}>
                 {editUser && (
-                    <UserForm key={editUser.id} roles={roles} editUser={editUser} onClose={() => setEditUser(null)} darkMode={darkMode} />
+                    <UserForm key={editUser.id} roles={roles} editUser={editUser} onClose={() => setEditUser(null)} darkMode={darkMode} currentUser={currentUser} />
                 )}
             </Modal>
 

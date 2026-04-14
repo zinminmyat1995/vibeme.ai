@@ -87,4 +87,15 @@ class User extends Authenticatable
     public function isHR(): bool         { return $this->hasRole('hr'); }
     public function isManagement(): bool { return $this->hasRole('management'); }
     public function isEmployee(): bool   { return $this->hasRole('employee'); }
+
+    public function scopeHr($query)
+    {
+        return $query->whereHas('role', fn($q) => $q->where('name', 'hr'))
+                    ->where('is_active', true);
+    }
+
+    public function scopeOfCountry($query, int $countryId)
+    {
+        return $query->where('country_id', $countryId);
+    }
 }

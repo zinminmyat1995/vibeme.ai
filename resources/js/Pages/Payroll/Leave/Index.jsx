@@ -555,8 +555,8 @@ function LeaveRequestModal({ saving, setSaving, policyMap, balanceMap, leaveType
 
                 {/* Header */}
                 <div style={{ background:theme.modalHeader, padding:'20px 24px 18px', flexShrink:0, position:'relative', overflow:'hidden' }}>
-                    <div style={{ position:'absolute', top:-20, right:-20, width:120, height:120, borderRadius:'50%', background:'rgba(255,255,255,0.06)' }} />
-                    <div style={{ position:'absolute', bottom:-30, left:20, width:90, height:90, borderRadius:'50%', background:'rgba(255,255,255,0.04)' }} />
+                    <div style={{ position:'absolute', top:-20, right:-20, width:120, height:120, borderRadius:'50%' }} />
+                    <div style={{ position:'absolute', bottom:-30, left:20, width:90, height:90, borderRadius:'50%' }} />
                     <div style={{ position:'relative', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                         <div style={{ display:'flex', gap:14, alignItems:'center' }}>
                             <div style={{ width:44, height:44, borderRadius:14, background:'rgba(255,255,255,0.16)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>🏖️</div>

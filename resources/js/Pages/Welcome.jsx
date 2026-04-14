@@ -360,6 +360,22 @@ h1.ht em{font-style:italic;color:var(--green);}
 .topen{font-size:11px;font-weight:600;white-space:nowrap;color:#fff;background:var(--green);padding:3px 10px;border-radius:100px;}
 .tnone{font-size:10px;white-space:nowrap;color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.05);padding:3px 9px;border-radius:100px;border:1px solid rgba(255,255,255,0.07);}
 
+
+.theme-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: var(--shadow);
+}
 /* FOOTER */
 footer{padding:22px 48px;text-align:center;}
 .fcopy{font-size:12px;color:var(--text3);}
@@ -394,9 +410,14 @@ footer{padding:22px 48px;text-align:center;}
             </Link>
             
             <div className="nav-r">
-                <button className="thm" onClick={()=>setDark(d=>!d)} aria-label="Toggle theme">
-                    {dark ? "☀" : "☽"}
+
+                <button type="button" className="theme-btn" onClick={()=>setDark(d=>!d)}>
+                    <span>{dark ? "☀" : "☾"}</span>
+                    <span>{dark ? "Light Mode" : "Dark Mode"}</span>
                 </button>
+                {/* <button className="thm" onClick={()=>setDark(d=>!d)} aria-label="Toggle theme">
+                    {dark ? "☀" : "☽"}
+                </button> */}
                 {total > 0 && (
                     <a href="#offices" className="cta">View {total} Openings</a>
                 )}

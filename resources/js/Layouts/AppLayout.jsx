@@ -695,7 +695,7 @@ export default function AppLayout({ children, title = 'Dashboard' }) {
                     style={{
                         position: 'sticky',
                         top: 0,
-                        zIndex: 20,
+                        zIndex: 999,
                         height: 84,
                         display: 'flex',
                         alignItems: 'center',

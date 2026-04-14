@@ -542,12 +542,12 @@ function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess }
     const lbl = { fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.06em', display:'block', marginBottom:5 };
 
     return createPortal(
-        <div style={{ position:'fixed', inset:0, background:theme.overlay, backdropFilter:'blur(6px)', zIndex:50, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }} onClick={e => e.target===e.currentTarget&&onClose()}>
+        <div style={{ position:'fixed', inset:0, background:theme.overlay, backdropFilter:'blur(6px)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }} onClick={e => e.target===e.currentTarget&&onClose()}>
             <div style={{ background: dark?'#0f1b34':'#fff', borderRadius:22, width:'100%', maxWidth:510, maxHeight:'92vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:theme.shadow, border:`1px solid ${theme.border}`, animation:'otPopIn 0.22s ease' }}>
 
                 <div style={{ background:theme.modalHeader, padding:'20px 24px 18px', flexShrink:0, position:'relative', overflow:'hidden' }}>
-                    <div style={{ position:'absolute', top:-20, right:-20, width:120, height:120, borderRadius:'50%', background:'rgba(255,255,255,0.07)' }}/>
-                    <div style={{ position:'absolute', bottom:-30, left:20, width:90, height:90, borderRadius:'50%', background:'rgba(255,255,255,0.05)' }}/>
+                    <div style={{ position:'absolute', top:-20, right:-20, width:120, height:120, borderRadius:'50%',  }}/>
+                    <div style={{ position:'absolute', bottom:-30, left:20, width:90, height:90, borderRadius:'50%',  }}/>
                     <div style={{ position:'relative', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                         <div style={{ display:'flex', gap:14, alignItems:'center' }}>
                             <div style={{ width:44, height:44, borderRadius:14, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>⏰</div>
@@ -616,7 +616,7 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, on
     const [segHours, setSegHours] = useState(segments.reduce((a,s)=>({...a,[s.id]:s.hours}),{}));
     const total = Object.values(segHours).reduce((s,h)=>s+parseFloat(h||0),0);
     return createPortal(
-        <div style={{ position:'fixed', inset:0, background:theme.overlay, backdropFilter:'blur(6px)', zIndex:50, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+        <div style={{ position:'fixed', inset:0, background:theme.overlay, backdropFilter:'blur(6px)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
             <div style={{ background: dark?'#0f1b34':'#fff', borderRadius:22, width:'100%', maxWidth:460, maxHeight:'90vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:theme.shadow, border:`1px solid ${theme.border}`, animation:'otPopIn 0.22s ease' }}>
                 <div style={{ height:4, background: isApprove?'linear-gradient(90deg,#059669,#10b981)':'linear-gradient(90deg,#dc2626,#ef4444)', flexShrink:0 }}/>
                 <div className="ot-hide" style={{ overflowY:'auto', padding:'22px 24px', flex:1 }}>

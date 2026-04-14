@@ -355,8 +355,8 @@ function Modal({ open, onClose, title, subtitle, icon, children, width=520, dark
         <div onClick={e=>e.target===e.currentTarget&&onClose()} style={{ position:'fixed', inset:0, background:theme.overlay, backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:16 }}>
             <div style={{ background: dark?'#0f1b34':'#fff', borderRadius:22, width:'100%', maxWidth:width, maxHeight:'92vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:theme.shadow, border:`1px solid ${theme.border}`, animation:'esPopIn 0.22s ease' }}>
                 <div style={{ background:theme.modalHeader, padding:'20px 24px 18px', flexShrink:0, position:'relative', overflow:'hidden' }}>
-                    <div style={{ position:'absolute', top:-20, right:-20, width:120, height:120, borderRadius:'50%', background:'rgba(255,255,255,0.07)' }}/>
-                    <div style={{ position:'absolute', bottom:-30, left:20, width:90, height:90, borderRadius:'50%', background:'rgba(255,255,255,0.05)' }}/>
+                    <div style={{ position:'absolute', top:-20, right:-20, width:120, height:120, borderRadius:'50%',  }}/>
+                    <div style={{ position:'absolute', bottom:-30, left:20, width:90, height:90, borderRadius:'50%', }}/>
                     <div style={{ position:'relative', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                         <div style={{ display:'flex', gap:14, alignItems:'center' }}>
                             <div style={{ width:44, height:44, borderRadius:14, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{icon||'💼'}</div>

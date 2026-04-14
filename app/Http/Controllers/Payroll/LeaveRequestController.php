@@ -331,7 +331,55 @@ class LeaveRequestController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     public function approve(LeaveRequest $leaveRequest): \Illuminate\Http\RedirectResponse
     {
-        $leaveRequest->update(['status' => 'approved', 'approved_by' => Auth::id()]);
+        // ── Salary rule for lunch times ──
+        $countryId   = $leaveRequest->user->country_id;
+        $salaryRule  = \App\Models\SalaryRule::where('country_id', $countryId)->first();
+        $lunchStartT = $salaryRule?->lunch_start ? substr($salaryRule->lunch_start, 0, 5) : '12:00';
+        $lunchEndT   = $salaryRule?->lunch_end   ? substr($salaryRule->lunch_end,   0, 5) : '13:00';
+
+        $dayType   = $leaveRequest->day_type;
+        $startDate = Carbon::parse($leaveRequest->start_date);
+        $endDate   = Carbon::parse($leaveRequest->end_date);
+
+        // ── Attendance conflict check before approve ──
+        $checkCurrent = $startDate->copy();
+        while ($checkCurrent <= $endDate) {
+            $checkDateStr = $checkCurrent->format('Y-m-d');
+
+            $attendance = AttendanceRecord::where('user_id', $leaveRequest->user_id)
+                ->whereDate('date', $checkDateStr)
+                ->first();
+
+            if ($attendance) {
+                $checkIn  = $attendance->check_in_time ? substr($attendance->check_in_time, 0, 5) : null;
+                $checkOut = $attendance->check_out_time ? substr($attendance->check_out_time, 0, 5) : null;
+
+                if ($dayType === 'full_day' && ($checkIn || $checkOut)) {
+                    return redirect()->back()->with('error',
+                        "Cannot approve leave request. Attendance check in/check out already exists on {$checkDateStr}."
+                    );
+                }
+
+                if ($dayType === 'half_day_am' && $checkIn && $checkIn < $lunchStartT) {
+                    return redirect()->back()->with('error',
+                        "Cannot approve leave request. Attendance already exists in AM hours on {$checkDateStr}."
+                    );
+                }
+
+                if ($dayType === 'half_day_pm' && $checkOut && $checkOut > $lunchEndT) {
+                    return redirect()->back()->with('error',
+                        "Cannot approve leave request. Attendance already exists in PM hours on {$checkDateStr}."
+                    );
+                }
+            }
+
+            $checkCurrent->addDay();
+        }
+
+        $leaveRequest->update([
+            'status'      => 'approved',
+            'approved_by' => Auth::id(),
+        ]);
 
         // Absent / unpaid → balance deduct မလုပ်
         if (!$leaveRequest->is_paid) {
@@ -341,9 +389,10 @@ class LeaveRequestController extends Controller
         $year      = Carbon::parse($leaveRequest->start_date)->year;
         $userId    = $leaveRequest->user_id;
         $leaveType = $leaveRequest->leave_type;
-        $countryId = $leaveRequest->user->country_id;
 
-        $policy       = LeavePolicy::where('country_id', $countryId)->where('leave_type', $leaveType)->first();
+        $policy       = LeavePolicy::where('country_id', $countryId)
+            ->where('leave_type', $leaveType)
+            ->first();
         $entitledDays = $policy?->days_per_year ?? 0;
 
         $balance = LeaveBalance::firstOrCreate(

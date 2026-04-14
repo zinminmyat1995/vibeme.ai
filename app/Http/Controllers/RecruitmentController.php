@@ -168,10 +168,48 @@ class RecruitmentController extends Controller
             'reference_code' => $refCode,
         ]);
 
+        // ── Notify HR users of this country ──
+        $this->notifyHR($office, $job, $validated['name'], $refCode);
+
         return back()->with([
             'success'        => 'Application submitted successfully!',
             'reference_code' => $refCode,
         ]);
+    }
+
+    // ── Notify HR role users in the same country ─────────────────────
+    private function notifyHR(
+        BrycenOffice $office,
+        JobPosting   $job,
+        string       $applicantName,
+        string       $refCode
+    ): void {
+        // country_name → Country.id ရှာ (RecruitmentController show() နဲ့ same pattern)
+        $country = \App\Models\Country::whereRaw(
+            'LOWER(name) = ?', [strtolower($office->country_name)]
+        )->first();
+
+        if (!$country) return;
+
+        $hrUsers = \App\Models\User::hr()
+            ->ofCountry($country->id)
+            ->get();
+
+        foreach ($hrUsers as $hr) {
+            \App\Models\Notification::send(
+                userId: $hr->id,
+                type:   'job_application',
+                title:  'New Job Application',
+                body:   "{$applicantName} applied for {$job->title}.",
+                url:    '/recruitment',
+                data:   [
+                    'job_posting_id' => $job->id,
+                    'job_title'      => $job->title,
+                    'applicant_name' => $applicantName,
+                    'reference_code' => $refCode,
+                ]
+            );
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
