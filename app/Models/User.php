@@ -23,6 +23,7 @@ class User extends Authenticatable
         'department',
         'position',
         'phone',
+        'date_of_birth',
         'avatar_url',
         'is_active',
         'joined_date',

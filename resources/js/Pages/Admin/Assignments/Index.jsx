@@ -264,12 +264,12 @@ function PremiumSelect({ options = [], value = "", onChange, placeholder = "Sele
 // ─────────────────────────────────────────────────────────────────────────────
 function FilterBar({ active, onChange, theme, dark }) {
     const opts = [
-        { k: "all",      label: "All",      color: theme.primary, bg: theme.primarySoft, icon: "◉" },
-        { k: "free",     label: "Free",     ...WL.free },
-        { k: "light",    label: "Light",    ...WL.light },
-        { k: "moderate", label: "Moderate", ...WL.moderate },
-        { k: "heavy",    label: "Heavy",    ...WL.heavy },
-        { k: "full",     label: "Full",     ...WL.full  },
+        { k: "all",  label: "All",  color: theme.primary, bg: theme.primarySoft, bgDark: theme.primarySoft },
+        { k: "0",    label: "Free", color: "#22c55e", bg: "#f0fdf4", bgDark: "rgba(34,197,94,0.14)",  border: "#86efac" },
+        { k: "2",    label: "2h",   color: "#3b82f6", bg: "#eff6ff", bgDark: "rgba(59,130,246,0.14)", border: "#93c5fd" },
+        { k: "4",    label: "4h",   color: "#f59e0b", bg: "#fefce8", bgDark: "rgba(245,158,11,0.14)", border: "#fde047" },
+        { k: "6",    label: "6h",   color: "#ef4444", bg: "#fef2f2", bgDark: "rgba(239,68,68,0.14)",  border: "#fca5a5" },
+        { k: "full", label: "Full", color: "#7c3aed", bg: "#f5f3ff", bgDark: "rgba(124,58,237,0.14)", border: "#c4b5fd" },
     ];
     return (
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
@@ -279,9 +279,7 @@ function FilterBar({ active, onChange, theme, dark }) {
                     <button key={o.k} onClick={() => onChange(o.k)} style={{
                         padding: "4px 10px", borderRadius: 99, fontSize: 10, fontWeight: 700,
                         cursor: "pointer", border: `1.5px solid ${isAct ? o.color : theme.border}`,
-                        background: isAct
-                            ? (dark ? (o.bgDark || o.bg || theme.primarySoft) : (o.bg || theme.primarySoft))
-                            : "transparent",
+                        background: isAct ? (dark ? o.bgDark : o.bg) : "transparent",
                         color: isAct ? o.color : theme.textMute,
                         transition: "all 0.12s", outline: "none", fontFamily: "inherit",
                         letterSpacing: "0.04em", textTransform: "uppercase",
@@ -709,10 +707,20 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
     const [showNew,  setShowNew]  = useState(false);
 
     const filtered = users.filter(u => {
-        const uKey = u.used_hours_per_day != null ? getWorkload(u.used_hours_per_day) : (u.workload || "free");
-        return (u.name.toLowerCase().includes(search.toLowerCase()) ||
-                u.email?.toLowerCase().includes(search.toLowerCase())) &&
-               (wlFilter === "all" || uKey === wlFilter);
+        const used = u.used_hours_per_day ?? 0;
+        const matchSearch = (
+            u.name.toLowerCase().includes(search.toLowerCase()) ||
+            u.email?.toLowerCase().includes(search.toLowerCase())
+        );
+        const matchWl =
+            wlFilter === "all"  ? true :
+            wlFilter === "0"    ? used === 0 :
+            wlFilter === "2"    ? used > 0 && used <= 2 :
+            wlFilter === "4"    ? used > 2 && used <= 4 :
+            wlFilter === "6"    ? used > 4 && used <= 6 :
+            wlFilter === "full" ? used >= 8 :
+            true;
+        return matchSearch && matchWl;
     });
 
     const liveProj       = projects.filter(p => p.status === "active").length;

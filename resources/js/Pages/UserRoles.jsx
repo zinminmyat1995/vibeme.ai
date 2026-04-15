@@ -726,6 +726,7 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
         department: editUser?.department || '',
         position: editUser?.position || '',
         phone: editUser?.phone || '',
+        date_of_birth: editUser?.date_of_birth ? String(editUser.date_of_birth).split('T')[0] : '',
         is_active: editUser?.is_active ?? true,
         avatar: null,
         remove_avatar: false,
@@ -812,6 +813,18 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
                     <label style={lbl}>Email Address <span style={{ color: theme.danger }}>*</span></label>
                     <input type="email" value={form.data.email} onChange={e => form.setData('email', e.target.value)} placeholder="john@vibeme.ai" style={inputStyle(theme, !!form.errors.email)} />
                     <FieldError msg={form.errors.email} darkMode={darkMode} />
+                </div>
+
+                <div style={{ gridColumn: '1/-1' }}>
+                    <label style={lbl}>Date of Birth <span style={{ color: theme.danger }}>*</span></label>
+                    <input
+                        type="date"
+                        value={form.data.date_of_birth || ''}
+                        onChange={e => form.setData('date_of_birth', e.target.value)}
+                        style={inputStyle(theme, !!form.errors.date_of_birth)}
+                        max={new Date().toISOString().split('T')[0]}
+                    />
+                    <FieldError msg={form.errors.date_of_birth} darkMode={darkMode} />
                 </div>
 
                 {/* FIX 3: HR → read-only country badge; admin → dropdown selector */}
@@ -1382,7 +1395,7 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
-                                    {['User', 'Country', 'Role', 'Department', 'Position', 'Phone', 'Employment', 'Joined', 'Status', 'Actions'].map(h => (
+                                    {['User', 'Country', 'Role', 'Department', 'Position', 'Phone', 'Date of Birth', 'Employment', 'Joined', 'Status', 'Actions'].map(h => (
                                         <th
                                             key={h}
                                             style={{
@@ -1405,7 +1418,7 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                             <tbody>
                                 {filtered.length === 0 ? (
                                     <tr>
-                                        <td colSpan={10} style={{ padding: 56, textAlign: 'center' }}>
+                                        <td colSpan={11} style={{ padding: 56, textAlign: 'center' }}>
                                             <div style={{ width: 64, height: 64, margin: '0 auto 14px', borderRadius: 20, border: `1px solid ${theme.border}`, background: theme.panelSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2">
                                                     <circle cx="11" cy="11" r="8" />
@@ -1464,7 +1477,15 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                                         <td style={{ padding: '16px 18px', fontSize: 12.5, color: theme.textSoft }}>
                                             {user.phone || '—'}
                                         </td>
-
+                                        <td style={{ padding: '16px 18px', fontSize: 12, color: theme.textSoft, whiteSpace: 'nowrap' }}>
+                                            {user.date_of_birth
+                                                ? new Date(String(user.date_of_birth).split('T')[0] + 'T00:00:00').toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })
+                                                : '—'}
+                                        </td>
                                         <td style={{ padding: '16px 18px' }}>
                                             {(() => {
                                                 const cfg = {

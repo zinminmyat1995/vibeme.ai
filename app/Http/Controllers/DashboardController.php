@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
-use App\Models\User;
-use App\Models\SalaryRule;
+use App\Models\AttendanceRecord;
 use App\Models\LeaveRequest;
 use App\Models\OvertimeRequest;
 use App\Models\PayrollRecord;
-use App\Models\AttendanceRecord;
 use App\Models\PublicHoliday;
+use App\Models\SalaryRule;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,230 +19,351 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $user      = Auth::user();
-        $role      = $user->role?->name;
-        $country   = $user->country;
+        $user = Auth::user();
+        $role = strtolower($user->role?->name ?? 'employee');
+        $country = $user->country;
         $countryId = $user->countryRecord?->id;
+        $department = $user->department;
+        $timezoneMap = [
+            'cambodia'    => 'Asia/Phnom_Penh',
+            'myanmar'     => 'Asia/Rangoon',
+            'vietnam'     => 'Asia/Ho_Chi_Minh',
+            'japan'       => 'Asia/Tokyo',
+            'korea'       => 'Asia/Seoul',
+            'south korea' => 'Asia/Seoul',
 
-        // ── Announcements ──────────────────────────────────────────────────
-        // Use now() without timezone conversion — compare raw datetime values
-        // This works regardless of whether DB stores UTC or local time,
-        // as long as both sides use the same reference (Laravel's now()).
-        $nowStr = now()->toDateTimeString();
+        ];
+
+        $userTimezone = $timezoneMap[strtolower($country ?? '')] ?? 'UTC';
+        $nowString    = Carbon::now($userTimezone)->toDateTimeString();
+        $today        = Carbon::now($userTimezone)->toDateString();
+
+        $isHrAdmin = in_array($role, ['admin', 'hr'], true);
+        $isManagement = $role === 'management';
 
         $announcementsQuery = Announcement::with('creator:id,name')
-            ->where(fn($q) => $q->whereNull('start_at')->orWhere('start_at', '<=', $nowStr))
-            ->where(fn($q) => $q->whereNull('end_at')->orWhere('end_at', '>=', $nowStr));
+            ->where(function ($q) use ($nowString) {
+                $q->whereNull('start_at')->orWhere('start_at', '<=', $nowString);
+            })
+            ->where(function ($q) use ($nowString) {
+                $q->whereNull('end_at')->orWhere('end_at', '>=', $nowString);
+            });
 
         if ($role !== 'admin') {
             $announcementsQuery->where(function ($q) use ($country) {
-                $q->where('country', $country)->orWhereNull('country');
+                $q->whereNull('country')->orWhere('country', $country);
             });
         }
 
-        $announcements = $announcementsQuery->orderBy('start_at', 'desc')->get()
-            ->map(fn($a) => [
-                'id'         => $a->id,
-                'title'      => $a->title,
-                'content'    => $a->content,
-                'country'    => $a->country,
-                'start_at'   => $a->start_at?->toDateTimeString(),
-                'end_at'     => $a->end_at?->toDateTimeString(),
-                'created_by' => $a->creator?->name,
-            ]);
+        $announcements = $announcementsQuery
+            ->orderByDesc('start_at')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn ($item) => [
+                'id' => $item->id,
+                'title' => $item->title,
+                'content' => $item->content,
+                'country' => $item->country,
+                'start_at' => optional($item->start_at)->toDateTimeString(),
+                'end_at' => optional($item->end_at)->toDateTimeString(),
+                'created_by' => $item->creator?->name,
+            ])
+            ->values();
 
-        // ── Employee Stats (HR / Admin) ────────────────────────────────────
-        $employeeStats   = null;
-        $probationAlerts = [];
-        $contractAlerts  = [];
-        $employmentChart = [];
-        $countryChart    = [];
-        $payrollTrend    = [];
+        $heroAnnouncement = $announcements->first();
 
-        if (in_array($role, ['hr', 'admin'])) {
-            $empQuery = User::where('is_active', true);
-            if ($role === 'hr') $empQuery->where('country', $country);
-            $employees = $empQuery->get();
+        $scopeUsersQuery = User::query()->where('is_active', true);
 
-            $salaryRule    = SalaryRule::where('country_id', $countryId)->first();
-            $probationDays = $salaryRule?->probation_days ?? 90;
-
-            $probationEmps = $employees->where('employment_type', 'probation');
-            $contractEmps  = $employees->where('employment_type', 'contract');
-            $permanentEmps = $employees->where('employment_type', 'permanent');
-
-            $employeeStats = [
-                'total'     => $employees->count(),
-                'probation' => $probationEmps->count(),
-                'contract'  => $contractEmps->count(),
-                'permanent' => $permanentEmps->count(),
-            ];
-
-            $employmentChart = [
-                ['label' => 'Permanent', 'value' => $permanentEmps->count(), 'color' => '#059669'],
-                ['label' => 'Probation', 'value' => $probationEmps->count(), 'color' => '#d97706'],
-                ['label' => 'Contract',  'value' => $contractEmps->count(),  'color' => '#2563eb'],
-            ];
-
-            if ($role === 'admin') {
-                $byCountry = $employees->groupBy('country');
-                foreach ($byCountry as $c => $grp) {
-                    $countryChart[] = ['label' => ucfirst($c ?: 'Unknown'), 'value' => $grp->count()];
-                }
-            }
-
-            // Last 6 months payroll trend
-            for ($i = 5; $i >= 0; $i--) {
-                $m   = now()->subMonths($i);
-                $qry = PayrollRecord::whereMonth('created_at', $m->month)
-                    ->whereYear('created_at', $m->year);
-                if ($role === 'hr') {
-                    $qry->whereHas('user', fn($q) => $q->where('country', $country));
-                }
-                $payrollTrend[] = [
-                    'month' => $m->format('M'),
-                    'count' => $qry->count(),
-                    'total' => (float) $qry->sum('net_salary'),
-                ];
-            }
-
-            // Probation alerts ≤10 days
-            foreach ($probationEmps as $emp) {
-                if (!$emp->joined_date) continue;
-                $end      = Carbon::parse($emp->joined_date)->addDays($probationDays);
-                $daysLeft = (int) now()->diffInDays($end, false);
-                if ($daysLeft >= 0 && $daysLeft <= 10) {
-                    $probationAlerts[] = [
-                        'id'           => $emp->id,
-                        'name'         => $emp->name,
-                        'department'   => $emp->department,
-                        'days_left'    => $daysLeft,
-                        'probation_end'=> $end->toDateString(),
-                    ];
-                }
-            }
-
-            // Contract alerts ≤30 days
-            foreach ($contractEmps as $emp) {
-                if (!$emp->contract_end_date) continue;
-                $daysLeft = (int) now()->diffInDays(Carbon::parse($emp->contract_end_date), false);
-                if ($daysLeft >= 0 && $daysLeft <= 30) {
-                    $contractAlerts[] = [
-                        'id'           => $emp->id,
-                        'name'         => $emp->name,
-                        'department'   => $emp->department,
-                        'days_left'    => $daysLeft,
-                        'contract_end' => Carbon::parse($emp->contract_end_date)->toDateString(),
-                    ];
-                }
+        if ($role === 'hr') {
+            $scopeUsersQuery->where('country', $country);
+        } elseif ($isManagement) {
+            if ($department) {
+                $scopeUsersQuery->where('department', $department);
+            } elseif ($country) {
+                $scopeUsersQuery->where('country', $country);
             }
         }
 
-        // ── My Stats ──────────────────────────────────────────────────────
-        $pendingLeaves = LeaveRequest::where('user_id', $user->id)
-            ->where('status', 'pending')->count();
+        $scopeUsers = $scopeUsersQuery->get();
+        $employeeStats = [
+            'total' => $scopeUsers->count(),
+            'probation' => $scopeUsers->where('employment_type', 'probation')->count(),
+            'contract' => $scopeUsers->where('employment_type', 'contract')->count(),
+            'permanent' => $scopeUsers->where('employment_type', 'permanent')->count(),
+        ];
 
-        $approvedLeaves = LeaveRequest::where('user_id', $user->id)
-            ->where('status', 'approved')
-            ->whereMonth('start_date', now()->month)
-            ->whereYear('start_date', now()->year)->count();
+        $employmentChart = [
+            ['label' => 'Permanent', 'value' => $employeeStats['permanent'], 'color' => '#10b981'],
+            ['label' => 'Probation', 'value' => $employeeStats['probation'], 'color' => '#f59e0b'],
+            ['label' => 'Contract', 'value' => $employeeStats['contract'], 'color' => '#3b82f6'],
+        ];
+
+        $departmentChart = $scopeUsers
+            ->groupBy(fn ($item) => $item->department ?: 'No Dept')
+            ->map(fn ($group, $label) => ['label' => $label, 'value' => $group->count()])
+            ->sortByDesc('value')
+            ->take(6)
+            ->values();
+
+        $orgSummary = [
+            'total_employees' => $employeeStats['total'],
+            'total_departments' => $scopeUsers->pluck('department')->filter()->unique()->count(),
+        ];
+
+        $teamSummary = [
+            'headcount' => $scopeUsers->count(),
+            'present_today' => AttendanceRecord::whereIn('user_id', $scopeUsers->pluck('id'))
+                ->where('date', $today)
+                ->whereIn('status', ['present', 'late'])
+                ->count(),
+            'on_leave_today' => LeaveRequest::whereIn('user_id', $scopeUsers->pluck('id'))
+                ->where('status', 'approved')
+                ->whereDate('start_date', '<=', $today)
+                ->whereDate('end_date', '>=', $today)
+                ->count(),
+        ];
+
+        $approvalQueue = [
+            'pending_leave_requests' => LeaveRequest::where('approver_id', $user->id)->where('status', 'pending')->count(),
+            'pending_ot_requests' => OvertimeRequest::where('approver_id', $user->id)->where('status', 'pending')->count(),
+        ];
+
+        $salaryRule = $countryId ? SalaryRule::where('country_id', $countryId)->first() : null;
+        $probationDays = $salaryRule?->probation_days ?? 90;
+        $probationAlerts = [];
+        $contractAlerts = [];
+
+        foreach ($scopeUsers->where('employment_type', 'probation') as $employee) {
+            if (!$employee->joined_date) {
+                continue;
+            }
+
+            $probationEnd = Carbon::parse($employee->joined_date)->addDays($probationDays);
+            $daysLeft = (int) now()->diffInDays($probationEnd, false);
+
+            if ($daysLeft >= 0 && $daysLeft <= 10) {
+                $probationAlerts[] = [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'department' => $employee->department,
+                    'days_left' => $daysLeft,
+                    'probation_end' => $probationEnd->toDateString(),
+                ];
+            }
+        }
+
+        foreach ($scopeUsers->where('employment_type', 'contract') as $employee) {
+            if (!$employee->contract_end_date) {
+                continue;
+            }
+
+            $contractEnd = Carbon::parse($employee->contract_end_date);
+            $daysLeft = (int) now()->diffInDays($contractEnd, false);
+
+            if ($daysLeft >= 0 && $daysLeft <= 30) {
+                $contractAlerts[] = [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'department' => $employee->department,
+                    'days_left' => $daysLeft,
+                    'contract_end' => $contractEnd->toDateString(),
+                ];
+            }
+        }
+
+        $payrollTrend = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $query = PayrollRecord::query()
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month);
+
+            if ($role === 'hr') {
+                $query->whereHas('user', fn ($q) => $q->where('country', $country));
+            } elseif ($isManagement) {
+                $userIds = $scopeUsers->pluck('id');
+                $query->whereIn('user_id', $userIds);
+            }
+
+            $payrollTrend->push([
+                'month' => $month->format('M'),
+                'count' => $query->count(),
+                'total' => (float) $query->sum('net_salary'),
+            ]);
+        }
+
+        $attendanceTrend = collect(range(6, 0))->reverse()->map(function ($offset) use ($scopeUsers) {
+            $date = now()->subDays($offset)->toDateString();
+            $present = AttendanceRecord::whereIn('user_id', $scopeUsers->pluck('id'))
+                ->where('date', $date)
+                ->whereIn('status', ['present', 'late'])
+                ->count();
+
+            return [
+                'label' => Carbon::parse($date)->format('D'),
+                'value' => $present,
+            ];
+        })->values();
+
+        $pendingLeaves = LeaveRequest::where('user_id', $user->id)->where('status', 'pending')->count();
 
         $otHours = OvertimeRequest::where('user_id', $user->id)
             ->where('status', 'approved')
             ->whereMonth('start_date', now()->month)
             ->whereYear('start_date', now()->year)
-            ->get()->flatMap(fn($r) => $r->segments)->sum('hours_approved');
+            ->get()
+            ->flatMap(fn ($record) => $record->segments)
+            ->sum('hours_approved');
 
-        $latestPayroll = PayrollRecord::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')->first();
+        $latestPayroll = PayrollRecord::where('user_id', $user->id)->latest()->first();
 
         $presentDays = AttendanceRecord::where('user_id', $user->id)
-            ->whereMonth('date', now()->month)
             ->whereYear('date', now()->year)
-            ->whereIn('status', ['present', 'late'])->count();
-
-        $pendingLeaveApprovals = LeaveRequest::where('approver_id', $user->id)
-            ->where('status', 'pending')->count();
-
-        $pendingOtApprovals = OvertimeRequest::where('approver_id', $user->id)
-            ->where('status', 'pending')->count();
+            ->whereMonth('date', now()->month)
+            ->whereIn('status', ['present', 'late'])
+            ->count();
 
         $myStats = [
-            'pending_leaves'          => $pendingLeaves,
-            'approved_leaves'         => $approvedLeaves,
-            'ot_hours_month'          => round((float) $otHours, 1),
-            'payslip_status'          => $latestPayroll?->status ?? null,
-            'net_salary'              => $latestPayroll?->net_salary ?? null,
-            'present_days'            => $presentDays,
-            'pending_leave_approvals' => $pendingLeaveApprovals,
-            'pending_ot_approvals'    => $pendingOtApprovals,
+            'pending_leaves' => $pendingLeaves,
+            'ot_hours_month' => round((float) $otHours, 1),
+            'present_days' => $presentDays,
+            'payslip_status' => $latestPayroll?->status,
+            'net_salary' => $latestPayroll?->net_salary,
         ];
 
-        // ── Today Attendance ──────────────────────────────────────────────
-        $todayAtt    = AttendanceRecord::where('user_id', $user->id)
-            ->where('date', now()->toDateString())->first();
-        $todayStatus = $todayAtt
-            ? ['checked_in' => true,  'check_in' => $todayAtt->check_in_time,  'check_out' => $todayAtt->check_out_time]
-            : ['checked_in' => false, 'check_in' => null, 'check_out' => null];
+        $todayAttendance = AttendanceRecord::where('user_id', $user->id)->where('date', $today)->first();
+        $todayStatus = [
+            'checked_in' => (bool) $todayAttendance,
+            'check_in' => $todayAttendance?->check_in_time,
+            'check_out' => $todayAttendance?->check_out_time,
+        ];
 
-        // ── Upcoming Holidays ─────────────────────────────────────────────
+        $weeklyAttendance = collect(range(6, 0))->reverse()->map(function ($offset) use ($user) {
+            $date = now()->subDays($offset)->toDateString();
+            $present = AttendanceRecord::where('user_id', $user->id)
+                ->where('date', $date)
+                ->whereIn('status', ['present', 'late'])
+                ->exists();
+
+            return [
+                'label' => Carbon::parse($date)->format('D'),
+                'value' => $present ? 1 : 0,
+            ];
+        })->values();
+
         $upcomingHolidays = [];
         if ($countryId) {
             $upcomingHolidays = PublicHoliday::where('country_id', $countryId)
-                ->where('date', '>=', now()->toDateString())
-                ->orderBy('date')->limit(3)->get()
-                ->map(fn($h) => ['name' => $h->name, 'date' => Carbon::parse($h->date)->toDateString()])
-                ->toArray();
+                ->whereDate('date', '>', $today)
+                ->orderBy('date')
+                ->limit(4)
+                ->get()
+                ->map(fn ($holiday) => [
+                    'name' => $holiday->name,
+                    'date' => Carbon::parse($holiday->date)->format('d M'),
+                ]);
         }
 
+        // ── Birthdays this week ──
+        $birthdaysThisWeek = [];
+        $weekStart = Carbon::now($userTimezone)->startOfWeek()->format('m-d');
+        $weekEnd   = Carbon::now($userTimezone)->endOfWeek()->format('m-d');
+
+        $birthdaysThisWeek = $scopeUsers
+            ->filter(fn($u) => !empty($u->date_of_birth))
+            ->filter(function($u) use ($userTimezone) {
+                $dob        = Carbon::parse($u->date_of_birth);
+                $thisYear   = Carbon::now($userTimezone)->year;
+                $birthday   = Carbon::createFromDate($thisYear, $dob->month, $dob->day);
+                $weekStart  = Carbon::now($userTimezone)->startOfWeek();
+                $weekEnd    = Carbon::now($userTimezone)->endOfWeek();
+                return $birthday->between($weekStart, $weekEnd);
+            })
+            ->map(fn($u) => [
+                'id'            => $u->id,
+                'name'          => $u->name,
+                'department'    => $u->department,
+                'birthday_date' => Carbon::parse($u->date_of_birth)->format('d M'),
+            ])
+            ->values();
+
+        // ── On leave today ──
+        $onLeaveToday = LeaveRequest::with('user:id,name,department')
+            ->whereIn('user_id', $scopeUsers->pluck('id'))
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->get()
+            ->map(fn($leave) => [
+                'id'         => $leave->user?->id,
+                'name'       => $leave->user?->name,
+                'department' => $leave->user?->department,
+                'leave_type' => $leave->leave_type ?? 'Leave',
+            ])
+            ->values();
+
         return Inertia::render('Dashboard', [
-            'announcements'   => $announcements,
-            'employeeStats'   => $employeeStats,
-            'probationAlerts' => $probationAlerts,
-            'contractAlerts'  => $contractAlerts,
+            'dashboardMode' => $isHrAdmin ? 'organization' : ($isManagement ? 'management' : 'personal'),
+            'roleName' => $role,
+            'heroAnnouncement' => $heroAnnouncement,
+            'announcements' => $announcements,
+            'orgSummary' => $orgSummary,
+            'teamSummary' => $teamSummary,
+            'approvalQueue' => $approvalQueue,
+            'employeeStats' => $employeeStats,
             'employmentChart' => $employmentChart,
-            'countryChart'    => $countryChart,
-            'payrollTrend'    => $payrollTrend,
-            'myStats'         => $myStats,
-            'todayStatus'     => $todayStatus,
-            'upcomingHolidays'=> $upcomingHolidays,
-            'roleName'        => $role,
-            'userCountry'     => $country,
+            'departmentChart' => $departmentChart,
+            'payrollTrend' => $payrollTrend,
+            'attendanceTrend' => $attendanceTrend,
+            'probationAlerts' => $probationAlerts,
+            'contractAlerts' => $contractAlerts,
+            'myStats' => $myStats,
+            'todayStatus' => $todayStatus,
+            'upcomingHolidays' => $upcomingHolidays,
+            'weeklyAttendance' => $weeklyAttendance,
+            'birthdaysThisWeek' => $birthdaysThisWeek,
+            'onLeaveToday'      => $onLeaveToday,
         ]);
     }
 
     public function storeAnnouncement(Request $request)
     {
         $user = Auth::user();
-        $role = $user->role?->name;
-        if (!in_array($role, ['admin', 'hr'])) abort(403);
+        $role = strtolower($user->role?->name ?? 'employee');
 
-        $v = $request->validate([
-            'title'    => 'required|string|max:255',
-            'content'  => 'required|string',
+        abort_unless(in_array($role, ['admin', 'hr'], true), 403);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
             'start_at' => 'required|date',
-            'end_at'   => 'required|date|after:start_at',
+            'end_at' => 'required|date|after:start_at',
         ]);
 
         Announcement::create([
             'created_by' => $user->id,
-            'title'      => $v['title'],
-            'content'    => $v['content'],
-            'country'    => $role === 'hr' ? $user->country : null,
-            'start_at'   => $v['start_at'],
-            'end_at'     => $v['end_at'],
+            'title' => $validated['title'],
+            'content' => $validated['content'],
+            'country' => $role === 'hr' ? $user->country : null,
+            'start_at' => $validated['start_at'],
+            'end_at' => $validated['end_at'],
         ]);
 
-        return back()->with('success', 'Announcement created!');
+        return back()->with('success', 'Announcement created.');
     }
 
     public function deleteAnnouncement(Announcement $announcement)
     {
         $user = Auth::user();
-        $role = $user->role?->name;
-        if (!in_array($role, ['admin', 'hr'])) abort(403);
-        if ($role === 'hr' && $announcement->country !== $user->country) abort(403);
+        $role = strtolower($user->role?->name ?? 'employee');
+
+        abort_unless(in_array($role, ['admin', 'hr'], true), 403);
+        if ($role === 'hr' && $announcement->country !== $user->country) {
+            abort(403);
+        }
+
         $announcement->delete();
+
         return back()->with('success', 'Announcement deleted.');
     }
 }

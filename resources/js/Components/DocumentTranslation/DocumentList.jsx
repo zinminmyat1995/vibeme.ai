@@ -1130,8 +1130,9 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                         </div>
                     ) : (
                         <div style={{ ...card(theme, { overflow: 'hidden' }) }}>
-                            <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <div style={{ overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                <style>{`.hide-scroll::-webkit-scrollbar{display:none}`}</style>
+                                <table className="hide-scroll" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead>
                                         <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
                                             {['Document', 'Status', 'Languages', 'Created', 'Uploader', 'Tags', 'Actions'].map((head) => (
