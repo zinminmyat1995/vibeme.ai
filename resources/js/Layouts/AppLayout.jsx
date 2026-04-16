@@ -157,10 +157,22 @@ const menuItems = [
             {
                 icon: (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 7V3M16 7V3M4 11h16"/>
+                        <rect x="3" y="5" width="18" height="16" rx="2"/>
+                        <path d="M9 15l2 2 4-4"/>
+                    </svg>
+                ),
+                label: 'Check In/Out Request',
+                route: '/payroll/check-in-out-requests',
+                roles: ['admin', 'hr', 'management', 'employee'],
+            },
+            {
+                icon: (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
                     </svg>
                 ),
-                label: 'Leave Management',
+                label: 'Leave Request',
                 route: '/payroll/leaves',
                 roles: ['admin', 'hr', 'management', 'employee'],
             },
@@ -170,7 +182,7 @@ const menuItems = [
                         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                     </svg>
                 ),
-                label: 'Overtime Management',
+                label: 'Overtime Request',
                 route: '/payroll/overtimes',
                 roles: ['admin', 'hr', 'management', 'employee'],
             },

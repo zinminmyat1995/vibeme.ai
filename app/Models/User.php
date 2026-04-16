@@ -99,4 +99,14 @@ class User extends Authenticatable
     {
         return $query->where('country_id', $countryId);
     }
+
+    public function attendanceRequests()
+    {
+        return $this->hasMany(\App\Models\AttendanceRequest::class);
+    }
+
+    public function attendanceApprovals()
+    {
+        return $this->hasMany(\App\Models\AttendanceRequest::class, 'approver_id');
+    }
 }

@@ -25,6 +25,7 @@ use App\Http\Controllers\Payroll\BankExportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Payroll\AttendanceRequestController;
 
 // Home page (existing route ကို replace)
 Route::get('/', [RecruitmentController::class, 'home']);
@@ -204,6 +205,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/payroll/attendance', [AttendanceRecordController::class, 'index']);
     Route::post('/payroll/attendance', [AttendanceRecordController::class, 'store']);
     Route::delete('/payroll/attendance/{attendanceRecord}', [AttendanceRecordController::class, 'destroy']);
+
+    // Check in / out
+    Route::get('/payroll/check-in-out-requests', [AttendanceRequestController::class, 'index']);
+    Route::post('/payroll/check-in-out-requests', [AttendanceRequestController::class, 'store']);
+    Route::patch('/payroll/check-in-out-requests/{attendanceRequest}/approve', [AttendanceRequestController::class, 'approve']);
+    Route::patch('/payroll/check-in-out-requests/{attendanceRequest}/reject', [AttendanceRequestController::class, 'reject']);
 
     // Leave Management
     Route::get('/payroll/leaves', [LeaveRequestController::class, 'index']);

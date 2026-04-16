@@ -62,6 +62,12 @@ class RecruitmentController extends Controller
 
         $jobs = JobPosting::where('brycen_office_id', $office->id)
             ->where('status', 'open')
+            ->where(function ($q) {
+                // deadline null ဖြစ်ရင် ပြပေးမယ်
+                // deadline ရှိရင် today နဲ့ equal or greater than ဖြစ်မှ ပြပေးမယ်
+                $q->whereNull('deadline')
+                ->orWhereDate('deadline', '>=', now()->toDateString());
+            })
             ->withCount('applications')
             ->orderByDesc('created_at')
             ->get()

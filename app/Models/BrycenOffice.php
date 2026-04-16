@@ -21,6 +21,11 @@ class BrycenOffice extends Model
 
     public function openJobPostings()
     {
-        return $this->hasMany(JobPosting::class)->where('status', 'open');
+        return $this->hasMany(JobPosting::class)
+                    ->where('status', 'open')           // open သာ
+                    ->where(function ($q) {
+                        $q->whereNull('deadline')        // deadline မသတ်မှတ်ထားရင်
+                        ->orWhereDate('deadline', '>=', now()->toDateString()); // မကျော်သေးရင်
+                    });
     }
 }
