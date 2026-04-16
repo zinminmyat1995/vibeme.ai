@@ -260,7 +260,7 @@ function LeaveBalanceCards({ leavePolicies, leaveTypeConfig, balanceMap, dark, t
 }
 
 // ─── Request Row ──────────────────────────────────────────────
-function RequestRow({ req, leaveTypeConfig, dark, theme, canApprove, userId, onApprove, onReject, isLast }) {
+function RequestRow({ req, leaveTypeConfig, dark, theme, canApprove, userId, onApprove, onReject, onDelete, isLast }) {
     const typeCfg    = leaveTypeConfig[req.leave_type] || COLOR_POOL[0];
     const statusCfg  = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending;
     const dayTypeCfg = DAY_TYPE_CONFIG[req.day_type || 'full_day'];
@@ -272,6 +272,8 @@ function RequestRow({ req, leaveTypeConfig, dark, theme, canApprove, userId, onA
     const dayTypeBg = dark ? dayTypeCfg.bgDark : dayTypeCfg.bg;
     const typeBg    = dark ? typeCfg.bgDark    : typeCfg.bg;
 
+    const showDelete = req.user_id === userId && req.status === 'pending';
+    
     return (
         <div style={{ display:'flex', alignItems:'stretch', borderBottom: isLast ? 'none' : `1px solid ${theme.border}` }}>
             <div style={{ width:4, background:typeCfg.color, flexShrink:0 }} />
@@ -339,39 +341,85 @@ function RequestRow({ req, leaveTypeConfig, dark, theme, canApprove, userId, onA
                     )}
                 </div>
 
-                <div style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8 }}>
-                    {showActions && (
-                        <div style={{ display:'flex', gap:7 }}>
-                            <button onClick={() => onApprove(req)} style={{
-                                background: dark ? 'rgba(16,185,129,0.14)' : '#d1fae5',
-                                border:`1px solid ${dark ? 'rgba(16,185,129,0.3)' : '#6ee7b7'}`,
-                                borderRadius:10, padding:'7px 14px', fontSize:12, fontWeight:700, cursor:'pointer',
-                                color: dark ? '#34d399' : '#059669', transition:'all 0.15s' }}
-                                onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(16,185,129,0.25)' : '#a7f3d0'}
-                                onMouseLeave={e => e.currentTarget.style.background = dark ? 'rgba(16,185,129,0.14)' : '#d1fae5'}>
-                                ✓ Approve
-                            </button>
-                            <button onClick={() => onReject(req)} style={{
+                <div style={{
+                    flexShrink: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    justifyContent: 'space-between',
+                    gap: 8,
+                    minWidth: 130,
+                    alignSelf: 'stretch',
+                }}>
+                    {/* အပေါ် — status / actions */}
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8 }}>
+                        {showActions && (
+                            <div style={{ display:'flex', gap:7 }}>
+                                <button onClick={() => onApprove(req)} style={{
+                                    background: dark ? 'rgba(16,185,129,0.14)' : '#d1fae5',
+                                    border:`1px solid ${dark ? 'rgba(16,185,129,0.3)' : '#6ee7b7'}`,
+                                    borderRadius:10, padding:'7px 14px', fontSize:12, fontWeight:700, cursor:'pointer',
+                                    color: dark ? '#34d399' : '#059669', transition:'all 0.15s' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(16,185,129,0.25)' : '#a7f3d0'}
+                                    onMouseLeave={e => e.currentTarget.style.background = dark ? 'rgba(16,185,129,0.14)' : '#d1fae5'}>
+                                    ✓ Approve
+                                </button>
+                                <button onClick={() => onReject(req)} style={{
+                                    background: dark ? 'rgba(248,113,113,0.12)' : '#fee2e2',
+                                    border:`1px solid ${dark ? 'rgba(248,113,113,0.25)' : '#fca5a5'}`,
+                                    borderRadius:10, padding:'7px 14px', fontSize:12, fontWeight:700, cursor:'pointer',
+                                    color: dark ? '#f87171' : '#dc2626', transition:'all 0.15s' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.22)' : '#fecaca'}
+                                    onMouseLeave={e => e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.12)' : '#fee2e2'}>
+                                    ✕ Reject
+                                </button>
+                            </div>
+                        )}
+                        {req.status === 'approved' && <span style={{ fontSize:12, color: dark ? '#34d399' : '#059669', fontWeight:700 }}>✓ Approved</span>}
+                        {req.status === 'rejected' && <span style={{ fontSize:12, color: dark ? '#f87171' : '#dc2626', fontWeight:700 }}>✕ Rejected</span>}
+                        {req.status === 'pending' && !showActions && req.approver && (
+                            <div style={{ textAlign:'right' }}>
+                                <div style={{ fontSize:10, color:theme.textMute, fontWeight:500 }}>Awaiting</div>
+                                <div style={{ fontSize:11, color:theme.secondary, fontWeight:800 }}>{req.approver.name}</div>
+                            </div>
+                        )}
+                        {req.status === 'pending' && !showActions && !req.approver && req.user_id === userId && (
+                            <span style={{ fontSize:11, color:theme.textMute, fontStyle:'italic' }}>Pending review</span>
+                        )}
+                    </div>
+
+                    {/* အောက် — delete icon (ညာ အောက်ထောင့်) */}
+                    {showDelete ? (
+                        <button
+                            onClick={() => onDelete(req)}
+                            title="Delete request"
+                            style={{
+                                width: 32, height: 32, borderRadius: 8,
                                 background: dark ? 'rgba(248,113,113,0.12)' : '#fee2e2',
-                                border:`1px solid ${dark ? 'rgba(248,113,113,0.25)' : '#fca5a5'}`,
-                                borderRadius:10, padding:'7px 14px', fontSize:12, fontWeight:700, cursor:'pointer',
-                                color: dark ? '#f87171' : '#dc2626', transition:'all 0.15s' }}
-                                onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.22)' : '#fecaca'}
-                                onMouseLeave={e => e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.12)' : '#fee2e2'}>
-                                ✕ Reject
-                            </button>
-                        </div>
-                    )}
-                    {req.status === 'approved' && <span style={{ fontSize:12, color: dark ? '#34d399' : '#059669', fontWeight:700 }}>✓ Approved</span>}
-                    {req.status === 'rejected' && <span style={{ fontSize:12, color: dark ? '#f87171' : '#dc2626', fontWeight:700 }}>✕ Rejected</span>}
-                    {req.status === 'pending' && !showActions && req.approver && (
-                        <div style={{ textAlign:'right' }}>
-                            <div style={{ fontSize:10, color:theme.textMute, fontWeight:500 }}>Awaiting</div>
-                            <div style={{ fontSize:11, color:theme.secondary, fontWeight:800 }}>{req.approver.name}</div>
-                        </div>
-                    )}
-                    {req.status === 'pending' && !showActions && !req.approver && isMyRequest && (
-                        <span style={{ fontSize:11, color:theme.textMute, fontStyle:'italic' }}>Pending review</span>
+                                border: `1px solid ${dark ? 'rgba(248,113,113,0.22)' : '#fca5a5'}`,
+                                cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                justifyContent: 'center', transition: 'all 0.15s', flexShrink: 0,
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.25)' : '#fecaca';
+                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.45)' : '#f87171';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.12)' : '#fee2e2';
+                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.22)' : '#fca5a5';
+                            }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke={dark ? '#f87171' : '#dc2626'}
+                                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                <path d="M10 11v6" /><path d="M14 11v6" />
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                            </svg>
+                        </button>
+                    ) : (
+                        <div style={{ width: 32, height: 32 }} />
                     )}
                 </div>
             </div>
@@ -380,14 +428,27 @@ function RequestRow({ req, leaveTypeConfig, dark, theme, canApprove, userId, onA
 }
 
 // ─── Confirm Modal ────────────────────────────────────────────
-function ConfirmModal({ type, request, loading, leaveTypeConfig, dark, theme, onCancel, onApprove, onReject }) {
+function ConfirmModal({ type, request, loading, leaveTypeConfig, dark, theme, onCancel, onApprove, onReject, onDelete }) {
+    const isApprove = type === 'approve';
+    const isDelete  = type === 'delete';
+
     const typeCfg    = leaveTypeConfig[request.leave_type] || COLOR_POOL[0];
     const dayTypeCfg = DAY_TYPE_CONFIG[request.day_type || 'full_day'];
-    const isApprove  = type === 'approve';
-    const accentColor = isApprove ? (dark ? '#34d399' : '#059669') : (dark ? '#f87171' : '#dc2626');
-    const accentBg    = isApprove ? (dark ? 'rgba(16,185,129,0.15)' : '#d1fae5') : (dark ? 'rgba(248,113,113,0.14)' : '#fee2e2');
-    const typeBg      = dark ? typeCfg.bgDark : typeCfg.bg;
-    const dayBg       = dark ? dayTypeCfg.bgDark : dayTypeCfg.bg;
+
+    const accentColor = isDelete  ? (dark ? '#f87171' : '#dc2626')
+                      : isApprove ? (dark ? '#34d399' : '#059669')
+                      :             (dark ? '#f87171' : '#dc2626');
+
+    const accentBg = isDelete  ? (dark ? 'rgba(248,113,113,0.14)' : '#fee2e2')
+                   : isApprove ? (dark ? 'rgba(16,185,129,0.15)'  : '#d1fae5')
+                   :             (dark ? 'rgba(248,113,113,0.14)' : '#fee2e2');
+
+    const title   = isDelete ? 'Delete Leave Request' : isApprove ? 'Approve Leave Request' : 'Reject Leave Request';
+    const subtext = isDelete ? 'This action cannot be undone' : 'Employee will be notified';
+    const icon    = isDelete ? '🗑' : isApprove ? '✓' : '✕';
+
+    const typeBg = dark ? typeCfg.bgDark : typeCfg.bg;
+    const dayBg  = dark ? dayTypeCfg.bgDark : dayTypeCfg.bg;
 
     return createPortal(
         <div style={{ position:'fixed', inset:0, background:theme.overlay, display:'flex', alignItems:'center', justifyContent:'center', zIndex:9000, padding:20 }}>
@@ -398,49 +459,69 @@ function ConfirmModal({ type, request, loading, leaveTypeConfig, dark, theme, on
                 <div style={{ padding:'26px 26px 20px' }}>
                     <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:20 }}>
                         <div style={{ width:46, height:46, borderRadius:14, background:accentBg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0, border:`1px solid ${accentColor}33` }}>
-                            {isApprove ? '✓' : '✕'}
+                            {icon}
                         </div>
                         <div>
-                            <div style={{ fontSize:16, fontWeight:900, color:theme.text }}>{isApprove ? 'Approve Leave Request' : 'Reject Leave Request'}</div>
-                            <div style={{ fontSize:11, color:theme.textMute, marginTop:3 }}>Employee will be notified</div>
+                            <div style={{ fontSize:16, fontWeight:900, color:theme.text }}>{title}</div>
+                            <div style={{ fontSize:11, color:theme.textMute, marginTop:3 }}>{subtext}</div>
                         </div>
                     </div>
-                    <div style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb', border:`1px solid ${dark ? 'rgba(255,255,255,0.08)' : typeCfg.border}`, borderRadius:14, padding:'16px 18px', display:'flex', flexDirection:'column', gap:10 }}>
+
+                    <div style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb',
+                        border:`1px solid ${dark ? 'rgba(255,255,255,0.08)' : typeCfg.border}`,
+                        borderRadius:14, padding:'16px 18px', display:'flex', flexDirection:'column', gap:10 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                             <span style={{ fontSize:14, fontWeight:800, color:typeCfg.color }}>{request.leave_type}</span>
                             <span style={{ fontSize:10, fontWeight:700, background:dayBg, color:dayTypeCfg.color, borderRadius:99, padding:'2px 9px' }}>{dayTypeCfg.label}</span>
                         </div>
-                        {request.user && (
+                        {!isDelete && request.user && (
                             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                                <div style={{ width:24, height:24, borderRadius:8, background:typeBg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:typeCfg.color }}>{request.user.name?.charAt(0).toUpperCase()}</div>
+                                <div style={{ width:24, height:24, borderRadius:8, background:typeBg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:typeCfg.color }}>
+                                    {request.user.name?.charAt(0).toUpperCase()}
+                                </div>
                                 <span style={{ fontSize:13, fontWeight:700, color:theme.text }}>{request.user.name}</span>
                             </div>
                         )}
                         <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:theme.textSoft }}>
                             <span style={{ fontWeight:600 }}>{formatDate(request.start_date)}</span>
-                            {request.start_date !== request.end_date && <><span style={{ color:theme.textMute }}>→</span><span style={{ fontWeight:600 }}>{formatDate(request.end_date)}</span></>}
+                            {request.start_date !== request.end_date && (
+                                <><span style={{ color:theme.textMute }}>→</span>
+                                <span style={{ fontWeight:600 }}>{formatDate(request.end_date)}</span></>
+                            )}
                             <span style={{ fontSize:11, fontWeight:700, color:typeCfg.color, background:typeBg, borderRadius:6, padding:'1px 8px' }}>
                                 {formatNum(request.total_days)} {request.total_days===0.5?'half day':request.total_days==1?'day':'days'}
                             </span>
                         </div>
-                        {request.note && <div style={{ fontSize:11, color:theme.textMute, fontStyle:'italic', borderTop:`1px solid ${theme.border}`, paddingTop:8 }}>"{request.note}"</div>}
+                        {request.note && (
+                            <div style={{ fontSize:11, color:theme.textMute, fontStyle:'italic', borderTop:`1px solid ${theme.border}`, paddingTop:8 }}>
+                                "{request.note}"
+                            </div>
+                        )}
                     </div>
                 </div>
+
                 <div style={{ display:'flex', justifyContent:'flex-end', gap:10, padding:'0 26px 22px' }}>
                     <button onClick={onCancel} disabled={loading}
                         style={{ background: dark ? 'rgba(255,255,255,0.07)' : '#f3f4f6', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 18px', fontSize:13, fontWeight:600, cursor:'pointer', color:theme.textSoft }}>
                         Cancel
                     </button>
-                    {isApprove
-                        ? <button onClick={onApprove} disabled={loading}
+
+                    {isDelete ? (
+                        <button onClick={onDelete} disabled={loading}
+                            style={{ background: dark ? 'rgba(248,113,113,0.18)' : '#ef4444', border:`1px solid ${dark ? 'rgba(248,113,113,0.35)' : 'transparent'}`, borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:700, cursor:'pointer', color: dark ? '#f87171' : '#fff', opacity:loading?0.6:1 }}>
+                            {loading ? 'Deleting...' : '🗑 Delete'}
+                        </button>
+                    ) : isApprove ? (
+                        <button onClick={onApprove} disabled={loading}
                             style={{ background: dark ? 'rgba(16,185,129,0.2)' : '#059669', border:`1px solid ${dark ? 'rgba(16,185,129,0.4)' : 'transparent'}`, borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:700, cursor:'pointer', color: dark ? '#34d399' : '#fff', opacity:loading?0.6:1 }}>
                             {loading ? 'Approving...' : '✓ Approve'}
-                          </button>
-                        : <button onClick={onReject} disabled={loading}
+                        </button>
+                    ) : (
+                        <button onClick={onReject} disabled={loading}
                             style={{ background: dark ? 'rgba(248,113,113,0.18)' : '#ef4444', border:`1px solid ${dark ? 'rgba(248,113,113,0.35)' : 'transparent'}`, borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:700, cursor:'pointer', color: dark ? '#f87171' : '#fff', opacity:loading?0.6:1 }}>
                             {loading ? 'Rejecting...' : '✕ Reject'}
-                          </button>
-                    }
+                        </button>
+                    )}
                 </div>
             </div>
         </div>,
@@ -647,24 +728,6 @@ function LeaveRequestModal({ saving, setSaving, policyMap, balanceMap, leaveType
                         )}
                     </div>
 
-                    {/* Approver */}
-                    {roleName === 'hr' ? (
-                        approvers.length > 0 && (
-                            <div style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb', borderRadius:12, padding:'12px 16px', border:`1px solid ${theme.border}` }}>
-                                <div style={{ fontSize:10, color:theme.textMute, fontWeight:800, marginBottom:4, textTransform:'uppercase', letterSpacing:'0.5px' }}>Sending Approval To</div>
-                                <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{approvers[0]?.name} <span style={{ fontSize:11, color:theme.primary, fontWeight:600 }}>(Admin)</span></div>
-                            </div>
-                        )
-                    ) : !['admin'].includes(roleName) && approvers.length > 0 ? (
-                        <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
-                            <label style={lbl}>Approver <span style={{ color:theme.danger }}>*</span></label>
-                            <PremiumDropdown options={approverOptions} value={form.approver_id}
-                                onChange={v => set('approver_id', v)} placeholder="Select approver"
-                                theme={theme} dark={dark} width="100%" />
-                            {errors.approver_id && <span style={{ fontSize:11, color:theme.danger, fontWeight:600 }}>{errors.approver_id}</span>}
-                        </div>
-                    ) : null}
-
                     {/* Preview */}
                     {form.start_date && (previewDays > 0 || isHalfDay) && (
                         <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
@@ -756,6 +819,24 @@ function LeaveRequestModal({ saving, setSaving, policyMap, balanceMap, leaveType
                             style={{ ...inp(errors.note), height:80, resize:'vertical' }} />
                         {errors.note && <span style={{ fontSize:11, color:theme.danger, fontWeight:600 }}>{errors.note}</span>}
                     </div>
+
+                    {/* Approver */}
+                    {roleName === 'hr' ? (
+                        approvers.length > 0 && (
+                            <div style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb', borderRadius:12, padding:'12px 16px', border:`1px solid ${theme.border}` }}>
+                                <div style={{ fontSize:10, color:theme.textMute, fontWeight:800, marginBottom:4, textTransform:'uppercase', letterSpacing:'0.5px' }}>Sending Approval To</div>
+                                <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{approvers[0]?.name} <span style={{ fontSize:11, color:theme.primary, fontWeight:600 }}>(Admin)</span></div>
+                            </div>
+                        )
+                    ) : !['admin'].includes(roleName) && approvers.length > 0 ? (
+                        <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
+                            <label style={lbl}>Approver <span style={{ color:theme.danger }}>*</span></label>
+                            <PremiumDropdown options={approverOptions} value={form.approver_id}
+                                onChange={v => set('approver_id', v)} placeholder="Select approver"
+                                theme={theme} dark={dark} width="100%" />
+                            {errors.approver_id && <span style={{ fontSize:11, color:theme.danger, fontWeight:600 }}>{errors.approver_id}</span>}
+                        </div>
+                    ) : null}
                 </div>
 
                 {/* Footer */}
@@ -804,29 +885,31 @@ export default function LeaveIndex({ requests, leaveBalances, leavePolicies, emp
     function handleMonthYearFilter(m, y) { router.get('/payroll/leaves', { month:m, year:y, status:statusFilter }); }
     function handleStatusFilter(s) { setStatusFilter(s); router.get('/payroll/leaves', { status:s, month, year }, { preserveState:true }); }
 
-    function handleApprove(req) {
-        setActionLoading(true);
-        router.patch(`/payroll/leaves/${req.id}/approve`, {}, {
-            // ── GlobalToast က flash.success ကို ကောက်မည် ──
-            onSuccess: () => { setConfirmModal(null); setActionLoading(false); },
-            onError:   () => {
-                setActionLoading(false);
-                window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'Something went wrong', type: 'error' } }));
-            },
-        });
-    }
+function handleApprove(req) {
+    setActionLoading(true);
+    router.patch(`/payroll/leaves/${req.id}/approve`, {}, {
+        onSuccess: () => { setConfirmModal(null); setActionLoading(false); },
+        onError: (errors) => {
+            setActionLoading(false);
+            setConfirmModal(null);
+            const msg = errors?.message || 'Request no longer exists. It may have been deleted.';
+            window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'error' } }));
+        },
+    });
+}
 
-    function handleReject(req) {
-        setActionLoading(true);
-        router.patch(`/payroll/leaves/${req.id}/reject`, {}, {
-            // ── GlobalToast က flash.success ကို ကောက်မည် ──
-            onSuccess: () => { setConfirmModal(null); setActionLoading(false); },
-            onError:   () => {
-                setActionLoading(false);
-                window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'Something went wrong', type: 'error' } }));
-            },
-        });
-    }
+function handleReject(req) {
+    setActionLoading(true);
+    router.patch(`/payroll/leaves/${req.id}/reject`, {}, {
+        onSuccess: () => { setConfirmModal(null); setActionLoading(false); },
+        onError: (errors) => {
+            setActionLoading(false);
+            setConfirmModal(null);
+            const msg = errors?.message || 'Request no longer exists. It may have been deleted.';
+            window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'error' } }));
+        },
+    });
+}
 
     const policyMap  = useMemo(() => { const m={}; leavePolicies.forEach(p => m[p.leave_type]=p); return m; }, [leavePolicies]);
     const balanceMap = useMemo(() => { const m={}; leaveBalances.forEach(b => m[b.leave_type]=b); return m; }, [leaveBalances]);
@@ -855,8 +938,26 @@ export default function LeaveIndex({ requests, leaveBalances, leavePolicies, emp
         ...(canViewAll  ? [{ key:'all',      label:'All Requests',      count: requests.total, alert: false }] : []),
     ];
 
+
+function handleDelete(req) {
+    setActionLoading(true);
+    router.delete(`/payroll/leaves/${req.id}`, {
+        onSuccess: () => {
+            setConfirmModal(null);
+            setActionLoading(false);
+        },
+        onError: () => {
+            setActionLoading(false);
+            setConfirmModal(null);
+            window.dispatchEvent(new CustomEvent('global-toast', {
+                detail: { message: 'Request could not be deleted.', type: 'error' }
+            }));
+        },
+    });
+}
+
     return (
-        <AppLayout title="Leave Management">
+        <AppLayout title="Leave Request">
             <style>{`
                 @keyframes popIn   { from { opacity:0; transform:scale(0.96); }    to { opacity:1; transform:scale(1); } }
                 @keyframes spin    { to   { transform:rotate(360deg); } }
@@ -943,6 +1044,7 @@ export default function LeaveIndex({ requests, leaveBalances, leavePolicies, emp
                                 dark={dark} theme={theme} canApprove={canApprove} userId={user?.id}
                                 onApprove={r => setConfirmModal({ type:'approve', request:r })}
                                 onReject={r  => setConfirmModal({ type:'reject',  request:r })}
+                                onDelete={r  => setConfirmModal({ type:'delete',  request:r })}
                                 isLast={idx === displayList.length - 1} />
                         ))
                     )}
@@ -985,7 +1087,9 @@ export default function LeaveIndex({ requests, leaveBalances, leavePolicies, emp
                     dark={dark} theme={theme}
                     onCancel={() => setConfirmModal(null)}
                     onApprove={() => handleApprove(confirmModal.request)}
-                    onReject={()  => handleReject(confirmModal.request)} />
+                    onReject={()  => handleReject(confirmModal.request)} 
+                    onDelete={() => handleDelete(confirmModal.request)} 
+                    />
             )}
         </AppLayout>
     );

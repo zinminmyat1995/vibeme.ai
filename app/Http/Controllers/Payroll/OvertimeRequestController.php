@@ -259,12 +259,21 @@ class OvertimeRequestController extends Controller
     // ─────────────────────────────────────────────────────────
     //  APPROVE
     // ─────────────────────────────────────────────────────────
-    public function approve(Request $request, OvertimeRequest $overtimeRequest): \Illuminate\Http\RedirectResponse
+    public function approve(Request $request, int $id): \Illuminate\Http\RedirectResponse
     {
+        $overtimeRequest = OvertimeRequest::with('segments')->find($id);
+
+        if (!$overtimeRequest) {
+            return back()->with('error', 'Request no longer exists. It may have been deleted.');
+        }
+
+        if ($overtimeRequest->status !== 'pending') {
+            return back()->with('error', 'This request is already processed.');
+        }
+
         $user     = Auth::user();
         $roleName = $user->role?->name;
 
-        // Manual authorization — admin always, assigned approver, or hr same country
         $canApprove = $roleName === 'admin'
             || $overtimeRequest->approver_id === $user->id
             || ($roleName === 'hr' && $overtimeRequest->user->country_id === $user->country_id);
@@ -310,9 +319,17 @@ class OvertimeRequestController extends Controller
     // ─────────────────────────────────────────────────────────
     //  REJECT
     // ─────────────────────────────────────────────────────────
-    public function reject(OvertimeRequest $overtimeRequest): \Illuminate\Http\RedirectResponse
+    public function reject(int $id): \Illuminate\Http\RedirectResponse
     {
-        $this->authorize('reject', $overtimeRequest);
+        $overtimeRequest = OvertimeRequest::find($id);
+
+        if (!$overtimeRequest) {
+            return back()->with('error', 'Request no longer exists. It may have been deleted.');
+        }
+
+        if ($overtimeRequest->status !== 'pending') {
+            return back()->with('error', 'This request is already processed.');
+        }
 
         $overtimeRequest->update([
             'status'      => 'rejected',
@@ -322,4 +339,28 @@ class OvertimeRequestController extends Controller
 
         return back()->with('success', 'Overtime request rejected.');
     }
+    
+public function destroy(int $id): \Illuminate\Http\RedirectResponse
+{
+    $overtimeRequest = OvertimeRequest::find($id);
+
+    if (!$overtimeRequest) {
+        return back()->with('error', 'Request no longer exists.');
+    }
+
+    if ((int) $overtimeRequest->user_id !== (int) Auth::id()) {
+        abort(403);
+    }
+
+    if ($overtimeRequest->status !== 'pending') {
+        return back()->with('error', 'Only pending requests can be deleted.');
+    }
+
+    // segments ပါ cascade delete ဖြစ်ဖို့ (DB cascade မရှိရင် manual)
+    $overtimeRequest->segments()->delete();
+    $overtimeRequest->delete();
+
+    return back()->with('success', 'Overtime request deleted successfully.');
+}
+
 }

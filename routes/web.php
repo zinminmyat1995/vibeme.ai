@@ -209,28 +209,24 @@ Route::middleware(['auth'])->group(function () {
     // Check in / out
     Route::get('/payroll/check-in-out-requests', [AttendanceRequestController::class, 'index']);
     Route::post('/payroll/check-in-out-requests', [AttendanceRequestController::class, 'store']);
-    Route::patch('/payroll/check-in-out-requests/{attendanceRequest}/approve', [AttendanceRequestController::class, 'approve']);
-    Route::patch('/payroll/check-in-out-requests/{attendanceRequest}/reject', [AttendanceRequestController::class, 'reject']);
+    Route::patch('/payroll/check-in-out-requests/{id}/approve', [AttendanceRequestController::class, 'approve']);
+    Route::patch('/payroll/check-in-out-requests/{id}/reject', [AttendanceRequestController::class, 'reject']);
+    Route::delete('/payroll/check-in-out-requests/{attendanceRequest}', [AttendanceRequestController::class, 'destroy']);
 
     // Leave Management
     Route::get('/payroll/leaves', [LeaveRequestController::class, 'index']);
     Route::post('/payroll/leaves', [LeaveRequestController::class, 'store']);
-    Route::patch('/payroll/leaves/{leaveRequest}/approve', [LeaveRequestController::class, 'approve']);
-    Route::patch('/payroll/leaves/{leaveRequest}/reject', [LeaveRequestController::class, 'reject']);
+    Route::patch('/payroll/leaves/{id}/approve', [LeaveRequestController::class, 'approve']);
+    Route::patch('/payroll/leaves/{id}/reject',  [LeaveRequestController::class, 'reject']);
+    Route::delete('/payroll/leaves/{id}', [LeaveRequestController::class, 'destroy']);
 
 
     // Overtime Requests
-    Route::get('/payroll/overtimes', [OvertimeRequestController::class, 'index'])
-        ->name('payroll.overtimes.index');
-    
-    Route::post('/payroll/overtimes', [OvertimeRequestController::class, 'store'])
-        ->name('payroll.overtimes.store');
-    
-    Route::patch('/payroll/overtimes/{overtimeRequest}/approve', [OvertimeRequestController::class, 'approve'])
-        ->name('payroll.overtimes.approve');
-    
-    Route::patch('/payroll/overtimes/{overtimeRequest}/reject', [OvertimeRequestController::class, 'reject'])
-        ->name('payroll.overtimes.reject');
+    Route::get('/payroll/overtimes', [OvertimeRequestController::class, 'index'])->name('payroll.overtimes.index');
+    Route::post('/payroll/overtimes', [OvertimeRequestController::class, 'store'])->name('payroll.overtimes.store');
+    Route::patch('/payroll/overtimes/{id}/approve', [OvertimeRequestController::class, 'approve'])->name('payroll.overtimes.approve');
+    Route::patch('/payroll/overtimes/{id}/reject',  [OvertimeRequestController::class, 'reject'])->name('payroll.overtimes.reject');
+    Route::delete('/payroll/overtimes/{id}',         [OvertimeRequestController::class, 'destroy'])->name('payroll.overtimes.destroy');
 
     // HR Policy
     Route::prefix('payroll/hr-policy')->name('hr-policy.')->group(function () {

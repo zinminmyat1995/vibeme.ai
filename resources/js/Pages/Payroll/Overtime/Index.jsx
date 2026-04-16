@@ -198,7 +198,7 @@ function OTPolicyCards({ overtimePolicies, dark, theme }) {
 // ─────────────────────────────────────────────────────────────
 //  OT REQUEST ROW  ← matches Leave RequestRow layout exactly
 // ─────────────────────────────────────────────────────────────
-function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, isLast }) {
+function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDelete, isLast }) {
     const sc          = STATUS_CFG[req.status] || STATUS_CFG.pending;
     const isMine      = req.user_id === userId;
     const isAssigned  = req.approver_id === userId;
@@ -226,6 +226,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, isLa
 
     // accent bar color from first segment
     const barColor = segments[0] ? getOTColor(segments[0].overtime_policy?.title).color : theme.primary;
+    const showDelete = req.user_id === userId && req.status === 'pending';
 
     return (
         <div style={{ display:'flex', alignItems:'stretch', borderBottom: isLast ? 'none' : `1px solid ${theme.border}` }}>
@@ -317,20 +318,66 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, isLa
                 </div>
 
                 {/* Right side */}
-                <div style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6 }}>
-                    {showActions && (
-                        <div style={{ display:'flex', gap:6 }}>
-                            <button onClick={onApprove} style={{ background:'#059669', border:'none', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer' }}>✓ Approve</button>
-                            <button onClick={onReject}  style={{ background: dark ? 'rgba(248,113,113,0.12)' : '#fff', border:`1px solid ${dark ? 'rgba(248,113,113,0.3)' : '#fca5a5'}`, borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#ef4444', cursor:'pointer' }}>✕ Reject</button>
-                        </div>
-                    )}
-                    {req.status === 'approved' && !showActions && <span style={{ fontSize:12, color:'#059669', fontWeight:700 }}>✓ Approved</span>}
-                    {req.status === 'rejected' && <span style={{ fontSize:12, color:'#ef4444', fontWeight:700 }}>✕ Rejected</span>}
-                    {req.approver && req.status === 'pending' && !showActions && (
-                        <div style={{ textAlign:'right' }}>
-                            <div style={{ fontSize:10, color:theme.textMute }}>Awaiting</div>
-                            <div style={{ fontSize:12, fontWeight:800, color:theme.primary }}>{req.approver.name}</div>
-                        </div>
+                <div style={{
+                    flexShrink: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    justifyContent: 'space-between',
+                    gap: 6,
+                    minWidth: 130,
+                    alignSelf: 'stretch',
+                }}>
+                    {/* အပေါ် — actions/status */}
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6 }}>
+                        {showActions && (
+                            <div style={{ display:'flex', gap:6 }}>
+                                <button onClick={onApprove} style={{ background:'#059669', border:'none', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer' }}>✓ Approve</button>
+                                <button onClick={onReject}  style={{ background: dark ? 'rgba(248,113,113,0.12)' : '#fff', border:`1px solid ${dark ? 'rgba(248,113,113,0.3)' : '#fca5a5'}`, borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#ef4444', cursor:'pointer' }}>✕ Reject</button>
+                            </div>
+                        )}
+                        {req.status === 'approved' && !showActions && <span style={{ fontSize:12, color:'#059669', fontWeight:700 }}>✓ Approved</span>}
+                        {req.status === 'rejected' && <span style={{ fontSize:12, color:'#ef4444', fontWeight:700 }}>✕ Rejected</span>}
+                        {req.approver && req.status === 'pending' && !showActions && (
+                            <div style={{ textAlign:'right' }}>
+                                <div style={{ fontSize:10, color:theme.textMute }}>Awaiting</div>
+                                <div style={{ fontSize:12, fontWeight:800, color:theme.primary }}>{req.approver.name}</div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* အောက် — delete icon */}
+                    {showDelete ? (
+                        <button
+                            onClick={() => onDelete(req)}
+                            title="Delete request"
+                            style={{
+                                width: 32, height: 32, borderRadius: 8,
+                                background: dark ? 'rgba(248,113,113,0.12)' : '#fee2e2',
+                                border: `1px solid ${dark ? 'rgba(248,113,113,0.22)' : '#fca5a5'}`,
+                                cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                justifyContent: 'center', transition: 'all 0.15s', flexShrink: 0,
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.25)' : '#fecaca';
+                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.45)' : '#f87171';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.12)' : '#fee2e2';
+                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.22)' : '#fca5a5';
+                            }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke={dark ? '#f87171' : '#dc2626'}
+                                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                <path d="M10 11v6" /><path d="M14 11v6" />
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                            </svg>
+                        </button>
+                    ) : (
+                        <div style={{ width: 32, height: 32 }} />
                     )}
                 </div>
             </div>
@@ -362,20 +409,31 @@ export default function OvertimeIndex({ requests, overtimePolicies, employees, f
     const handleStatusFilter  = v => { setStatusFilter(v); router.get('/payroll/overtimes', { month, year, status:v }, { preserveState:true, preserveScroll:true }); };
     const handleMonthYearFilter = (m, y) => router.get('/payroll/overtimes', { month:m, year:y, status:statusFilter }, { preserveScroll:true });
 
-    const handleApprove = (req, segs) => {
-        setActionLoading(true);
-        router.patch(`/payroll/overtimes/${req.id}/approve`, { segments:segs }, {
-            onSuccess: () => { setConfirmModal(null); setActionLoading(false); },
-            onError:   () => setActionLoading(false),
-        });
-    };
-    const handleReject = req => {
-        setActionLoading(true);
-        router.patch(`/payroll/overtimes/${req.id}/reject`, {}, {
-            onSuccess: () => { setConfirmModal(null); setActionLoading(false); },
-            onError:   () => setActionLoading(false),
-        });
-    };
+const handleApprove = (req, segs) => {
+    setActionLoading(true);
+    router.patch(`/payroll/overtimes/${req.id}/approve`, { segments: segs }, {
+        onSuccess: () => { setConfirmModal(null); setActionLoading(false); },
+        onError: (errors) => {
+            setActionLoading(false);
+            setConfirmModal(null);
+            const msg = errors?.message || 'Request no longer exists. It may have been deleted.';
+            window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'error' } }));
+        },
+    });
+};
+
+const handleReject = req => {
+    setActionLoading(true);
+    router.patch(`/payroll/overtimes/${req.id}/reject`, {}, {
+        onSuccess: () => { setConfirmModal(null); setActionLoading(false); },
+        onError: (errors) => {
+            setActionLoading(false);
+            setConfirmModal(null);
+            const msg = errors?.message || 'Request no longer exists. It may have been deleted.';
+            window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'error' } }));
+        },
+    });
+};
 
     const myRequests       = requests.data.filter(r => r.user_id === user?.id);
     const approvalRequests = requests.data.filter(r => r.approver_id === user?.id && r.user_id !== user?.id && r.status === 'pending');
@@ -400,8 +458,23 @@ export default function OvertimeIndex({ requests, overtimePolicies, employees, f
         ...(canViewAll  ? [{ key:'all',      label:'All Requests',      count:requests.total, alert:false }] : []),
     ];
 
+
+    function handleDelete(req) {
+        setActionLoading(true);
+        router.delete(`/payroll/overtimes/${req.id}`, {
+            onSuccess: () => { setConfirmModal(null); setActionLoading(false); },
+            onError: () => {
+                setActionLoading(false);
+                setConfirmModal(null);
+                window.dispatchEvent(new CustomEvent('global-toast', {
+                    detail: { message: 'Request could not be deleted.', type: 'error' }
+                }));
+            },
+        });
+    }
+
     return (
-        <AppLayout title="Overtime Management">
+        <AppLayout title="Overtime Request">
             <Head title="Overtime"/>
             <style>{`
                 @keyframes otDrop  { from { opacity:0; transform:translateY(-7px); } to { opacity:1; transform:translateY(0); } }
@@ -464,6 +537,7 @@ export default function OvertimeIndex({ requests, overtimePolicies, employees, f
                         <OTRow key={req.id} req={req} dark={dark} theme={theme} canApprove={canApprove} userId={user?.id}
                             onApprove={() => setConfirmModal({ type:'approve', req })}
                             onReject ={() => setConfirmModal({ type:'reject',  req })}
+                            onDelete ={() => setConfirmModal({ type:'delete',  req })}
                             isLast={idx === displayList.length - 1}/>
                     ))}
 
@@ -480,7 +554,7 @@ export default function OvertimeIndex({ requests, overtimePolicies, employees, f
             </div>
 
             {showModal    && <OTRequestModal employees={employees} roleName={roleName} dark={dark} theme={theme} onClose={() => setShowModal(false)} onSuccess={() => setShowModal(false)}/>}
-            {confirmModal && <ConfirmModal   type={confirmModal.type} req={confirmModal.req} loading={actionLoading} dark={dark} theme={theme} onCancel={() => setConfirmModal(null)} onApprove={segs => handleApprove(confirmModal.req, segs)} onReject={() => handleReject(confirmModal.req)}/>}
+            {confirmModal && <ConfirmModal   type={confirmModal.type} req={confirmModal.req} loading={actionLoading} dark={dark} theme={theme} onCancel={() => setConfirmModal(null)} onApprove={segs => handleApprove(confirmModal.req, segs)} onReject={() => handleReject(confirmModal.req)} onDelete={() => handleDelete(confirmModal.req)}/>}
         </AppLayout>
     );
 }
@@ -610,50 +684,80 @@ function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess }
 // ─────────────────────────────────────────────────────────────
 //  CONFIRM MODAL
 // ─────────────────────────────────────────────────────────────
-function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, onReject }) {
+function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, onReject, onDelete }) {
     const isApprove = type === 'approve';
+    const isDelete  = type === 'delete';
     const segments  = req.segments || [];
-    const [segHours, setSegHours] = useState(segments.reduce((a,s)=>({...a,[s.id]:s.hours}),{}));
-    const total = Object.values(segHours).reduce((s,h)=>s+parseFloat(h||0),0);
+    const [segHours, setSegHours] = useState(segments.reduce((a,s) => ({...a,[s.id]:s.hours}), {}));
+    const total = Object.values(segHours).reduce((s,h) => s + parseFloat(h||0), 0);
+
     return createPortal(
         <div style={{ position:'fixed', inset:0, background:theme.overlay, backdropFilter:'blur(6px)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
             <div style={{ background: dark?'#0f1b34':'#fff', borderRadius:22, width:'100%', maxWidth:460, maxHeight:'90vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:theme.shadow, border:`1px solid ${theme.border}`, animation:'otPopIn 0.22s ease' }}>
-                <div style={{ height:4, background: isApprove?'linear-gradient(90deg,#059669,#10b981)':'linear-gradient(90deg,#dc2626,#ef4444)', flexShrink:0 }}/>
+                <div style={{ height:4, background: isApprove ? 'linear-gradient(90deg,#059669,#10b981)' : 'linear-gradient(90deg,#dc2626,#ef4444)', flexShrink:0 }}/>
+
                 <div className="ot-hide" style={{ overflowY:'auto', padding:'22px 24px', flex:1 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
-                        <div style={{ width:46, height:46, borderRadius:14, flexShrink:0, background: isApprove?(dark?theme.successSoft:'#d1fae5'):(dark?theme.dangerSoft:'#fee2e2'), display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>{isApprove?'✓':'✕'}</div>
+                        <div style={{ width:46, height:46, borderRadius:14, flexShrink:0,
+                            background: isApprove ? (dark?theme.successSoft:'#d1fae5') : (dark?theme.dangerSoft:'#fee2e2'),
+                            display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>
+                            {isDelete ? '🗑' : isApprove ? '✓' : '✕'}
+                        </div>
                         <div>
-                            <div style={{ fontSize:16, fontWeight:900, color:theme.text }}>{isApprove?'Approve Overtime':'Reject Overtime'}</div>
-                            <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>{isApprove?'Adjust approved hours per segment if needed':'Employee will be notified'}</div>
+                            <div style={{ fontSize:16, fontWeight:900, color:theme.text }}>
+                                {isDelete ? 'Delete Overtime Request' : isApprove ? 'Approve Overtime' : 'Reject Overtime'}
+                            </div>
+                            <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>
+                                {isDelete ? 'This action cannot be undone' : isApprove ? 'Adjust approved hours per segment if needed' : 'Employee will be notified'}
+                            </div>
                         </div>
                     </div>
-                    <div style={{ background: dark?theme.panelSoft:'#f8fafc', border:`1px solid ${theme.border}`, borderRadius:14, padding:'13px 15px', marginBottom:18 }}>
+
+                    <div style={{ background: dark?theme.panelSoft:'#f8fafc', border:`1px solid ${theme.border}`, borderRadius:14, padding:'13px 15px', marginBottom: isApprove&&!isDelete ? 18 : 0 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:5, flexWrap:'wrap' }}>
-                            <span style={{ fontSize:13, fontWeight:800, color:theme.text }}>{req.user?.name}</span>
-                            <span style={{ fontSize:11, fontWeight:700, color:theme.primary, background: dark?theme.primarySoft:'#ede9fe', borderRadius:6, padding:'1px 8px' }}>{fmtHrs(req.hours_requested)} total</span>
+                            <span style={{ fontSize:13, fontWeight:800, color:theme.text }}>
+                                {isDelete ? 'Your request' : req.user?.name}
+                            </span>
+                            <span style={{ fontSize:11, fontWeight:700, color:theme.primary, background: dark?theme.primarySoft:'#ede9fe', borderRadius:6, padding:'1px 8px' }}>
+                                {fmtHrs(req.hours_requested)} total
+                            </span>
                         </div>
                         <div style={{ fontSize:12, color:theme.textSoft, fontWeight:600 }}>
-                            {req.end_date&&req.end_date!==req.start_date?<>{fmtDate(req.start_date)} {to12h(req.start_time)} — {fmtDate(req.end_date)} {to12h(req.end_time)}</>:<>{fmtDate(req.start_date)} · {to12h(req.start_time)} — {to12h(req.end_time)}</>}
+                            {req.end_date && req.end_date !== req.start_date
+                                ? <>{fmtDate(req.start_date)} {to12h(req.start_time)} — {fmtDate(req.end_date)} {to12h(req.end_time)}</>
+                                : <>{fmtDate(req.start_date)} · {to12h(req.start_time)} — {to12h(req.end_time)}</>
+                            }
                         </div>
-                        {req.reason&&<div style={{ fontSize:11, color:theme.textMute, fontStyle:'italic', marginTop:6, paddingTop:6, borderTop:`1px solid ${theme.border}` }}>"{req.reason}"</div>}
+                        {req.reason && (
+                            <div style={{ fontSize:11, color:theme.textMute, fontStyle:'italic', marginTop:6, paddingTop:6, borderTop:`1px solid ${theme.border}` }}>
+                                "{req.reason}"
+                            </div>
+                        )}
                     </div>
-                    {isApprove&&segments.length>0&&(
+
+                    {/* Segments — approve only */}
+                    {isApprove && segments.length > 0 && (
                         <div>
                             <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:8 }}>Segments — adjust hours if needed</div>
                             <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
-                                {segments.map(seg=>{
-                                    const c=getOTColor(seg.overtime_policy?.title); const max=parseFloat(seg.hours)||0;
-                                    return(
+                                {segments.map(seg => {
+                                    const c = getOTColor(seg.overtime_policy?.title);
+                                    const max = parseFloat(seg.hours) || 0;
+                                    return (
                                         <div key={seg.id} style={{ background: dark?c.bgDark:c.bg, border:`1px solid ${c.border}`, borderRadius:12, padding:'10px 13px', display:'flex', alignItems:'center', gap:10 }}>
                                             <div style={{ flex:1 }}>
                                                 <div style={{ fontSize:12, fontWeight:700, color:c.color }}>{seg.overtime_policy?.title||'OT'}</div>
-                                                <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>{seg.segment_date&&<span style={{ marginRight:6, fontWeight:600, color:theme.textSoft }}>{fmtDate(seg.segment_date)}</span>}{to12h(seg.start_time)} → {to12h(seg.end_time)} <span style={{ marginLeft:6, color:theme.textMute }}>req: {fmtHrs(seg.hours)}</span></div>
+                                                <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>
+                                                    {seg.segment_date && <span style={{ marginRight:6, fontWeight:600, color:theme.textSoft }}>{fmtDate(seg.segment_date)}</span>}
+                                                    {to12h(seg.start_time)} → {to12h(seg.end_time)}
+                                                    <span style={{ marginLeft:6, color:theme.textMute }}>req: {fmtHrs(seg.hours)}</span>
+                                                </div>
                                             </div>
                                             <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                                                 <span style={{ fontSize:11, color:theme.textMute }}>Approve</span>
-                                                <input type="number" value={segHours[seg.id]??seg.hours} min={0} max={max} step={0.01}
-                                                    onKeyDown={e=>{const ok=['Backspace','Delete','Tab','Escape','Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','.']; if(!ok.includes(e.key)&&!/^\d$/.test(e.key))e.preventDefault(); if(e.key==='.'&&String(segHours[seg.id]??seg.hours).includes('.'))e.preventDefault();}}
-                                                    onChange={e=>{const r=e.target.value; if(r===''||r==='.'){setSegHours(p=>({...p,[seg.id]:r}));return;} const n=parseFloat(r); if(isNaN(n))return; setSegHours(p=>({...p,[seg.id]:Math.round(Math.min(n,max)*100)/100}));}}
+                                                <input type="number" value={segHours[seg.id] ?? seg.hours} min={0} max={max} step={0.01}
+                                                    onKeyDown={e => { const ok=['Backspace','Delete','Tab','Escape','Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','.']; if(!ok.includes(e.key)&&!/^\d$/.test(e.key))e.preventDefault(); if(e.key==='.'&&String(segHours[seg.id]??seg.hours).includes('.'))e.preventDefault(); }}
+                                                    onChange={e => { const r=e.target.value; if(r===''||r==='.'){setSegHours(p=>({...p,[seg.id]:r}));return;} const n=parseFloat(r); if(isNaN(n))return; setSegHours(p=>({...p,[seg.id]:Math.round(Math.min(n,max)*100)/100})); }}
                                                     style={{ width:64, border:`1.5px solid ${c.border}`, borderRadius:8, padding:'5px 8px', fontSize:12, fontWeight:700, color:c.color, textAlign:'center', background: dark?'rgba(255,255,255,0.08)':'#fff' }}/>
                                                 <span style={{ fontSize:11, color:theme.textMute }}>hrs</span>
                                             </div>
@@ -668,12 +772,26 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, on
                         </div>
                     )}
                 </div>
+
                 <div style={{ borderTop:`1px solid ${theme.border}`, padding:'14px 24px', display:'flex', justifyContent:'flex-end', gap:10, flexShrink:0 }}>
                     <button onClick={onCancel} disabled={loading} style={{ background: dark?theme.panelSoft:'#fff', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 16px', fontSize:13, fontWeight:600, color:theme.textSoft, cursor:'pointer' }}>Cancel</button>
-                    {isApprove
-                        ? <button onClick={() => onApprove(segments.map(s=>({id:s.id,hours_approved:parseFloat(segHours[s.id]||0)})))} disabled={loading} style={{ background:'linear-gradient(135deg,#059669,#10b981)', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor:'pointer', opacity:loading?0.6:1, boxShadow:'0 4px 14px rgba(5,150,105,0.35)' }}>{loading?'Approving…':'✓ Approve'}</button>
-                        : <button onClick={onReject} disabled={loading} style={{ background:'linear-gradient(135deg,#dc2626,#ef4444)', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor:'pointer', opacity:loading?0.6:1, boxShadow:'0 4px 14px rgba(220,38,38,0.35)' }}>{loading?'Rejecting…':'✕ Reject'}</button>
-                    }
+
+                    {isDelete ? (
+                        <button onClick={onDelete} disabled={loading}
+                            style={{ background:'linear-gradient(135deg,#dc2626,#ef4444)', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor:'pointer', opacity:loading?0.6:1, boxShadow:'0 4px 14px rgba(220,38,38,0.35)' }}>
+                            {loading ? 'Deleting...' : '🗑 Delete'}
+                        </button>
+                    ) : isApprove ? (
+                        <button onClick={() => onApprove(segments.map(s => ({id:s.id, hours_approved:parseFloat(segHours[s.id]||0)})))} disabled={loading}
+                            style={{ background:'linear-gradient(135deg,#059669,#10b981)', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor:'pointer', opacity:loading?0.6:1, boxShadow:'0 4px 14px rgba(5,150,105,0.35)' }}>
+                            {loading ? 'Approving…' : '✓ Approve'}
+                        </button>
+                    ) : (
+                        <button onClick={onReject} disabled={loading}
+                            style={{ background:'linear-gradient(135deg,#dc2626,#ef4444)', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor:'pointer', opacity:loading?0.6:1, boxShadow:'0 4px 14px rgba(220,38,38,0.35)' }}>
+                            {loading ? 'Rejecting…' : '✕ Reject'}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>,

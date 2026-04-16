@@ -192,11 +192,18 @@ public function store(Request $request): RedirectResponse
     return back()->with('success', 'Check In/Out request submitted successfully.');
 }
 
-    public function approve(AttendanceRequest $attendanceRequest): RedirectResponse
+    public function approve(int $id): RedirectResponse
     {
+        $attendanceRequest = AttendanceRequest::find($id);
+
+        if (!$attendanceRequest) {
+            return back()->with('error', 'Request no longer exists. It may have been deleted by the requester.');
+        }
+
         $approver = Auth::user();
 
-        if ((int) $attendanceRequest->approver_id !== (int) $approver->id && ($approver->role?->name ?? '') !== 'admin') {
+        if ((int) $attendanceRequest->approver_id !== (int) $approver->id
+            && ($approver->role?->name ?? '') !== 'admin') {
             abort(403);
         }
 
@@ -236,31 +243,38 @@ public function store(Request $request): RedirectResponse
         return back()->with('success', 'Check In/Out request approved.');
     }
 
-    public function reject(Request $request, AttendanceRequest $attendanceRequest): RedirectResponse
-    {
-        $approver = Auth::user();
+public function reject(Request $request, int $id): RedirectResponse
+{
+    $attendanceRequest = AttendanceRequest::find($id);
 
-        if ((int) $attendanceRequest->approver_id !== (int) $approver->id && ($approver->role?->name ?? '') !== 'admin') {
-            abort(403);
-        }
-
-        if ($attendanceRequest->status !== 'pending') {
-            return back()->with('error', 'This request is already processed.');
-        }
-
-        $request->validate([
-            'rejection_reason' => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $attendanceRequest->update([
-            'status'           => 'rejected',
-            'approved_by'      => $approver->id,
-            'approved_at'      => now(),
-            'rejection_reason' => $request->rejection_reason,
-        ]);
-
-        return back()->with('success', 'Check In/Out request rejected.');
+    if (!$attendanceRequest) {
+        return back()->with('error', 'Request no longer exists. It may have been deleted by the requester.');
     }
+
+    $approver = Auth::user();
+
+    if ((int) $attendanceRequest->approver_id !== (int) $approver->id
+        && ($approver->role?->name ?? '') !== 'admin') {
+        abort(403);
+    }
+
+    if ($attendanceRequest->status !== 'pending') {
+        return back()->with('error', 'This request is already processed.');
+    }
+
+    $request->validate([
+        'rejection_reason' => ['nullable', 'string', 'max:500'],
+    ]);
+
+    $attendanceRequest->update([
+        'status'           => 'rejected',
+        'approved_by'      => $approver->id,
+        'approved_at'      => now(),
+        'rejection_reason' => $request->rejection_reason,
+    ]);
+
+    return back()->with('success', 'Check In/Out request rejected.');
+}
 
     private function resolveApproverIdsForUser(User $user): array
     {
@@ -554,6 +568,25 @@ private function validateAttendanceRequestFlow(int $userId, string $dateStr, str
             ]);
         }
     }
+}
+
+public function destroy(AttendanceRequest $attendanceRequest): RedirectResponse
+{
+    $user = Auth::user();
+
+    // ကိုယ့် request သာ ဖျက်ခွင့်ရှိတယ်
+    if ((int) $attendanceRequest->user_id !== (int) $user->id) {
+        abort(403);
+    }
+
+    // pending ဖြစ်မှသာ ဖျက်ခွင့်ရှိတယ်
+    if ($attendanceRequest->status !== 'pending') {
+        return back()->with('error', 'Only pending requests can be deleted.');
+    }
+
+    $attendanceRequest->delete();
+
+    return back()->with('success', 'Request deleted successfully.');
 }
 
 }

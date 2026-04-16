@@ -329,8 +329,18 @@ class LeaveRequestController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     //  APPROVE
     // ─────────────────────────────────────────────────────────────────────────
-    public function approve(LeaveRequest $leaveRequest): \Illuminate\Http\RedirectResponse
+    public function approve(int $id): \Illuminate\Http\RedirectResponse
     {
+        $leaveRequest = LeaveRequest::find($id);
+
+        if (!$leaveRequest) {
+            return back()->with('error', 'Request no longer exists. It may have been deleted.');
+        }
+
+        if ($leaveRequest->status !== 'pending') {
+            return back()->with('error', 'This request is already processed.');
+        }
+
         // ── Salary rule for lunch times ──
         $countryId   = $leaveRequest->user->country_id;
         $salaryRule  = \App\Models\SalaryRule::where('country_id', $countryId)->first();
@@ -411,8 +421,18 @@ class LeaveRequestController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     //  REJECT
     // ─────────────────────────────────────────────────────────────────────────
-    public function reject(Request $request, LeaveRequest $leaveRequest): \Illuminate\Http\RedirectResponse
+    public function reject(Request $request, int $id): \Illuminate\Http\RedirectResponse
     {
+        $leaveRequest = LeaveRequest::find($id);
+
+        if (!$leaveRequest) {
+            return back()->with('error', 'Request no longer exists. It may have been deleted.');
+        }
+
+        if ($leaveRequest->status !== 'pending') {
+            return back()->with('error', 'This request is already processed.');
+        }
+
         $leaveRequest->update(['status' => 'rejected', 'approved_by' => Auth::id()]);
         return redirect()->back()->with('success', 'Leave request rejected');
     }
@@ -479,4 +499,26 @@ class LeaveRequestController extends Controller
             ]
         );
     }
+
+public function destroy(int $id): \Illuminate\Http\RedirectResponse
+{
+    $leaveRequest = LeaveRequest::find($id);
+
+    if (!$leaveRequest) {
+        return back()->with('error', 'Request no longer exists.');
+    }
+
+    if ((int) $leaveRequest->user_id !== (int) Auth::id()) {
+        abort(403);
+    }
+
+    if ($leaveRequest->status !== 'pending') {
+        return back()->with('error', 'Only pending requests can be deleted.');
+    }
+
+    $leaveRequest->delete();
+
+    return back()->with('success', 'Leave request deleted successfully.');
+}
+
 }
