@@ -120,6 +120,63 @@ function StatCard({ icon, label, value, helper, color, soft, t }) {
     );
 }
 
+// StatCard ကို ဒီတိုင်းထားပြီး payslip card ကိုသာ locally manage လုပ်
+function PayslipCard({ value, helper, t }) {
+    const [show, setShow] = useState(false);
+
+    return (
+        <div style={{ ...card(t, { padding: 20, position: 'relative' }) }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: t.emeraldSoft, color: t.emerald, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, marginBottom: 14 }}>
+                💵
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: 30, fontWeight: 900, color: t.text, lineHeight: 1, letterSpacing: '-1px' }}>
+                    {show ? value : '••••••'}
+                </div>
+
+                <button
+                    onClick={() => setShow(v => !v)}
+                    title={show ? 'Hide amount' : 'Show amount'}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 4,
+                        borderRadius: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: t.textMute,
+                        transition: 'color 0.15s',
+                        marginTop: 2,
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.color = t.text}
+                    onMouseLeave={e => e.currentTarget.style.color = t.textMute}
+                >
+                    {show ? (
+                        // Eye-off icon
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                    ) : (
+                        // Eye icon
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    )}
+                </button>
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: t.emerald }}>Latest payslip</div>
+            {helper ? <div style={{ marginTop: 6, fontSize: 12, color: t.textMute }}>{helper}</div> : null}
+        </div>
+    );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Panel
 // ─────────────────────────────────────────────────────────────────────────────
@@ -216,7 +273,7 @@ function BarChart({ data = [], color = '#4f46e5', valueKey = 'value', labelKey =
 // ─────────────────────────────────────────────────────────────────────────────
 // LineChart — with hover tooltip
 // ─────────────────────────────────────────────────────────────────────────────
-function LineChart({ data = [], stroke = '#2563eb', labelKey = 'label', valueKey = 'value', t, tooltipLabel = 'present' }) {
+function LineChart({ data = [], stroke = '#2563eb', labelKey = 'label', valueKey = 'value', t, tooltipLabel = 'present', formatTooltip }) {
     const W = 420, H = 180;
     const [hovered, setHovered] = useState(null);
 
@@ -233,38 +290,59 @@ function LineChart({ data = [], stroke = '#2563eb', labelKey = 'label', valueKey
         <div>
             <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 176, overflow: 'visible' }}>
                 <path d={path} fill="none" stroke={stroke} strokeWidth="3" strokeLinecap="round" />
-                {points.map((p, i) => (
-                    <g key={i}>
-                        {/* invisible larger hit area */}
-                        <circle cx={p[0]} cy={p[1]} r="14" fill="transparent"
-                            onMouseEnter={() => setHovered({ index: i, x: p[0], y: p[1], value: data[i][valueKey], label: data[i][labelKey] })}
-                            onMouseLeave={() => setHovered(null)}
-                            style={{ cursor: 'pointer' }}
-                        />
-                        <circle cx={p[0]} cy={p[1]} r={hovered?.index === i ? 6 : 4}
-                            fill={hovered?.index === i ? '#fff' : stroke}
-                            stroke={stroke} strokeWidth={hovered?.index === i ? 2.5 : 0}
-                            style={{ transition: 'r 0.12s', pointerEvents: 'none' }}
-                        />
-                    </g>
-                ))}
+                {points.map((p, i) => {
+                    const item    = data[i];
+                    const absent  = item.absent || item.value === 0;
+                    const dotFill = absent ? (hovered?.index === i ? '#fff' : t.border) : (hovered?.index === i ? '#fff' : stroke);
+                    const dotStroke = absent ? t.textMute : stroke;
+
+                    return (
+                        <g key={i}>
+                            <circle cx={p[0]} cy={p[1]} r="14" fill="transparent"
+                                onMouseEnter={() => setHovered({ index: i, x: p[0], y: p[1], item })}
+                                onMouseLeave={() => setHovered(null)}
+                                style={{ cursor: 'pointer' }}
+                            />
+                            <circle cx={p[0]} cy={p[1]} r={hovered?.index === i ? 6 : 4}
+                                fill={dotFill}
+                                stroke={dotStroke}
+                                strokeWidth={hovered?.index === i ? 2.5 : (absent ? 1.5 : 0)}
+                                style={{ transition: 'r 0.12s', pointerEvents: 'none' }}
+                            />
+                        </g>
+                    );
+                })}
+
                 {/* Tooltip */}
                 {hovered && (() => {
-                    const tx = Math.min(Math.max(hovered.x, 40), W - 40);
-                    const ty = hovered.y - 14;
+                    const tx     = Math.min(Math.max(hovered.x, 50), W - 50);
+                    const ty     = hovered.y - 14;
+                    const absent = hovered.item?.absent || hovered.item?.value === 0;
+
+                    const label  = formatTooltip
+                        ? formatTooltip(hovered.item)
+                        : `${hovered.item[valueKey]} ${tooltipLabel}`;
+
+                    const bgColor = absent ? t.textMute : stroke;
+                    const txtW    = label.length * 7 + 20;
+
                     return (
                         <g style={{ pointerEvents: 'none' }}>
-                            <rect x={tx - 36} y={ty - 30} width={72} height={28} rx="8" fill={stroke} opacity="0.93" />
+                            <rect x={tx - txtW / 2} y={ty - 30} width={txtW} height={28} rx="8" fill={bgColor} opacity="0.93" />
                             <text x={tx} y={ty - 13} textAnchor="middle" style={{ fontSize: 11, fontWeight: 800, fill: '#fff' }}>
-                                {hovered.value} {tooltipLabel}
+                                {label}
                             </text>
-                            
                         </g>
                     );
                 })()}
             </svg>
+
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${data.length}, 1fr)`, gap: 4, marginTop: 6, textAlign: 'center' }}>
-                {data.map((item, i) => <div key={i} style={{ fontSize: 11, fontWeight: 700, color: t.textMute }}>{item[labelKey]}</div>)}
+                {data.map((item, i) => (
+                    <div key={i} style={{ fontSize: 11, fontWeight: 700, color: item.absent || item.value === 0 ? t.textMute : t.textSoft }}>
+                        {item[labelKey]}
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -603,12 +681,30 @@ export default function Dashboard(props) {
                     <StatCard icon="🌴" label="Pending leaves"  value={myStats.pending_leaves || 0}                                         helper={myStats.pending_leaves ? 'Waiting for approval' : 'No pending leave'}           color={t.amber}   soft={t.amberSoft}   t={t} />
                     <StatCard icon="⏱️" label="OT this month"  value={`${myStats.ot_hours_month || 0}h`}                                   helper="Approved overtime hours"                                                         color={t.violet}  soft={t.violetSoft}  t={t} />
                     <StatCard icon="🗓️" label="Present days"   value={myStats.present_days || 0}                                          helper="This month attendance"                                                           color={t.blue}    soft={t.blueSoft}    t={t} />
-                    <StatCard icon="💵" label="Latest payslip" value={myStats.net_salary ? `$${formatMoney(myStats.net_salary)}` : '—'}    helper={myStats.payslip_status ? `Status: ${myStats.payslip_status}` : 'No payslip yet'} color={t.emerald} soft={t.emeraldSoft} t={t} />
+                    <PayslipCard
+                        value={myStats.net_salary ? `$${formatMoney(myStats.net_salary)}` : '—'}
+                        helper={myStats.payslip_status ? `Status: ${myStats.payslip_status}` : 'No payslip yet'}
+                        t={t}
+                    />
                 </div>
 
                 <div style={{ ...G, gridTemplateColumns: '1.2fr 1fr' }}>
                     <Panel title="My weekly attendance" subtitle="Hover a dot to see your attendance" t={t}>
-                        <LineChart data={weeklyAttendance} stroke="#10b981" t={t} tooltipLabel="day" />
+                       
+                        <LineChart
+                            data={weeklyAttendance}
+                            stroke="#10b981"
+                            t={t}
+                            tooltipLabel="day"
+                            formatTooltip={(item) => {
+                                if (item.absent || item.value === 0) return 'Absent';
+                                const h = Math.floor(item.value);
+                                const m = Math.round((item.value - h) * 60);
+                                if (h === 0) return `${m}m`;
+                                if (m === 0) return `${h}h`;
+                                return `${h}h ${m}m`;
+                            }}
+                        />
                     </Panel>
                     <Panel title="Upcoming holidays" subtitle="Country based public holiday list" t={t}>
                         {upcomingHolidays.length ? (

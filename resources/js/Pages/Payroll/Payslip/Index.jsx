@@ -20,6 +20,411 @@ function useReactiveTheme() {
     return dark;
 }
 
+// Records/Index.jsx ကနေ ယူ — file အပေါ်ဆုံးမှာ ထည့်
+const fmtHours = h => {
+    if (!h) return '0h';
+    const total = Math.round(parseFloat(h) * 60);
+    const hrs = Math.floor(total / 60);
+    const mins = total % 60;
+    if (hrs === 0) return `${mins}m`;
+    if (mins === 0) return `${hrs}h`;
+    return `${hrs}h ${mins}m`;
+};
+const fmtTime = t => {
+    if (!t) return '—';
+    const [hStr, mStr] = String(t).substring(0,5).split(':');
+    const h = parseInt(hStr, 10);
+    const m = mStr ?? '00';
+    return `${h%12===0?12:h%12}:${m} ${h>=12?'PM':'AM'}`;
+};
+
+function ClickBadge({ label, color, bg, onClick }) {
+    return (
+        <span onClick={onClick} style={{ fontSize:10, background:bg, color, borderRadius:99, padding:'2px 8px', fontWeight:700, cursor:'pointer', border:`1px solid ${color}22`, userSelect:'none', whiteSpace:'nowrap' }}>
+            {label}
+        </span>
+    );
+}
+
+function MiniModal({ title, subtitle, icon, onClose, children, theme }) {
+    return (
+        <div style={{ position:'fixed', inset:0, background:'rgba(17,7,46,0.55)', zIndex:10000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+            <div style={{
+                background: theme.panelSolid,  // ← surface → panelSolid
+                borderRadius:18, width:'100%', maxWidth:420, maxHeight:'80vh',
+                display:'flex', flexDirection:'column',
+                boxShadow:'0 32px 80px rgba(0,0,0,0.3)',
+                overflow:'hidden', border:`1px solid ${theme.border}`
+            }}>
+                <div style={{ background:'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', padding:'16px 18px 14px', flexShrink:0 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                        <div>
+                            <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'0.8px', marginBottom:3 }}>
+                                {icon} {subtitle?.toUpperCase() || 'DETAILS'}
+                            </div>
+                            <div style={{ fontSize:15, fontWeight:900, color:'#fff', letterSpacing:'-0.2px' }}>{title}</div>
+                        </div>
+                        <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:8, width:30, height:30, cursor:'pointer', color:'#fff', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>×</button>
+                    </div>
+                </div>
+                <div style={{ overflowY:'auto', padding:'14px 18px 18px', flex:1 }}>{children}</div>
+            </div>
+        </div>
+    );
+}
+
+function DetailCard({ icon, title, color, titleColor, children, dark }) {
+    const bodyBg = dark ? 'rgba(255,255,255,0.03)' : '#fafafa';
+    return (
+        <div style={{ borderRadius:12, overflow:'hidden', border:`1.5px solid ${dark ? color+'44' : color}`, marginBottom:12 }}>
+            <div style={{ background: dark ? color+'22' : color, padding:'8px 14px', display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:13 }}>{icon}</span>
+                <span style={{ fontSize:11, fontWeight:800, color: dark ? color : titleColor, letterSpacing:'0.8px', textTransform:'uppercase' }}>{title}</span>
+            </div>
+            <div style={{ background: bodyBg, padding:'2px 0' }}>{children}</div>
+        </div>
+    );
+}
+function DetailRow({ label, val, color, bold, dark }) {
+    const rowBg  = dark ? 'rgba(255,255,255,0.02)' : '#fff';
+    const border = dark ? 'rgba(255,255,255,0.06)' : '#f3f4f6';
+    const lblClr = dark ? '#94a3b8' : '#6b7280';
+    const valClr = color || (dark ? '#f1f5f9' : '#111827');
+    return (
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${border}`, background: rowBg }}>
+            <span style={{ fontSize:12, color: lblClr, fontWeight:500, flex:1, marginRight:12 }}>{label}</span>
+            <span style={{ fontSize:12, fontWeight:bold?800:600, color: valClr, flexShrink:0 }}>{val}</span>
+        </div>
+    );
+}
+
+function ShortHourRow({ detail, curr, theme, dark }) {
+    const [popup, setPopup] = React.useState(false);
+    const shortAmt = detail.short_hour_deduction ?? 0;
+    // ✅ FIX: working_hours_per_day မသုံး — server ကနေ resolve လုပ်ထားတဲ့
+    // hours_per_day သုံး (work_start→work_end−lunch တွက်ထားတာ)
+    const hpd = detail.hours_per_day ?? 8;
+    const attRows  = (detail.attendance_details ?? []).filter(a => (hpd - a.work_hours - (a.late_minutes/60)) > 0.01);
+    const totalSH  = attRows.reduce((s,a) => s + Math.max(0, hpd - a.work_hours - (a.late_minutes/60)), 0);
+    const label    = totalSH > 0.01 ? fmtHours(totalSH) : '';
+    const rowBg  = dark ? 'rgba(255,255,255,0.02)' : '#fff';
+    const rowBdr = dark ? 'rgba(255,255,255,0.06)' : '#f3f4f6';
+    const lblClr = dark ? '#94a3b8' : '#6b7280';
+    return (
+        <>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                <span style={{ fontSize:12, color: lblClr, fontWeight:500, flex:1, marginRight:12, display:'flex', alignItems:'center', gap:6 }}>
+                    Insufficient Hours
+                    {label && <ClickBadge label={label} color="#dc2626" bg={dark?'rgba(220,38,38,0.18)':'#fee2e2'} onClick={()=>setPopup(true)} />}
+                </span>
+                <span style={{ fontSize:12, fontWeight:600, color:'#dc2626' }}>− {fmt(shortAmt, curr)}</span>
+            </div>
+            {popup && (
+                <MiniModal title="Insufficient Hours" subtitle="Working Hours" icon="⏱" onClose={()=>setPopup(false)} theme={theme}>
+                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>No short records.</p>
+                    : attRows.map((a,i) => {
+                        // ✅ FIX: hard-coded 8 မသုံး
+                        const sh = Math.max(0, hpd - a.work_hours - (a.late_minutes/60));
+                        return (
+                            <div key={i} style={{ padding:'10px 0', borderBottom:'1px solid #f3f4f6' }}>
+                                <div style={{ fontWeight:700, fontSize:13, color:'#374151', marginBottom:4 }}>{a.date}</div>
+                                <div style={{ fontSize:11, color:'#6b7280', display:'flex', gap:14 }}>
+                                    <span>In: <b>{fmtTime(a.check_in+':00')}</b></span>
+                                    <span>Out: <b>{fmtTime(a.check_out+':00')}</b></span>
+                                    <span style={{ color:'#dc2626' }}>Missing: <b>{fmtHours(sh)}</b></span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </MiniModal>
+            )}
+        </>
+    );
+}
+
+function LateArrivalRow({ detail, curr, theme, dark }) {
+    const [popup, setPopup] = React.useState(false);
+    const lateAmt  = detail.late_deduction ?? 0;
+    const lateMins = detail.late_minutes_total ?? 0;
+    const attRows  = (detail.attendance_details ?? []).filter(a => a.late_minutes > 0);
+    const rowBg  = dark ? 'rgba(255,255,255,0.02)' : '#fff';
+    const rowBdr = dark ? 'rgba(255,255,255,0.06)' : '#f3f4f6';
+    const lblClr = dark ? '#94a3b8' : '#6b7280';
+    return (
+        <>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                <span style={{ fontSize:12, color: lblClr, fontWeight:500, flex:1, marginRight:12, display:'flex', alignItems:'center', gap:6 }}>
+                    Late Arrival
+                    {lateMins > 0 && <ClickBadge label={`${lateMins}min`} color="#d97706" bg={dark?'rgba(217,119,6,0.18)':'#fef3c7'} onClick={()=>setPopup(true)} />}
+                </span>
+                <span style={{ fontSize:12, fontWeight:600, color:'#dc2626' }}>− {fmt(lateAmt, curr)}</span>
+            </div>
+            {popup && (
+                <MiniModal title="Late Arrival" subtitle="Attendance" icon="⏰" onClose={()=>setPopup(false)} theme={theme}>
+                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>No late records.</p>
+                    : attRows.map((a,i) => (
+                        <div key={i} style={{ padding:'10px 0', borderBottom:'1px solid #f3f4f6' }}>
+                            <div style={{ fontWeight:700, fontSize:13, color:'#374151', marginBottom:4 }}>{a.date}</div>
+                            <div style={{ fontSize:11, color:'#6b7280', display:'flex', gap:14 }}>
+                                <span>In: <b style={{ color:'#f59e0b' }}>{fmtTime(a.check_in+':00')}</b></span>
+                                <span style={{ color:'#dc2626' }}>Late: <b>{a.late_minutes}min</b></span>
+                            </div>
+                        </div>
+                    ))}
+                </MiniModal>
+            )}
+        </>
+    );
+}
+
+function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
+    const [leavePop,  setLeavePop]  = React.useState(false);
+    const [otPop,     setOtPop]     = React.useState(false);
+    const [allowPop,  setAllowPop]  = React.useState(false);
+    const [bonusPop,  setBonusPop]  = React.useState(false);
+    const otHrs   = detail.overtime_hours ?? 0;
+    const otLabel = otHrs > 0 ? fmtHours(otHrs) : null;
+    const gross   = (detail.base_salary??0)+(detail.total_allowances??0)+(detail.overtime_amount??0)+(detail.bonus_amount??0);
+    const dayTypeLabel = (t) => ({ full_day:'Full Day', half_day_am:'AM Half', half_day_pm:'PM Half', half_day:'Half Day' }[t] || t || '');
+
+    const rowBg  = dark ? 'rgba(255,255,255,0.02)' : '#fff';
+    const rowBdr = dark ? 'rgba(255,255,255,0.06)' : '#f3f4f6';
+    const lblClr = dark ? '#94a3b8' : '#6b7280';
+
+    return (
+        <div>
+            <DetailCard icon="📅" title="Attendance" color="#ede9fe" titleColor="#7c3aed" dark={dark}>
+                <DetailRow label="Working Days" val={`${detail.working_days} days`} dark={dark} />
+                <DetailRow label="Present"      val={`${detail.present_days} days`} color={detail.present_days>0?'#059669':null} dark={dark} />
+                <DetailRow label="Absent"       val={`${detail.absent_days} days`}  color={detail.absent_days>0?'#ef4444':null} dark={dark} />
+                <DetailRow label="Late"         val={detail.late_minutes_total>0?`${detail.late_minutes_total} min`:'—'} color={detail.late_minutes_total>0?'#f59e0b':null} dark={dark} />
+                {(detail.leave_days_paid??0)>0 && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Paid Leave</span>
+                        <ClickBadge label={`${detail.leave_days_paid} days`} color="#059669" bg={dark?'rgba(5,150,105,0.18)':'#d1fae5'} onClick={()=>setLeavePop('paid')} />
+                    </div>
+                )}
+                {(detail.leave_days_unpaid??0)>0 && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Unpaid Leave</span>
+                        <ClickBadge label={`${detail.leave_days_unpaid} days`} color="#ef4444" bg={dark?'rgba(239,68,68,0.16)':'#fee2e2'} onClick={()=>setLeavePop('unpaid')} />
+                    </div>
+                )}
+                {otHrs>0 && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Overtime</span>
+                        <ClickBadge label={otLabel} color="#7c3aed" bg={dark?'rgba(124,58,237,0.18)':'#ede9fe'} onClick={()=>setOtPop(true)} />
+                    </div>
+                )}
+            </DetailCard>
+
+            <DetailCard icon="💰" title="Earnings" color="#d1fae5" titleColor="#059669" dark={dark}>
+                <DetailRow label="Base Salary" val={fmt(detail.base_salary, curr)} bold dark={dark} />
+                {(detail.total_allowances??0)>0 && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Allowances</span>
+                        <span onClick={()=>setAllowPop(true)} style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}>+ {fmt(detail.total_allowances, curr)}</span>
+                    </div>
+                )}
+                {(detail.overtime_amount??0)>0 && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Overtime Pay</span>
+                        <span onClick={()=>setOtPop(true)} style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}>+ {fmt(detail.overtime_amount, curr)}</span>
+                    </div>
+                )}
+                {(detail.bonus_amount ?? 0) > 0 && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Bonus</span>
+                        <span
+                            onClick={() => setBonusPop(true)}
+                            style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}
+                        >
+                            + {fmt(detail.bonus_amount, curr)}
+                        </span>
+                    </div>
+                )}
+                <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 16px', background: dark?'rgba(5,150,105,0.1)':'#f0fdf4' }}>
+                    <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>Total Before Deductions</span>
+                    <span style={{ fontSize:12, fontWeight:800, color:'#059669' }}>{fmt(gross, curr)}</span>
+                </div>
+            </DetailCard>
+
+            {((detail.late_deduction??0)+(detail.short_hour_deduction??0)+(detail.unpaid_leave_deduction??0)+((detail.salary_deduction_breakdown??[]).reduce((s,d)=>s+d.amount,0)))>0 && (
+                <DetailCard icon="✂️" title="Deductions" color="#fee2e2" titleColor="#dc2626" dark={dark}>
+                    {(detail.late_deduction??0)>0       && <LateArrivalRow detail={detail} curr={curr} theme={theme} dark={dark} />}
+                    {(detail.short_hour_deduction??0)>0 && <ShortHourRow   detail={detail} curr={curr} theme={theme} dark={dark} />}
+                    {(detail.salary_deduction_breakdown??[]).map((d,i)=>(
+                        <DetailRow key={i} label={<span>{d.name} <span style={{ fontSize:10, color: lblClr }}>{d.type==='percentage'?`(${d.rate}%)`:'(flat)'}</span></span>} val={`− ${fmt(d.amount, curr)}`} color="#dc2626" dark={dark}/>
+                    ))}
+                    <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 16px', background: dark?'rgba(220,38,38,0.08)':'#fff5f5' }}>
+                        <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>Total Deductions</span>
+                        <span style={{ fontSize:12, fontWeight:800, color:'#dc2626' }}>− {fmt(detail.total_deductions, curr)}</span>
+                    </div>
+                </DetailCard>
+            )}
+
+            <div style={{ background:'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)', borderRadius:14, padding:'18px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+                <div>
+                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.65)', fontWeight:700, letterSpacing:'1px', marginBottom:2 }}>NET SALARY</div>
+                    <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>{detail.period_start} — {detail.period_end}</div>
+                </div>
+                <div style={{ fontSize:24, fontWeight:900, color:'#fff', letterSpacing:'-1px' }}>{fmt(detail.net_salary, curr)}</div>
+            </div>
+
+
+            {leavePop && (
+                <MiniModal title={leavePop==='paid' ? 'Paid Leave' : 'Unpaid Leave'} subtitle="Leave Records" icon={leavePop==='paid' ? '✅' : '📋'} onClose={()=>setLeavePop(false)} theme={theme}>
+                    {(detail.leave_details??[]).filter(l=>leavePop==='paid'?l.is_paid:!l.is_paid).length===0
+                        ? <p style={{ fontSize:12, color: theme.textMute }}>No records.</p>
+                        : (detail.leave_details??[]).filter(l=>leavePop==='paid'?l.is_paid:!l.is_paid).map((l,i)=>(
+                            <div key={i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
+                                <div style={{ fontWeight:800, fontSize:14, color: theme.text, marginBottom:6 }}>{l.start_date === l.end_date ? l.start_date : `${l.start_date} — ${l.end_date}`}</div>
+                                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                    <span style={{ fontSize:12, color: theme.textSoft, fontWeight:600 }}>{l.leave_type}</span>
+                                    {l.day_type && <span style={{ fontSize:10, background: dark?'rgba(124,58,237,0.18)':'#ede9fe', color:'#7c3aed', borderRadius:99, padding:'2px 8px', fontWeight:700 }}>{dayTypeLabel(l.day_type)}</span>}
+                                    <span style={{ fontSize:11, color: theme.textMute, marginLeft:'auto' }}>{l.total_days} day(s)</span>
+                                </div>
+                            </div>
+                        ))
+                    }
+                </MiniModal>
+            )}
+            {otPop && (
+                <MiniModal title="Overtime" subtitle="OT Records" icon="⚡" onClose={()=>setOtPop(false)} theme={theme}>
+                    {(detail.ot_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>No OT records.</p>
+                    : (detail.ot_details??[]).map((o,i)=>(
+                        <div key={i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                                <span style={{ fontWeight:800, fontSize:14, color: theme.text }}>{o.date}</span>
+                                <span style={{ fontSize:11, color: theme.textMute, fontWeight:600 }}>{o.rate_type==='multiplier'?`${o.rate_value}×`:`flat`}</span>
+                            </div>
+                            <div style={{ fontSize:11, color: theme.textMute, display:'flex', gap:10, alignItems:'center' }}>
+                                <span style={{ color:'#7c3aed', fontWeight:600 }}>{o.policy}</span>
+                                <span style={{ color: theme.textMute }}>{fmtTime(o.start_time)}–{fmtTime(o.end_time)}</span>
+                                <span style={{ fontWeight:700, color: theme.textSoft, marginLeft:'auto' }}>{fmtHours(o.hours)}</span>
+                            </div>
+                        </div>
+                    ))}
+                    <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between' }}>
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>OT Pay (this period)</span>
+                        <span style={{ fontSize:13, fontWeight:800, color:'#7c3aed' }}>{fmt(detail.overtime_amount??0, curr)}</span>
+                    </div>
+                </MiniModal>
+            )}
+            {allowPop && (
+                <MiniModal title="Allowances" subtitle="Breakdown" icon="💰" onClose={()=>setAllowPop(false)} theme={theme}>
+                    {(detail.allowance_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>No allowance details.</p>
+                    : (detail.allowance_details??[]).map((a,i)=>(
+                        <div key={i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                            <div>
+                                <div style={{ fontWeight:700, fontSize:13, color: theme.textSoft }}>{a.name}</div>
+                                <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>{a.type==='percentage'?`${a.rate}% of base salary`:`Fixed amount`}</div>
+                            </div>
+                            <span style={{ fontSize:13, fontWeight:700, color:'#059669' }}>+ {fmt(a.amount, curr)}</span>
+                        </div>
+                    ))}
+                    <div style={{ marginTop:10, paddingTop:10, borderTop:'1px solid #e5e7eb', display:'flex', justifyContent:'space-between' }}>
+                        <span style={{ fontSize:11, fontWeight:700, color:'#6b7280' }}>Total Allowances</span>
+                        <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>+ {fmt(detail.total_allowances??0, curr)}</span>
+                    </div>
+                </MiniModal>
+            )}
+
+            {bonusPop && (
+                <MiniModal title="Bonuses" subtitle="Breakdown" icon="🎁" onClose={() => setBonusPop(false)} theme={theme}>
+                    {(detail.bonuses ?? []).length === 0 ? (
+                        <p style={{ fontSize:12, color: theme.textMute }}>No bonus details.</p>
+                    ) : (
+                        (detail.bonuses ?? []).map((b, i) => (
+                            <div
+                                key={b.id ?? `${b.bonus_type_id ?? 'bonus'}-${i}`}
+                                style={{
+                                    padding:'12px 0',
+                                    borderBottom:`1px solid ${theme.border}`,
+                                    display:'flex',
+                                    justifyContent:'space-between',
+                                    alignItems:'center'
+                                }}
+                            >
+                                <div>
+                                    <div style={{ fontWeight:700, fontSize:13, color: theme.textSoft }}>
+                                        {b.type_name}
+                                    </div>
+                                    <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>
+                                        {b.calculation_type === 'percentage'
+                                            ? `${b.rate}% of base salary`
+                                            : 'Fixed amount'}
+                                    </div>
+                                </div>
+
+                                <span style={{ fontSize:13, fontWeight:700, color:'#059669' }}>
+                                    + {fmt(b.amount, curr)}
+                                </span>
+                            </div>
+                        ))
+                    )}
+
+                    <div
+                        style={{
+                            marginTop:10,
+                            paddingTop:10,
+                            borderTop:`1px solid ${theme.border}`,
+                            display:'flex',
+                            justifyContent:'space-between'
+                        }}
+                    >
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>
+                            Total Bonus
+                        </span>
+                        <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>
+                            + {fmt(detail.bonus_amount ?? 0, curr)}
+                        </span>
+                    </div>
+                </MiniModal>
+            )}
+        </div>
+    );
+}
+function SalaryDetailModal({ detail, curr, onApprove, onClose, theme, dark }) {
+    return (
+        <div style={{ position:'fixed', inset:0, background:'rgba(17,7,46,0.55)', zIndex:9000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+            <div style={{
+                background: theme.panelSolid,  // ← surface → panelSolid
+                borderRadius:20, width:'100%', maxWidth:520, maxHeight:'92vh',
+                display:'flex', flexDirection:'column',
+                boxShadow:'0 32px 80px rgba(0,0,0,0.3)',
+                overflow:'hidden', border:`1px solid ${theme.border}`
+            }}>
+                {/* ── Compact header ── */}
+                <div style={{ background:'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', padding:'10px 16px', flexShrink:0 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
+                            <div style={{ minWidth:0 }}>
+                                <div style={{ fontSize:9, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase' }}>Salary Detail</div>
+                                <div style={{ fontSize:14, fontWeight:800, color:'#fff', letterSpacing:'-0.2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                                    {detail.name}
+                                    {detail.position && <span style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.65)', marginLeft:5 }}>· {detail.position}</span>}
+                                    {detail.department && <span style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.55)', marginLeft:4 }}>· {detail.department}</span>}
+                                </div>
+                            </div>
+                            <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
+                                <span style={{ fontSize:10, background:'rgba(255,255,255,0.18)', color:'#fff', borderRadius:99, padding:'2px 8px', fontWeight:600, whiteSpace:'nowrap' }}>{detail.period_start} — {detail.period_end}</span>
+                                <span style={{ fontSize:10, background: detail.status==='approved'?'rgba(16,185,129,0.3)':detail.status==='confirmed'?'rgba(124,58,237,0.3)':'rgba(255,255,255,0.12)', color:'#fff', borderRadius:99, padding:'2px 8px', fontWeight:700, whiteSpace:'nowrap' }}>{detail.status?.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:7, width:26, height:26, cursor:'pointer', color:'#fff', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>×</button>
+                    </div>
+                </div>
+                {/* ── Scrollable body, scrollbar hidden ── */}
+                <div style={{ overflowY:'auto', flex:1, padding:'14px 18px 18px', scrollbarWidth:'none', msOverflowStyle:'none' }}
+                     className="sd-hide-scroll">
+                    <DetailModalContent detail={detail} curr={curr} onApprove={onApprove} onClose={onClose} theme={theme} dark={dark}/>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function getTheme(dark) {
     if (dark) return {
         panelSolid:      '#0f1b34',
@@ -257,6 +662,23 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
     const [toast,        setToast]        = useState(null);
     const [bulkPdfLoad,  setBulkPdfLoad]  = useState(false);
     const [bulkXlsLoad,  setBulkXlsLoad]  = useState(false);
+    const [detailModal, setDetailModal] = useState(null);
+    const [detailLoading, setDetailLoading] = useState(null); 
+
+    const openDetail = async (recordId) => {
+        setDetailLoading(recordId);  // ← specific recordId
+        try {
+            const res = await fetch(`/payroll/records/${recordId}/show`, {
+                headers: { 'X-CSRF-TOKEN': csrf() }
+            });
+            const data = await res.json();
+            setDetailModal(data);
+        } catch {
+            showToast('Failed to load detail', 'error');
+        } finally {
+            setDetailLoading(null);
+        }
+    };
 
     const showToast = (msg, type='success') => {
         window.dispatchEvent(
@@ -331,7 +753,7 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
     const avgNet       = filtered.length ? totalNet / filtered.length : 0;
 
     const thS = (w,align='left') => ({ padding:'11px 18px', textAlign:align, fontSize:10, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.7px', whiteSpace:'nowrap', minWidth:w, background:theme.tableHead });
-
+console.log("grouped",grouped)
     return (
         <AppLayout title="Payslip">
             <Head title="Payslip"/>
@@ -440,6 +862,7 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
                                     {isHR&&<th style={thS('170px')}>Employee</th>}
                                     <th style={thS('180px')}>Pay Period</th>
                                     <th style={thS('140px','right')}>Net Salary</th>
+                                    <th style={thS('100px', 'center')}>Detail</th>
                                     <th style={thS('160px','center')}>Download</th>
                                 </tr>
                             </thead>
@@ -484,11 +907,22 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
                                         )}
 
                                         {/* Pay Period */}
-                                        <td style={{padding:'14px 18px',paddingLeft:isHR?22:18}}>
-                                            <div style={{fontSize:13,fontWeight:700,color:theme.text}}>{r.period_start} – {r.period_end}</div>
+                                        <td style={{padding:'14px 18px', paddingLeft:isHR?22:18}}>
+                                            <div style={{fontSize:13, fontWeight:700, color:theme.text}}>
+                                                {r.period_start} – {r.period_end}
+                                            </div>
                                             <div style={{marginTop:4}}>
-                                                <span style={{fontSize:10,fontWeight:700,background:dark?theme.successSoft:theme.successSoft,color:theme.success,borderRadius:99,padding:'2px 9px'}}>
-                                                    ✓ Confirmed
+                                                <span style={{
+                                                    fontSize:10,
+                                                    fontWeight:700,
+                                                    background: r.status === 'paid'
+                                                        ? (dark ? 'rgba(59,130,246,0.16)' : '#dbeafe')
+                                                        : (dark ? theme.successSoft : theme.successSoft),
+                                                    color: r.status === 'paid' ? '#2563eb' : theme.success,
+                                                    borderRadius:99,
+                                                    padding:'2px 9px'
+                                                }}>
+                                                    {r.status === 'paid' ? '💳 Paid' : '✓ Confirmed'}
                                                 </span>
                                             </div>
                                         </td>
@@ -499,7 +933,29 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
                                                 {fmt(r.net_salary,r.currency)}
                                             </span>
                                         </td>
-
+                                       <td style={{padding:'14px 18px', textAlign:'center', width:100}}>
+                                            <button
+                                                onClick={() => openDetail(r.id)}
+                                                disabled={detailLoading === r.id}
+                                                style={{
+                                                    padding:'6px 14px', borderRadius:8,
+                                                    border:`1.5px solid ${dark?'rgba(124,58,237,0.35)':theme.primary}`,
+                                                    background:'transparent',
+                                                    color: detailLoading === r.id ? theme.textMute : theme.primary,
+                                                    fontSize:11, fontWeight:700,
+                                                    cursor: detailLoading === r.id ? 'not-allowed' : 'pointer',
+                                                    display:'inline-flex', alignItems:'center', justifyContent:'center', // ← ထည့်
+                                                    gap:5,
+                                                    transition:'all 0.15s',
+                                                    width: "80px"
+                                                }}
+                                                onMouseEnter={e => { if(detailLoading !== r.id) e.currentTarget.style.background = dark?'rgba(124,58,237,0.12)':theme.primarySoft; }}
+                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                            >
+                                            
+                                                {detailLoading === r.id ? 'Loading…' : 'Detail'}
+                                            </button>
+                                        </td>
                                         {/* Download */}
                                         <td style={{padding:'14px 18px',textAlign:'center',width:160}}>
                                             <div style={{display:'inline-flex',gap:7}}>
@@ -514,6 +970,17 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
                     </div>
                 </div>
             </div>
+
+            {detailModal && (
+                <SalaryDetailModal
+                    detail={detailModal}
+                    curr={detailModal.currency ?? ''}
+                    onApprove={() => {}}     // payslip မှာ approve action မလိုဘူး — view only
+                    onClose={() => setDetailModal(null)}
+                    theme={theme}
+                    dark={dark}
+                />
+            )}
         </AppLayout>
     );
 }

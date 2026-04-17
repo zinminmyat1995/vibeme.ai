@@ -402,7 +402,6 @@ function ConfirmModal({ open, onClose, onConfirm, data, isEdit, processing, T, d
         {icon:'⏳',label:'Probation',value:`${data.probation_days} days`},
         {icon:'💱',label:'Currency',value:currency?`${currency.currency_name} (${currency.currency_code})`:'—'},
         {icon:'🏦',label:'Bank',value:bank?.bank_name??'—'},
-        {icon:'⏱️',label:'Working Hrs/Day',value:`${data.working_hours_per_day}h`},
         {icon:'🌤️',label:'Day Shift',value:`${to12h(data.day_shift_start)} – ${to12h(data.day_shift_end)}`},
         {icon:'🌙',label:'Night Shift',value:`${to12h(data.day_shift_end)} – ${to12h(data.day_shift_start)} (auto)`},
         {icon:'🍽️',label:'Lunch Break',value:`${data.lunch_start??'12:00'} – ${data.lunch_end??'13:00'}`},
@@ -593,7 +592,6 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             bonus_during_probation: salaryRule.bonus_during_probation ?? false,
             bonus_for_contract:     salaryRule.bonus_for_contract    ?? false,
             bank_id:                salaryRule.bank_id               ?? '',
-            working_hours_per_day:  salaryRule.working_hours_per_day ?? '',
             day_shift_start:        salaryRule.day_shift_start?.substring(0,5) ?? '08:00',
             day_shift_end:          salaryRule.day_shift_end?.substring(0,5)   ?? '18:00',
             lunch_start:            salaryRule.lunch_start?.substring(0,5)     ?? '12:00',
@@ -609,7 +607,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
         } : {
             pay_cycle:'monthly', probation_days:'',
             bonus_during_probation:false, bonus_for_contract:false,
-            bank_id:'', working_hours_per_day:'',
+            bank_id:'',
             day_shift_start:'08:00', day_shift_end:'18:00',
             lunch_start:'12:00', lunch_end:'13:00',
             work_start:'08:00', work_end:'17:00',
@@ -631,7 +629,6 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
         if(!data.probation_days&&data.probation_days!==0) errs.probation_days='Required.';
         if(!data.currency_id)           errs.currency_id='Payroll currency is required.';
         if(!data.bank_id)               errs.bank_id='Bank payment is required.';
-        if(!data.working_hours_per_day) errs.working_hours_per_day='Required.';
         if(!data.day_shift_start)       errs.day_shift_start='Day shift start is required.';
         if(!data.day_shift_end)         errs.day_shift_end='Day shift end is required.';
         if(data.day_shift_start&&data.day_shift_end&&data.day_shift_start===data.day_shift_end)
@@ -777,44 +774,123 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
 
             {/* ── 2. General Settings ── */}
             <SectionCard emoji="⚙️" title="General Settings" T={T}>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+
+                {/* Row 1: Probation | Bonus probation | Bonus contract — 3 column */}
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:14}}>
+                    {/* Probation */}
                     <div>
                         <label style={lbl}>Probation Period <span style={{color:T.danger}}>*</span></label>
                         <div data-error={!!formErrors.probation_days} ref={el=>errorRefs.current.probation_days=el} style={{position:'relative'}}>
-                            <input className="sr-inp" type="number" value={data.probation_days} min="0" onKeyDown={e=>{if(['-','e','E'].includes(e.key))e.preventDefault();}} onChange={e=>{setData('probation_days',e.target.value);setFormErrors(p=>({...p,probation_days:''}));}} placeholder="e.g. 90" style={{...inp(!!formErrors.probation_days),paddingRight:44}}/>
+                            <input className="sr-inp" type="number" value={data.probation_days} min="0"
+                                onKeyDown={e=>{if(['-','e','E'].includes(e.key))e.preventDefault();}}
+                                onChange={e=>{setData('probation_days',e.target.value);setFormErrors(p=>({...p,probation_days:''}));}}
+                                placeholder="e.g. 90" style={{...inp(!!formErrors.probation_days),paddingRight:44}}/>
                             <span style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',fontSize:12,color:T.textMute,fontWeight:600,pointerEvents:'none'}}>days</span>
                         </div>
                         <ErrMsg msg={formErrors.probation_days}/>
                     </div>
-                    <div>
-                        <label style={lbl}>Working Hours / Day <span style={{color:T.danger}}>*</span> <span style={{color:T.textMute,fontWeight:500,textTransform:'none',fontSize:9}}>(used for OT / short-hour calc)</span></label>
-                        <div data-error={!!formErrors.working_hours_per_day} ref={el=>errorRefs.current.working_hours_per_day=el} style={{position:'relative'}}>
-                            <input className="sr-inp" type="number" value={data.working_hours_per_day} min="1" max="24" onKeyDown={e=>{if(['-','e','E'].includes(e.key))e.preventDefault();}} onChange={e=>{setData('working_hours_per_day',e.target.value);setFormErrors(p=>({...p,working_hours_per_day:''}));}} placeholder="e.g. 8" style={{...inp(!!formErrors.working_hours_per_day),paddingRight:36}}/>
-                            <span style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',fontSize:12,color:T.textMute,fontWeight:600,pointerEvents:'none'}}>hrs</span>
+
+                    {/* Bonus during probation */}
+                    <div style={{display:'flex', flexDirection:'column'}}>
+                        <label style={lbl}>Bonus / Probation</label>
+                        <div
+                            onClick={()=>setData('bonus_during_probation', !data.bonus_during_probation)}
+                            style={{
+                                flex:1, padding:'12px 14px', borderRadius:12, cursor:'pointer',
+                                border:`1.5px solid ${data.bonus_during_probation ? T.primary : T.border}`,
+                                background: data.bonus_during_probation ? T.primarySoft : T.panelSolid,
+                                display:'flex', alignItems:'center', justifyContent:'space-between', gap:10,
+                                transition:'all 0.15s',
+                            }}
+                        >
+                            <div style={{minWidth:0}}>
+                                <div style={{fontSize:12, fontWeight:700, color: data.bonus_during_probation ? T.primary : T.textSoft}}>
+                                    {data.bonus_during_probation ? '✓ Pay bonus' : 'Skip bonus'}
+                                </div>
+                                <div style={{fontSize:10, color:T.textMute, marginTop:2, lineHeight:1.4}}>
+                                    During probation period
+                                </div>
+                            </div>
+                            <div style={{
+                                position:'relative', width:36, height:20, borderRadius:99, flexShrink:0,
+                                background: data.bonus_during_probation ? T.primary : (dark?'rgba(148,163,184,0.2)':'#d1d5db'),
+                                transition:'background 0.2s',
+                            }}>
+                                <span style={{
+                                    position:'absolute', top:2,
+                                    left: data.bonus_during_probation ? 18 : 2,
+                                    width:16, height:16, borderRadius:'50%', background:'#fff',
+                                    boxShadow:'0 1px 4px rgba(0,0,0,0.2)', transition:'left 0.2s',
+                                }}/>
+                            </div>
                         </div>
-                        <ErrMsg msg={formErrors.working_hours_per_day}/>
                     </div>
+
+                    {/* Bonus for contract */}
+                    <div style={{display:'flex', flexDirection:'column'}}>
+                        <label style={lbl}>Bonus / Contract</label>
+                        <div
+                            onClick={()=>setData('bonus_for_contract', !data.bonus_for_contract)}
+                            style={{
+                                flex:1, padding:'12px 14px', borderRadius:12, cursor:'pointer',
+                                border:`1.5px solid ${data.bonus_for_contract ? T.primary : T.border}`,
+                                background: data.bonus_for_contract ? T.primarySoft : T.panelSolid,
+                                display:'flex', alignItems:'center', justifyContent:'space-between', gap:10,
+                                transition:'all 0.15s',
+                            }}
+                        >
+                            <div style={{minWidth:0}}>
+                                <div style={{fontSize:12, fontWeight:700, color: data.bonus_for_contract ? T.primary : T.textSoft}}>
+                                    {data.bonus_for_contract ? '✓ Pay bonus' : 'Skip bonus'}
+                                </div>
+                                <div style={{fontSize:10, color:T.textMute, marginTop:2, lineHeight:1.4}}>
+                                    For contract employees
+                                </div>
+                            </div>
+                            <div style={{
+                                position:'relative', width:36, height:20, borderRadius:99, flexShrink:0,
+                                background: data.bonus_for_contract ? T.primary : (dark?'rgba(148,163,184,0.2)':'#d1d5db'),
+                                transition:'background 0.2s',
+                            }}>
+                                <span style={{
+                                    position:'absolute', top:2,
+                                    left: data.bonus_for_contract ? 18 : 2,
+                                    width:16, height:16, borderRadius:'50%', background:'#fff',
+                                    boxShadow:'0 1px 4px rgba(0,0,0,0.2)', transition:'left 0.2s',
+                                }}/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Row 2: Currency | Bank — 2 column */}
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:14}}>
                     <div data-error={!!formErrors.currency_id} ref={el=>errorRefs.current.currency_id=el} style={{position:'relative',zIndex:500}}>
                         <label style={lbl}>Payroll Currency <span style={{color:T.danger}}>*</span></label>
-                        <PremiumSelect options={currOpts} value={data.currency_id} onChange={v=>{setData('currency_id',v);setFormErrors(p=>({...p,currency_id:''}));}} placeholder="Select currency..." T={T} dark={dark} zIndex={500}/>
+                        <PremiumSelect options={currOpts} value={data.currency_id}
+                            onChange={v=>{setData('currency_id',v);setFormErrors(p=>({...p,currency_id:''}));}}
+                            placeholder="Select currency..." T={T} dark={dark} zIndex={500}/>
                         <ErrMsg msg={formErrors.currency_id}/>
                         {!currencies?.length&&<div style={{marginTop:5,fontSize:11,color:T.warning}}>⚠️ No currencies. Add in Currency section first.</div>}
                     </div>
+
                     <div data-error={!!formErrors.bank_id} ref={el=>errorRefs.current.bank_id=el}>
                         <label style={lbl}>Bank Payment <span style={{color:T.danger}}>*</span></label>
                         <div style={{display:'flex',gap:8}}>
                             <div style={{flex:1,position:'relative',zIndex:400}}>
-                                <PremiumSelect options={bankOpts} value={data.bank_id} onChange={v=>{setData('bank_id',v);setFormErrors(p=>({...p,bank_id:''}));}} placeholder="Select bank..." T={T} dark={dark} zIndex={400}/>
+                                <PremiumSelect options={bankOpts} value={data.bank_id}
+                                    onChange={v=>{setData('bank_id',v);setFormErrors(p=>({...p,bank_id:''}));}}
+                                    placeholder="Select bank..." T={T} dark={dark} zIndex={400}/>
                             </div>
-                            <button type="button" onClick={()=>setShowBankModal(true)} style={{flexShrink:0,padding:'0 14px',borderRadius:12,border:`1.5px solid ${T.primary}`,background:T.primarySoft,color:T.primary,fontSize:11,fontWeight:800,cursor:'pointer',whiteSpace:'nowrap',height:48}}>Manage</button>
+                            <button type="button" onClick={()=>setShowBankModal(true)}
+                                style={{flexShrink:0,padding:'0 14px',borderRadius:12,border:`1.5px solid ${T.primary}`,background:T.primarySoft,color:T.primary,fontSize:11,fontWeight:800,cursor:'pointer',whiteSpace:'nowrap',height:48}}>
+                                Manage
+                            </button>
                         </div>
                         <ErrMsg msg={formErrors.bank_id}/>
                     </div>
                 </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-                    <SRToggle label="Pay bonus during probation?" sublabel="If off, bonuses skipped for probation employees" checked={data.bonus_during_probation} onChange={v=>setData('bonus_during_probation',v)} T={T} dark={dark}/>
-                    <SRToggle label="Pay bonus for contract employees?" sublabel="If off, bonuses skipped for contract employees" checked={data.bonus_for_contract} onChange={v=>setData('bonus_for_contract',v)} T={T} dark={dark}/>
-                </div>
+
             </SectionCard>
 
             {/* ── 3. Shift Hours ── */}
@@ -1065,7 +1141,6 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         <SavedCard label="Probation"       value={salaryRule.probation_days!=null?`${salaryRule.probation_days} days`:'—'} T={T}/>
                         <SavedCard label="Currency"        value={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_code??'—'} sub={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_name} T={T}/>
                         <SavedCard label="Bank"            value={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_name??'—'} sub={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_code} T={T}/>
-                        <SavedCard label="Working Hrs/Day" value={salaryRule.working_hours_per_day?`${salaryRule.working_hours_per_day}h / day`:'—'} T={T}/>
                         <SavedCard label="Work Hours"      value={salaryRule.work_start&&salaryRule.work_end?`${to12h(salaryRule.work_start)} – ${to12h(salaryRule.work_end)}`:'—'} sub="Attendance window" T={T}/>
                         <SavedCard label="Day Shift"       value={salaryRule.day_shift_start&&salaryRule.day_shift_end?`${to12h(salaryRule.day_shift_start)} – ${to12h(salaryRule.day_shift_end)}`:'—'} T={T}/>
                         <SavedCard label="Night Shift"     value={salaryRule.day_shift_end&&salaryRule.day_shift_start?`${to12h(salaryRule.day_shift_end)} – ${to12h(salaryRule.day_shift_start)}`:'—'} sub="Auto-derived" T={T}/>

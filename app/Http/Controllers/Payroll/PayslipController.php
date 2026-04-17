@@ -72,7 +72,7 @@ class PayslipController extends Controller
         $countryId = $user->countryRecord?->id;
 
         $query = PayrollRecord::with(['user', 'payrollPeriod.country', 'bonuses'])
-            ->where('status', 'confirmed')
+            ->whereIn('status', ['confirmed', 'paid'])
             ->whereHas('payrollPeriod', fn($q) => $q->where('country_id', $countryId));
 
         if (!$isHR) $query->where('user_id', $user->id);

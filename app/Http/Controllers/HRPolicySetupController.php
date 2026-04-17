@@ -427,7 +427,6 @@ public function destroyBank(PayrollBank $bank)
             'bonus_during_probation' => 'required|boolean',
             'bonus_for_contract'     => 'nullable|boolean',
             'bank_id'                => 'nullable|exists:payroll_banks,id',
-            'working_hours_per_day'  => 'required|integer|min:1|max:24',
             'day_shift_start'        => 'required|date_format:H:i',
             'day_shift_end'          => 'required|date_format:H:i',
             'work_start'             => 'nullable|date_format:H:i',

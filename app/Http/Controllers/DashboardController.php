@@ -192,8 +192,8 @@ class DashboardController extends Controller
             ]);
         }
 
-        $attendanceTrend = collect(range(6, 0))->reverse()->map(function ($offset) use ($scopeUsers) {
-            $date = now()->subDays($offset)->toDateString();
+        $attendanceTrend = collect(range(0, 6))->map(function ($offset) use ($scopeUsers) {
+            $date = now()->subDays(6 - $offset)->toDateString();  // 6 days ago → today
             $present = AttendanceRecord::whereIn('user_id', $scopeUsers->pluck('id'))
                 ->where('date', $date)
                 ->whereIn('status', ['present', 'late'])
@@ -238,16 +238,19 @@ class DashboardController extends Controller
             'check_out' => $todayAttendance?->check_out_time,
         ];
 
-        $weeklyAttendance = collect(range(6, 0))->reverse()->map(function ($offset) use ($user) {
-            $date = now()->subDays($offset)->toDateString();
-            $present = AttendanceRecord::where('user_id', $user->id)
+        $weeklyAttendance = collect(range(0, 6))->map(function ($offset) use ($user) {
+            $date = now()->subDays(6 - $offset)->toDateString();  // 6 days ago → today
+            $record = AttendanceRecord::where('user_id', $user->id)
                 ->where('date', $date)
-                ->whereIn('status', ['present', 'late'])
-                ->exists();
+                ->first();
+
+            $hours = $record ? (float) ($record->work_hours_actual ?? 0) : null;
 
             return [
-                'label' => Carbon::parse($date)->format('D'),
-                'value' => $present ? 1 : 0,
+                'label'  => Carbon::parse($date)->format('D'),
+                'value'  => $hours ?? 0,
+                'absent' => is_null($hours),
+                'hours'  => $hours,
             ];
         })->values();
 

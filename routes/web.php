@@ -327,6 +327,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('payroll.payslip.pdf');
     Route::get('/payroll/payslip/{payrollRecord}/excel', [PayslipController::class, 'downloadExcel'])
         ->name('payroll.payslip.excel');
+    Route::get('/payroll/records/{payrollRecord}/show', [PayrollRecordController::class, 'show'])
+        ->name('payroll.records.show');
 
     // ── Notifications ─────────────────────────────────────────
     Route::get   ('/notifications',          [NotificationController::class, 'index'])      ->name('notifications.index');
