@@ -203,7 +203,7 @@ body {
     font-size: 13px; font-weight: 500;
     color: var(--text2);
     background: none;
-    border: 1px solid var(--line2);
+    border: none;
     cursor: pointer; font-family: inherit;
     padding: 0 14px;
     height: 32px;
@@ -222,7 +222,7 @@ body {
     display: inline-flex; align-items: center; gap: 6px;
     height: 32px; padding: 0 12px;
     border-radius: 8px;
-    border: 1px solid var(--line2);
+    border: none;
     background: transparent;
     color: var(--text2);
     font-size: 12px; font-weight: 500;
@@ -494,6 +494,11 @@ footer {
 @media(max-width:600px){
     .office-grid { grid-template-columns:1fr; }
     .hero-title { font-size: 34px; }
+    .hero::before {
+        width: 400px;
+        height: 300px;
+        top: -100px;
+    }
     .hero-sub { font-size: 15px; }
 }
         `}</style>
@@ -512,11 +517,7 @@ footer {
                     <span>{dark ? "☀" : "☾"}</span>
                     <span>{dark ? "Light" : "Dark"}</span>
                 </button>
-                {total > 0 && (
-                    <a href="#offices" className="nav-cta">
-                        {total} Open Position{total !== 1 ? "s" : ""}
-                    </a>
-                )}
+            
             </div>
         </nav>
 
