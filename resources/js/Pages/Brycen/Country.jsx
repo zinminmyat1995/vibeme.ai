@@ -44,7 +44,7 @@ export default function Country({ office, jobs = [] }) {
     const [applyOpen, setApplyOpen] = useState(false);
     const [applyJob, setApplyJob] = useState(null);
     const [refCode, setRefCode] = useState(null);
-
+    const [formErrors, setFormErrors] = useState({});
     const { data, setData, post, processing, errors, reset } = useForm({
         name: "", email: "", phone: "", cover_letter: "", cv: null,
     });
@@ -55,12 +55,24 @@ export default function Country({ office, jobs = [] }) {
 
     const submitApply = (e) => {
         e.preventDefault();
+        
+        // Frontend validation
+        const errs = {};
+        if (!data.name.trim()) errs.name = "Full name is required";
+        if (!data.email.trim()) errs.email = "Email is required";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errs.email = "Invalid email address";
+        if (!data.cv) errs.cv = "Please upload your CV";
+        
+        setFormErrors(errs);
+        if (Object.keys(errs).length > 0) return; // API မခေါ်ဘဲ ရပ်
+        
         post(`/brycen/${office.country_key}/jobs/${applyJob.id}/apply`, {
             forceFormData: true,
             onSuccess: (page) => {
                 const code = page.props.flash?.reference_code;
                 setRefCode(code || "SUCCESS");
                 reset();
+                setFormErrors({});
             },
         });
     };
@@ -492,7 +504,7 @@ textarea.form-input { min-height: 96px; resize: vertical; }
 }
 .btn-submit:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
 .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
-
+.file-label.err-file { border-color: rgba(239,68,68,0.5); }
 /* ── SUCCESS ── */
 .success-box { text-align: center; padding: 16px 8px; }
 .success-icon {
@@ -530,7 +542,6 @@ textarea.form-input { min-height: 96px; resize: vertical; }
     .hero { height: 340px; }
     .hero-title { font-size: 30px; }
     .form-grid { grid-template-columns: 1fr; }
-    .modal-btns { flex-direction: column; }
     .meta-grid { grid-template-columns: 1fr; }
     .job-top { flex-direction: column; }
     .apply-btn { width: 100%; justify-content: center; }
@@ -753,17 +764,17 @@ textarea.form-input { min-height: 96px; resize: vertical; }
                                 <div className="form-grid">
                                     <div className="form-group">
                                         <label className="form-label">Full Name *</label>
-                                        <input className={`form-input${errors.name ? " err" : ""}`}
+                                        <input className={`form-input${(formErrors.name || errors.name) ? " err" : ""}`}
                                             value={data.name} onChange={e => setData("name", e.target.value)}
                                             placeholder="Your full name"/>
-                                        {errors.name && <div className="form-error">{errors.name}</div>}
+                                        {(formErrors.name || errors.name) && <div className="form-error">{formErrors.name || errors.name}</div>}
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Email *</label>
-                                        <input type="email" className={`form-input${errors.email ? " err" : ""}`}
+                                        <input type="email" className={`form-input${(formErrors.email || errors.email) ? " err" : ""}`}
                                             value={data.email} onChange={e => setData("email", e.target.value)}
                                             placeholder="your@email.com"/>
-                                        {errors.email && <div className="form-error">{errors.email}</div>}
+                                        {(formErrors.email || errors.email) && <div className="form-error">{formErrors.email || errors.email}</div>}
                                     </div>
                                     <div className="form-group full">
                                         <label className="form-label">Phone</label>
@@ -778,7 +789,7 @@ textarea.form-input { min-height: 96px; resize: vertical; }
                                     </div>
                                     <div className="form-group full">
                                         <label className="form-label">CV / Resume * — PDF, DOC, DOCX · max 5MB</label>
-                                        <label className="file-label">
+                                        <label className={`file-label${formErrors.cv ? " err-file" : ""}`}>
                                             <span className="file-icon">📎</span>
                                             <span>
                                                 <div className="file-title">{data.cv ? data.cv.name : "Upload your CV"}</div>
@@ -787,13 +798,13 @@ textarea.form-input { min-height: 96px; resize: vertical; }
                                             <input type="file" accept=".pdf,.doc,.docx" style={{ display:"none" }}
                                                 onChange={e => setData("cv", e.target.files[0])}/>
                                         </label>
-                                        {errors.cv && <div className="form-error">{errors.cv}</div>}
+                                        {(formErrors.cv || errors.cv) && <div className="form-error">{formErrors.cv || errors.cv}</div>}
                                     </div>
                                 </div>
                                 <div className="modal-btns">
                                     <button type="button" className="btn-cancel" onClick={() => setApplyOpen(false)}>Cancel</button>
                                     <button type="submit" className="btn-submit" disabled={processing}>
-                                        {processing ? "Applying..." : "Apply Application →"}
+                                        {processing ? "Applying..." : "Apply →"}
                                     </button>
                                 </div>
                             </form>
