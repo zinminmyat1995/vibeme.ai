@@ -166,7 +166,7 @@ img { display: block; max-width: 100%; }
 .theme-toggle {
     display:inline-flex; align-items:center; gap:6px;
     height:32px; padding:0 12px; border-radius:8px;
-    border:1px solid var(--line2); background:transparent;
+    border:none; background:transparent;
     color:var(--text2); font-size:12px; font-weight:500;
     cursor:pointer; transition:all 0.18s; font-family:inherit;
 }
@@ -529,8 +529,6 @@ textarea.form-input { min-height: 96px; resize: vertical; }
 @media(max-width:600px) {
     .hero { height: 340px; }
     .hero-title { font-size: 30px; }
-    .hero-actions { width: 100%; }
-    .hero-btn, .hero-btn-sec { width: 100%; justify-content: center; }
     .form-grid { grid-template-columns: 1fr; }
     .modal-btns { flex-direction: column; }
     .meta-grid { grid-template-columns: 1fr; }
@@ -542,18 +540,14 @@ textarea.form-input { min-height: 96px; resize: vertical; }
         {/* ── NAV ── */}
         <nav className="nav">
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <Link href="/" className="nav-back">← Back</Link>
+                <Link href="/" className="nav-back">←</Link>
                 <Link href="/" className="nav-logo">
                     <img src="/images/main-logo.svg" alt="VibeMe.AI"/>
                     <span className="nav-logo-name">VibeMe<span>.AI</span></span>
                 </Link>
             </div>
             <div className="nav-r">
-                {jobs.length > 0 && (
-                    <a href="#open-jobs" className="nav-link">
-                        {jobs.length} Open Position{jobs.length !== 1 ? "s" : ""}
-                    </a>
-                )}
+                
                 <button className="theme-toggle" onClick={() => setDark(d => !d)}>
                     <span>{dark ? "☀" : "☾"}</span>
                     <span>{dark ? "Light" : "Dark"}</span>
@@ -573,9 +567,7 @@ textarea.form-input { min-height: 96px; resize: vertical; }
                     <h1 className="hero-title">{office.company_name}</h1>
                     <div className="hero-city">{office.city}, {office.country_name}</div>
                     <div className="hero-actions">
-                        {jobs.length > 0 && (
-                            <a href="#open-jobs" className="hero-btn">View Open Positions →</a>
-                        )}
+                      
                         {office.website_url && (
                             <a href={office.website_url} target="_blank" rel="noopener noreferrer" className="hero-btn-sec">
                                 Visit Website ↗
