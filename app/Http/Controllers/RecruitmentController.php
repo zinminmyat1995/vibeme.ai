@@ -52,7 +52,6 @@ class RecruitmentController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        // ── Currency: salary_rules → payroll_currencies ──
         $salaryRule = \App\Models\SalaryRule::where('country_id', function ($q) use ($office) {
             $q->select('id')->from('countries')
               ->whereRaw('LOWER(name) = ?', [strtolower($office->country_name)])
@@ -63,8 +62,6 @@ class RecruitmentController extends Controller
         $jobs = JobPosting::where('brycen_office_id', $office->id)
             ->where('status', 'open')
             ->where(function ($q) {
-                // deadline null ဖြစ်ရင် ပြပေးမယ်
-                // deadline ရှိရင် today နဲ့ equal or greater than ဖြစ်မှ ပြပေးမယ်
                 $q->whereNull('deadline')
                 ->orWhereDate('deadline', '>=', now()->toDateString());
             })
@@ -174,7 +171,6 @@ class RecruitmentController extends Controller
             'reference_code' => $refCode,
         ]);
 
-        // ── Notify HR users of this country ──
         $this->notifyHR($office, $job, $validated['name'], $refCode);
 
         return back()->with([
@@ -183,14 +179,13 @@ class RecruitmentController extends Controller
         ]);
     }
 
-    // ── Notify HR role users in the same country ─────────────────────
+    // ── Notify HR role users in the same country ──────────────────
     private function notifyHR(
         BrycenOffice $office,
         JobPosting   $job,
         string       $applicantName,
         string       $refCode
     ): void {
-        // country_name → Country.id ရှာ (RecruitmentController show() နဲ့ same pattern)
         $country = \App\Models\Country::whereRaw(
             'LOWER(name) = ?', [strtolower($office->country_name)]
         )->first();
@@ -254,82 +249,125 @@ class RecruitmentController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  HR — Recruitment Dashboard  GET /recruitment
+    //  HR/ADMIN — Recruitment Dashboard  GET /recruitment
     // ─────────────────────────────────────────────────────────────
     public function hrIndex()
     {
-        $offices = BrycenOffice::where('is_active', true)
-            ->withCount(['openJobPostings', 'jobPostings'])
-            ->get();
+        $user    = Auth::user();
+        $isAdmin = $user->hasRole('admin');
+        $isHR    = $user->hasRole('hr');
 
-        $jobs = JobPosting::with('office')
+        $hrOffice = null;
+        if ($isHR) {
+            $countryName = $user->countryRecord?->name;
+
+            // DEBUG: DB ထဲမှာ ဘာရှိတာ စစ်
+            $allOffices = BrycenOffice::select('id', 'company_name', 'country_name', 'is_active')->get();
+
+            if ($countryName) {
+                $hrOffice = BrycenOffice::whereRaw('LOWER(country_name) = ?', [strtolower($countryName)])
+                    ->first();
+            }
+        }
+
+        // ── Offices ──────────────────────────────────────────────
+        // Admin: all offices, HR: only own office
+        $officesQuery = BrycenOffice::where('is_active', true)
+            ->withCount(['openJobPostings', 'jobPostings']);
+        if ($isHR && $hrOffice) {
+            $officesQuery->where('id', $hrOffice->id);
+        }
+        $offices = $officesQuery->get();
+
+        // ── Jobs ─────────────────────────────────────────────────
+        // Admin: all jobs, HR: only own branch jobs
+        $jobsQuery = JobPosting::with('office')
             ->withCount('applications')
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn($j) => [
-                'id'                 => $j->id,
-                'brycen_office_id'   => $j->brycen_office_id,
-                'title'              => $j->title,
-                'department'         => $j->department,
-                'type'               => $j->type,
-                'slots'              => $j->slots,
-                'description'        => $j->description,
-                'requirements'       => $j->requirements,
-                'responsibilities'   => $j->responsibilities,
-                'salary_range'       => $j->salary_range,
-                'status'             => $j->status,
-                'deadline'           => $j->deadline?->format('Y-m-d'),
-                'applications_count' => $j->applications_count,
-                'office'             => [
-                    'id'           => $j->office?->id,
-                    'company_name' => $j->office?->company_name,
-                    'country_key'  => $j->office?->country_key,
-                ],
-            ]);
+            ->orderByDesc('created_at');
+        if ($isHR && $hrOffice) {
+            $jobsQuery->where('brycen_office_id', $hrOffice->id);
+        }
+        $jobs = $jobsQuery->get()->map(fn($j) => [
+            'id'                 => $j->id,
+            'brycen_office_id'   => $j->brycen_office_id,
+            'title'              => $j->title,
+            'department'         => $j->department,
+            'type'               => $j->type,
+            'slots'              => $j->slots,
+            'description'        => $j->description,
+            'requirements'       => $j->requirements,
+            'responsibilities'   => $j->responsibilities,
+            'salary_range'       => $j->salary_range,
+            'status'             => $j->status,
+            'deadline'           => $j->deadline?->format('Y-m-d'),
+            'applications_count' => $j->applications_count,
+            'office'             => [
+                'id'           => $j->office?->id,
+                'company_name' => $j->office?->company_name,
+                'country_key'  => $j->office?->country_key,
+            ],
+        ]);
 
-        $recentApps = JobApplication::with(['jobPosting.office', 'interview'])
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn($a) => [
-                'id'             => $a->id,
-                'job_posting_id' => $a->job_posting_id,
-                'name'           => $a->name,
-                'email'          => $a->email,
-                'phone'          => $a->phone,
-                'status'         => $a->status,
-                'reference_code' => $a->reference_code,
-                'cv_url'         => Storage::url($a->cv_path),
-                'cover_letter'   => $a->cover_letter,
-                'hr_note'        => $a->hr_note,
-                'applied_at'     => $a->created_at->format('d M Y'),
-                'job_posting'    => [
-                    'title'  => $a->jobPosting?->title,
-                    'office' => [
-                        'company_name' => $a->jobPosting?->office?->company_name,
-                    ],
-                ],
-                'interview' => $a->interview ? [
-                    'id'                => $a->interview->id,
-                    'scheduled_at'      => $a->interview->scheduled_at->format('d M Y, h:i A'),
-                    'scheduled_at_raw'  => $a->interview->scheduled_at->toDateTimeLocalString(),
-                    'type'              => $a->interview->type,
-                    'platform'          => $a->interview->platform,
-                    'meeting_link'      => $a->interview->meeting_link,
-                    'location'          => $a->interview->location,
-                    'interviewer_name'  => $a->interview->interviewer_name,
-                    'note_to_candidate' => $a->interview->note_to_candidate,
-                    'score'             => $a->interview->score,
-                    'strengths'         => $a->interview->strengths,
-                    'weaknesses'        => $a->interview->weaknesses,
-                    'recommendation'    => $a->interview->recommendation,
-                    'internal_note'     => $a->interview->internal_note,
-                ] : null,
-            ]);
-
+        // ── Applications ─────────────────────────────────────────
+        // Admin: all apps, HR: only own branch apps
+        $appsQuery = JobApplication::with(['jobPosting.office', 'interview'])
+            ->orderByDesc('created_at');
+        if ($isHR && $hrOffice) {
+            $appsQuery->whereHas('jobPosting', fn($q) =>
+                $q->where('brycen_office_id', $hrOffice->id)
+            );
+        }
+        $recentApps = $appsQuery->get()->map(fn($a) => [
+            'id'              => $a->id,
+            'job_posting_id'  => $a->job_posting_id,
+            'name'            => $a->name,
+            'email'           => $a->email,
+            'phone'           => $a->phone,
+            'status'          => $a->status,
+            'reference_code'  => $a->reference_code,
+            'cv_url'          => Storage::url($a->cv_path),
+            'cv_download_url' => route('recruitment.cv.download', $a->id),
+            'cover_letter'    => $a->cover_letter,
+            'hr_note'         => $a->hr_note,
+            'applied_at'      => $a->created_at->format('d M Y'),
+            'job_posting'     => [
+                'title'  => $a->jobPosting?->title,
+                'office' => ['company_name' => $a->jobPosting?->office?->company_name],
+            ],
+            'interview' => $a->interview ? [
+                'id'                => $a->interview->id,
+                'scheduled_at'      => $a->interview->scheduled_at->format('d M Y, h:i A'),
+                'scheduled_at_raw'  => $a->interview->scheduled_at->toDateTimeLocalString(),
+                'type'              => $a->interview->type,
+                'platform'          => $a->interview->platform,
+                'meeting_link'      => $a->interview->meeting_link,
+                'location'          => $a->interview->location,
+                'interviewer_name'  => $a->interview->interviewer_name,
+                'note_to_candidate' => $a->interview->note_to_candidate,
+                'score'             => $a->interview->score,
+                'strengths'         => $a->interview->strengths,
+                'weaknesses'        => $a->interview->weaknesses,
+                'recommendation'    => $a->interview->recommendation,
+                'internal_note'     => $a->interview->internal_note,
+            ] : null,
+        ]);
+        \Log::info('HR Debug', [
+            'user_id'      => $user->id,
+            'country_id'   => $user->country_id,
+            'countryRecord'=> $user->countryRecord?->name,
+            'hrOffice'     => $hrOffice?->company_name,
+        ]);
         return Inertia::render('Recruitment/Index', [
             'offices'    => $offices,
             'jobs'       => $jobs,
             'recentApps' => $recentApps,
+            'isAdmin'    => $isAdmin,
+            'isHR'       => $isHR,
+            'hrOffice'   => $hrOffice ? [
+                'id'           => $hrOffice->id,
+                'company_name' => $hrOffice->company_name,
+                'country_key'  => $hrOffice->country_key,
+            ] : null,
         ]);
     }
 
@@ -338,6 +376,10 @@ class RecruitmentController extends Controller
     // ─────────────────────────────────────────────────────────────
     public function storeJob(Request $request)
     {
+        if (Auth::user()->role === 'admin') {
+            abort(403, 'Admins cannot create job postings.');
+        }
+
         $validated = $request->validate([
             'brycen_office_id' => 'required|exists:brycen_offices,id',
             'title'            => 'required|string|max:200',
@@ -357,6 +399,9 @@ class RecruitmentController extends Controller
 
     public function updateJob(Request $request, JobPosting $job)
     {
+        if (Auth::user()->role === 'admin') abort(403);
+        $this->authorizeHROffice($job->brycen_office_id);
+
         $validated = $request->validate([
             'title'            => 'sometimes|string|max:200',
             'department'       => 'nullable|string|max:100',
@@ -376,11 +421,12 @@ class RecruitmentController extends Controller
 
     public function destroyJob(JobPosting $job)
     {
-        // Delete CV files from storage before removing DB records
+        if (Auth::user()->role === 'admin') abort(403);
+        $this->authorizeHROffice($job->brycen_office_id);
+
         $applications = $job->applications()->get();
         foreach ($applications as $application) {
             if ($application->cv_path) {
-                // Try public disk (cv files stored with 'public' disk)
                 if (Storage::disk('public')->exists($application->cv_path)) {
                     Storage::disk('public')->delete($application->cv_path);
                 } elseif (Storage::exists($application->cv_path)) {
@@ -389,9 +435,7 @@ class RecruitmentController extends Controller
             }
         }
 
-        // DB cascade: job_applications → job_interviews auto deleted
         $job->delete();
-
         return back()->with('success', 'Job posting and all related data deleted.');
     }
 
@@ -421,10 +465,11 @@ class RecruitmentController extends Controller
 
     // ─────────────────────────────────────────────────────────────
     //  HR — Update Application Status + Send Email
-    //  PATCH /recruitment/applications/{application}
     // ─────────────────────────────────────────────────────────────
     public function updateApplication(Request $request, JobApplication $application)
     {
+        if (Auth::user()->role === 'admin') abort(403);
+
         $request->validate([
             'status'  => 'required|in:new,reviewing,interview,accepted,rejected',
             'hr_note' => 'nullable|string|max:1000',
@@ -438,7 +483,6 @@ class RecruitmentController extends Controller
             'hr_note' => $request->hr_note,
         ]);
 
-        // Send email on status change (not 'new' / 'interview' — interview has own email)
         $emailStatuses = ['reviewing', 'accepted', 'rejected'];
         if ($newStatus !== $oldStatus && in_array($newStatus, $emailStatuses)) {
             Mail::to($application->email)
@@ -452,8 +496,7 @@ class RecruitmentController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  HR — Delete Application  DELETE /recruitment/applications/{application}
-    //  Only allowed if status = rejected
+    //  HR — Delete Application (rejected only)
     // ─────────────────────────────────────────────────────────────
     public function deleteApplication(JobApplication $application)
     {
@@ -461,7 +504,6 @@ class RecruitmentController extends Controller
             return back()->withErrors(['delete' => 'Only rejected applications can be deleted.']);
         }
 
-        // Delete CV file from storage
         if ($application->cv_path) {
             if (Storage::disk('public')->exists($application->cv_path)) {
                 Storage::disk('public')->delete($application->cv_path);
@@ -470,17 +512,36 @@ class RecruitmentController extends Controller
             }
         }
 
-        // DB delete — cascades to job_interviews via onDelete('cascade')
         $application->delete();
-
         return back()->with('success', 'Application deleted successfully.');
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  HR — Schedule Interview  POST /recruitment/applications/{application}/interview
+    //  HR — Download CV  GET /recruitment/applications/{application}/cv
+    // ─────────────────────────────────────────────────────────────
+    public function downloadCv(JobApplication $application)
+    {
+        $path = $application->cv_path;
+
+        if (Storage::disk('public')->exists($path)) {
+            $fullPath = Storage::disk('public')->path($path);
+            return response()->download($fullPath, basename($path));
+        }
+
+        if (Storage::exists($path)) {
+            return Storage::download($path, basename($path));
+        }
+
+        abort(404, 'CV file not found.');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  HR — Schedule Interview
     // ─────────────────────────────────────────────────────────────
     public function scheduleInterview(Request $request, JobApplication $application)
     {
+        if (Auth::user()->role === 'admin') abort(403);
+
         $validated = $request->validate([
             'scheduled_at'      => 'required|date|after:now',
             'type'              => 'required|in:online,onsite',
@@ -507,10 +568,12 @@ class RecruitmentController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  HR — Save Interview Score  POST /recruitment/applications/{application}/score
+    //  HR — Save Interview Score
     // ─────────────────────────────────────────────────────────────
     public function saveScore(Request $request, JobApplication $application)
     {
+        if (Auth::user()->role === 'admin') abort(403);
+
         $validated = $request->validate([
             'score'          => 'required|integer|min:0|max:100',
             'strengths'      => 'nullable|string|max:1000',
@@ -525,12 +588,11 @@ class RecruitmentController extends Controller
         }
 
         $interview->update($validated);
-
         return back()->with('success', 'Interview score saved successfully.');
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  HR — Bulk Update Applications  POST /recruitment/applications/bulk-update
+    //  HR — Bulk Update Applications
     // ─────────────────────────────────────────────────────────────
     public function bulkUpdateApplications(Request $request)
     {
@@ -557,5 +619,23 @@ class RecruitmentController extends Controller
         }
 
         return back()->with('success', count($request->ids) . ' applications updated to ' . $request->status . '.');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  PRIVATE — HR office authorization helper
+    // ─────────────────────────────────────────────────────────────
+    private function authorizeHROffice(int $officeId): void
+    {
+        $user = Auth::user();
+        if ($user->role !== 'hr') return;
+
+        $countryName = $user->countryRecord?->name;
+        $hrOffice = BrycenOffice::whereRaw(
+            'LOWER(country_name) = ?', [strtolower($countryName ?? '')]
+        )->first();
+
+        if (!$hrOffice || $hrOffice->id !== $officeId) {
+            abort(403, 'You can only manage your own branch.');
+        }
     }
 }

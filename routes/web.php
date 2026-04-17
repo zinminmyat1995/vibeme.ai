@@ -53,6 +53,9 @@ Route::middleware(['auth', 'role:hr,admin'])->group(function () {
     Route::get('/recruitment', [RecruitmentController::class, 'hrIndex'])
         ->name('recruitment.index');
 
+    Route::get('/recruitment/applications/{application}/cv', [RecruitmentController::class, 'downloadCv'])
+        ->name('recruitment.cv.download');
+
     // Job Posting CRUD
     Route::post('/recruitment/jobs', [RecruitmentController::class, 'storeJob'])
         ->name('recruitment.jobs.store');

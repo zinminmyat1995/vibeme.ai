@@ -266,7 +266,14 @@ function ModalHeader({ grad, icon, subtitle, title, onClose }) {
 // ─────────────────────────────────────────────────────────────────
 // MAIN
 // ─────────────────────────────────────────────────────────────────
-export default function RecruitmentIndex({ offices = [], jobs = [], recentApps = [] }) {
+export default function RecruitmentIndex({
+    offices = [],
+    jobs = [],
+    recentApps = [],
+    isAdmin = false,
+    isHR = false,
+    hrOffice = null,
+}) {
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -292,12 +299,14 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
     const totalApps = jobs.reduce((s, j) => s + (j.applications_count || 0), 0);
     const newApps   = recentApps.filter(a => a.status === "new").length;
 
+    // ── HR ဆိုရင် office filter မသုံးဘဲ all jobs ပဲပြ (backend မှာ filter ပြီးပြီ)
     const filteredJobs = useMemo(() => jobs.filter(j => {
-        if (filterOffice !== "all" && j.office?.id !== parseInt(filterOffice)) return false;
+        // Admin ဆိုရင်ဘဲ country filter အလုပ်လုပ်မယ်
+        if (isAdmin && filterOffice !== "all" && j.office?.id !== parseInt(filterOffice)) return false;
         if (filterStatus !== "all" && j.status !== filterStatus) return false;
         if (jobSearch && !j.title.toLowerCase().includes(jobSearch.toLowerCase()) && !j.office?.company_name?.toLowerCase().includes(jobSearch.toLowerCase())) return false;
         return true;
-    }), [jobs, filterOffice, filterStatus, jobSearch]);
+    }), [jobs, filterOffice, filterStatus, jobSearch, isAdmin]);
 
     const selectedJobApps = useMemo(() => selectedJob ? recentApps.filter(a => a.job_posting_id === selectedJob.id) : [], [selectedJob, recentApps]);
     const filteredApps = useMemo(() => {
@@ -315,11 +324,10 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
     const inp = useInpStyle(theme, dark);
     const lbl = { fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 7 };
 
-    // ── Office & Status options for PremiumSelect ──
+    // Admin ဆိုရင်ဘဲ All Countries dropdown options ထည့်မယ်
     const officeOpts = [{ value: "all", label: "All Countries" }, ...offices.map(o => ({ value: o.id, label: o.company_name }))];
     const jobStatusOpts = [{ value: "all", label: "All Status" }, ...JOB_STATUS_OPTS.map(s => ({ value: s.value, label: s.label }))];
     const appSortOpts = [{ value: "latest", label: "Latest First" }, { value: "name", label: "Name A–Z" }, { value: "score", label: "By Score" }];
-
 
     function ActionGlyph({ type, color }) {
         if (type === 'edit') {
@@ -330,21 +338,19 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                 </svg>
             );
         }
-
         if (type === 'delete') {
             return (
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3 6 5 6 21 6" />
                     <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                    <path d="M10 11v6" />
-                    <path d="M14 11v6" />
+                    <path d="M10 11v6" /><path d="M14 11v6" />
                     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                 </svg>
             );
         }
-
         return null;
     }
+
     return (
         <AppLayout title="Recruitment">
             <style>{`
@@ -369,17 +375,11 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                         { n: newApps,   l: "New (Unread)",     icon: "🔔", accent: true,  grad: dark ? "rgba(139,92,246,0.08)" : "rgba(124,58,237,0.04)", iconBg: dark ? "rgba(139,92,246,0.18)" : "#ede9fe", iconClr: theme.primary },
                     ].map(s => (
                         <div key={s.l} style={{
-                            background: theme.surface,
-                            border: `1px solid ${theme.border}`,
-                            borderRadius: 14,
-                            padding: "18px 20px",
-                            boxShadow: theme.shadow,
-                            position: "relative",
-                            overflow: "hidden",
+                            background: theme.surface, border: `1px solid ${theme.border}`,
+                            borderRadius: 14, padding: "18px 20px", boxShadow: theme.shadow,
+                            position: "relative", overflow: "hidden",
                         }}>
-                            {/* Subtle gradient bg */}
                             <div style={{ position: "absolute", inset: 0, background: s.grad, pointerEvents: "none" }} />
-                            {/* Top accent bar */}
                             <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: s.accent ? `linear-gradient(90deg,${s.iconClr},${s.iconClr}88)` : `linear-gradient(90deg,${theme.border},transparent)`, borderRadius: "14px 14px 0 0" }} />
                             <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                                 <div>
@@ -393,7 +393,7 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                 </div>
 
                 {/* ── Tabs ── */}
-                <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
+                <div style={{ display: "flex", gap: 0, marginBottom: 20, background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 4, width: "fit-content", boxShadow: theme.shadow }}>
                     {[
                         { k: "jobs",         l: "Job Postings", icon: "📋", count: jobs.length },
                         { k: "applications", l: "Applications", icon: "👥", count: totalApps  },
@@ -402,26 +402,22 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                         return (
                             <button key={t.k} className="rc-tab-btn" onClick={() => setTab(t.k)} style={{
                                 display: "flex", alignItems: "center", gap: 8,
-                                padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700,
-                                border: isActive ? "none" : `1.5px solid ${theme.border}`,
+                                padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 700,
+                                border: "none",
                                 cursor: "pointer", fontFamily: "inherit", transition: "all 0.18s",
                                 background: isActive
                                     ? "linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%)"
-                                    : theme.surface,
+                                    : "transparent",
                                 color: isActive ? "#fff" : theme.textMute,
-                                boxShadow: isActive
-                                    ? "0 4px 16px rgba(124,58,237,0.3)"
-                                    : theme.shadow,
-                                transform: isActive ? "translateY(-1px)" : "translateY(0)",
+                                boxShadow: isActive ? "0 2px 8px rgba(124,58,237,0.3)" : "none",
                             }}>
-                                <span style={{ fontSize: 14 }}>{t.icon}</span>
                                 <span>{t.l}</span>
                                 <span style={{
-                                    fontSize: 10, fontWeight: 800,
-                                    padding: "2px 7px", borderRadius: 99,
-                                    background: isActive ? "rgba(255,255,255,0.22)" : (dark ? "rgba(255,255,255,0.08)" : "#f3f4f6"),
+                                    fontSize: 11, fontWeight: 800,
+                                    padding: "1px 7px", borderRadius: 99,
+                                    background: isActive ? "rgba(255,255,255,0.25)" : (dark ? "rgba(255,255,255,0.08)" : "#f3f4f6"),
                                     color: isActive ? "#fff" : theme.textMute,
-                                    minWidth: 20, textAlign: "center",
+                                    minWidth: 18, textAlign: "center",
                                 }}>{t.count}</span>
                             </button>
                         );
@@ -433,12 +429,18 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                     <>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width={160} dark={dark} theme={theme} />
+                                {/* Admin ဆိုရင်ဘဲ All Countries dropdown ပြ */}
+                                {isAdmin && (
+                                    <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width={160} dark={dark} theme={theme} />
+                                )}
                                 <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width={130} dark={dark} theme={theme} />
                             </div>
-                            <button onClick={() => { setEditJob(null); setJobModal(true); }} style={{ padding: "9px 20px", background: theme.primary, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
-                                + New Job Posting
-                            </button>
+                            {/* Admin ဆိုရင် New Job Posting button မပြ */}
+                            {!isAdmin && (
+                                <button onClick={() => { setEditJob(null); setJobModal(true); }} style={{ padding: "9px 20px", background: theme.primary, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
+                                    + New Job Posting
+                                </button>
+                            )}
                         </div>
 
                         <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 14, overflow: "hidden", boxShadow: theme.shadow }}>
@@ -458,37 +460,41 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredJobs.map((job, i) => {
-                                            const sc = sCfg(job.status, JOB_STATUS_OPTS);
-                                            return (
-                                                <tr key={job.id} className="rc-tbl-row" style={{ background: i % 2 === 0 ? theme.surface : theme.rowAlt, borderBottom: `1px solid ${theme.border}` }}>
-                                                    <td style={{ padding: "12px 14px" }}>
-                                                        <div style={{ fontWeight: 700, color: theme.text }}>{job.title}</div>
-                                                        {job.department && <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{job.department}</div>}
-                                                    </td>
-                                                    <td style={{ padding: "12px 14px", color: theme.textSoft }}>{job.office?.company_name}</td>
-                                                    <td style={{ padding: "12px 14px" }}>
-                                                        <span style={{ background: theme.primarySoft, color: theme.primary, padding: "2px 8px", borderRadius: 99, fontSize: 11, fontWeight: 600 }}>
-                                                            {JOB_TYPE_OPTS.find(t => t.value === job.type)?.label}
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ padding: "12px 14px", fontWeight: 700, color: theme.text }}>{job.slots} person{job.slots > 1 ? "s" : ""}</td>
-                                                    <td style={{ padding: "12px 14px" }}>
-                                                        <button onClick={() => { handleSelectJob(job); setTab("applications"); }} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.primarySoft}`, background: theme.primarySoft, color: theme.primary, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                                                            {job.applications_count || 0} applicants
-                                                        </button>
-                                                    </td>
-                                                    <td style={{ padding: "12px 14px", color: theme.textMute, fontSize: 11 }}>{job.deadline || "—"}</td>
-                                                    <td style={{ padding: "12px 14px" }}><StatusPill status={job.status} opts={JOB_STATUS_OPTS} dark={dark} small /></td>
-                                                    <td style={{ padding: "12px 14px" }}>
-                                                        <div style={{ display: "flex", gap: 6 }}>
-                                                            <button onClick={() => { setEditJob(job); setJobModal(true); }} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Edit</button>
-                                                            <button onClick={() => setDeleteJobModal(job)} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.dangerSoft}`, background: theme.dangerSoft, color: theme.danger, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                        {filteredJobs.map((job, i) => (
+                                            <tr key={job.id} className="rc-tbl-row" style={{ background: i % 2 === 0 ? theme.surface : theme.rowAlt, borderBottom: `1px solid ${theme.border}` }}>
+                                                <td style={{ padding: "12px 14px" }}>
+                                                    <div style={{ fontWeight: 700, color: theme.text }}>{job.title}</div>
+                                                    {job.department && <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{job.department}</div>}
+                                                </td>
+                                                <td style={{ padding: "12px 14px", color: theme.textSoft }}>{job.office?.company_name}</td>
+                                                <td style={{ padding: "12px 14px" }}>
+                                                    <span style={{ background: theme.primarySoft, color: theme.primary, padding: "2px 8px", borderRadius: 99, fontSize: 11, fontWeight: 600 }}>
+                                                        {JOB_TYPE_OPTS.find(t => t.value === job.type)?.label}
+                                                    </span>
+                                                </td>
+                                                <td style={{ padding: "12px 14px", fontWeight: 700, color: theme.text }}>{job.slots} person{job.slots > 1 ? "s" : ""}</td>
+                                                <td style={{ padding: "12px 14px" }}>
+                                                    <button onClick={() => { handleSelectJob(job); setTab("applications"); }} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.primarySoft}`, background: theme.primarySoft, color: theme.primary, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                                                        {job.applications_count || 0} applicants
+                                                    </button>
+                                                </td>
+                                                <td style={{ padding: "12px 14px", color: theme.textMute, fontSize: 11 }}>{job.deadline || "—"}</td>
+                                                <td style={{ padding: "12px 14px" }}><StatusPill status={job.status} opts={JOB_STATUS_OPTS} dark={dark} small /></td>
+                                                <td style={{ padding: "12px 14px" }}>
+                                                    <div style={{ display: "flex", gap: 6 }}>
+                                                        {/* Admin = View only, HR = Edit/Delete */}
+                                                        {isAdmin ? (
+                                                            <span style={{ fontSize: 11, color: theme.textMute }}>View only</span>
+                                                        ) : (
+                                                            <>
+                                                                <button onClick={() => { setEditJob(job); setJobModal(true); }} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Edit</button>
+                                                                <button onClick={() => setDeleteJobModal(job)} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.dangerSoft}`, background: theme.dangerSoft, color: theme.danger, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             )}
@@ -515,11 +521,13 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                                     onBlur={e => { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; }} />
                             </div>
 
-                            {/* Filters */}
+                            {/* Filters — Admin ဆိုရင် country filter ပြ, HR ဆိုရင် status filter ဘဲပြ */}
                             <div style={{ padding: "8px 12px", borderBottom: `1px solid ${theme.border}`, display: "flex", gap: 6 }}>
-                                <div style={{ flex: 1 }}>
-                                    <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width="100%" dark={dark} theme={theme} zIndex={4000} />
-                                </div>
+                                {isAdmin && (
+                                    <div style={{ flex: 1 }}>
+                                        <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width="100%" dark={dark} theme={theme} zIndex={4000} />
+                                    </div>
+                                )}
                                 <div style={{ flex: 1 }}>
                                     <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width="100%" dark={dark} theme={theme} zIndex={4000} />
                                 </div>
@@ -532,7 +540,6 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                                 ) : filteredJobs.map(job => {
                                     const isActive = selectedJob?.id === job.id;
                                     const appCount = recentApps.filter(a => a.job_posting_id === job.id).length;
-                                    const sc = sCfg(job.status, JOB_STATUS_OPTS);
                                     return (
                                         <div key={job.id} className="rc-job-item" onClick={() => handleSelectJob(job)} style={{
                                             padding: "13px 18px", borderBottom: `1px solid ${theme.border}`, cursor: "pointer",
@@ -579,7 +586,8 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                                             </div>
                                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                                 <PremiumSelect options={appSortOpts} value={appSort} onChange={v => setAppSort(v)} width={140} dark={dark} theme={theme} />
-                                                {selectedApps.length > 0 && (
+                                                {/* Bulk update — HR ဘဲ */}
+                                                {!isAdmin && selectedApps.length > 0 && (
                                                     <button onClick={() => setBulkModal(true)} style={{ padding: "7px 14px", borderRadius: 8, background: theme.primary, border: "none", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                                                         ✏️ Update {selectedApps.length}
                                                     </button>
@@ -606,7 +614,8 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                                                     </button>
                                                 ))}
                                             </div>
-                                            {filteredApps.length > 1 && (
+                                            {/* Select all — HR ဘဲ */}
+                                            {!isAdmin && filteredApps.length > 1 && (
                                                 <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: theme.textMute, cursor: "pointer", userSelect: "none" }}>
                                                     <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ width: 14, height: 14, accentColor: theme.primary, cursor: "pointer" }} />
                                                     Select all ({filteredApps.length})
@@ -625,7 +634,6 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                                     ) : (
                                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                                             {filteredApps.map(app => {
-                                                const sc = sCfg(app.status, APP_STATUS_OPTS);
                                                 const initials = app.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
                                                 const avatarColors = ["#7c3aed", "#0891b2", "#059669", "#d97706", "#dc2626", "#6366f1"];
                                                 const avatarBg = avatarColors[app.name.charCodeAt(0) % avatarColors.length];
@@ -635,13 +643,17 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                                                         background: isSelected ? (dark ? "rgba(124,58,237,0.08)" : "#faf5ff") : theme.surface,
                                                         border: `${isSelected ? "1.5px" : "1px"} solid ${isSelected ? theme.primary : theme.border}`,
                                                         borderRadius: 14, padding: "16px 20px",
-                                                        display: "grid", gridTemplateColumns: "20px 46px 1fr auto",
+                                                        // Admin ဆိုရင် checkbox column မလိုဘဲ 3 column ပဲ
+                                                        display: "grid",
+                                                        gridTemplateColumns: isAdmin ? "46px 1fr auto" : "20px 46px 1fr auto",
                                                         gap: 14, alignItems: "start", transition: "all 0.15s",
                                                     }}>
-                                                        {/* Checkbox */}
-                                                        <div style={{ paddingTop: 14 }}>
-                                                            <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(app.id)} style={{ width: 14, height: 14, accentColor: theme.primary, cursor: "pointer" }} />
-                                                        </div>
+                                                        {/* Checkbox — HR ဘဲပြ */}
+                                                        {!isAdmin && (
+                                                            <div style={{ paddingTop: 14 }}>
+                                                                <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(app.id)} style={{ width: 14, height: 14, accentColor: theme.primary, cursor: "pointer" }} />
+                                                            </div>
+                                                        )}
 
                                                         {/* Avatar */}
                                                         <div style={{ width: 46, height: 46, borderRadius: 12, background: avatarBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{initials}</div>
@@ -687,20 +699,29 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
 
                                                         {/* Actions */}
                                                         <div style={{ display: "flex", flexDirection: "column", gap: 7, alignItems: "flex-end", flexShrink: 0 }}>
-                                                            <a href={app.cv_url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, color: theme.textSoft, fontSize: 12, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>
+                                                            {/* CV — Admin ရော HR ရော မြင်ရ, download route သုံး */}
+                                                            <a href={app.cv_download_url || `/recruitment/applications/${app.id}/cv`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, color: theme.textSoft, fontSize: 12, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>
                                                                 📄 CV
                                                             </a>
-                                                            <button onClick={() => setNoteModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: theme.primarySoft, border: `1px solid ${dark ? "rgba(139,92,246,0.3)" : "#ddd6fe"}`, color: theme.primary, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>✏️ Status</button>
-                                                            <button onClick={() => setInterviewModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: app.interview ? (dark ? "rgba(8,145,178,0.12)" : "#f0f9ff") : "transparent", border: `1px solid ${app.interview ? (dark ? "rgba(8,145,178,0.3)" : "#bae6fd") : theme.border}`, color: app.interview ? "#0891b2" : theme.textMute, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-                                                                📅 {app.interview ? "Reschedule" : "Interview"}
-                                                            </button>
-                                                            {app.status === "interview" && (
-                                                                <button onClick={() => setScoreModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: app.interview?.score != null ? (dark ? "rgba(5,150,105,0.14)" : "#d1fae5") : (dark ? "rgba(217,119,6,0.12)" : "#fff7ed"), border: `1px solid ${app.interview?.score != null ? (dark ? "rgba(5,150,105,0.3)" : "#6ee7b7") : (dark ? "rgba(217,119,6,0.3)" : "#fed7aa")}`, color: app.interview?.score != null ? "#059669" : "#d97706", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-                                                                    ⭐ {app.interview?.score != null ? `Score: ${app.interview.score}` : "Add Score"}
-                                                                </button>
-                                                            )}
-                                                            {app.status === "rejected" && (
-                                                                <button onClick={() => setDeleteModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: "transparent",  border: `1px solid ${app.interview?.score != null ? (dark ? "rgba(5,150,105,0.3)" : "#6ee7b7") : (dark ? "rgba(73, 67, 61, 0.3)" : "rgba(247, 99, 99, 1)")}`, color: theme.danger, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}><ActionGlyph type="delete" color={theme.danger} /> Delete</button>
+
+                                                            {/* Status, Interview, Score, Delete — HR ဘဲ */}
+                                                            {!isAdmin && (
+                                                                <>
+                                                                    <button onClick={() => setNoteModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: theme.primarySoft, border: `1px solid ${dark ? "rgba(139,92,246,0.3)" : "#ddd6fe"}`, color: theme.primary, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>✏️ Status</button>
+                                                                    <button onClick={() => setInterviewModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: app.interview ? (dark ? "rgba(8,145,178,0.12)" : "#f0f9ff") : "transparent", border: `1px solid ${app.interview ? (dark ? "rgba(8,145,178,0.3)" : "#bae6fd") : theme.border}`, color: app.interview ? "#0891b2" : theme.textMute, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                                                                        📅 {app.interview ? "Reschedule" : "Interview"}
+                                                                    </button>
+                                                                    {app.status === "interview" && (
+                                                                        <button onClick={() => setScoreModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: app.interview?.score != null ? (dark ? "rgba(5,150,105,0.14)" : "#d1fae5") : (dark ? "rgba(217,119,6,0.12)" : "#fff7ed"), border: `1px solid ${app.interview?.score != null ? (dark ? "rgba(5,150,105,0.3)" : "#6ee7b7") : (dark ? "rgba(217,119,6,0.3)" : "#fed7aa")}`, color: app.interview?.score != null ? "#059669" : "#d97706", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                                                                            ⭐ {app.interview?.score != null ? `Score: ${app.interview.score}` : "Add Score"}
+                                                                        </button>
+                                                                    )}
+                                                                    {app.status === "rejected" && (
+                                                                        <button onClick={() => setDeleteModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: "transparent", border: `1px solid ${dark ? "rgba(73,67,61,0.3)" : "rgba(247,99,99,1)"}`, color: theme.danger, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                                                                            <ActionGlyph type="delete" color={theme.danger} /> Delete
+                                                                        </button>
+                                                                    )}
+                                                                </>
                                                             )}
                                                         </div>
                                                     </div>
@@ -715,14 +736,14 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
                 )}
             </div>
 
-            {/* ── Modals ── */}
-            {jobModal && <JobModal offices={offices} editJob={editJob} onClose={() => { setJobModal(false); setEditJob(null); }} dark={dark} theme={theme} />}
-            {noteModal && <StatusModal app={noteModal} onClose={() => setNoteModal(null)} dark={dark} theme={theme} />}
-            {interviewModal && <InterviewModal app={interviewModal} onClose={() => setInterviewModal(null)} dark={dark} theme={theme} />}
-            {scoreModal && <ScoreModal app={scoreModal} onClose={() => setScoreModal(null)} dark={dark} theme={theme} />}
-            {bulkModal && <BulkModal ids={selectedApps} onClose={() => setBulkModal(false)} onDone={() => { setBulkModal(false); setSelectedApps([]); }} dark={dark} theme={theme} />}
-            {deleteModal && <DeleteModal app={deleteModal} onClose={() => setDeleteModal(null)} />}
-            {deleteJobModal && <DeleteJobModal job={deleteJobModal} onClose={() => setDeleteJobModal(null)} />}
+            {/* ── Modals — HR ဘဲ render လုပ် ── */}
+            {jobModal && !isAdmin && <JobModal offices={offices} editJob={editJob} hrOffice={hrOffice} onClose={() => { setJobModal(false); setEditJob(null); }} dark={dark} theme={theme} />}
+            {noteModal && !isAdmin && <StatusModal app={noteModal} onClose={() => setNoteModal(null)} dark={dark} theme={theme} />}
+            {interviewModal && !isAdmin && <InterviewModal app={interviewModal} onClose={() => setInterviewModal(null)} dark={dark} theme={theme} />}
+            {scoreModal && !isAdmin && <ScoreModal app={scoreModal} onClose={() => setScoreModal(null)} dark={dark} theme={theme} />}
+            {bulkModal && !isAdmin && <BulkModal ids={selectedApps} onClose={() => setBulkModal(false)} onDone={() => { setBulkModal(false); setSelectedApps([]); }} dark={dark} theme={theme} />}
+            {deleteModal && !isAdmin && <DeleteModal app={deleteModal} onClose={() => setDeleteModal(null)} />}
+            {deleteJobModal && !isAdmin && <DeleteJobModal job={deleteJobModal} onClose={() => setDeleteJobModal(null)} />}
         </AppLayout>
     );
 }
@@ -730,7 +751,7 @@ export default function RecruitmentIndex({ offices = [], jobs = [], recentApps =
 // ─────────────────────────────────────────────────────────────────
 // JobModal
 // ─────────────────────────────────────────────────────────────────
-function JobModal({ offices, editJob, onClose, dark, theme }) {
+function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
     const isEdit = !!editJob;
     const [descItems,  setDescItems]  = useState(() => toArr(editJob?.description || ""));
     const [reqItems,   setReqItems]   = useState(() => toArr(editJob?.requirements || ""));
@@ -739,15 +760,20 @@ function JobModal({ offices, editJob, onClose, dark, theme }) {
     const [errs,       setErrs]       = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [data, setDataState] = useState({
-        brycen_office_id: editJob?.brycen_office_id ? String(editJob.brycen_office_id) : "",
-        title:            editJob?.title || "", department: editJob?.department || "",
-        type:             editJob?.type || "full_time", slots: editJob?.slots || 1,
-        salary_range:     editJob?.salary_range || "", status: editJob?.status || "open",
+        // hrOffice ရှိရင် auto-set, မရှိရင် (admin case) empty
+        brycen_office_id: editJob?.brycen_office_id
+            ? String(editJob.brycen_office_id)
+            : (hrOffice ? String(hrOffice.id) : ""),
+        title:            editJob?.title || "",
+        department:       editJob?.department || "",
+        type:             editJob?.type || "full_time",
+        slots:            editJob?.slots || 1,
+        salary_range:     editJob?.salary_range || "",
+        status:           editJob?.status || "open",
         deadline:         editJob?.deadline || "",
     });
     const setData = (k, v) => setDataState(p => ({ ...p, [k]: v }));
     const inp = useInpStyle(theme, dark);
-
     const officeOpts = offices.map(o => ({ value: String(o.id), label: o.company_name }));
 
     const validate = () => {
@@ -780,18 +806,33 @@ function JobModal({ offices, editJob, onClose, dark, theme }) {
             <ModalHeader grad="linear-gradient(135deg,#5b21b6 0%,#7c3aed 60%,#8b5cf6 100%)" icon={isEdit ? "✏️" : "📋"} subtitle={isEdit ? "Edit Posting" : "Job Recruitment"} title={isEdit ? editJob.title : "New Job Posting"} onClose={onClose} />
             <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, background: theme.surface }}>
                 <div style={{ overflowY: "auto", flex: 1, padding: "24px 26px 16px", scrollbarWidth: "none" }}>
-                    {Object.keys(errs).length > 0 && (
-                        <div style={{ background: theme.dangerSoft, border: `1px solid ${theme.danger}44`, borderRadius: 10, padding: "12px 14px", marginBottom: 18, fontSize: 13, color: theme.danger, display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontSize: 16 }}>⚠️</span> Please fill in all required fields before saving.
+                    
+                    {/* Company Office:
+                        - hrOffice ရှိရင် (HR role) → read-only display, auto-selected
+                        - hrOffice မရှိ → dropdown (admin မဝင်သင့်ဘဲ safeguard) */}
+                    {hrOffice ? (
+                        <div style={{ marginBottom: 20 }}>
+                            <label style={lbl}>Company Office</label>
+                            <div style={{
+                                padding: "10px 13px", borderRadius: 10,
+                                border: `1.5px solid ${theme.inputBorder}`,
+                                background: dark ? "rgba(255,255,255,0.03)" : theme.surfaceSoft,
+                                fontSize: 13, fontWeight: 600, color: theme.text,
+                                display: "flex", alignItems: "center", gap: 8,
+                            }}>
+                                🏢 {hrOffice.company_name}
+                                <span style={{ fontSize: 10, color: theme.textMute, marginLeft: "auto", background: dark ? "rgba(139,92,246,0.16)" : "#ede9fe", color: theme.primary, padding: "2px 8px", borderRadius: 99, fontWeight: 700 }}>Auto-selected</span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ marginBottom: 20 }}>
+                            <label style={lbl}>Company Office *</label>
+                            <PremiumSelect options={officeOpts} value={data.brycen_office_id}
+                                onChange={v => { setData("brycen_office_id", v); setErrs(p => ({ ...p, brycen_office_id: undefined })); }}
+                                placeholder="Select office…" width="100%" dark={dark} theme={theme} />
+                            {errTxt("brycen_office_id")}
                         </div>
                     )}
-
-                    {/* Office */}
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={lbl}>Company Office *</label>
-                        <PremiumSelect options={officeOpts} value={data.brycen_office_id} onChange={v => { setData("brycen_office_id", v); setErrs(p => ({ ...p, brycen_office_id: undefined })); }} placeholder="Select office…" width="100%" dark={dark} theme={theme} />
-                        {errTxt("brycen_office_id")}
-                    </div>
 
                     {/* Job Type */}
                     <div style={{ marginBottom: 20 }}>
@@ -855,7 +896,7 @@ function JobModal({ offices, editJob, onClose, dark, theme }) {
                         </div>
                     </div>
 
-                    {/* Status (edit) */}
+                    {/* Status (edit only) */}
                     {isEdit && (
                         <div style={{ marginBottom: 14 }}>
                             <label style={lbl}>Posting Status</label>
@@ -1110,7 +1151,6 @@ function DeleteModal({ app, onClose }) {
                             <div style={{ fontSize: 12, color: "#9ca3af" }}>{app.email}</div>
                         </div>
                     </div>
-                    {/* Will be deleted checklist */}
                     <div style={{ background: "#fff7f7", border: "1px solid #fecaca", borderRadius: 10, padding: "12px 16px", marginBottom: 20 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: "#dc2626", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Will be deleted</div>
                         {["Application record & all details", "Uploaded CV file", "Interview record & score"].map((item, i) => (
@@ -1120,7 +1160,6 @@ function DeleteModal({ app, onClose }) {
                             </div>
                         ))}
                     </div>
-
                     <div style={{ display: "flex", gap: 10 }}>
                         <button onClick={onClose} style={{ flex: 1, padding: 11, border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
                         <button onClick={confirm} disabled={submitting} style={{ flex: 1, padding: 11, border: "none", borderRadius: 10, background: submitting ? "#fca5a5" : "#dc2626", color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
