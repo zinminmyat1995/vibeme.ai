@@ -96,16 +96,25 @@ class AttendanceRecordController extends Controller
         $overtimeRecords = OvertimeRequest::with(['segments.overtimePolicy'])
             ->where('user_id', $targetUserId)
             ->where('status', 'approved')
-            ->whereMonth('start_date', $month)
-            ->whereYear('start_date', $year)
+            ->where(function($q) use ($month, $year) {
+                $q->whereMonth('start_date', $month)->whereYear('start_date', $year)
+                ->orWhereMonth('end_date', $month)->whereYear('end_date', $year);
+            })
             ->get();
 
         $overtimeMap = [];
         foreach ($overtimeRecords as $r) {
             foreach ($r->segments as $seg) {
-                $dk = $seg->segment_date
-                    ? \Carbon\Carbon::parse($seg->segment_date)->format('Y-m-d')
-                    : \Carbon\Carbon::parse($r->start_date)->format('Y-m-d');
+                $segDate = $seg->segment_date
+                    ? \Carbon\Carbon::parse($seg->segment_date)
+                    : \Carbon\Carbon::parse($r->start_date);
+
+                // ← ဒီ month မဟုတ်ရင် skip
+                if ($segDate->month !== $month || $segDate->year !== $year) {
+                    continue;
+                }
+
+                $dk = $segDate->format('Y-m-d');
 
                 if (!isset($overtimeMap[$dk])) {
                     $overtimeMap[$dk] = [

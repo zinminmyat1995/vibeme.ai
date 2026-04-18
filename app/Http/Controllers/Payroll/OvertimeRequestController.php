@@ -122,11 +122,11 @@ class OvertimeRequestController extends Controller
             ->whereIn('status', ['pending', 'approved'])
             ->where(function ($q) use ($startDate, $endDate) {
                 $q->whereBetween('start_date', [$startDate, $endDate])
-                  ->orWhereBetween('end_date',  [$startDate, $endDate])
-                  ->orWhere(function ($q2) use ($startDate, $endDate) {
-                      $q2->where('start_date', '<=', $startDate)
-                         ->where('end_date',   '>=', $endDate);
-                  });
+                ->orWhereBetween('end_date',  [$startDate, $endDate])
+                ->orWhere(function ($q2) use ($startDate, $endDate) {
+                    $q2->where('start_date', '<=', $startDate)
+                        ->where('end_date',   '>=', $endDate);
+                });
             })
             ->first();
 
@@ -143,27 +143,42 @@ class OvertimeRequestController extends Controller
         }
 
         // ─────────────────────────────────────────────────────
-        //  Overlap OT check — time-aware exclusive boundary
-        //  e.g. existing: 20-Mar 9:25AM → 27-Mar 9:25AM
-        //       new:       27-Mar 9:25AM → ...  → ALLOWED (starts exactly where previous ended)
-        //       new:       27-Mar 9:24AM → ...  → BLOCKED (overlap)
+        //  Overlap OT check
+        //
+        //  pending  → header date/time စစ် (original behavior)
+        //  approved → hours_approved > 0 ရှိတဲ့ segment_date စစ်
+        //             (approver က တချို့ date ကို 0 approve လုပ်ထားရင်
+        //              ဒဲ့ date တွေမှာ ထပ်တင်လို့ရအောင်)
         // ─────────────────────────────────────────────────────
         $startDateTime = $startDate . ' ' . $validated['start_time'] . ':00';
         $endDateTime   = $endDate   . ' ' . $validated['end_time']   . ':00';
 
-        $otConflict = OvertimeRequest::where('user_id', $userId)
-            ->whereIn('status', ['pending', 'approved'])
-            ->where(function ($q) use ($startDateTime, $endDateTime, $startDate, $endDate, $validated) {
-                // Existing request's datetime range overlaps with new request
-                // Overlap exists when: existing_start < new_end AND existing_end > new_start
+        // 1) pending requests — time-aware header check
+        $pendingConflict = OvertimeRequest::where('user_id', $userId)
+            ->where('status', 'pending')
+            ->where(function ($q) use ($startDateTime, $endDateTime) {
                 $q->whereRaw("CONCAT(start_date, ' ', start_time, ':00') < ?", [$endDateTime])
-                  ->whereRaw("CONCAT(end_date, ' ', end_time, ':00') > ?", [$startDateTime]);
+                ->whereRaw("CONCAT(end_date, ' ', end_time, ':00') > ?",   [$startDateTime]);
             })
-            ->first();
+            ->exists();
 
-        if ($otConflict) {
+        if ($pendingConflict) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'start_date' => "You already have an overtime request overlapping this date range.",
+                'start_date' => 'You already have a pending overtime request overlapping this date range.',
+            ]);
+        }
+
+        // 2) approved requests — segment_date level စစ် (hours_approved > 0 သာ)
+        $approvedConflict = OvertimeRequestSegment::whereHas('overtimeRequest', function ($q) use ($userId) {
+                $q->where('user_id', $userId)->where('status', 'approved');
+            })
+            ->where('hours_approved', '>', 0)
+            ->whereBetween('segment_date', [$startDate, $endDate])
+            ->exists();
+
+        if ($approvedConflict) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'start_date' => 'You already have an approved overtime request overlapping this date range.',
             ]);
         }
 
@@ -227,8 +242,6 @@ class OvertimeRequestController extends Controller
             ? "Overtime created & auto-approved. ({$days} day(s), {$segCount} segments, {$totalHours} hrs total)"
             : "Overtime submitted. ({$days} day(s), {$segCount} segments, {$totalHours} hrs total)";
 
-
-
         // ── Notify approver ──
         if (!$isAdmin && !empty($validated['approver_id'])) {
             $dateRange = $startDate === $endDate
@@ -252,13 +265,14 @@ class OvertimeRequestController extends Controller
                 ]
             );
         }
-  
+
         return back()->with('success', $msg);
     }
 
     // ─────────────────────────────────────────────────────────
     //  APPROVE
     // ─────────────────────────────────────────────────────────
+
     public function approve(Request $request, int $id): \Illuminate\Http\RedirectResponse
     {
         $overtimeRequest = OvertimeRequest::with('segments')->find($id);
@@ -295,22 +309,41 @@ class OvertimeRequestController extends Controller
                 foreach ($validated['segments'] as $seg) {
                     $segment = OvertimeRequestSegment::find($seg['id']);
                     if ($segment && $segment->overtime_request_id === $overtimeRequest->id) {
+                        // hours_approved က hours ထက် မကျော်ဘဲ save
                         $approved = min((float) $seg['hours_approved'], (float) $segment->hours);
                         $segment->update(['hours_approved' => $approved]);
                         $totalApproved += $approved;
                     }
                 }
             } else {
+                // segments မပါရင် အကုန် full approve
                 $totalApproved = $overtimeRequest->segments->sum('hours');
                 $overtimeRequest->segments()->update(['hours_approved' => DB::raw('hours')]);
             }
 
-            $overtimeRequest->update([
+            // ── approved segments ထဲက hours_approved > 0 ရှိတဲ့
+            //    ပထမဆုံးနဲ့ နောက်ဆုံး segment_date ကနေ date range update ──
+            $activeSegments = $overtimeRequest->segments()
+                ->where('hours_approved', '>', 0)
+                ->orderBy('segment_date')
+                ->get();
+
+            $dateUpdate = [];
+            if ($activeSegments->isNotEmpty()) {
+                $dateUpdate = [
+                    'start_date' => $activeSegments->first()->segment_date,
+                    'end_date'   => $activeSegments->last()->segment_date,
+                ];
+            }
+            // activeSegments ဆိုတာ empty ဖြစ်မမဲ့ (totalApproved=0 ဖြစ်ရင်တောင်)
+            // date range မပြောင်းဘဲ status ပဲ approved ဖြစ်သွားစေ
+
+            $overtimeRequest->update(array_merge([
                 'status'         => 'approved',
                 'hours_approved' => $totalApproved,
                 'approved_by'    => Auth::id(),
                 'approved_at'    => now(),
-            ]);
+            ], $dateUpdate));
         });
 
         return back()->with('success', 'Overtime request approved.');

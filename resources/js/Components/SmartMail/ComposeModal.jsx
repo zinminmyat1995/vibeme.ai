@@ -480,6 +480,30 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
     const [translatePreview, setTranslatePreview] = useState(null);
     const [errors, setErrors]               = useState({});
     const [sending, setSending]             = useState(false);
+    const templateRef = useRef(null);
+
+    const [toneOpen, setToneOpen] = useState(false);
+    const toneRef = useRef(null);
+
+    useEffect(() => {
+        if (!toneOpen) return;
+        const h = (e) => {
+            if (toneRef.current && !toneRef.current.contains(e.target)) setToneOpen(false);
+        };
+        document.addEventListener('mousedown', h);
+        return () => document.removeEventListener('mousedown', h);
+    }, [toneOpen]);
+
+    useEffect(() => {
+        if (!showTemplates) return;
+        const handler = (e) => {
+            if (templateRef.current && !templateRef.current.contains(e.target)) {
+                setShowTemplates(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [showTemplates]);
 
     useEffect(() => {
         if (editorRef.current && !editorReady.current) {
@@ -680,7 +704,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
 
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                         {/* Templates button — always visible in header */}
-                        <div style={{ position: 'relative' }}>
+                        <div ref={templateRef} style={{ position: 'relative' }}>
                             <button type="button" onClick={() => setShowTemplates(!showTemplates)} style={{
                                 display: 'flex', alignItems: 'center', gap: 6,
                                 padding: '6px 14px', borderRadius: 10,
@@ -875,13 +899,88 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                             onKeyDown={e => e.key === 'Enter' && handleAiGenerate()}
                                             style={{ ...inp, padding: '8px 12px' }} />
                                     </div>
-                                    <select value={aiTone} onChange={e => setAiTone(e.target.value)} style={{
-                                        padding: '8px 12px', borderRadius: 12,
-                                        border: `1px solid ${theme.inputBorder}`, background: theme.inputBg,
-                                        color: theme.text, fontSize: 12, outline: 'none', cursor: 'pointer',
-                                    }}>
-                                        {TONES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                                    </select>
+                                    <div ref={toneRef} style={{ position: 'relative' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setToneOpen(v => !v)}
+                                            style={{
+                                                padding: '8px 12px',
+                                                borderRadius: 12,
+                                                border: `1px solid ${toneOpen ? theme.primary : theme.inputBorder}`,
+                                                background: theme.inputBg,
+                                                color: theme.text,
+                                                fontSize: 12,
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 6,
+                                                outline: 'none',
+                                                minWidth: 130,
+                                                justifyContent: 'space-between',
+                                                boxShadow: toneOpen ? `0 0 0 3px ${theme.primary}22` : 'none',
+                                                transition: 'all 0.15s',
+                                                fontFamily: 'inherit',
+                                            }}
+                                        >
+                                            <span>{aiTone.charAt(0).toUpperCase() + aiTone.slice(1)}</span>
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                                                style={{ transform: toneOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s', color: theme.textMute, flexShrink: 0 }}>
+                                                <polyline points="6 9 12 15 18 9"/>
+                                            </svg>
+                                        </button>
+
+                                        {toneOpen && (
+                                            <div style={{
+                                                position: 'absolute',
+                                                top: 'calc(100% + 6px)',
+                                                left: 0,
+                                                minWidth: '100%',
+                                                background: darkMode ? '#111e38' : '#fff',
+                                                border: `1px solid ${theme.borderStrong}`,
+                                                borderRadius: 12,
+                                                boxShadow: theme.shadow,
+                                                zIndex: 9999,
+                                                overflow: 'hidden',
+                                                animation: 'slideIn 0.14s ease',
+                                            }}>
+                                                {TONES.map(tone => {
+                                                    const active = aiTone === tone;
+                                                    return (
+                                                        <button
+                                                            key={tone}
+                                                            type="button"
+                                                            onClick={() => { setAiTone(tone); setToneOpen(false); }}
+                                                            style={{
+                                                                width: '100%',
+                                                                background: active
+                                                                    ? (darkMode ? 'rgba(124,58,237,0.18)' : '#f3e8ff')
+                                                                    : 'transparent',
+                                                                border: 'none',
+                                                                padding: '9px 14px',
+                                                                fontSize: 12,
+                                                                fontWeight: active ? 700 : 500,
+                                                                color: active ? theme.primary : theme.textSoft,
+                                                                cursor: 'pointer',
+                                                                textAlign: 'left',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: 8,
+                                                                transition: 'background 0.1s',
+                                                                fontFamily: 'inherit',
+                                                            }}
+                                                            onMouseEnter={e => { if (!active) e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.05)' : '#f8fafc'; }}
+                                                            onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+                                                        >
+                                                            {active && <span style={{ color: theme.primary, fontSize: 10 }}>✓</span>}
+                                                            {!active && <span style={{ width: 14 }} />}
+                                                            {tone.charAt(0).toUpperCase() + tone.slice(1)}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
                                     <button type="button" onClick={handleAiGenerate} disabled={aiLoading || !aiPrompt} style={{
                                         padding: '8px 16px', borderRadius: 12, border: 'none',
                                         background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,

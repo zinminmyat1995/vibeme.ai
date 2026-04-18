@@ -268,7 +268,7 @@ function PremiumEmployeeSelect({ employees, value, onChange, error, theme, dark 
                     )}
 
                     {/* Options list */}
-                    <div style={{ maxHeight: 240, overflowY: 'auto', padding: '6px' }}>
+                    <div className="es-hide" style={{ maxHeight: 240, overflowY: 'auto', padding: '6px' }}>
                         {filtered.length === 0 ? (
                             <div style={{ padding: '16px', textAlign:'center', fontSize:12, color:theme.textMute }}>
                                 No employees found

@@ -208,8 +208,13 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
     const segments   = req.segments || [];
     const isMultiDay = req.end_date && req.end_date !== req.start_date;
 
+    // approved ဆိုရင် hours_approved=0 ဖြစ်တဲ့ segments ဖယ်ထုတ်
+    const visibleSegments = req.status === 'approved'
+        ? segments.filter(seg => parseFloat(seg.hours_approved) > 0)
+        : segments;
+
     const grouped = {};
-    segments.forEach(seg => {
+    visibleSegments.forEach(seg => {
         const d = seg.segment_date || req.start_date;
         if (!grouped[d]) grouped[d] = [];
         grouped[d].push(seg);
@@ -218,7 +223,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
     const hasMultiGroup = groupedDates.length > 1;
 
     const typeTotals = {};
-    segments.forEach(seg => {
+    visibleSegments.forEach(seg => {
         const k = seg.overtime_policy?.title || 'OT';
         const h = parseFloat(req.status === 'approved' ? seg.hours_approved : seg.hours) || 0;
         typeTotals[k] = (typeTotals[k] || 0) + h;
@@ -242,9 +247,26 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                         <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 9px', background:statusBg, color:sc.color }}>
                             {sc.label}
                         </span>
-                        <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 9px', background: dark ? theme.primarySoft : '#ede9fe', color:theme.primary }}>
-                            {fmtHrs(req.hours_requested)} total
-                        </span>
+                        {req.status === 'approved' && parseFloat(req.hours_approved) !== parseFloat(req.hours_requested) ? (
+                            <>
+                                <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 9px',
+                                    background: dark ? 'rgba(16,185,129,0.15)' : '#d1fae5', color:'#059669' }}>
+                                    ✓ {fmtHrs(req.hours_approved)} approved
+                                </span>
+                                <span style={{ fontSize:10, fontWeight:600, borderRadius:99, padding:'2px 9px',
+                                    background: dark ? theme.panelSoft : '#f3f4f6',
+                                    color: theme.textMute, textDecoration:'line-through' }}>
+                                    {fmtHrs(req.hours_requested)}
+                                </span>
+                            </>
+                        ) : (
+                            <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 9px',
+                                background: dark ? theme.primarySoft : '#ede9fe', color:theme.primary }}>
+                                {req.status === 'approved'
+                                    ? `✓ ${fmtHrs(req.hours_approved)} approved`
+                                    : `${fmtHrs(req.hours_requested)} total`}
+                            </span>
+                        )}
                     </div>
 
                     {/* Row 2: employee (approver view) */}

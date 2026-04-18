@@ -367,12 +367,20 @@ export default function AttendanceIndex({
         }
         const presentDays  = records.filter(r => r.status === 'present' || r.status === 'late').length;
         const lateDays     = records.filter(r => r.status === 'late').length;
-        const halfDays     = records.filter(r => r.status === 'half_day').length;
+
+        const pad2 = n => String(n).padStart(2, '0');
+        const monthPrefix = `${year}-${pad2(month)}`; // e.g. "2026-05"
+
+        const totalOTHours = Object.entries(overtimeMap)
+            .filter(([date]) => date.startsWith(monthPrefix))  // ← ဒီ month ဖြစ်မှ
+            .reduce((s, [, ot]) => s + (parseFloat(ot.hours_approved) || 0), 0);
+
+      
         const leaveDays    = Object.values(leaveDateMap).length;
         const absentDays   = Math.max(0, workingDays - presentDays - leaveDays);
         const totalLateMin = records.reduce((s, r) => s + (r.late_minutes || 0), 0);
         const totalWH      = records.reduce((s, r) => s + (parseFloat(r.work_hours_actual) || 0), 0);
-        return { workingDays, presentDays, absentDays, lateDays, halfDays, leaveDays, totalLateMin, totalWH };
+        return { workingDays, presentDays, absentDays, lateDays, totalOTHours, leaveDays, totalLateMin, totalWH };
     }, [records, month, year, daysInMonth, leaveDateMap, publicHolidays, today]);
 
     const selectedEmp = employees.find(e => String(e.id) === String(empId));
@@ -425,7 +433,7 @@ export default function AttendanceIndex({
         { val: monthlySummary.presentDays,            label: 'Present',        color: '#10b981',  icon: '✅' },
         { val: monthlySummary.absentDays,             label: 'Absent',         color: '#ef4444',  icon: '❌' },
         { val: monthlySummary.lateDays,               label: 'Late Days',      color: '#f59e0b',  icon: '⏰' },
-        { val: monthlySummary.halfDays,               label: 'Half Days',      color: '#3b82f6',  icon: '🌓' },
+        { val: `${monthlySummary.totalOTHours}h`, label: 'OT Hours', color: '#8b5cf6', icon: '⚡' },
         { val: monthlySummary.leaveDays,              label: 'Leave Days',     color: '#10b981',  icon: '🏖️' },
         { val: `${monthlySummary.totalLateMin}m`,     label: 'Total Late',     color: '#f59e0b',  icon: '⚡' },
         { val: `${monthlySummary.totalWH.toFixed(1)}h`, label: 'Work Hours',  color: '#6366f1',  icon: '⏱️' },
@@ -648,12 +656,12 @@ export default function AttendanceIndex({
                                             if (record?.check_in_time)    rows.push({ key:'in',    label:'In',    value: to12h(record.check_in_time),     color:'#6366f1', tip: null });
                                             if (record?.check_out_time)   rows.push({ key:'out',   label:'Out',   value: to12h(record.check_out_time),    color:'#6366f1', tip: null });
                                             if (record?.work_hours_actual) rows.push({ key:'wh',   label:'WH',    value: hToHM(record.work_hours_actual), color:'#10b981', tip: null });
-                                            if (leaveInfo && !isHoliday) {
+                                            if (leaveInfo) {
                                                 const lv = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? 'AM Half' : 'PM Half') : 'Full Day';
                                                 const lc = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? '#d97706' : '#7c3aed') : '#dc2626';
                                                 rows.push({ key:'leave', label:'Leave', value: lv, color: lc, tip: leaveInfo.reason || (LEAVE_LABELS[leaveInfo.type] || leaveInfo.type) });
                                             }
-                                            if (otRecord) {
+                                            if (otRecord && parseFloat(otRecord.hours_approved) > 0) {
                                                 const ov = parseFloat(otRecord.hours_approved) % 1 === 0
                                                     ? `${parseInt(otRecord.hours_approved)}h` : hToHM(otRecord.hours_approved);
                                                 rows.push({ key:'ot', label:'OT', value: ov, color:'#8b5cf6', tip: otRecord.reason || null });
@@ -778,7 +786,7 @@ export default function AttendanceIndex({
                                             <span style={{ color:'#f59e0b', fontWeight:700, fontSize:13 }}>{selectedDay.record.late_minutes} min</span>
                                         </DR>
                                     )}
-                                    {selectedDay.otRecord && (() => {
+                                    {selectedDay.otRecord && parseFloat(selectedDay.otRecord.hours_approved) > 0 && (() => {
                                         const ot   = selectedDay.otRecord;
                                         const h    = parseFloat(ot.hours_approved);
                                         const hLabel = Number.isInteger(h) ? `${h}h` : `${h}h`;
@@ -885,7 +893,7 @@ export default function AttendanceIndex({
                             )}
 
                             {/* OT only day */}
-                            {!selectedDay.record && selectedDay.otRecord && (() => {
+                            {!selectedDay.record && selectedDay.otRecord && parseFloat(selectedDay.otRecord.hours_approved) > 0 && (() => {
                                 const ot   = selectedDay.otRecord;
                                 const h    = parseFloat(ot.hours_approved);
                                 const hLabel = Number.isInteger(h) ? `${h}h` : `${h}h`;

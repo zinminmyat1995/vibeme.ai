@@ -29,7 +29,6 @@ class EmployeePayrollProfileController extends Controller
         $employees = User::with('role')
             ->where('is_active', true)
             ->where('country', $hr->country)
-            ->where('id', '!=', $hr->id)
             ->get()
             ->map(fn($u) => [
                 'id'              => $u->id,
