@@ -18,6 +18,7 @@ class PayrollRecord extends Model
         'total_deductions',
         'overtime_amount',
         'bonus_amount',
+        'expense_reimbursement',  // ← ထည့်
         'tax_amount',
         'social_security_amount',
         'net_salary',
@@ -37,6 +38,7 @@ class PayrollRecord extends Model
         'total_deductions'       => 'decimal:2',
         'overtime_amount'        => 'decimal:2',
         'bonus_amount'           => 'decimal:2',
+        'expense_reimbursement'  => 'decimal:2',  // ← ထည့်
         'tax_amount'             => 'decimal:2',
         'social_security_amount' => 'decimal:2',
         'net_salary'             => 'decimal:2',
@@ -46,6 +48,8 @@ class PayrollRecord extends Model
         'year'                   => 'integer',
         'month'                  => 'integer',
     ];
+
+    // ── Relationships ──────────────────────────────────────────
 
     public function payrollPeriod(): BelongsTo
     {
@@ -60,5 +64,13 @@ class PayrollRecord extends Model
     public function bonuses(): HasMany
     {
         return $this->hasMany(PayrollBonus::class);
+    }
+
+    // ── Expense requests reimbursed in this record ─────────────
+    public function expenseRequests(): HasMany
+    {
+        return $this->hasMany(ExpenseRequest::class, 'payroll_period_id', 'payroll_period_id')
+                    ->where('user_id', $this->user_id)
+                    ->where('status', 'approved');
     }
 }

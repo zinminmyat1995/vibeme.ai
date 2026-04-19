@@ -26,6 +26,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Payroll\AttendanceRequestController;
+use App\Http\Controllers\Payroll\ExpenseRequestController;
 
 // Home page (existing route ကို replace)
 Route::get('/', [RecruitmentController::class, 'home']);
@@ -230,6 +231,15 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/payroll/overtimes/{id}/approve', [OvertimeRequestController::class, 'approve'])->name('payroll.overtimes.approve');
     Route::patch('/payroll/overtimes/{id}/reject',  [OvertimeRequestController::class, 'reject'])->name('payroll.overtimes.reject');
     Route::delete('/payroll/overtimes/{id}',         [OvertimeRequestController::class, 'destroy'])->name('payroll.overtimes.destroy');
+
+
+    // Expense Requests
+    Route::get('/payroll/expenses',                          [ExpenseRequestController::class, 'index'])->name('payroll.expenses.index');
+    Route::post('/payroll/expenses',                         [ExpenseRequestController::class, 'store'])->name('payroll.expenses.store');
+    Route::patch('/payroll/expenses/{id}/approve',           [ExpenseRequestController::class, 'approve'])->name('payroll.expenses.approve');
+    Route::patch('/payroll/expenses/{id}/reject',            [ExpenseRequestController::class, 'reject'])->name('payroll.expenses.reject');
+    Route::delete('/payroll/expenses/{id}',                  [ExpenseRequestController::class, 'destroy'])->name('payroll.expenses.destroy');
+    Route::get('/payroll/expenses/{id}/attachments/{index}', [ExpenseRequestController::class, 'downloadAttachment'])->name('payroll.expenses.attachment');
 
     // HR Policy
     Route::prefix('payroll/hr-policy')->name('hr-policy.')->group(function () {

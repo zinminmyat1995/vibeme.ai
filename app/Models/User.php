@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\ProjectAssignment;
+use App\Models\ExpenseRequest;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -108,5 +109,17 @@ class User extends Authenticatable
     public function attendanceApprovals()
     {
         return $this->hasMany(\App\Models\AttendanceRequest::class, 'approver_id');
+    }
+
+
+    // ── Expense Requests ──────────────────────────────────────────
+    public function expenseRequests(): HasMany
+    {
+        return $this->hasMany(ExpenseRequest::class);
+    }
+
+    public function expenseApprovals(): HasMany
+    {
+        return $this->hasMany(ExpenseRequest::class, 'approver_id');
     }
 }
