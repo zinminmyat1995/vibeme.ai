@@ -29,7 +29,7 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     // ─────────────────────────────────────────
     // HR & Admin Only
     // ─────────────────────────────────────────
-    Route::middleware(['role:hr|admin'])->group(function () {
+    Route::middleware(['role:hr|admin|management|employee'])->group(function () {
 
         // Country Setup
         Route::apiResource('payroll/countries', CountryController::class);
@@ -56,6 +56,7 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         // Leave — approve/reject
         Route::patch('payroll/leave-requests/{leaveRequest}/approve', [LeaveRequestController::class, 'approve']);
         Route::patch('payroll/leave-requests/{leaveRequest}/reject', [LeaveRequestController::class, 'reject']);
+        Route::delete('payroll/leave-requests/{leaveRequest}', [LeaveRequestController::class, 'destroy']);
 
         // Overtime — approve/reject
         Route::patch('payroll/overtime-requests/{overtimeRequest}/approve', [OvertimeRequestController::class, 'approve']);

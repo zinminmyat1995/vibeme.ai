@@ -72,6 +72,17 @@ class LeaveRequestController extends Controller
             default => collect(),
         };
 
+
+        // Mobile API request ဆိုရင်
+        if ($request->expectsJson()) {
+            return response()->json([
+                'requests'      => $query->paginate(20),
+                'leaveBalances' => $leaveBalances,
+                'leavePolicies' => $leavePolicies,
+                'approvers'     => $employees, // approver list
+            ]);
+        }
+
         return Inertia::render('Payroll/Leave/Index', [
             'requests'      => $query->paginate(20),
             'leaveBalances' => $leaveBalances,
@@ -321,6 +332,10 @@ class LeaveRequestController extends Controller
             $this->deductBalance($userId, $request->leave_type, $totalDays, $startDate->year, $countryId);
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' =>  $isAdmin ? 'Leave request submitted and auto-approved.' : 'Leave request submitted successfully.']);
+        }
+
         return redirect()->back()->with('success',
             $isAdmin ? 'Leave request submitted and auto-approved.' : 'Leave request submitted successfully.'
         );
@@ -415,6 +430,10 @@ class LeaveRequestController extends Controller
             'remaining_days' => max(0, $balance->remaining_days - $leaveRequest->total_days),
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Leave request approved']);
+        }
+
         return redirect()->back()->with('success', 'Leave request approved');
     }
 
@@ -434,6 +453,10 @@ class LeaveRequestController extends Controller
         }
 
         $leaveRequest->update(['status' => 'rejected', 'approved_by' => Auth::id()]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Leave request rejected']);
+        }
         return redirect()->back()->with('success', 'Leave request rejected');
     }
 
