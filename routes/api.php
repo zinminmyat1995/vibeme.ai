@@ -17,6 +17,7 @@ use App\Http\Controllers\Payroll\SalaryDeductionController;
 use App\Http\Controllers\Payroll\SalaryRuleController;
 use App\Http\Controllers\Payroll\SocialSecurityRuleController;
 use App\Http\Controllers\Payroll\TaxBracketController;
+use App\Http\Controllers\Api\MobileAuthController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -106,4 +107,14 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         // Employee own profile view
         Route::get('payroll/employee-profiles/{employeePayrollProfile}', [EmployeePayrollProfileController::class, 'show']);
     });
+});
+
+Route::prefix('v1/auth')->group(function () {
+    Route::post('login', [MobileAuthController::class, 'login']);
+});
+ 
+// Mobile Auth — token လိုတဲ့ routes
+Route::prefix('v1/auth')->middleware('auth:sanctum')->group(function () {
+    Route::post('logout', [MobileAuthController::class, 'logout']);
+    Route::get('me',     [MobileAuthController::class, 'me']);
 });
