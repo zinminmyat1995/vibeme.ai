@@ -344,7 +344,7 @@ class LeaveRequestController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     //  APPROVE
     // ─────────────────────────────────────────────────────────────────────────
-    public function approve(int $id): \Illuminate\Http\RedirectResponse
+    public function approve(Request $request,int $id): \Illuminate\Http\RedirectResponse
     {
         $leaveRequest = LeaveRequest::find($id);
 

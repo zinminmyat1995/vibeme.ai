@@ -376,7 +376,10 @@ export default function AttendanceIndex({
             .reduce((s, [, ot]) => s + (parseFloat(ot.hours_approved) || 0), 0);
 
       
-        const leaveDays    = Object.values(leaveDateMap).length;
+        const leaveDays = Object.values(leaveDateMap).reduce((sum, leaves) => {
+            const arr = Array.isArray(leaves) ? leaves : [leaves];
+            return sum + arr.reduce((s, l) => s + (parseFloat(l?.total_days) || 0), 0);
+        }, 0);
         const absentDays   = Math.max(0, workingDays - presentDays - leaveDays);
         const totalLateMin = records.reduce((s, r) => s + (r.late_minutes || 0), 0);
         const totalWH      = records.reduce((s, r) => s + (parseFloat(r.work_hours_actual) || 0), 0);
@@ -656,11 +659,12 @@ export default function AttendanceIndex({
                                             if (record?.check_in_time)    rows.push({ key:'in',    label:'In',    value: to12h(record.check_in_time),     color:'#6366f1', tip: null });
                                             if (record?.check_out_time)   rows.push({ key:'out',   label:'Out',   value: to12h(record.check_out_time),    color:'#6366f1', tip: null });
                                             if (record?.work_hours_actual) rows.push({ key:'wh',   label:'WH',    value: hToHM(record.work_hours_actual), color:'#10b981', tip: null });
-                                            if (leaveInfo) {
-                                                const lv = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? 'AM Half' : 'PM Half') : 'Full Day';
-                                                const lc = leaveInfo.is_half ? (leaveInfo.day_type==='half_day_am' ? '#d97706' : '#7c3aed') : '#dc2626';
-                                                rows.push({ key:'leave', label:'Leave', value: lv, color: lc, tip: leaveInfo.reason || (LEAVE_LABELS[leaveInfo.type] || leaveInfo.type) });
-                                            }
+                                            const leaveInfos = Array.isArray(leaveInfo) ? leaveInfo : (leaveInfo ? [leaveInfo] : []);
+                                            leaveInfos.forEach((li, idx) => {
+                                                const lv = li.is_half ? (li.day_type==='half_day_am' ? 'AM Half' : 'PM Half') : 'Full Day';
+                                                const lc = li.is_half ? (li.day_type==='half_day_am' ? '#d97706' : '#7c3aed') : '#dc2626';
+                                                rows.push({ key:`leave-${idx}`, label:'Leave', value: lv, color: lc, tip: li.reason || (LEAVE_LABELS[li.type] || li.type) });
+                                            });
                                             if (otRecord && parseFloat(otRecord.hours_approved) > 0) {
                                                 const ov = parseFloat(otRecord.hours_approved) % 1 === 0
                                                     ? `${parseInt(otRecord.hours_approved)}h` : hToHM(otRecord.hours_approved);
@@ -741,25 +745,29 @@ export default function AttendanceIndex({
                                         </div>
                                     </div>
                                 )}
-                                {selectedDay.leaveInfo && (() => {
-                                    const li = selectedDay.leaveInfo;
-                                    const typeLabel = LEAVE_LABELS[li.type] || li.type;
-                                    const dayLabel  = li.day_type === 'half_day_am' ? 'AM Half Day'
-                                                    : li.day_type === 'half_day_pm' ? 'PM Half Day' : 'Full Day';
-                                    const colors = li.day_type === 'half_day_am'
-                                        ? { bg: dark ? 'rgba(245,158,11,0.1)' : '#fefce8', color:'#d97706', border: dark ? 'rgba(245,158,11,0.2)' : '#fde047', icon:'🌤️' }
-                                        : li.day_type === 'half_day_pm'
-                                        ? { bg: dark ? 'rgba(124,58,237,0.1)' : '#f5f3ff', color:'#7c3aed', border: dark ? 'rgba(124,58,237,0.2)' : '#ddd6fe', icon:'🌙' }
-                                        : { bg: dark ? 'rgba(239,68,68,0.1)' : '#fee2e2', color:'#dc2626', border: dark ? 'rgba(239,68,68,0.2)' : '#fca5a5', icon:'🏖️' };
-                                    return (
-                                        <div style={{ display:'flex', alignItems:'center', gap:8, background:colors.bg, border:`1px solid ${colors.border}`, borderRadius:10, padding:'8px 12px', width:'100%' }}>
-                                            <span style={{ fontSize:16 }}>{colors.icon}</span>
-                                            <div>
-                                                <div style={{ fontSize:12, fontWeight:800, color:colors.color }}>{dayLabel} Leave</div>
-                                                <div style={{ fontSize:10, color:colors.color, opacity:0.8, marginTop:1 }}>{typeLabel}</div>
+                                {(() => {
+                                    const leaveInfos = Array.isArray(selectedDay.leaveInfo)
+                                        ? selectedDay.leaveInfo
+                                        : (selectedDay.leaveInfo ? [selectedDay.leaveInfo] : []);
+                                    return leaveInfos.map((li, idx) => {
+                                        const typeLabel = LEAVE_LABELS[li.type] || li.type;
+                                        const dayLabel  = li.day_type === 'half_day_am' ? 'AM Half Day'
+                                                        : li.day_type === 'half_day_pm' ? 'PM Half Day' : 'Full Day';
+                                        const colors = li.day_type === 'half_day_am'
+                                            ? { bg: dark ? 'rgba(245,158,11,0.1)' : '#fefce8', color:'#d97706', border: dark ? 'rgba(245,158,11,0.2)' : '#fde047', icon:'🌤️' }
+                                            : li.day_type === 'half_day_pm'
+                                            ? { bg: dark ? 'rgba(124,58,237,0.1)' : '#f5f3ff', color:'#7c3aed', border: dark ? 'rgba(124,58,237,0.2)' : '#ddd6fe', icon:'🌙' }
+                                            : { bg: dark ? 'rgba(239,68,68,0.1)' : '#fee2e2', color:'#dc2626', border: dark ? 'rgba(239,68,68,0.2)' : '#fca5a5', icon:'🏖️' };
+                                        return (
+                                            <div key={idx} style={{ display:'flex', alignItems:'center', gap:8, background:colors.bg, border:`1px solid ${colors.border}`, borderRadius:10, padding:'8px 12px', width:'100%' }}>
+                                                <span style={{ fontSize:16 }}>{colors.icon}</span>
+                                                <div>
+                                                    <div style={{ fontSize:12, fontWeight:800, color:colors.color }}>{dayLabel} Leave</div>
+                                                    <div style={{ fontSize:10, color:colors.color, opacity:0.8, marginTop:1 }}>{typeLabel}</div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
+                                        );
+                                    });
                                 })()}
                             </div>
 

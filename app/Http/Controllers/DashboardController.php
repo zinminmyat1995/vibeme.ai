@@ -200,9 +200,9 @@ class DashboardController extends Controller
             $probationCount = $scopeUsers->where('employment_type', 'probation')->count();
             $contractCount  = $scopeUsers->where('employment_type', 'contract')->count();
             $employmentChart = [
-                ['label' => 'Permanent', 'value' => $permanentCount, 'color' => '#2563eb'],
-                ['label' => 'Probation', 'value' => $probationCount, 'color' => '#d97706'],
-                ['label' => 'Contract',  'value' => $contractCount,  'color' => '#7c3aed'],
+                ['label' => 'Permanent', 'value' => $permanentCount, 'color' => '#2563eb'], // blue
+                ['label' => 'Probation', 'value' => $probationCount, 'color' => '#dc2626'], // red
+                ['label' => 'Contract',  'value' => $contractCount,  'color' => '#059669'], // green
             ];
 
             // ── Department chart ───────────────────────────────────────────
@@ -315,8 +315,22 @@ class DashboardController extends Controller
                     return ['id' => $row->user_id, 'name' => $u?->name, 'department' => $u?->department, 'late_count' => $row->late_count, 'avg_late_minutes' => (int) round($row->avg_late_minutes)];
                 })->filter(fn($r) => $r['name'])->values()->toArray();
 
+            // ── Payroll trend (last 6 months) ─────────────────────────────
+            $payrollTrend = collect();
+            for ($i = 5; $i >= 0; $i--) {
+                $m = Carbon::now($tz)->subMonths($i);
+                $q = PayrollRecord::whereYear('created_at', $m->year)
+                    ->whereMonth('created_at', $m->month)
+                    ->whereIn('user_id', $scopeUserIds);
+                $payrollTrend->push([
+                    'month' => $m->format('M'),
+                    'count' => $q->count(),
+                    'total' => (float) $q->sum('net_salary'),
+                ]);
+            }
+
             // ── ③ Pending approval lists — 4 types ────────────────────────
-            // Leave
+            // Leave — include raw fields for frontend modal
             $pendingLeaveList = LeaveRequest::with('user:id,name,department')
                 ->where('approver_id', $user->id)->where('status', 'pending')
                 ->latest()->limit(10)->get()
@@ -324,78 +338,88 @@ class DashboardController extends Controller
                     'id'         => $l->id,
                     'name'       => $l->user?->name,
                     'department' => $l->user?->department,
-                    'detail'     => ucfirst($l->leave_type) . ' · ' . $l->start_date . ($l->total_days > 1 ? ' – ' . $l->end_date . ' · ' . $l->total_days . 'd' : ''),
                     'type'       => 'leave',
-                    'details'    => [
-                        ['label' => 'Leave type',   'value' => ucfirst($l->leave_type)],
-                        ['label' => 'Start date',   'value' => $l->start_date],
-                        ['label' => 'End date',     'value' => $l->end_date],
-                        ['label' => 'Total days',   'value' => $l->total_days . ' day(s)', 'highlight' => true],
-                        ['label' => 'Status',       'value' => ucfirst($l->status)],
-                        ['label' => 'Note',         'value' => $l->note ?: '—'],
-                    ],
+                    // raw fields — frontend ApprovalItemRow / ApprovalConfirmModal reads these
+                    'leave_type' => $l->leave_type,
+                    'start_date' => $l->start_date ? $l->start_date->toDateString() : null,
+                    'end_date'   => $l->end_date   ? $l->end_date->toDateString()   : null,
+                    'total_days' => $l->total_days,
+                    'note'          => $l->note,
+                    'status'        => $l->status,
+                    'document_path' => $l->document_path,
                 ])->filter(fn($r) => $r['name'])->values()->toArray();
 
-            // OT
-            $pendingOtList = OvertimeRequest::with('user:id,name,department')
+            // OT — include segments with policy for frontend segment-adjust modal
+            $pendingOtList = OvertimeRequest::with([
+                    'user:id,name,department',
+                    'segments.overtimePolicy',
+                ])
                 ->where('approver_id', $user->id)->where('status', 'pending')
                 ->latest()->limit(8)->get()
                 ->map(fn($ot) => [
-                    'id'         => $ot->id,
-                    'name'       => $ot->user?->name,
-                    'department' => $ot->user?->department,
-                    'detail'     => 'OT · ' . $ot->start_date . ($ot->start_time ? ' ' . substr($ot->start_time, 0, 5) : '') . ' · ' . $ot->hours_requested . 'h requested',
-                    'type'       => 'ot',
-                    'details'    => [
-                        ['label' => 'Date',             'value' => $ot->start_date],
-                        ['label' => 'Start time',       'value' => $ot->start_time ? substr($ot->start_time, 0, 5) : '—'],
-                        ['label' => 'End time',         'value' => $ot->end_time ? substr($ot->end_time, 0, 5) : '—'],
-                        ['label' => 'Hours requested',  'value' => $ot->hours_requested . 'h', 'highlight' => true],
-                        ['label' => 'Reason',           'value' => $ot->reason ?: '—'],
-                    ],
+                    'id'              => $ot->id,
+                    'name'            => $ot->user?->name,
+                    'department'      => $ot->user?->department,
+                    'type'            => 'ot',
+                    // raw fields
+                    'start_date'      => $ot->start_date ? (is_string($ot->start_date) ? $ot->start_date : $ot->start_date->toDateString()) : null,
+                    'end_date'        => $ot->end_date   ? (is_string($ot->end_date)   ? $ot->end_date   : $ot->end_date->toDateString())   : null,
+                    'start_time'      => $ot->start_time ? substr($ot->start_time, 0, 5) : null,
+                    'end_time'        => $ot->end_time   ? substr($ot->end_time,   0, 5) : null,
+                    'hours_requested' => $ot->hours_requested,
+                    'reason'          => $ot->reason,
+                    // segments for adjust
+                    'segments'        => $ot->segments->map(fn($s) => [
+                        'id'               => $s->id,
+                        'segment_date'     => $s->segment_date ? (is_string($s->segment_date) ? $s->segment_date : $s->segment_date->toDateString()) : null,
+                        'start_time'       => $s->start_time ? substr($s->start_time, 0, 5) : null,
+                        'end_time'         => $s->end_time   ? substr($s->end_time,   0, 5) : null,
+                        'hours'            => $s->hours,
+                        'hours_approved'   => $s->hours_approved,
+                        'overtime_policy'  => $s->overtimePolicy ? ['id' => $s->overtimePolicy->id, 'title' => $s->overtimePolicy->title] : null,
+                    ])->values()->toArray(),
                 ])->filter(fn($r) => $r['name'])->values()->toArray();
 
-            // Attendance requests
+            // Attendance requests — raw fields for frontend modal
             $pendingAttendanceList = [];
             if (class_exists(\App\Models\AttendanceRequest::class)) {
                 $pendingAttendanceList = \App\Models\AttendanceRequest::with('user:id,name,department')
                     ->where('approver_id', $user->id)->where('status', 'pending')
                     ->latest()->limit(8)->get()
                     ->map(fn($ar) => [
-                        'id'         => $ar->id,
-                        'name'       => $ar->user?->name,
-                        'department' => $ar->user?->department,
-                        'detail'     => 'Attendance correction · ' . $ar->date . ' · ' . ($ar->requested_check_in_time ? substr($ar->requested_check_in_time, 0, 5) : '?') . ' – ' . ($ar->requested_check_out_time ? substr($ar->requested_check_out_time, 0, 5) : '?'),
-                        'type'       => 'attendance',
-                        'details'    => [
-                            ['label' => 'Date',              'value' => $ar->date],
-                            ['label' => 'Req. check-in',     'value' => $ar->requested_check_in_time  ? substr($ar->requested_check_in_time, 0, 5)  : '—'],
-                            ['label' => 'Req. check-out',    'value' => $ar->requested_check_out_time ? substr($ar->requested_check_out_time, 0, 5) : '—'],
-                            ['label' => 'Req. work hours',   'value' => $ar->requested_work_hours ? $ar->requested_work_hours . 'h' : '—', 'highlight' => true],
-                            ['label' => 'Note',              'value' => $ar->note ?: '—'],
-                        ],
+                        'id'                         => $ar->id,
+                        'name'                       => $ar->user?->name,
+                        'department'                 => $ar->user?->department,
+                        'type'                       => 'attendance',
+                        // raw fields
+                        'date'                       => $ar->date ? (is_string($ar->date) ? $ar->date : $ar->date->toDateString()) : null,
+                        'requested_check_in_time'    => $ar->requested_check_in_time  ? substr($ar->requested_check_in_time,  0, 5) : null,
+                        'requested_check_out_time'   => $ar->requested_check_out_time ? substr($ar->requested_check_out_time, 0, 5) : null,
+                        'requested_work_hours'       => $ar->requested_work_hours,
+                        'requested_late_minutes'     => $ar->requested_late_minutes ?? 0,
+                        'note'                       => $ar->note,
                     ])->filter(fn($r) => $r['name'])->values()->toArray();
             }
 
-            // Expense requests
+            // Expense requests — raw fields + attachments for frontend modal
             $pendingExpenseList = [];
             if (class_exists(\App\Models\ExpenseRequest::class)) {
                 $pendingExpenseList = \App\Models\ExpenseRequest::with('user:id,name,department')
                     ->where('approver_id', $user->id)->where('status', 'pending')
                     ->latest()->limit(8)->get()
                     ->map(fn($ex) => [
-                        'id'         => $ex->id,
-                        'name'       => $ex->user?->name,
-                        'department' => $ex->user?->department,
-                        'detail'     => $ex->title . ' · ' . $ex->currency . ' ' . number_format($ex->amount, 2) . ' · ' . $ex->expense_date,
-                        'type'       => 'expense',
-                        'details'    => [
-                            ['label' => 'Title',        'value' => $ex->title],
-                            ['label' => 'Amount',       'value' => $ex->currency . ' ' . number_format($ex->amount, 2), 'highlight' => true],
-                            ['label' => 'Category',     'value' => ucfirst($ex->category)],
-                            ['label' => 'Expense date', 'value' => $ex->expense_date],
-                            ['label' => 'Description',  'value' => $ex->description ?: '—'],
-                        ],
+                        'id'           => $ex->id,
+                        'name'         => $ex->user?->name,
+                        'department'   => $ex->user?->department,
+                        'type'         => 'expense',
+                        // raw fields
+                        'title'        => $ex->title,
+                        'amount'       => $ex->amount,
+                        'currency'     => $ex->currency ?? 'USD',
+                        'category'     => $ex->category,
+                        'expense_date' => $ex->expense_date ? (is_string($ex->expense_date) ? $ex->expense_date : $ex->expense_date->toDateString()) : null,
+                        'description'  => $ex->description,
+                        'attachments'  => is_array($ex->attachments) ? $ex->attachments : (json_decode($ex->attachments, true) ?? []),
                     ])->filter(fn($r) => $r['name'])->values()->toArray();
             }
 
@@ -524,6 +548,7 @@ class DashboardController extends Controller
             'leaveUsageChart'  => $leaveUsageChart,
             'otByProjectChart' => $otByProjectChart,
             'chronicallyLate'  => $chronicallyLate,
+            'payrollTrend'     => $payrollTrend,
 
             // Personal
             'myStats'          => $myStats,

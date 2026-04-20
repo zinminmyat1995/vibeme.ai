@@ -147,14 +147,20 @@ class AttendanceRecordController extends Controller
 
         $leaveDateMap = [];
         foreach ($leaveRecords as $leave) {
-            $start   = \Carbon\Carbon::parse($leave->start_date);
-            $end     = \Carbon\Carbon::parse($leave->end_date);
+            $start      = \Carbon\Carbon::parse($leave->start_date);
+            $end        = \Carbon\Carbon::parse($leave->end_date);
+            $totalSpan  = max(1, $start->diffInDays($end) + 1); // leave ကြာချိန် (calendar days)
+            $dayValue   = round((float)$leave->total_days / $totalSpan, 4); // တစ်ရက်ကျ days
+
             $current = $start->copy();
             while ($current <= $end) {
                 $dk = $current->format('Y-m-d');
-                $leaveDateMap[$dk] = [
+                if (!isset($leaveDateMap[$dk])) {
+                    $leaveDateMap[$dk] = [];
+                }
+                $leaveDateMap[$dk][] = [
                     'type'       => $leave->leave_type,
-                    'total_days' => $leave->total_days,
+                    'total_days' => $dayValue,        // ← proportional ထည့်
                     'is_half'    => $leave->total_days < 1,
                     'day_type'   => $leave->day_type,
                     'user_id'    => $leave->user_id,
