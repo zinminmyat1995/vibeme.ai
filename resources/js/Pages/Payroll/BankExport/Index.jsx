@@ -237,7 +237,10 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
     const [excelLoad,  setExcelLoad]  = useState(false);
     const [pdfLoad,    setPdfLoad]    = useState(false);
     const [paying,     setPaying]     = useState(null);
-    const [markingAll, setMarkingAll] = useState(false);
+    const [markingAll,  setMarkingAll]  = useState(false);
+    const [sendModal,   setSendModal]   = useState(false);
+    const [bankEmail,   setBankEmail]   = useState('');
+    const [sending,     setSending]     = useState(false);
 
     const buildParams = useCallback(() => {
         const p = new URLSearchParams();
@@ -255,6 +258,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
             const res  = await fetch(`/payroll/export/preview?${buildParams()}`);
             const data = await res.json();
             setPreview(data);
+            if (data.bank_email) setBankEmail(data.bank_email);
         } catch {
             toast('Failed to load preview', 'error');
         } finally {
@@ -311,6 +315,27 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
             toast(e.message, 'error');
         } finally {
             setMarkingAll(false);
+        }
+    };
+
+    const sendToBank = async () => {
+        if (!bankEmail) return;
+        setSending(true);
+        try {
+            const params = buildParams();
+            const res  = await fetch(`/payroll/export/send-to-bank?${params}`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: bankEmail }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message ?? 'Failed to send');
+            toast('PDF sent to bank successfully! ✉️');
+            setSendModal(false);
+        } catch (e) {
+            toast(e.message, 'error');
+        } finally {
+            setSending(false);
         }
     };
 
@@ -437,6 +462,13 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                                     {pdfLoad ? 'Generating…' : 'PDF'}
                                 </button>
 
+                                {/* Send to Bank */}
+                                <button
+                                    onClick={() => setSendModal(true)}
+                                    style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:8, border:`1.5px solid ${theme.primary}`, background:theme.primarySoft, color:theme.primary, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}
+                                >
+                                    ✉️ Send to Bank
+                                </button>
                                 {/* Mark All Paid */}
                                 {hasPending && (
                                     <>
@@ -574,6 +606,50 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                     </span>
                 </div>
             </div>
+            {/* Send to Bank Modal */}
+            {sendModal && (
+                <div style={{ position:'fixed', inset:0, background:'rgba(17,7,46,0.55)', zIndex:9000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+                    <div style={{ background: theme.surface, borderRadius:18, width:'100%', maxWidth:440, boxShadow:'0 32px 80px rgba(0,0,0,0.3)', overflow:'hidden', border:`1px solid ${theme.border}` }}>
+                        {/* Header */}
+                        <div style={{ background:'linear-gradient(135deg,#1e3a8a,#3b5998)', padding:'18px 20px' }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                                <div>
+                                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)', fontWeight:700, letterSpacing:'0.8px', marginBottom:3 }}>✉️ BANK TRANSFER</div>
+                                    <div style={{ fontSize:16, fontWeight:900, color:'#fff' }}>Send PDF to Bank</div>
+                                </div>
+                                <button onClick={() => setSendModal(false)} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:8, width:30, height:30, cursor:'pointer', color:'#fff', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
+                            </div>
+                        </div>
+                        {/* Body */}
+                        <div style={{ padding:'20px' }}>
+                            <div style={{ marginBottom:16, padding:'12px 14px', borderRadius:10, background: dark?'rgba(30,58,138,0.15)':'#eff6ff', border:`1px solid ${dark?'rgba(59,89,152,0.3)':'#bfdbfe'}` }}>
+                                <div style={{ fontSize:12, color: dark?'#93c5fd':'#1e40af', lineHeight:1.6 }}>
+                                    The Bank Transfer PDF for <strong>{preview?.period_label}</strong> will be sent as an email attachment.<br/>
+                                    Total: <strong>{currency} {Number(preview?.total ?? 0).toLocaleString('en-US', {minimumFractionDigits:2})}</strong> · <strong>{records.length} employees</strong>
+                                </div>
+                            </div>
+                            <label style={{ fontSize:11, fontWeight:800, color: theme.textMute, textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>
+                                Bank Email Address <span style={{ color:'#ef4444' }}>*</span>
+                            </label>
+                            <input
+                                type="email"
+                                value={bankEmail}
+                                onChange={e => setBankEmail(e.target.value)}
+                                placeholder="e.g. finance@ababank.com"
+                                style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:`1.5px solid ${theme.border}`, background: theme.surface, color: theme.text, fontSize:13, fontFamily:'inherit', outline:'none', marginBottom:16, boxSizing:'border-box' }}
+                            />
+                            <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+                                <button onClick={() => setSendModal(false)} disabled={sending} style={{ padding:'9px 16px', borderRadius:9, border:`1.5px solid ${theme.border}`, background:'transparent', color: theme.textSoft, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                                    Cancel
+                                </button>
+                                <button onClick={sendToBank} disabled={sending || !bankEmail} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 18px', borderRadius:9, border:'none', background: sending || !bankEmail ? '#9ca3af' : 'linear-gradient(135deg,#1e3a8a,#3b5998)', color:'#fff', fontSize:13, fontWeight:700, cursor: sending || !bankEmail ? 'not-allowed':'pointer', fontFamily:'inherit' }}>
+                                    {sending ? <><Spinner size={12} color="#fff"/> Sending…</> : <>✉️ Send PDF</>}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AppLayout>
     );
 }

@@ -169,6 +169,17 @@ class SalaryCalculationService
             $unpaidLeaveDeduct = 0;
         }
 
+
+        $expenseReimbursement = \App\Models\ExpenseRequest::where('user_id', $profile->user_id)
+            ->where('status', 'approved')
+            ->whereNull('reimbursed_at')
+            ->whereBetween('expense_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->sum('amount');
+        $expenseReimbursement = round((float) $expenseReimbursement, 2);
+
         // ── Net salary ────────────────────────────────────────────
         $periodNet = $basePay
             - $lateDeduct
@@ -176,6 +187,7 @@ class SalaryCalculationService
             + $overtimeAmount
             + $totalAllowances
             + $bonusAmount
+            + $expenseReimbursement
             - $salaryDeductions;
 
             
@@ -199,6 +211,7 @@ class SalaryCalculationService
             'unpaid_leave'     => $unpaidLeaveDeduct,
             'total_deductions' => $totalDeductionsStored,
             'allowances'       => $totalAllowances,
+            'expense_reimbursement' => $expenseReimbursement,
             'net_salary'       => $netSalary,
         ]);
 
@@ -218,6 +231,7 @@ class SalaryCalculationService
                 'total_deductions'       => $totalDeductionsStored,
                 'overtime_amount'        => $overtimeAmount,
                 'bonus_amount'           => $bonusAmount,
+                'expense_reimbursement'  => $expenseReimbursement,
                 'tax_amount'             => $lateDeduct,       // stores late deduction
                 'social_security_amount' => $shortDeduct,      // stores short hour deduction amount
                 'net_salary'             => $netSalary,

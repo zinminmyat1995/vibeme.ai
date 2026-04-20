@@ -288,7 +288,7 @@ body {
         ? ($otHrs > 0 && $otMin > 0 ? "{$otHrs}h {$otMin}m" : ($otHrs > 0 ? "{$otHrs}h" : "{$otMin}m"))
         : '—';
     $totalLeave = ($leave_days_paid ?? 0) + ($leave_days_unpaid ?? 0);
-    $gross  = ($base_salary ?? 0) + ($total_allowances ?? 0) + ($overtime_amount ?? 0) + ($bonus_amount ?? 0);
+    $gross  = ($base_salary ?? 0) + ($total_allowances ?? 0) + ($overtime_amount ?? 0) + ($bonus_amount ?? 0) + ($expense_reimbursement ?? 0);
 @endphp
 <div class="info-section">
     <div class="info-row">
@@ -388,6 +388,12 @@ body {
         <td>{{ number_format((float)$b->amount, 2) }}</td>
     </tr>
     @endforeach
+    @if(($expense_reimbursement ?? 0) > 0)
+    <tr class="trow">
+        <td>Expense Reimbursement</td>
+        <td>{{ number_format($expense_reimbursement, 2) }}</td>
+    </tr>
+    @endif
     <tr class="ttotal">
         <td>Total Earnings</td>
         <td>{{ number_format($gross, 2) }}</td>

@@ -10,6 +10,7 @@ class PayrollBank extends Model
         'country_id',
         'bank_name',
         'bank_code',
+        'email',
         'is_active',
     ];
 

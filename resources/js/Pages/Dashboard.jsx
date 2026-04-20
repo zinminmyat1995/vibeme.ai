@@ -453,7 +453,7 @@ function AnnouncementModal({ onClose, onCreated, t }) {
     });
 
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,8,23,0.55)', backdropFilter: 'blur(6px)', padding: 20 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,8,23,0.55)', backdropFilter: 'blur(6px)', padding: 20 }}>
             <div style={{ ...card(t, { width: '100%', maxWidth: 520, overflow: 'hidden' }) }}>
                 <div style={{ background: 'linear-gradient(135deg,#2563eb,#4f46e5,#7c3aed)', padding: '20px 24px' }}>
                     <div style={{ fontSize: 16, fontWeight: 900, color: '#fff' }}>Create announcement</div>

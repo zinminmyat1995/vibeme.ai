@@ -459,14 +459,21 @@ function BankModal({ banks, onClose, T, dark }) {
     const [deleteTarget,setDeleteTarget]=useState(null);
     const [deleting,setDeleting]=useState(false);
     const [bankErrors,setBankErrors]=useState({});
-    const {data,setData,post,put,processing,reset}=useForm({bank_name:'',bank_code:'',is_active:true});
-    const validate=()=>{const e={};if(!data.bank_name.trim())e.bank_name='Bank name is required.';return e;};
+    const {data,setData,post,put,processing,reset}=useForm({bank_name:'',bank_code:'',email:'',is_active:true});
+    const validate=()=>{
+        const e={};
+        if(!data.bank_name.trim()) e.bank_name='Bank name is required.';
+        if(!data.email.trim()) e.email='Email is required.';
+        else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) e.email='Invalid email address.';
+        return e;
+    };
     const handleSubmit=e=>{
         e.preventDefault();const errs=validate();if(Object.keys(errs).length>0){setBankErrors(errs);return;}setBankErrors({});
         if(editingId){put(`/payroll/hr-policy/bank/${editingId}`,{preserveScroll:true,onSuccess:()=>{reset();setShowForm(false);setEditingId(null);},onError:e=>{if(e.bank_name)setBankErrors(p=>({...p,bank_name:e.bank_name}));}});}
         else{post('/payroll/hr-policy/bank',{preserveScroll:true,onSuccess:()=>{reset();setShowForm(false);},onError:e=>{if(e.bank_name)setBankErrors(p=>({...p,bank_name:e.bank_name}));}});}
     };
-    const handleEdit=bank=>{setBankErrors({});setData({bank_name:bank.bank_name,bank_code:bank.bank_code??'',is_active:!!bank.is_active});setEditingId(bank.id);setShowForm(true);};
+    const handleEdit=bank=>{setBankErrors({});setData({bank_name:bank.bank_name,bank_code:bank.bank_code??'',email:bank.email??'',is_active:bank.is_active});
+    setEditingId(bank.id);setShowForm(true);};
     const handleDel=()=>{
         if(!deleteTarget)return;setDeleting(true);
         router.delete(`/payroll/hr-policy/bank/${deleteTarget.id}`,{preserveScroll:true,onSuccess:()=>{setDeleting(false);setDeleteTarget(null);if(editingId===deleteTarget.id){reset();setBankErrors({});setShowForm(false);setEditingId(null);}},onError:()=>{setDeleting(false);setDeleteTarget(null);}});
@@ -541,6 +548,20 @@ function BankModal({ banks, onClose, T, dark }) {
                                         <label style={{fontSize:11,fontWeight:800,color:T.textSoft,display:'block',marginBottom:5,letterSpacing:'0.04em',textTransform:'uppercase'}}>Code <span style={{color:T.textMute,fontWeight:500,textTransform:'none'}}>(optional)</span></label>
                                         <input type="text" value={data.bank_code} onChange={e=>setData('bank_code',e.target.value.toUpperCase())} placeholder="ABA" disabled={processing} style={{...inp(false),fontFamily:'monospace',letterSpacing:'0.08em'}}/>
                                     </div>
+                                </div>
+                                <div>
+                                    <label style={{fontSize:11,fontWeight:800,color:T.textSoft,display:'block',marginBottom:5,letterSpacing:'0.04em',textTransform:'uppercase'}}>
+                                        Email <span style={{color:T.danger}}>*</span>
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={data.email}
+                                        onChange={e=>{setData('email',e.target.value);setBankErrors(p=>({...p,email:''}));}}
+                                        placeholder="e.g. finance@ababank.com"
+                                        disabled={processing}
+                                        style={inp(!!bankErrors.email)}
+                                    />
+                                    {bankErrors.email&&<div style={{fontSize:11,color:T.danger,marginTop:3}}>{bankErrors.email}</div>}
                                 </div>
                                 <SRToggle label="Active" checked={data.is_active} onChange={v=>setData('is_active',v)} T={T} dark={dark}/>
                                 <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>

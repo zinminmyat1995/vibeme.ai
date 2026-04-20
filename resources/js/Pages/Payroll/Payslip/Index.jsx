@@ -67,7 +67,7 @@ function MiniModal({ title, subtitle, icon, onClose, children, theme }) {
                         <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:8, width:30, height:30, cursor:'pointer', color:'#fff', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>×</button>
                     </div>
                 </div>
-                <div style={{ overflowY:'auto', padding:'14px 18px 18px', flex:1 }}>{children}</div>
+                <div className="ps-hide" style={{ overflowY:'auto', padding:'14px 18px 18px', flex:1 }}>{children}</div>
             </div>
         </div>
     );
@@ -182,9 +182,10 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
     const [otPop,     setOtPop]     = React.useState(false);
     const [allowPop,  setAllowPop]  = React.useState(false);
     const [bonusPop,  setBonusPop]  = React.useState(false);
+    const [expensePop, setExpensePop] = React.useState(false);
     const otHrs   = detail.overtime_hours ?? 0;
     const otLabel = otHrs > 0 ? fmtHours(otHrs) : null;
-    const gross   = (detail.base_salary??0)+(detail.total_allowances??0)+(detail.overtime_amount??0)+(detail.bonus_amount??0);
+    const gross   = (detail.base_salary??0)+(detail.total_allowances??0)+(detail.overtime_amount??0)+(detail.bonus_amount??0)+(detail.expense_reimbursement??0);
     const dayTypeLabel = (t) => ({ full_day:'Full Day', half_day_am:'AM Half', half_day_pm:'PM Half', half_day:'Half Day' }[t] || t || '');
 
     const rowBg  = dark ? 'rgba(255,255,255,0.02)' : '#fff';
@@ -240,6 +241,17 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                             style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}
                         >
                             + {fmt(detail.bonus_amount, curr)}
+                        </span>
+                    </div>
+                )}
+                {(detail.expense_reimbursement ?? 0) > 0 && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Expense Reimbursement</span>
+                        <span
+                            onClick={() => setExpensePop(true)}
+                            style={{ fontSize:12, fontWeight:600, color:'#0284c7', cursor:'pointer' }}
+                        >
+                            + {fmt(detail.expense_reimbursement, curr)}
                         </span>
                     </div>
                 )}
@@ -379,6 +391,38 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                         <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>
                             + {fmt(detail.bonus_amount ?? 0, curr)}
                         </span>
+                    </div>
+                </MiniModal>
+            )}
+
+            {expensePop && (
+                <MiniModal title="Expense Reimbursement" subtitle="Approved Expenses" icon="🧾" onClose={() => setExpensePop(false)} theme={theme}>
+                    {(detail.expense_details ?? []).length === 0 ? (
+                        <p style={{ fontSize:12, color: theme.textMute }}>No expense details.</p>
+                    ) : (
+                        (detail.expense_details ?? []).map((e, i) => (
+                            <div key={e.id ?? i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
+                                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:4 }}>
+                                    <div style={{ fontWeight:700, fontSize:13, color: theme.text }}>{e.title}</div>
+                                    <span style={{ fontSize:13, fontWeight:700, color:'#0284c7', flexShrink:0, marginLeft:8 }}>
+                                        + {fmt(e.amount, e.currency)}
+                                    </span>
+                                </div>
+                                <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+                                    <span style={{ fontSize:10, background: dark?'rgba(14,165,233,0.18)':'#e0f2fe', color: dark?'#38bdf8':'#0284c7', borderRadius:99, padding:'2px 8px', fontWeight:700, textTransform:'capitalize' }}>
+                                        {e.category}
+                                    </span>
+                                    <span style={{ fontSize:11, color: theme.textMute }}>📅 {e.expense_date}</span>
+                                </div>
+                                {e.description && (
+                                    <div style={{ fontSize:11, color: theme.textMute, marginTop:4, lineHeight:1.5 }}>{e.description}</div>
+                                )}
+                            </div>
+                        ))
+                    )}
+                    <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between' }}>
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>Total Reimbursement</span>
+                        <span style={{ fontSize:13, fontWeight:800, color:'#0284c7' }}>+ {fmt(detail.expense_reimbursement ?? 0, curr)}</span>
                     </div>
                 </MiniModal>
             )}

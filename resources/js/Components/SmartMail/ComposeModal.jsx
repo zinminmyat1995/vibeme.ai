@@ -10,8 +10,121 @@ function highlightVars(html) {
     );
 }
 
+    const FONT_SIZES = [
+        { value: '1', label: 'Small' },
+        { value: '3', label: 'Normal' },
+        { value: '5', label: 'Large' },
+        { value: '7', label: 'X-Large' },
+    ];
+
+    function FontSizeDropdown({ exec, theme, darkMode }) {
+        const [open, setOpen]       = useState(false);
+        const [current, setCurrent] = useState('3');
+        const ref                   = useRef(null);
+
+        useEffect(() => {
+            const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+            document.addEventListener('mousedown', h);
+            return () => document.removeEventListener('mousedown', h);
+        }, []);
+
+        const selected = FONT_SIZES.find(f => f.value === current);
+
+        const handleSelect = (val) => {
+            exec('fontSize', val);
+            setCurrent(val);
+            setOpen(false);
+        };
+
+        return (
+            <div ref={ref} style={{ position: 'relative' }} onMouseDown={e => e.stopPropagation()}>
+                <button
+                    type="button"
+                    onClick={() => setOpen(v => !v)}
+                    style={{
+                        height: 28,
+                        padding: '0 10px',
+                        borderRadius: 7,
+                        border: `1px solid ${open ? theme.primary : theme.border}`,
+                        background: open ? theme.primarySoft : theme.panelSoft,
+                        color: open ? theme.primary : theme.textSoft,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.15s',
+                        fontFamily: 'inherit',
+                        boxShadow: open ? `0 0 0 2px ${theme.primary}22` : 'none',
+                    }}
+                >
+                    {selected?.label ?? 'Normal'}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                        style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s', flexShrink: 0 }}>
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
+
+                {open && (
+                    <div style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 5px)',
+                        left: 0,
+                        zIndex: 9999,
+                        background: darkMode ? theme.panelSolid : '#fff',
+                        border: `1px solid ${theme.borderStrong}`,
+                        borderRadius: 10,
+                        boxShadow: theme.shadow,
+                        overflow: 'hidden',
+                        minWidth: 110,
+                        animation: 'slideIn 0.12s ease',
+                    }}>
+                        {FONT_SIZES.map(f => {
+                            const isSel = f.value === current;
+                            return (
+                                <button
+                                    key={f.value}
+                                    type="button"
+                                    onMouseDown={e => e.preventDefault()}
+                                    onClick={() => handleSelect(f.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px 14px',
+                                        border: 'none',
+                                        background: isSel ? theme.primarySoft : 'transparent',
+                                        color: isSel ? theme.primary : theme.textSoft,
+                                        fontSize: 12,
+                                        fontWeight: isSel ? 700 : 500,
+                                        textAlign: 'left',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        gap: 8,
+                                        transition: 'background 0.1s',
+                                        fontFamily: 'inherit',
+                                    }}
+                                    onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.06)' : '#f5f3ff'; }}
+                                    onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                    <span>{f.label}</span>
+                                    {isSel && (
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        );
+    }
 // ── Rich Toolbar ──────────────────────────────────────────────
-function RichToolbar({ editorRef, theme }) {
+function RichToolbar({ editorRef, theme, darkMode }) {
     const exec = (cmd, val = null) => {
         editorRef.current?.focus();
         document.execCommand(cmd, false, val);
@@ -39,6 +152,8 @@ function RichToolbar({ editorRef, theme }) {
         <div style={{ width: 1, background: theme.border, height: 20, margin: '0 2px' }} />
     );
 
+
+
     return (
         <div style={{
             display: 'flex', gap: 4, flexWrap: 'wrap',
@@ -60,25 +175,7 @@ function RichToolbar({ editorRef, theme }) {
             <Btn onClick={() => exec('justifyCenter')} title="Center">≡</Btn>
             <Btn onClick={() => exec('justifyRight')}  title="Right">➡</Btn>
             <Divider />
-            <select
-                onMouseDown={e => e.stopPropagation()}
-                onChange={e => exec('fontSize', e.target.value)}
-                defaultValue="3"
-                style={{
-                    padding: '3px 8px',
-                    border: `1px solid ${theme.border}`,
-                    borderRadius: 7, fontSize: 11,
-                    background: theme.panelSoft,
-                    color: theme.textSoft,
-                    cursor: 'pointer',
-                    outline: 'none',
-                }}
-            >
-                <option value="1">Small</option>
-                <option value="3">Normal</option>
-                <option value="5">Large</option>
-                <option value="7">X-Large</option>
-            </select>
+            <FontSizeDropdown exec={exec} theme={theme} darkMode={darkMode} />
         </div>
     );
 }
@@ -1040,7 +1137,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                     )}
 
                     {/* ── Rich Toolbar + Editor ── */}
-                    <RichToolbar editorRef={editorRef} theme={theme} />
+                    <RichToolbar editorRef={editorRef} theme={theme} darkMode={darkMode} />
 
                     <div
                         ref={editorRef}

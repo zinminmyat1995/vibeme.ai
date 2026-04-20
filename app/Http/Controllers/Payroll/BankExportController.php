@@ -73,12 +73,18 @@ class BankExportController extends Controller
     {
         $records = $this->getRecords($request);
 
+        $user      = Auth::user();
+        $countryId = $user->countryRecord?->id;
+        $salaryRule = \App\Models\SalaryRule::where('country_id', $countryId)->with('bank')->first();
+        $bankEmail  = $salaryRule?->bank?->email ?? '';
+
         return response()->json([
-            'records'     => $records->map(fn($r) => $this->formatRow($r)),
-            'total'       => $records->sum('net_salary'),
-            'count'       => $records->count(),
+            'records'      => $records->map(fn($r) => $this->formatRow($r)),
+            'total'        => $records->sum('net_salary'),
+            'count'        => $records->count(),
             'period_label' => $this->buildPeriodLabel($request),
             'currency'     => $this->getCurrencyCode($request),
+            'bank_email'   => $bankEmail,
         ]);
     }
 
@@ -424,7 +430,31 @@ class BankExportController extends Controller
         if ($record->status !== 'confirmed') {
             return response()->json(['message' => 'Only confirmed records can be marked as paid.'], 422);
         }
+
+        $record->load(['user', 'payrollPeriod']);
         $record->update(['status' => 'paid']);
+
+        $months = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+
+        $monthName   = $months[($record->month ?? now()->month) - 1];
+        $periodNum   = $record->payrollPeriod?->period_number ?? 1;
+        $periodLabel = "Period {$periodNum}";
+
+        \App\Models\Notification::send(
+            userId: $record->user_id,
+            type:   'salary_paid',
+            title:  'Salary Processed & Paid 💰',
+            body:   "Your salary for {$monthName} {$record->year} ({$periodLabel}) has been processed and transferred to your bank account. Please check your account within 1–3 business days.",
+            url:    '/payroll/payslip',
+            data:   [
+                'year'          => $record->year,
+                'month'         => $record->month,
+                'period_number' => $periodNum,
+                'net_salary'    => $record->net_salary,
+            ]
+        );
+
         return response()->json(['message' => 'Record marked as paid.', 'status' => 'paid']);
     }
 
@@ -436,7 +466,8 @@ class BankExportController extends Controller
         $user      = Auth::user();
         $countryId = $user->countryRecord?->id;
 
-        $query = PayrollRecord::where('status', 'confirmed')
+        $query = PayrollRecord::with(['user', 'payrollPeriod'])
+            ->where('status', 'confirmed')
             ->whereHas('payrollPeriod', fn($q) => $q->where('country_id', $countryId));
 
         if ($request->filled('period_id')) $query->where('payroll_period_id', $request->period_id);
@@ -444,11 +475,107 @@ class BankExportController extends Controller
         if ($request->filled('month'))     $query->where('month', $request->month);
         if ($request->filled('user_id'))   $query->where('user_id', $request->user_id);
 
-        $updated = $query->update(['status' => 'paid']);
+        $records = $query->get();
+        $updated = $records->count();
+
+        // Update status
+        $records->each(fn($r) => $r->update(['status' => 'paid']));
+
+        // Send notification to each employee
+        $months = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+
+        foreach ($records as $record) {
+            $monthName  = $months[($record->month ?? now()->month) - 1];
+            $periodNum  = $record->payrollPeriod?->period_number ?? 1;
+            $periodLabel = "Period {$periodNum}";
+
+            \App\Models\Notification::send(
+                userId: $record->user_id,
+                type:   'salary_paid',
+                title:  'Salary Processed & Paid 💰',
+                body:   "Your salary for {$monthName} {$record->year} ({$periodLabel}) has been processed and transferred to your bank account. Please check your account within 1–3 business days.",
+                url:    '/payroll/payslip',
+                data:   [
+                    'year'         => $record->year,
+                    'month'        => $record->month,
+                    'period_number'=> $periodNum,
+                    'net_salary'   => $record->net_salary,
+                ]
+            );
+        }
 
         return response()->json([
             'message' => "{$updated} records marked as paid.",
             'updated' => $updated,
+        ]);
+    }
+
+
+    // ──────────────────────────────────────────────────────────────
+    // POST /payroll/export/send-to-bank
+    // ──────────────────────────────────────────────────────────────
+    public function sendToBank(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'email'     => 'required|email',
+            'period_id' => 'nullable|exists:payroll_periods,id',
+            'year'      => 'nullable|integer',
+            'month'     => 'nullable|integer',
+        ]);
+
+        $records     = $this->getRecords($request);
+        $rows        = $records->map(fn($r) => $this->formatRow($r))->values()->toArray();
+        $periodLabel = $this->buildPeriodLabel($request);
+        $currency    = $this->getCurrencyCode($request);
+        $total       = array_sum(array_column($rows, 'net_salary'));
+
+        // Company name
+        $countryName = strtolower($records->first()?->payrollPeriod?->country?->name ?? '');
+        $regionMap   = ['cambodia'=>'Brycen Cambodia','myanmar'=>'Brycen Myanmar','japan'=>'Brycen Japan','vietnam'=>'Brycen Vietnam','korea'=>'Brycen Korea'];
+        $companyName = $regionMap[$countryName] ?? 'Brycen ' . ucfirst($countryName ?: 'International');
+
+        // Generate PDF to temp file
+        $filename = 'bank_transfer_' . str_replace([' ', '/'], '_', $periodLabel) . '_' . now()->format('Ymd') . '.pdf';
+        $tempPath = storage_path('app/exports/' . $filename);
+
+        if (!file_exists(storage_path('app/exports'))) {
+            mkdir(storage_path('app/exports'), 0755, true);
+        }
+
+        $data = [
+            'rows'         => $rows,
+            'period_label' => $periodLabel,
+            'total'        => $total,
+            'currency'     => $currency,
+            'generated_at' => now()->format('d M Y H:i'),
+            'company_name' => $companyName,
+        ];
+
+        Pdf::loadView('payroll.bank_transfer', $data)
+            ->setPaper('a4', 'portrait')
+            ->save($tempPath);
+
+        // Send mail
+        \Illuminate\Support\Facades\Mail::to($request->email)
+            ->send(new \App\Mail\BankTransferMail(
+                companyName:   $companyName,
+                periodLabel:   $periodLabel,
+                currency:      $currency,
+                totalAmount:   $total,
+                employeeCount: count($rows),
+                pdfPath:       $tempPath,
+                pdfFilename:   $filename,
+                generatedAt:   now()->format('d M Y H:i'),
+            ));
+
+        // Clean up temp file
+        if (file_exists($tempPath)) {
+            unlink($tempPath);
+        }
+
+        return response()->json([
+            'message' => "Bank transfer PDF sent to {$request->email} successfully.",
         ]);
     }
 

@@ -380,6 +380,7 @@ public function storeBank(Request $request)
                 ->where('country_id', $countryId),
         ],
         'bank_code' => 'nullable|string|max:20',
+        'email'     => 'required|email|max:255',
         'is_active' => 'required|boolean',
     ]);
 
@@ -400,6 +401,7 @@ public function updateBank(Request $request, PayrollBank $bank)
                 ->ignore($bank->id),
         ],
         'bank_code' => 'nullable|string|max:20',
+        'email'     => 'required|email|max:255',
         'is_active' => 'required|boolean',
     ]);
 

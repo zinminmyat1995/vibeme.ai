@@ -207,7 +207,7 @@ function ApproverSelect({ approvers, value, onChange, error, theme, dark }) {
                         <Avatar name={sel.name} url={sel.avatar_url} size={24} theme={theme}/>
                         <div style={{minWidth:0}}>
                             <div style={{fontSize:13,fontWeight:700,color:theme.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sel.name}</div>
-                            {sel.role?.name && <div style={{fontSize:10,color:theme.textMute,textTransform:'capitalize'}}>{sel.role.name}</div>}
+                           
                         </div>
                     </div>
                 ) : (
@@ -246,7 +246,7 @@ function ApproverSelect({ approvers, value, onChange, error, theme, dark }) {
                                 <Avatar name={a.name} url={a.avatar_url} size={32} theme={theme}/>
                                 <div style={{flex:1,minWidth:0}}>
                                     <div style={{fontSize:13,fontWeight:700,color:active?theme.primary:theme.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.name}</div>
-                                    {a.role?.name && <div style={{fontSize:10,color:theme.textMute,marginTop:1,textTransform:'capitalize'}}>{a.role.name}</div>}
+                                  
                                 </div>
                                 {active && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
                             </button>
@@ -287,7 +287,7 @@ function ExpenseRow({ req, dark, theme, canViewAll, userId, onApprove, onReject,
     const catC    = CAT_COLORS[req.category] || CAT_COLORS.other;
     const catIcon = CAT_ICONS[req.category]  || '📋';
     const isMine  = req.user_id === userId;
-    const showActions = canViewAll && req.status === 'pending';
+    const showActions = canViewAll && req.status === 'pending' && !isMine;
     const showDelete  = isMine && req.status === 'pending';
 
     return (
@@ -322,7 +322,7 @@ function ExpenseRow({ req, dark, theme, canViewAll, userId, onApprove, onReject,
                     {/* Date + Amount */}
                     <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',marginBottom:req.description?6:0}}>
                         <span style={{fontSize:12,color:theme.textMute}}>📅 {fmtDate(req.expense_date)}</span>
-                        <span style={{fontSize:13,fontWeight:800,color:catC.color,background:dark?catC.bgDark:catC.bg,border:`1px solid ${catC.color}33`,borderRadius:8,padding:'2px 10px'}}>
+                        <span style={{fontSize:13,fontWeight:800,color:catC.color,background:dark?catC.bgDark:catC.bg,borderRadius:8,padding:'2px 10px'}}>
                             {fmtMoney(req.amount, req.currency)}
                         </span>
                         {req.reimbursed_at && (

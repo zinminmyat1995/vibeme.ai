@@ -406,6 +406,7 @@ class PayslipController extends Controller
         if ($d['total_allowances'] > 0) $items[] = ['Allowances',   $d['total_allowances']];
         if ($d['overtime_amount']  > 0) $items[] = ['Overtime Pay', $d['overtime_amount']];
         if ($d['bonus_amount']     > 0) $items[] = ['Bonus',        $d['bonus_amount']];
+        if (($d['expense_reimbursement'] ?? 0) > 0) $items[] = ['Expense Reimbursement', $d['expense_reimbursement']];
         foreach ($d['bonuses'] as $b) {
             $items[] = [($b->bonusType?->name ?? 'Bonus') . ($b->note ? " ({$b->note})" : ''), (float)$b->amount];
         }
@@ -539,34 +540,67 @@ class PayslipController extends Controller
     {
         $period    = $r->payrollPeriod;
         $countryId = $period?->country_id;
-        $year      = $r->year  ?? now()->year;
+        $year      = $r->year ?? now()->year;
         $month     = $r->month ?? now()->month;
         $periodNum = $period?->period_number ?? 1;
-        $endDay    = $period?->day ?? 25;
 
         $salaryRule   = SalaryRule::where('country_id', $countryId)->first();
         $cycle        = $salaryRule?->pay_cycle ?? 'monthly';
         $totalPeriods = match ($cycle) { 'semi_monthly' => 2, 'ten_day' => 3, default => 1 };
 
-        $lastDay         = Carbon::create($year, $month, 1)->daysInMonth;
-        $effectiveEndDay = min($endDay, $lastDay);
-        $periodEnd       = Carbon::create($year, $month, $effectiveEndDay);
+        // base month = prev month (same logic as SalaryCalculationService::getPeriodRange)
+        $base     = Carbon::create($year, $month, 1)->subMonth();
+        $baseY    = $base->year;
+        $baseM    = $base->month;
+        $baseLast = $base->daysInMonth;
+        $reqLast  = Carbon::create($year, $month, 1)->daysInMonth;
 
-        if ($periodNum === 1) {
-            $prev          = Carbon::create($year, $month, 1)->subMonth();
-            $lastPeriodRec = PayrollPeriod::where('country_id', $countryId)->where('period_number', $totalPeriods)->first();
-            $prevEndDay    = $lastPeriodRec ? min((int)$lastPeriodRec->day, $prev->daysInMonth) : min(25, $prev->daysInMonth);
-            $periodStart   = Carbon::create($prev->year, $prev->month, $prevEndDay + 1);
+        $baseDate = fn(int $day): Carbon => Carbon::create($baseY, $baseM, min($day, $baseLast));
+        $reqDate  = fn(int $day): Carbon => Carbon::create($year,  $month, min($day, $reqLast));
+
+        // helper: get period end day from DB
+        $getPeriodDay = function(int $pNum) use ($countryId, $cycle, $salaryRule): int {
+            $rec = PayrollPeriod::where('country_id', $countryId)
+                ->where('period_number', $pNum)->first();
+            if ($rec) return (int) $rec->day;
+            // fallback
+            $cutoff = $salaryRule?->payroll_cutoff_day ?? 25;
+            return match ($cycle) {
+                'semi_monthly' => $pNum === 1 ? (int)round($cutoff / 2) : $cutoff,
+                'ten_day'      => (int)round($cutoff * $pNum / 3),
+                default        => $cutoff,
+            };
+        };
+
+        if ($totalPeriods === 1) {
+            // monthly: prev month's cutoff+1 → this month's cutoff
+            $p1Day = $getPeriodDay(1);
+            $start = $baseDate($p1Day)->addDay();
+            $end   = $reqDate($p1Day);
+        } elseif ($periodNum === $totalPeriods) {
+            // Last period: prev month's (totalPeriods-1) end+1 → this month's last period end
+            $prevDay = $getPeriodDay($totalPeriods - 1);
+            $thisDay = $getPeriodDay($totalPeriods);
+            $start   = $baseDate($prevDay)->addDay();
+            $end     = $reqDate($thisDay);
+        } elseif ($periodNum === 1) {
+            // First period (non-last): entirely in base month
+            $lastDay = $getPeriodDay($totalPeriods);
+            $thisDay = $getPeriodDay(1);
+            $start   = $baseDate($lastDay)->addDay();
+            $end     = $baseDate($thisDay);
         } else {
-            $prevPeriodRec = PayrollPeriod::where('country_id', $countryId)->where('period_number', $periodNum - 1)->first();
-            $prevEndDay    = $prevPeriodRec ? min((int)$prevPeriodRec->day, $lastDay) : 10;
-            $periodStart   = Carbon::create($year, $month, $prevEndDay + 1);
+            // Middle periods: entirely in base month
+            $prevDay = $getPeriodDay($periodNum - 1);
+            $thisDay = $getPeriodDay($periodNum);
+            $start   = $baseDate($prevDay)->addDay();
+            $end     = $baseDate($thisDay);
         }
 
         return [
-            'start' => $periodStart->format('d M Y'),
-            'end'   => $periodEnd->format('d M Y'),
-            'label' => $periodStart->format('d M') . ' – ' . $periodEnd->format('d M Y'),
+            'start' => $start->format('d M Y'),
+            'end'   => $end->format('d M Y'),
+            'label' => $start->format('d M') . ' – ' . $end->format('d M Y'),
         ];
     }
 
@@ -613,6 +647,7 @@ class PayslipController extends Controller
             'total_allowances'    => (float) $r->total_allowances,
             'overtime_amount'     => (float) $r->overtime_amount,
             'bonus_amount'        => (float) $r->bonus_amount,
+            'expense_reimbursement'  => (float) ($r->expense_reimbursement ?? 0),
             'total_deductions'    => (float) $r->total_deductions,
             'late_deduction'      => (float) $r->tax_amount,
             'short_deduction'     => (float) $r->social_security_amount,
@@ -649,6 +684,7 @@ class PayslipController extends Controller
             'period_id'    => $r->payroll_period_id,
             'period_num'   => $r->payrollPeriod?->period_number ?? 1,
             'net_salary'   => (float) $r->net_salary,
+            'expense_reimbursement' => (float) ($r->expense_reimbursement ?? 0),
             'status'       => $r->status,
             'currency'     => (function() use ($r) {
                                 $sr = SalaryRule::where('country_id', $r->payrollPeriod?->country_id)->with('currency')->first();

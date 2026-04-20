@@ -438,9 +438,10 @@ Route::middleware(['auth', 'role:hr'])->group(function () {
     Route::get('/payroll/export/pdf',     [BankExportController::class, 'exportPdf']);
     Route::patch('/payroll/export/mark-paid/{record}',  [BankExportController::class, 'markAsPaid'])
         ->name('payroll.export.mark-paid');
-    
-    Route::patch('/payroll/export/mark-all-paid',        [BankExportController::class, 'markAllPaid'])
-        ->name('payroll.export.mark-all-paid');
 
+    Route::patch('/payroll/export/mark-all-paid', [BankExportController::class, 'markAllPaid'])
+        ->name('payroll.export.mark-all-paid');
+    Route::post('/payroll/export/send-to-bank', [BankExportController::class, 'sendToBank'])
+            ->name('payroll.export.send-to-bank');
 });
  

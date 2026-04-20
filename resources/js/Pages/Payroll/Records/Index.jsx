@@ -307,7 +307,7 @@ function MiniModal({ title, subtitle, icon, onClose, children, theme }) {
                         <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:8, width:30, height:30, cursor:'pointer', color:'#fff', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>×</button>
                     </div>
                 </div>
-                <div style={{ overflowY:'auto', padding:'14px 18px 18px', flex:1 }}>{children}</div>
+                <div className="ex-hide" style={{ overflowY:'auto', padding:'14px 18px 18px', flex:1 }}>{children}</div>
             </div>
         </div>
     );
@@ -497,6 +497,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
     const [otPop,     setOtPop]     = React.useState(false);
     const [allowPop,  setAllowPop]  = React.useState(false);
     const [bonusPop,  setBonusPop]  = React.useState(false);
+    const [expensePop, setExpensePop] = React.useState(false);
     const otHrs   = detail.overtime_hours ?? 0;
     const otLabel = otHrs > 0 ? fmtHours(otHrs) : null;
     const gross   = (detail.base_salary??0)+(detail.total_allowances??0)+(detail.overtime_amount??0)+(detail.bonus_amount??0);
@@ -558,6 +559,21 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                         </span>
                     </div>
                 )}
+
+                {(detail.expense_reimbursement ?? 0) > 0 && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>
+                            Expense Reimbursement
+                        </span>
+                        <span
+                            onClick={() => setExpensePop(true)}
+                            style={{ fontSize:12, fontWeight:600, color:'#0284c7', cursor:'pointer' }}
+                        >
+                            + {fmt(detail.expense_reimbursement, curr)}
+                        </span>
+                    </div>
+                )}
+
                 <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 16px', background: dark?'rgba(5,150,105,0.1)':'#f0fdf4' }}>
                     <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>Total Before Deductions</span>
                     <span style={{ fontSize:12, fontWeight:800, color:'#059669' }}>{fmt(gross, curr)}</span>
@@ -703,6 +719,38 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                     </div>
                 </MiniModal>
             )}
+
+            {expensePop && (
+                <MiniModal title="Expense Reimbursement" subtitle="Approved Expenses" icon="🧾" onClose={() => setExpensePop(false)} theme={theme}>
+                    {(detail.expense_details ?? []).length === 0 ? (
+                        <p style={{ fontSize:12, color: theme.textMute }}>No expense details.</p>
+                    ) : (
+                        (detail.expense_details ?? []).map((e, i) => (
+                            <div key={e.id ?? i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
+                                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:4 }}>
+                                    <div style={{ fontWeight:700, fontSize:13, color: theme.text }}>{e.title}</div>
+                                    <span style={{ fontSize:13, fontWeight:700, color:'#0284c7', flexShrink:0, marginLeft:8 }}>
+                                        + {fmt(e.amount, e.currency)}
+                                    </span>
+                                </div>
+                                <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+                                    <span style={{ fontSize:10, background: dark?'rgba(14,165,233,0.18)':'#e0f2fe', color: dark?'#38bdf8':'#0284c7', borderRadius:99, padding:'2px 8px', fontWeight:700, textTransform:'capitalize' }}>
+                                        {e.category}
+                                    </span>
+                                    <span style={{ fontSize:11, color: theme.textMute }}>📅 {e.expense_date}</span>
+                                </div>
+                                {e.description && (
+                                    <div style={{ fontSize:11, color: theme.textMute, marginTop:4, lineHeight:1.5 }}>{e.description}</div>
+                                )}
+                            </div>
+                        ))
+                    )}
+                    <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between' }}>
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>Total Reimbursement</span>
+                        <span style={{ fontSize:13, fontWeight:800, color:'#0284c7' }}>+ {fmt(detail.expense_reimbursement ?? 0, curr)}</span>
+                    </div>
+                </MiniModal>
+            )}
         </div>
     );
 }
@@ -714,18 +762,71 @@ function PeriodBar({ salaryRule, periodTemplates, value, onChange, dark, theme }
     const years = Array.from({length:3},(_,i)=>now.getFullYear()-1+i);
     const sel   = { year:now.getFullYear(), month:now.getMonth()+1, period_number:1, ...value };
     const set   = (k,v) => onChange({...sel,[k]:Number(v)});
-    const tmpl  = periodTemplates.find(p=>p.period_number===sel.period_number);
 
     const yearOpts   = years.map(y=>({ value:y, label:String(y) }));
     const monthOpts  = MONTHS.map((m,i)=>({ value:i+1, label:m }));
     const periodOpts = Array.from({length:count},(_,i)=>({ value:i+1, label:`Period ${i+1}` }));
+
+    // ── Period date range တွက် (getPeriodRange logic နဲ့ ကိုက်ညီ) ──
+    const getPeriodLabel = () => {
+        const { year, month, period_number: pNum } = sel;
+        const totalPeriods = count;
+
+        const getPDay = (n) => {
+            const t = periodTemplates.find(p => p.period_number === n);
+            return t ? t.day : (cycle === 'semi_monthly' ? (n===1?12:25) : cycle === 'ten_day' ? n*10 : 25);
+        };
+
+        const prevMonth = month === 1 ? 12 : month - 1;
+        const prevYear  = month === 1 ? year - 1 : year;
+        const prevMonthDays = new Date(prevYear, prevMonth, 0).getDate();
+        const thisMonthDays = new Date(year, month, 0).getDate();
+
+        const clampBase = (d) => Math.min(d, prevMonthDays);
+        const clampReq  = (d) => Math.min(d, thisMonthDays);
+
+        const fmt = (y, m, d) => {
+            const date = new Date(y, m-1, d);
+            return date.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+        };
+
+        let startD, startM, startY, endD, endM, endY;
+
+        if (totalPeriods === 1) {
+            const p1Day = getPDay(1);
+            startD = clampBase(p1Day) + 1; startM = prevMonth; startY = prevYear;
+            endD   = clampReq(p1Day);      endM   = month;      endY   = year;
+            if (startD > prevMonthDays) { startD = 1; startM = month; startY = year; }
+        } else if (pNum === totalPeriods) {
+            const prevDay = getPDay(totalPeriods - 1);
+            const thisDay = getPDay(totalPeriods);
+            startD = clampBase(prevDay) + 1; startM = prevMonth; startY = prevYear;
+            endD   = clampReq(thisDay);      endM   = month;      endY   = year;
+            if (startD > prevMonthDays) { startD = 1; startM = month; startY = year; }
+        } else if (pNum === 1) {
+            const lastDay = getPDay(totalPeriods);
+            const thisDay = getPDay(1);
+            startD = clampBase(lastDay) + 1; startM = prevMonth; startY = prevYear;
+            endD   = clampBase(thisDay);     endM   = prevMonth; endY   = prevYear;
+            if (startD > prevMonthDays) { startD = 1; }
+        } else {
+            const prevDay = getPDay(pNum - 1);
+            const thisDay = getPDay(pNum);
+            startD = clampBase(prevDay) + 1; startM = prevMonth; startY = prevYear;
+            endD   = clampBase(thisDay);     endM   = prevMonth; endY   = prevYear;
+        }
+
+        return `${fmt(startY, startM, startD)} – ${fmt(endY, endM, endD)}`;
+    };
 
     return (
         <div style={{ display:'flex', flexWrap:'wrap', gap:8, alignItems:'center' }}>
             <PremiumSelect options={yearOpts}   value={sel.year}          onChange={v=>set('year',v)}          width={90}  dark={dark} theme={theme}/>
             <PremiumSelect options={monthOpts}  value={sel.month}         onChange={v=>set('month',v)}         width={130} dark={dark} theme={theme}/>
             {count>1 && <PremiumSelect options={periodOpts} value={sel.period_number} onChange={v=>set('period_number',v)} width={120} dark={dark} theme={theme}/>}
-            {tmpl && <span style={{ fontSize:12, color:theme.textMute, background:theme.surfaceSoft, padding:'5px 12px', borderRadius:99, fontWeight:600, border:`1px solid ${theme.border}` }}>ends day {tmpl.day}</span>}
+            <span style={{ fontSize:12, color:theme.textMute, background:theme.surfaceSoft, padding:'5px 12px', borderRadius:99, fontWeight:600, border:`1px solid ${theme.border}` }}>
+                {getPeriodLabel()}
+            </span>
             <span style={{ fontSize:12, color:theme.primary, background:theme.primarySoft, padding:'5px 12px', borderRadius:99, fontWeight:700 }}>
                 {cycle==='semi_monthly'?'SEMI-MONTHLY':cycle==='ten_day'?'10-DAY':'MONTHLY'}
             </span>
@@ -1010,7 +1111,7 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme
                     <button onClick={load} disabled={loading} style={{ padding:'7px 14px', borderRadius:8, border:`1.5px solid ${theme.border}`, background:theme.surface, color:theme.textMute, fontSize:12, fontWeight:600, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
                         🔄 Refresh
                     </button>
-                    {!allConfirmed && records.some(r=>r.status!=='approved') && records.length>0 && (
+                    {records.length>0 && records.some(r=>r.status!=='approved' && r.status!=='confirmed' && r.status!=='paid') && (
                         <button onClick={openApproveAllConfirm} disabled={approving} style={{ padding:'7px 16px', borderRadius:8, border:'none', background:'#059669', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
                             {approving?<><Spinner color="#fff" size={12}/>Approving...</>:'✅ Approve All'}
                         </button>
@@ -1069,7 +1170,7 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme
                                             <td style={{ padding:'10px 12px', whiteSpace:'nowrap', verticalAlign:'middle' }}>
                                                 <div style={{ display:'flex', gap:4 }}>
                                                     <button onClick={()=>setDetail(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:theme.primarySoft, color:'#7c3aed', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Detail</button>
-                                                    {r.status !== 'approved' && r.status !== 'confirmed' && (
+                                                    {r.status !== 'approved' && r.status !== 'confirmed' && r.status !== 'paid' && (
                                                         <button onClick={()=>openApproveOneConfirm(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:theme.successSoft, color:'#059669', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Approve</button>
                                                     )}
                                                 </div>
@@ -1143,6 +1244,8 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                 .pr-row:hover td   { background: ${dark?'rgba(255,255,255,0.03)':'#fafbff'} !important; }
                 .pr-hide-scroll::-webkit-scrollbar { display:none; }
                 .sd-hide-scroll::-webkit-scrollbar { display:none; }
+                .ex-hide::-webkit-scrollbar { display:none; }
+                .ex-hide { scrollbar-width:none; -ms-overflow-style:none; }
             `}</style>
 
 

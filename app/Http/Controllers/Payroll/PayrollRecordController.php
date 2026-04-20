@@ -336,6 +336,17 @@ class PayrollRecordController extends Controller
 
         $payrollRecord->update(['status' => 'confirmed']);
 
+        if ($payrollRecord->expense_reimbursement > 0) {
+            \App\Models\ExpenseRequest::where('user_id', $payrollRecord->user_id)
+                ->where('status', 'approved')
+                ->whereNull('reimbursed_at')
+                ->whereBetween('expense_date', [
+                    $payrollRecord->payrollPeriod->start_date ?? now()->startOfMonth(),
+                    $payrollRecord->payrollPeriod->end_date   ?? now()->endOfMonth(),
+                ])
+                ->update(['reimbursed_at' => now()]);
+        }
+
         return response()->json([
             'message' => 'Record confirmed.',
             'record'  => $this->formatRecord($payrollRecord->fresh(['user', 'payrollPeriod', 'bonuses'])),
@@ -591,23 +602,51 @@ class PayrollRecordController extends Controller
         $year      = $r->year ?? now()->year;
         $month     = $r->month ?? now()->month;
 
-        $lastDay      = \Carbon\Carbon::create($year, $month, 1)->daysInMonth;
-        $effectiveEnd = min($endDay, $lastDay);
-        $periodEnd    = \Carbon\Carbon::create($year, $month, $effectiveEnd);
+        // ── Period dates — getPeriodRange() နဲ့ exact same logic ──
+        $base     = \Carbon\Carbon::create($year, $month, 1)->subMonth();
+        $baseLast = $base->daysInMonth;
+        $reqLast  = \Carbon\Carbon::create($year, $month, 1)->daysInMonth;
 
-        if ($periodNum === 1) {
-            $prev             = \Carbon\Carbon::create($year, $month, 1)->subMonth();
-            $lastPeriodRecord = \App\Models\PayrollPeriod::where('country_id', $countryId)
-                ->where('period_number', $totalPeriods)->first();
-            $prevEndDay  = $lastPeriodRecord
-                ? min((int)$lastPeriodRecord->day, $prev->daysInMonth)
-                : min($cutoff, $prev->daysInMonth);
-            $periodStart = \Carbon\Carbon::create($prev->year, $prev->month, $prevEndDay + 1);
+        $baseDate = fn(int $day) => \Carbon\Carbon::create($base->year, $base->month, min($day, $baseLast));
+        $reqDate  = fn(int $day) => \Carbon\Carbon::create($year, $month, min($day, $reqLast));
+
+        $getPeriodDay = function(int $pNum) use ($countryId, $cycle, $salaryRule, $cutoff, $totalPeriods): int {
+            $rec = \App\Models\PayrollPeriod::where('country_id', $countryId)
+                ->where('period_number', $pNum)->first();
+            if ($rec) return (int) $rec->day;
+            return match ($cycle) {
+                'semi_monthly' => $pNum === 1 ? (int)round($cutoff / 2) : $cutoff,
+                'ten_day'      => (int)round($cutoff * $pNum / $totalPeriods),
+                default        => $cutoff,
+            };
+        };
+
+        if ($totalPeriods === 1) {
+            // Monthly — prev month cutoff+1 → this month cutoff
+            $p1Day       = $getPeriodDay(1);
+            $periodStart = $baseDate($p1Day)->addDay();
+            $periodEnd   = $reqDate($p1Day);
+
+        } elseif ($periodNum === $totalPeriods) {
+            // Last period — base month prev+1 → this month end
+            $prevDay     = $getPeriodDay($totalPeriods - 1);
+            $thisDay     = $getPeriodDay($totalPeriods);
+            $periodStart = $baseDate($prevDay)->addDay();
+            $periodEnd   = $reqDate($thisDay);
+
+        } elseif ($periodNum === 1) {
+            // First period (not last) — entirely in base month
+            $lastDay2    = $getPeriodDay($totalPeriods);
+            $thisDay     = $getPeriodDay(1);
+            $periodStart = $baseDate($lastDay2)->addDay();
+            $periodEnd   = $baseDate($thisDay);
+
         } else {
-            $prevPeriodRecord = \App\Models\PayrollPeriod::where('country_id', $countryId)
-                ->where('period_number', $periodNum - 1)->first();
-            $prevEndDay  = $prevPeriodRecord ? min((int)$prevPeriodRecord->day, $lastDay) : 10;
-            $periodStart = \Carbon\Carbon::create($year, $month, $prevEndDay + 1);
+            // Middle periods — entirely in base month
+            $prevDay     = $getPeriodDay($periodNum - 1);
+            $thisDay     = $getPeriodDay($periodNum);
+            $periodStart = $baseDate($prevDay)->addDay();
+            $periodEnd   = $baseDate($thisDay);
         }
 
         // ✅ FIX: Full month range for attendance_details query
@@ -619,6 +658,7 @@ class PayrollRecordController extends Controller
         // Last period end: this month's last period day
         if ($totalPeriods > 1) {
             // P1 start (always from previous month's last period + 1)
+            $lastDay         = \Carbon\Carbon::create($year, $month, 1)->daysInMonth; // ← ထည့်
             $prevMonth       = \Carbon\Carbon::create($year, $month, 1)->subMonth();
             $lastPRevRecord  = \App\Models\PayrollPeriod::where('country_id', $countryId)
                 ->where('period_number', $totalPeriods)->first();
@@ -632,7 +672,7 @@ class PayrollRecordController extends Controller
                 ->where('period_number', $totalPeriods)->first();
             $lastPEndDay = $lastPRecord ? min((int)$lastPRecord->day, $lastDay) : min($cutoff, $lastDay);
             $fullEnd     = \Carbon\Carbon::create($year, $month, $lastPEndDay)->endOfDay();
-        } else {
+        }  else {
             // Monthly: full month = periodStart → periodEnd (same as this period)
             $fullStart = $periodStart->copy()->startOfDay();
             $fullEnd   = $periodEnd->copy()->endOfDay();
@@ -798,6 +838,25 @@ class PayrollRecordController extends Controller
             }
         }
 
+        // ── Expense details for popup ─────────────────────────────
+        $expenseDetails = \App\Models\ExpenseRequest::where('user_id', $r->user_id)
+            ->where('status', 'approved')
+            ->whereNull('reimbursed_at')
+            ->whereBetween('expense_date', [
+                $periodStart->toDateString(),
+                $periodEnd->toDateString(),
+            ])
+            ->get()
+            ->map(fn($e) => [
+                'id'           => $e->id,
+                'title'        => $e->title,
+                'category'     => $e->category,
+                'amount'       => (float) $e->amount,
+                'currency'     => $e->currency,
+                'expense_date' => \Carbon\Carbon::parse($e->expense_date)->format('d M Y'),
+                'description'  => $e->description,
+            ])->values()->toArray();
+
         return [
             'id'                     => $r->id,
             'user_id'                => $r->user_id,
@@ -816,6 +875,7 @@ class PayrollRecordController extends Controller
             'total_deductions'       => (float) $r->total_deductions,
             'overtime_amount'        => (float) $r->overtime_amount,
             'bonus_amount'           => (float) $r->bonus_amount,
+            'expense_reimbursement'  => (float) ($r->expense_reimbursement ?? 0),
             'tax_amount'             => (float) $r->tax_amount,
             'social_security_amount' => (float) $r->social_security_amount,
             'net_salary'             => (float) $r->net_salary,
@@ -841,6 +901,7 @@ class PayrollRecordController extends Controller
             'allowance_details'  => $allowanceDetails,
             'attendance_details' => $attendanceDetails,
             'bonuses' => $bonusDetails,
+            'expense_details' => $expenseDetails,
         ];
     }
 }
