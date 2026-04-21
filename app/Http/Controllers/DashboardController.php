@@ -158,6 +158,7 @@ class DashboardController extends Controller
         $leaveUsageChart  = [];
         $otByProjectChart = [];
         $chronicallyLate  = [];
+        $payrollTrend     = collect();
 
         if ($isHrAdmin || $isManagement) {
 
@@ -316,11 +317,12 @@ class DashboardController extends Controller
                 })->filter(fn($r) => $r['name'])->values()->toArray();
 
             // ── Payroll trend (last 6 months) ─────────────────────────────
+            // payroll_records.year + month columns track which period the record belongs to
             $payrollTrend = collect();
             for ($i = 5; $i >= 0; $i--) {
                 $m = Carbon::now($tz)->subMonths($i);
-                $q = PayrollRecord::whereYear('created_at', $m->year)
-                    ->whereMonth('created_at', $m->month)
+                $q = PayrollRecord::where('year', $m->year)
+                    ->where('month', $m->month)
                     ->whereIn('user_id', $scopeUserIds);
                 $payrollTrend->push([
                     'month' => $m->format('M'),
@@ -343,7 +345,7 @@ class DashboardController extends Controller
                     'leave_type' => $l->leave_type,
                     'start_date' => $l->start_date ? $l->start_date->toDateString() : null,
                     'end_date'   => $l->end_date   ? $l->end_date->toDateString()   : null,
-                    'total_days' => $l->total_days,
+                    'total_days' => (float)$l->total_days == (int)$l->total_days ? (int)$l->total_days : (float)$l->total_days,
                     'note'          => $l->note,
                     'status'        => $l->status,
                     'document_path' => $l->document_path,
@@ -495,13 +497,27 @@ class DashboardController extends Controller
         $leaveBalances = \App\Models\LeaveBalance::where('user_id', $user->id)->where('year', Carbon::now($tz)->year)->get()
             ->map(fn($lb) => ['type' => ucfirst($lb->leave_type), 'remaining' => (float) $lb->remaining_days, 'entitled' => (float) $lb->entitled_days, 'used' => (float) $lb->used_days])->values()->toArray();
 
+        // Personal late stats (this month)
+        $lateRow = AttendanceRecord::selectRaw('COUNT(*) as late_count, AVG(late_minutes) as avg_late_minutes')
+            ->where('user_id', $user->id)->where('status', 'late')
+            ->whereYear('date', Carbon::now($tz)->year)->whereMonth('date', Carbon::now($tz)->month)
+            ->first();
+
         // My pending requests (employee view)
         $myPendingList = [];
         $myPendingLeave = LeaveRequest::where('user_id', $user->id)->where('status', 'pending')->latest()->limit(5)->get()
             ->map(fn($l) => ['id' => $l->id, 'type' => 'leave', 'detail' => ucfirst($l->leave_type) . ' · ' . $l->start_date . ' – ' . $l->end_date . ' · ' . $l->total_days . 'd', 'submitted_at' => $l->created_at?->format('d M Y')])->toArray();
         $myPendingOt = OvertimeRequest::where('user_id', $user->id)->where('status', 'pending')->latest()->limit(5)->get()
             ->map(fn($ot) => ['id' => $ot->id, 'type' => 'ot', 'detail' => 'OT request · ' . $ot->start_date . ' · ' . $ot->hours_requested . 'h', 'submitted_at' => $ot->created_at?->format('d M Y')])->toArray();
-        $myPendingList = array_merge($myPendingLeave, $myPendingOt);
+        $myPendingAttendance = class_exists(\App\Models\AttendanceRequest::class)
+            ? \App\Models\AttendanceRequest::where('user_id', $user->id)->where('status', 'pending')->latest()->limit(5)->get()
+                ->map(fn($ar) => ['id' => $ar->id, 'type' => 'attendance', 'detail' => 'Attendance correction · ' . ($ar->date ? (is_string($ar->date) ? $ar->date : $ar->date->toDateString()) : '—'), 'submitted_at' => $ar->created_at?->format('d M Y')])->toArray()
+            : [];
+        $myPendingExpense = class_exists(\App\Models\ExpenseRequest::class)
+            ? \App\Models\ExpenseRequest::where('user_id', $user->id)->where('status', 'pending')->latest()->limit(5)->get()
+                ->map(fn($ex) => ['id' => $ex->id, 'type' => 'expense', 'detail' => $ex->title . ' · ' . $ex->currency . ' ' . number_format($ex->amount, 2) . ' · ' . ($ex->expense_date ? (is_string($ex->expense_date) ? $ex->expense_date : $ex->expense_date->toDateString()) : '—'), 'submitted_at' => $ex->created_at?->format('d M Y')])->toArray()
+            : [];
+        $myPendingList = array_merge($myPendingLeave, $myPendingOt, $myPendingAttendance, $myPendingExpense);
 
         $myStats = [
             'present_days'      => $presentDays,
@@ -516,6 +532,8 @@ class DashboardController extends Controller
             'payslip_status'    => $latestPayroll?->status,
             'payslip_period'    => $latestPayroll ? Carbon::parse($latestPayroll->created_at)->format('M Y') : null,
             'leave_balances'    => $leaveBalances,
+            'late_count'        => $lateRow?->late_count ?? 0,
+            'avg_late_minutes'  => (int) round($lateRow?->avg_late_minutes ?? 0),
         ];
 
         // Add my pending list to approvalQueue for employee view

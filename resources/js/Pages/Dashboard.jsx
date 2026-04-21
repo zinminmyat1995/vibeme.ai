@@ -61,6 +61,9 @@ const OT_COLORS = {
 const OT_FALLBACK = { color:'#6b7280', bg:'#f9fafb', bgDark:'rgba(107,114,128,0.14)', border:'#e5e7eb', grad:'linear-gradient(135deg,#6b7280,#9ca3af)' };
 const getOTColor = title => OT_COLORS[title] || OT_FALLBACK;
 
+// Format day count: 8.0 → "8", 1.5 → "1.5" (strip unnecessary .0)
+const fmtDays = v => { const n = parseFloat(v); if (isNaN(n)) return String(v || ''); return n % 1 === 0 ? String(Math.round(n)) : String(n); };
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme
 // ─────────────────────────────────────────────────────────────────────────────
@@ -400,7 +403,7 @@ function ApprovalItemRow({ item, t, onApprove, onReject }) {
                 <>
                     <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', marginBottom:2 }}>
                         {leaveType && <span style={{ fontSize:11, fontWeight:700, color:clr }}>{leaveType}</span>}
-                        {days      && <span style={{ fontSize:11, fontWeight:700, color:t.text, background:t.amberSoft, borderRadius:99, padding:'1px 7px' }}>{days}d</span>}
+                        {days      && <span style={{ fontSize:11, fontWeight:700, color:t.text, background:t.amberSoft, borderRadius:99, padding:'1px 7px' }}>{fmtDays(days)}d</span>}
                     </div>
                     <div style={{ fontSize:11, color:t.textMute }}>{start} → {end}</div>
                 </>
@@ -531,7 +534,7 @@ function ApprovalConfirmModal({ item, action, onConfirm, onCancel, t, externalBu
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                         <Cell label="Leave type" value={leaveType} t={t} />
-                        <Cell label="Total days" value={days ? `${days} day(s)` : '—'} t={t} highlight color={accentColor} />
+                        <Cell label="Total days" value={days ? `${fmtDays(days)} day(s)` : '—'} t={t} highlight color={accentColor} />
                         <Cell label="Start date" value={start} t={t} />
                         <Cell label="End date"   value={end}   t={t} />
                     </div>
@@ -934,7 +937,7 @@ function LeaveUsageChart({ data = [], t }) {
                     const firstName = (d.name || '').split(' ')[0];
                     return (
                         <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2, width:barW, flexShrink:0 }}>
-                            <div style={{ fontSize:8, fontWeight:700, color:clr, lineHeight:1 }}>{d.total_days}d</div>
+                            <div style={{ fontSize:8, fontWeight:700, color:clr, lineHeight:1 }}>{fmtDays(d.total_days)}d</div>
                             <div title={`${d.name}: ${d.total_days} days`}
                                 style={{ width:'100%', height:barH, borderRadius:'4px 4px 0 0', background:clr, transition:'height 0.3s ease', cursor:'default' }} />
                             <div style={{ fontSize:8, color:t.textMute, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:barW+4, textAlign:'center' }}
@@ -1173,7 +1176,7 @@ function SharedApproverSections({ props, t, onReload, isHrOnly }) {
             {/* Employment + Department */}
             <div style={col2}>
                 <Panel title="Employment mix" subtitle="By type — active employees" t={t}>
-                    <div style={{ display:'flex', justifyContent:'center' }}>
+                    <div style={{ display:'flex', justifyContent:'center', alignItems:'center' }}>
                         <DonutChart size={140} t={t} data={employmentChart.length ? employmentChart : [
                             { label: 'Permanent', value: orgSummary.permanent || teamSummary.permanent || 0, color: t.blue },
                             { label: 'Probation', value: orgSummary.probation || teamSummary.probation || 0, color: t.red },
@@ -1187,22 +1190,34 @@ function SharedApproverSections({ props, t, onReload, isHrOnly }) {
                 </Panel>
             </div>
 
-            {/* ⑦ Late arrivals — HR only, full width */}
-            {isHrOnly && (
-                <Panel title="Late check-in frequency" subtitle="This month · sorted by late count desc · top 20" t={t}>
-                    <LateArrivalsList data={chronicallyLate} t={t} />
-                </Panel>
+            {/* ⑦ Late arrivals (left) + Probation/Contract alerts (right, stacked) */}
+            {isHrOnly ? (
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+                    {/* Late check-in — left */}
+                    <Panel title="Late check-in frequency" subtitle="This month · sorted by count desc · top 20" t={t}>
+                        <LateArrivalsList data={chronicallyLate} t={t} />
+                    </Panel>
+                    {/* Probation + Contract — right, stacked vertically */}
+                    <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                        <Panel title="Probation ending soon" subtitle="Within 10 days" t={t}>
+                            {probationAlerts.length ? probationAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.amber} soft={t.amberSoft} urgent={a.days_left<=3} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
+                        </Panel>
+                        <Panel title="Contract expiring" subtitle="Within 30 days" t={t}>
+                            {contractAlerts.length ? contractAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.red} soft={t.redSoft} urgent={a.days_left<=7} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
+                        </Panel>
+                    </div>
+                </div>
+            ) : (
+                /* Non-HR: Probation + Contract side by side (no late check-in) */
+                <div style={col2}>
+                    <Panel title="Probation ending soon" subtitle="Within 10 days" t={t}>
+                        {probationAlerts.length ? probationAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.amber} soft={t.amberSoft} urgent={a.days_left<=3} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
+                    </Panel>
+                    <Panel title="Contract expiring" subtitle="Within 30 days" t={t}>
+                        {contractAlerts.length ? contractAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.red} soft={t.redSoft} urgent={a.days_left<=7} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
+                    </Panel>
+                </div>
             )}
-
-            {/* Probation + Contract alerts */}
-            <div style={col2}>
-                <Panel title="Probation ending soon" subtitle="Within 10 days" t={t}>
-                    {probationAlerts.length ? probationAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.amber} soft={t.amberSoft} urgent={a.days_left<=3} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
-                </Panel>
-                <Panel title="Contract expiring" subtitle="Within 30 days" t={t}>
-                    {contractAlerts.length ? contractAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.red} soft={t.redSoft} urgent={a.days_left<=7} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
-                </Panel>
-            </div>
 
             {/* ⑧ On leave today (date-filtered on backend) + Birthdays + Holidays */}
             <div style={col3}>
@@ -1238,8 +1253,7 @@ function AdminView({ props, t, onReload }) {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             <QuickActions t={t} items={[
-                { icon: '↑', label: 'Import attendance', soft: t.blueSoft,   onClick: () => router.visit('/payroll/records') },
-                { icon: '$', label: 'Payroll records',   soft: t.amberSoft,  onClick: () => router.visit('/payroll/records') },
+                { icon: '↑', label: 'Import attendance', soft: t.blueSoft,   onClick: () => router.visit('/payroll/attendance') },
                 { icon: '+', label: 'Announcement',      soft: t.violetSoft, onClick: () => setShowAnn(true) },
             ]} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 16 }}>
@@ -1258,8 +1272,7 @@ function HrView({ props, t, onReload }) {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             <QuickActions t={t} items={[
-                { icon: '↑', label: 'Import attendance', soft: t.blueSoft,   onClick: () => router.visit('/payroll/records') },
-                { icon: '$', label: 'Payroll records',   soft: t.amberSoft,  onClick: () => router.visit('/payroll/records') },
+                { icon: '↑', label: 'Import attendance', soft: t.blueSoft,   onClick: () => router.visit('/payroll/attendance') },
                 { icon: '+', label: 'Announcement',      soft: t.violetSoft, onClick: () => setShowAnn(true) },
             ]} />
             <SharedApproverSections props={props} t={t} onReload={onReload} isHrOnly={true} />
@@ -1277,97 +1290,129 @@ function ManagementView({ props, t, onReload }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function EmployeeView({ props, t }) {
     const { myStats = {}, todayStatus = {}, weeklyAttendance = [], upcomingHolidays = [], birthdaysThisWeek = [], approvalQueue = {} } = props;
+    const [showSalary, setShowSalary] = useState(false);
+
+    // ── helpers ──
+    const typeColors = { leave: t.amber, ot: t.violet, attendance: t.blue, expense: t.green };
+    const typeIcons  = { leave: '🌴', ot: '⏱', attendance: '🕐', expense: '💳' };
+    const typeLabels = { leave: 'Leave', ot: 'Overtime', attendance: 'Attendance', expense: 'Expense' };
+
+    // clean detail string — strip raw timestamps like 2026-06-05 00:00:00
+    const cleanDetail = (str) => String(str || '').replace(/\s00:00:00/g, '').replace(/T00:00:00\.000000Z/g, '').replace(/(\d+)\.0\s*d/g, '$1d');
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Today check-in status */}
-            <div style={{ ...card(t, { padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }) }}>
-                <div style={{ width: 42, height: 42, borderRadius: 14, background: todayStatus.checked_in ? t.greenSoft : t.surface3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>{todayStatus.checked_in ? '✅' : '🕐'}</div>
-                <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{todayStatus.checked_in ? `Checked in at ${todayStatus.check_in || '—'}` : 'Not checked in yet'}</div>
-                    <div style={{ fontSize: 11, color: t.textMute, marginTop: 2 }}>{todayStatus.check_out ? `Checked out at ${todayStatus.check_out}` : todayStatus.checked_in ? 'Still at work' : 'Today is a working day'}</div>
-                </div>
-                {todayStatus.work_hours > 0 && <div style={{ background: t.greenSoft, color: t.green, padding: '6px 14px', borderRadius: 99, fontSize: 12, fontWeight: 700 }}>{todayStatus.work_hours}h worked</div>}
+
+            {/* ② 5-card KPI row: Present · OT · Pending Leave · Absent · Late */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+                {[
+                    { label: 'Present days',   value: myStats.present_days || 0,           sub: 'This month',      color: t.green,  icon: '📅' },
+                    { label: 'OT this month',  value: `${myStats.ot_hours_month || 0}h`,   sub: 'Approved',        color: t.violet, icon: '⏱' },
+                    { label: 'Pending leave',  value: myStats.pending_leaves || 0,         sub: 'Awaiting approval', color: t.amber, icon: '🌴' },
+                    { label: 'Absent days',    value: myStats.absent_days || 0,            sub: 'This month',      color: t.red,    icon: '❌' },
+                    { label: 'Late arrivals',  value: myStats.late_count || 0,             sub: `avg +${myStats.avg_late_minutes || 0}m`, color: t.pink, icon: '⏰' },
+                ].map(({ label, value, sub, color, icon }) => (
+                    <div key={label} style={{ ...card(t, { padding: '14px 14px', position: 'relative', overflow: 'hidden' }) }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: color, borderRadius: '20px 20px 0 0' }} />
+                        <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: t.textMute, marginBottom: 5 }}>{label}</div>
+                        <div style={{ fontSize: 24, fontWeight: 800, color, lineHeight: 1, letterSpacing: '-0.5px' }}>{value}</div>
+                        <div style={{ fontSize: 10, color: t.textSoft, marginTop: 3 }}>{sub}</div>
+                    </div>
+                ))}
             </div>
 
-            <div style={col2}>
-                <KpiCard label="Present days"  value={myStats.present_days||0}       sub="This month"        color={t.green}  soft={t.greenSoft}  t={t} />
-                <KpiCard label="OT this month" value={`${myStats.ot_hours_month||0}h`} sub="Approved"       color={t.violet} soft={t.violetSoft} t={t} />
-                <KpiCard label="Pending leave" value={myStats.pending_leaves||0}     sub="Awaiting approval" color={t.amber}  soft={t.amberSoft}  t={t} />
-                <KpiCard label="Absent days"   value={myStats.absent_days||0}        sub="This month"        color={t.red}    soft={t.redSoft}    t={t} />
-            </div>
-
-            {/* My pending requests */}
+            {/* ③ My pending requests — show all 4 types, clean timestamps, type badge */}
             {(approvalQueue.my_pending_list || []).length > 0 && (
                 <Panel title="My pending requests" subtitle="Waiting for approval" t={t}>
                     {(approvalQueue.my_pending_list || []).map((item, i) => {
-                        const typeColors = { leave: t.amber, ot: t.violet, attendance: t.blue, expense: t.green };
-                        const typeIcons  = { leave: '🌴', ot: '⏱', attendance: '🕐', expense: '💳' };
                         const clr = typeColors[item.type] || t.blue;
+                        const lbl = typeLabels[item.type] || item.type;
                         return (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: t.surface2, marginBottom: 8 }}>
-                                <span style={{ fontSize: 16, flexShrink: 0 }}>{typeIcons[item.type]}</span>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: 12, fontWeight: 600, color: t.text }}>{item.detail}</div>
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: t.surface2, marginBottom: 8, border: `1px solid ${t.border}` }}>
+                                <span style={{ fontSize: 16, flexShrink: 0 }}>{typeIcons[item.type] || '📋'}</span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                        <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 8px', borderRadius: 99, background: clr + '22', color: clr, letterSpacing: '0.04em' }}>{lbl}</span>
+                                    </div>
+                                    <div style={{ fontSize: 12, fontWeight: 600, color: t.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cleanDetail(item.detail)}</div>
                                     <div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>Submitted {item.submitted_at}</div>
                                 </div>
-                                <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 99, background: clr + '22', color: clr }}>Pending</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 99, background: t.amberSoft, color: t.amber, flexShrink: 0 }}>Pending</span>
                             </div>
                         );
                     })}
                 </Panel>
             )}
 
+            {/* Latest payslip + Leave balances */}
             <div style={col2}>
-                <Panel title="Latest payslip" subtitle={`${myStats.payslip_period||'This month'} · ${ucfirst(myStats.payslip_status||'pending')}`} t={t}>
-                    <div style={{ background: t.blueSoft, borderRadius: 14, padding: '16px 18px', marginBottom: 12 }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: t.blue, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Net salary</div>
-                        <div style={{ fontSize: 30, fontWeight: 800, color: t.blue, letterSpacing: '-1px', lineHeight: 1 }}>{myStats.net_salary ? `$${fmtMoney(myStats.net_salary)}` : '—'}</div>
+                {/* ④ Latest payslip with eye icon toggle */}
+                <Panel title="Latest payslip" subtitle={`${myStats.payslip_period || 'This month'} · ${ucfirst(myStats.payslip_status || 'pending')}`} t={t}
+                    action={
+                        <button onClick={() => setShowSalary(v => !v)}
+                            style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${t.border}`, background: t.surface2, color: t.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                            title={showSalary ? 'Hide amounts' : 'Show amounts'}>
+                            {showSalary
+                                ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            }
+                        </button>
+                    }>
+                    <div style={{ marginBottom: 12 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: t.textMute, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Net salary</div>
+                        <div style={{ fontSize: 32, fontWeight: 900, color: t.blue, letterSpacing: '-1px', lineHeight: 1, filter: showSalary ? 'none' : 'blur(7px)', transition: 'filter 0.2s', userSelect: showSalary ? 'auto' : 'none' }}>
+                            {myStats.net_salary ? `$${fmtMoney(myStats.net_salary)}` : '—'}
+                        </div>
                     </div>
                     <div style={col2}>
-                        {[['Base salary',myStats.base_salary,t.text,'$'],['OT pay',myStats.overtime_amount,t.green,'+$'],['Allowances',myStats.total_allowances,t.teal,'+$'],['Deductions',myStats.total_deductions,t.red,'-$']].map(([lbl,val,clr,pref]) => (
+                        {[['Base salary', myStats.base_salary, t.text, '$'], ['OT pay', myStats.overtime_amount, t.green, '+$'], ['Allowances', myStats.total_allowances, t.teal, '+$'], ['Deductions', myStats.total_deductions, t.red, '-$']].map(([lbl, val, clr, pref]) => (
                             <div key={lbl} style={{ background: t.surface2, borderRadius: 10, padding: '10px 12px' }}>
                                 <div style={{ fontSize: 10, color: t.textMute }}>{lbl}</div>
-                                <div style={{ fontSize: 14, fontWeight: 700, color: clr, marginTop: 2 }}>{val ? `${pref}${fmtMoney(val)}` : '—'}</div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: clr, marginTop: 2, filter: showSalary ? 'none' : 'blur(5px)', transition: 'filter 0.2s' }}>
+                                    {val ? `${pref}${fmtMoney(val)}` : '—'}
+                                </div>
                             </div>
                         ))}
                     </div>
                 </Panel>
+
                 <Panel title="Leave balances" subtitle="Remaining days" t={t}>
                     {(myStats.leave_balances || []).map((lb, i) => (
                         <div key={i} style={{ marginBottom: 12 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                                 <div style={{ fontSize: 12, color: t.textSoft }}>{lb.type}</div>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: [t.blue,t.green,t.amber,t.violet,t.pink][i%5] }}>{lb.remaining}d / {lb.entitled}d</div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: [t.blue, t.green, t.amber, t.violet, t.pink][i % 5] }}>{lb.remaining}d / {lb.entitled}d</div>
                             </div>
                             <div style={{ height: 6, background: t.surface3, borderRadius: 99, overflow: 'hidden' }}>
-                                <div style={{ height: '100%', width: `${Math.min((lb.remaining/Math.max(lb.entitled,1))*100,100)}%`, background: [t.blue,t.green,t.amber,t.violet,t.pink][i%5], borderRadius: 99 }} />
+                                <div style={{ height: '100%', width: `${Math.min((lb.remaining / Math.max(lb.entitled, 1)) * 100, 100)}%`, background: [t.blue, t.green, t.amber, t.violet, t.pink][i % 5], borderRadius: 99 }} />
                             </div>
                         </div>
                     ))}
-                    {!(myStats.leave_balances||[]).length && <div style={{fontSize:12,color:t.textMute}}>No data</div>}
+                    {!(myStats.leave_balances || []).length && <div style={{ fontSize: 12, color: t.textMute }}>No data</div>}
                 </Panel>
             </div>
 
             <div style={col2}>
                 <Panel title="My weekly attendance" subtitle="Work hours per day" t={t}>
-                    <Sparkline color={t.green} height={56} data={weeklyAttendance.map(d => d.value||0)} />
+                    <Sparkline color={t.green} height={56} data={weeklyAttendance.map(d => d.value || 0)} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
                         {weeklyAttendance.map(d => <div key={d.label} style={{ fontSize: 9, color: t.textMute }}>{d.label}</div>)}
                     </div>
                 </Panel>
                 <Panel title="📅 Upcoming holidays" t={t}>
-                    <HolidayList items={upcomingHolidays.slice(0,4)} t={t} />
+                    <HolidayList items={upcomingHolidays.slice(0, 4)} t={t} />
                 </Panel>
             </div>
 
             {birthdaysThisWeek.length > 0 && (
                 <Panel title="🎂 Birthdays this week" t={t}>
-                    {birthdaysThisWeek.slice(0,4).map((b,i) => <PersonRow key={i} name={b.name} meta={`${b.department} · ${b.date}`} avatarBg={t.pinkSoft} avatarColor={t.pink} last={i===birthdaysThisWeek.length-1} t={t} />)}
+                    {birthdaysThisWeek.slice(0, 4).map((b, i) => <PersonRow key={i} name={b.name} meta={`${b.department} · ${b.date}`} avatarBg={t.pinkSoft} avatarColor={t.pink} last={i === birthdaysThisWeek.length - 1} t={t} />)}
                 </Panel>
             )}
         </div>
     );
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ── MAIN EXPORT
@@ -1378,6 +1423,7 @@ export default function Dashboard(props) {
         approvalQueue = {}, employmentChart = [], departmentChart = [],
         monthlyAttendance = [], probationAlerts = [], contractAlerts = [],
         leaveUsageChart = [], otByProjectChart = [], chronicallyLate = [],
+        payrollTrend = [],
         myStats = {}, todayStatus = {}, upcomingHolidays = [],
         weeklyAttendance = [], birthdaysThisWeek = [], onLeaveToday = [],
     } = props;
@@ -1396,11 +1442,11 @@ export default function Dashboard(props) {
 
     const [, forceReload] = useState(0);
     const onReload = useCallback(() => {
-        router.reload({ only: ['announcements','approvalQueue','orgSummary','teamSummary','onLeaveToday','leaveUsageChart','otByProjectChart','chronicallyLate','monthlyAttendance'] });
+        router.reload({ only: ['announcements','approvalQueue','orgSummary','teamSummary','onLeaveToday','leaveUsageChart','otByProjectChart','chronicallyLate','monthlyAttendance','payrollTrend'] });
         forceReload(n => n + 1);
     }, []);
 
-    const allProps = { roleName, dashboardMode, announcements, orgSummary, teamSummary, approvalQueue, employmentChart, departmentChart, monthlyAttendance, probationAlerts, contractAlerts, leaveUsageChart, otByProjectChart, chronicallyLate, myStats, todayStatus, upcomingHolidays, weeklyAttendance, birthdaysThisWeek, onLeaveToday };
+    const allProps = { roleName, dashboardMode, announcements, orgSummary, teamSummary, approvalQueue, employmentChart, departmentChart, monthlyAttendance, probationAlerts, contractAlerts, leaveUsageChart, otByProjectChart, chronicallyLate, payrollTrend, myStats, todayStatus, upcomingHolidays, weeklyAttendance, birthdaysThisWeek, onLeaveToday };
 
     const totalPending = (approvalQueue.pending_leave_requests||0) + (approvalQueue.pending_ot_requests||0) + (approvalQueue.pending_attendance_requests||0) + (approvalQueue.pending_expense_requests||0);
 
@@ -1435,10 +1481,19 @@ export default function Dashboard(props) {
                                     </div>
                                 </>
                             )}
-                            {isEmployee && todayStatus.checked_in && (
-                                <div style={{ background: t.greenSoft, borderRadius: 12, padding: '10px 16px', textAlign: 'center', minWidth: 72 }}>
-                                    <div style={{ fontSize: 14, fontWeight: 800, color: t.green }}>{todayStatus.check_in}</div>
-                                    <div style={{ fontSize: 10, color: t.green, fontWeight: 600, marginTop: 2 }}>Checked in</div>
+                            {isEmployee && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderRadius: 14, background: todayStatus.checked_in ? t.greenSoft : t.surface2, border: `1px solid ${todayStatus.checked_in ? t.green + '44' : t.border}`, minWidth: 160 }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: 10, background: todayStatus.checked_in ? t.green + '22' : t.surface3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+                                        {todayStatus.checked_in ? '✅' : '🕐'}
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 12, fontWeight: 700, color: todayStatus.checked_in ? t.green : t.text }}>
+                                            {todayStatus.checked_in ? `Checked in · ${todayStatus.check_in || '—'}` : 'Not checked in yet'}
+                                        </div>
+                                        <div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>
+                                            {todayStatus.check_out ? `Out · ${todayStatus.check_out}` : todayStatus.checked_in ? 'Currently at work' : 'Today is a working day'}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
