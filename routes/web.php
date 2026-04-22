@@ -27,6 +27,7 @@ use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Payroll\AttendanceRequestController;
 use App\Http\Controllers\Payroll\ExpenseRequestController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 // Home page (existing route ကို replace)
 Route::get('/', [RecruitmentController::class, 'home']);
@@ -88,6 +89,25 @@ Route::middleware(['auth', 'role:hr,admin'])->group(function () {
 
 });
 
+
+// Forgot Password
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])
+    ->name('password.request')
+    ->middleware('guest');
+ 
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])
+    ->name('password.email')
+    ->middleware('guest');
+ 
+// Reset Password
+Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])
+    ->name('password.reset')
+    ->middleware('guest');
+ 
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])
+    ->name('password.update')
+    ->middleware('guest');
+    
 
 // Auth Routes
 Route::get('/login', [LoginController::class, 'index'])->name('login');
