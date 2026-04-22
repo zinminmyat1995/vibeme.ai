@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { useForm, usePage, router } from '@inertiajs/react';
+import { createPortal } from 'react-dom';
 
 // ── Complexity config ──────────────────────────────
 const COMPLEXITY = {
@@ -25,6 +26,8 @@ const COMMON_FEATURES = [
     'API Integration', 'Reporting & Export', 'Multi-language',
     'Mobile Responsive', 'Real-time Updates', 'Search & Filter',
 ];
+const fireToast = (message, type = 'success') =>
+    window.dispatchEvent(new CustomEvent('global-toast', { detail: { message, type } }));
 
 function useReactiveTheme() {
     const getDark = () => {
@@ -267,33 +270,79 @@ function UIButton({ children, onClick, type = 'button', variant = 'primary', dis
 }
 
 function PremiumSelect({
-    options = [],
-    value = '',
-    onChange,
+    options = [], value = '', onChange,
     placeholder = 'Select option...',
-    theme,
-    darkMode = false,
-    minWidth = 170,
-    width = 'auto',
-    renderOption,
-    zIndex = 300,
+    theme, darkMode = false, minWidth = 170, width = 'auto',
+    renderOption, zIndex = 300,
 }) {
     const [open, setOpen] = useState(false);
+    const [menuStyle, setMenuStyle] = useState({});
     const wrapRef = useRef(null);
+    const btnRef = useRef(null);
+    const menuRef = useRef(null);
 
-    const selected = options.find(
-        opt => String(opt.value) === String(value) && !opt.disabled
-    );
+    const selected = options.find(opt => String(opt.value) === String(value) && !opt.disabled);
+
+    // Dropdown position ကို button rect ကနေ calculate
+    const calcMenuStyle = () => {
+        if (!btnRef.current) return;
+        const rect = btnRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const estimatedMenuHeight = Math.min(options.length * 54, 280);
+
+        if (spaceBelow >= estimatedMenuHeight || spaceBelow >= spaceAbove) {
+            // အောက်မှာ နေရာလုံတယ် → အောက်ကိုပြ
+            setMenuStyle({
+                position: 'fixed',
+                top: rect.bottom + 8,
+                left: rect.left,
+                width: rect.width,
+                zIndex: 99999,
+            });
+        } else {
+            // အောက်မှာ နေရာမလုံဘူး → အပေါ်ကိုပြ
+            setMenuStyle({
+                position: 'fixed',
+                bottom: viewportHeight - rect.top + 8,
+                left: rect.left,
+                width: rect.width,
+                zIndex: 99999,
+            });
+        }
+    };
 
     useEffect(() => {
         const handler = (e) => {
-            if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+            // wrapRef (trigger button) နဲ့ menu ၂ ခုလုံး မထိမှပဲ close
+            if (
+                wrapRef.current && !wrapRef.current.contains(e.target) &&
+                menuRef.current && !menuRef.current.contains(e.target)
+            ) {
                 setOpen(false);
             }
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
+
+    // Scroll/resize မှာ menu position update
+    useEffect(() => {
+        if (!open) return;
+        const update = () => calcMenuStyle();
+        window.addEventListener('scroll', update, true);
+        window.addEventListener('resize', update);
+        return () => {
+            window.removeEventListener('scroll', update, true);
+            window.removeEventListener('resize', update);
+        };
+    }, [open]);
+
+    const handleOpen = () => {
+        calcMenuStyle();
+        setOpen(v => !v);
+    };
 
     const triggerBg = darkMode
         ? 'linear-gradient(180deg, rgba(12,22,44,0.96) 0%, rgba(8,17,36,0.96) 100%)'
@@ -304,13 +353,74 @@ function PremiumSelect({
         : '#ffffff';
 
     const selectedBg = darkMode ? 'rgba(37,99,235,0.22)' : '#2563eb';
-    const selectedText = '#ffffff';
+
+    const menu = open && createPortal(
+        <div
+            ref={menuRef}
+            style={{
+                ...menuStyle,
+                background: menuBg,
+                border: `1px solid ${theme.borderStrong}`,
+                borderRadius: 20,
+                overflow: 'hidden',
+                boxShadow: theme.shadow,
+                backdropFilter: 'blur(16px)',
+            }}
+        >
+            {options.map((opt, index) => {
+                const isSelected = String(opt.value) === String(value);
+                const isDisabled = !!opt.disabled;
+                return (
+                    <button
+                        key={String(opt.value) || `opt-${index}`}
+                        type="button"
+                        onClick={() => {
+                            if (isDisabled) return;
+                            onChange(opt.value);
+                            setOpen(false);
+                        }}
+                        style={{
+                            width: '100%',
+                            minHeight: 50,
+                            padding: '0 16px',
+                            border: 'none',
+                            borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none',
+                            background: isSelected ? selectedBg : 'transparent',
+                            color: isSelected ? '#fff' : theme.textSoft,
+                            opacity: isDisabled ? 0.45 : 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            textAlign: 'left',
+                            cursor: isDisabled ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                            if (!isSelected && !isDisabled)
+                                e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.04)' : '#f8fafc';
+                        }}
+                        onMouseLeave={(e) => {
+                            if (!isSelected && !isDisabled)
+                                e.currentTarget.style.background = 'transparent';
+                        }}
+                    >
+                        {renderOption ? renderOption(opt, false, isSelected) : (
+                            <span style={{ fontSize: 13, fontWeight: isSelected ? 800 : 600 }}>
+                                {opt.label}
+                            </span>
+                        )}
+                    </button>
+                );
+            })}
+        </div>,
+        window.document.body
+    );
 
     return (
         <div ref={wrapRef} style={{ position: 'relative', minWidth, width, zIndex }}>
             <button
+                ref={btnRef}
                 type="button"
-                onClick={() => setOpen(v => !v)}
+                onClick={handleOpen}
                 style={{
                     width: '100%',
                     height: 52,
@@ -340,89 +450,12 @@ function PremiumSelect({
                         <span style={{ fontSize: 13, color: theme.textMute }}>{placeholder}</span>
                     )}
                 </div>
-
-                <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease', flexShrink: 0 }}
-                >
-                    <path
-                        d="M4 6L8 10L12 6"
-                        stroke={theme.textMute}
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                    style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease', flexShrink: 0 }}>
+                    <path d="M4 6L8 10L12 6" stroke={theme.textMute} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             </button>
-
-            {open && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 10px)',
-                        left: 0,
-                        right: 0,
-                        zIndex: zIndex + 50,
-                        background: menuBg,
-                        border: `1px solid ${theme.borderStrong}`,
-                        borderRadius: 20,
-                        overflow: 'hidden',
-                        boxShadow: theme.shadow,
-                        backdropFilter: 'blur(16px)',
-                    }}
-                >
-                    {options.map((opt, index) => {
-                        const isSelected = String(opt.value) === String(value);
-                        const isDisabled = !!opt.disabled;
-
-                        return (
-                            <button
-                                key={String(opt.value) || `opt-${index}`}
-                                type="button"
-                                onClick={() => {
-                                    if (isDisabled) return;
-                                    onChange(opt.value);
-                                    setOpen(false);
-                                }}
-                                style={{
-                                    width: '100%',
-                                    minHeight: 54,
-                                    padding: '0 16px',
-                                    border: 'none',
-                                    borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none',
-                                    background: isSelected ? selectedBg : 'transparent',
-                                    color: isSelected ? selectedText : theme.textSoft,
-                                    opacity: isDisabled ? 0.45 : 1,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    textAlign: 'left',
-                                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                    transition: 'all 0.15s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!isSelected && !isDisabled) {
-                                        e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.03)' : '#f8fafc';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!isSelected && !isDisabled) {
-                                        e.currentTarget.style.background = 'transparent';
-                                    }
-                                }}
-                            >
-                                {renderOption ? renderOption(opt, false, isSelected) : (
-                                    <span style={{ fontSize: 13, fontWeight: isSelected ? 800 : 600 }}>
-                                        {opt.label}
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
+            {menu}
         </div>
     );
 }
@@ -632,7 +665,7 @@ function StepPill({ index, active, completed }) {
     );
 }
 
-function NewRequirementModal({ onClose, onSuccess, darkMode = false }) {
+function NewRequirementModal({ onClose, darkMode = false }) {
     const theme = getTheme(darkMode);
     const [step, setStep] = useState(1);
     const [stepErrors, setStepErrors] = useState({});
@@ -695,7 +728,7 @@ function NewRequirementModal({ onClose, onSuccess, darkMode = false }) {
         }
         form.post('/requirement-analysis', {
             onSuccess: () => {
-                onSuccess('Requirement submitted and AI analysis started.');
+                fireToast('Requirement submitted and AI analysis started.');
                 onClose();
             },
         });
@@ -1147,7 +1180,6 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
     const [showNew, setShowNew] = useState(false);
-    const [toast, setToast] = useState(flash?.success ? { msg: flash.success, type: 'success' } : null);
     const [search, setSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
     const [deleteId, setDeleteId] = useState(null);
@@ -1162,7 +1194,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
     const handleDelete = (id) => {
         router.delete(`/requirement-analysis/${id}`, {
             onSuccess: () => {
-                setToast({ msg: 'Deleted successfully', type: 'success' });
+                fireToast('Deleted successfully');
                 setDeleteId(null);
             },
         });
@@ -1199,7 +1231,6 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                 }
             `}</style>
 
-            <Toast message={toast?.msg} type={toast?.type} onClose={() => setToast(null)} darkMode={darkMode} />
 
             <div style={{ display: 'grid', gap: 18 }}>
                 <div style={{ ...card(theme), padding: 24, position: 'relative', overflow: 'hidden' }}>
@@ -1516,7 +1547,6 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
             {showNew && (
                 <NewRequirementModal
                     onClose={() => setShowNew(false)}
-                    onSuccess={(msg) => setToast({ msg, type: 'success' })}
                     darkMode={darkMode}
                 />
             )}

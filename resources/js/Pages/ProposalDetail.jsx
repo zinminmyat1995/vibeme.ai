@@ -700,7 +700,10 @@ export default function ProposalDetail({ proposal }) {
             `/proposals/${proposal.id}/regenerate`,
             {},
             {
-                preserveScroll: true,
+                preserveScroll: false,
+                onSuccess: () => {
+                    setIframeKey((k) => k + 1); // ← iframe refresh
+                },
                 onFinish: () => setRegenerating(false),
             },
         );
@@ -715,6 +718,16 @@ export default function ProposalDetail({ proposal }) {
         { value: 'accepted', label: 'Accepted' },
         { value: 'rejected', label: 'Rejected' },
     ];
+
+
+    const handleDownloadPDF = () => {
+        const printWindow = window.open(previewUrl, '_blank');
+        printWindow.onload = () => {
+            setTimeout(() => {
+                printWindow.print();
+            }, 1500);
+        };
+    };
     return (
         <AppLayout title="Proposal Detail">
             <style>{`
@@ -827,28 +840,13 @@ export default function ProposalDetail({ proposal }) {
                                         {regenerating ? 'Regenerating...' : 'Regenerate'}
                                     </UIButton>
 
-                                    <a
-                                        href={pdfUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        style={{
-                                            height: 46,
-                                            padding: '0 18px',
-                                            borderRadius: 16,
-                                            background: theme.accentGradient,
-                                            color: '#fff',
-                                            fontSize: 13,
-                                            fontWeight: 900,
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: 8,
-                                            textDecoration: 'none',
-                                            boxShadow: `0 14px 32px ${theme.primary}30`,
-                                        }}
-                                    >
-                                        📥 Download PDF
-                                    </a>
+                             <UIButton
+                                onClick={handleDownloadPDF}
+                                variant="primary"
+                                theme={theme}
+                            >
+                                📥 Download PDF
+                            </UIButton>
                                 </div>
                             }
                         />

@@ -2,62 +2,144 @@
 
 namespace App\Services;
 
-use App\Models\Proposal;
 use App\Models\RequirementAnalysis;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ProposalGeneratorService
 {
-    // ══════════════════════════════════════════════
-    // TO SWITCH TO REAL API (takes 10 minutes):
-    // 1. Uncomment the useRealAPI() method below
-    // 2. Change generateContent() to call useRealAPI()
-    // 3. Add ANTHROPIC_API_KEY to .env
-    // ══════════════════════════════════════════════
+    private string $model = 'claude-sonnet-4-6';
+    private bool $hasApi;
+
+    public function __construct()
+    {
+        $this->hasApi = !empty(config('services.anthropic.key'));
+    }
 
     public function generate(RequirementAnalysis $req, string $language = 'english'): array
     {
-        // ── Easy API Switch Point ──────────────────
-        // return $this->useRealAPI($req, $language);
-        return $this->generateContent($req, $language);
+        if (!$this->hasApi) {
+            Log::info('⚠️ ProposalGenerator: No API key — using mock data');
+            return $this->generateContent($req, $language);
+        }
+
+        return $this->useRealAPI($req, $language);
     }
 
-    // ── REAL API METHOD (uncomment when ready) ────
-    /*
     private function useRealAPI(RequirementAnalysis $req, string $language): array
     {
-        $prompt = $this->buildPrompt($req, $language);
+        $startTime = microtime(true);
+        $prompt    = $this->buildPrompt($req, $language);
 
-        $response = \Illuminate\Support\Facades\Http::withHeaders([
+        $response = Http::withHeaders([
             'x-api-key'         => config('services.anthropic.key'),
             'anthropic-version' => '2023-06-01',
             'content-type'      => 'application/json',
-        ])->timeout(90)->post('https://api.anthropic.com/v1/messages', [
-            'model'      => 'claude-sonnet-4-6',
-            'max_tokens' => 4000,
+        ])->timeout(180)->post('https://api.anthropic.com/v1/messages', [
+            'model'      => $this->model,
+            'max_tokens' => 6000,
             'messages'   => [['role' => 'user', 'content' => $prompt]],
         ]);
 
-        $text = $response->json('content.0.text', '{}');
-        $text = preg_replace('/```json|```/', '', $text);
-        if (preg_match('/\{.*\}/s', $text, $m)) $text = $m[0];
-        $result = json_decode(trim($text), true);
-        return $result ?? $this->generateContent($req, $language);
+        $elapsed = round((microtime(true) - $startTime) * 1000);
+
+        if (!$response->successful()) {
+            Log::error('❌ ProposalGenerator API failed', ['status' => $response->status()]);
+            return $this->generateContent($req, $language);
+        }
+
+        $json  = $response->json();
+        $text  = $json['content'][0]['text'] ?? '';
+        $usage = $json['usage'] ?? null;
+
+        // ── Usage log ──
+        if ($usage) {
+            $inputCost  = ($usage['input_tokens']  / 1_000_000) * 15;
+            $outputCost = ($usage['output_tokens'] / 1_000_000) * 75;
+            $total      = $inputCost + $outputCost;
+            Log::info("📋 AI Proposal Generated [{$req->project_title}] [{$language}]", [
+                'input_tokens'  => $usage['input_tokens'],
+                'output_tokens' => $usage['output_tokens'],
+                'total_tokens'  => $usage['input_tokens'] + $usage['output_tokens'],
+                'cost_usd'      => '$' . number_format($total, 6),
+                'time_ms'       => $elapsed,
+            ]);
+        }
+
+        // Parse JSON
+        $clean  = str_replace(['```json', '```'], '', $text);
+        $clean  = trim($clean);
+        $result = json_decode($clean, true);
+
+        if ($result) {
+            if (!empty($result['total_investment'])) {
+                // "$12,500 (within...)" → "$12,500" ပဲ ယူ
+                preg_match('/\$[\d,]+/', $result['total_investment'], $matches);
+                if (!empty($matches[0])) {
+                    $result['total_investment'] = $matches[0];
+                }
+            }
+
+            Log::info('✅ Proposal parse success', ['keys' => array_keys($result)]);
+            $result['proposal_number'] = 'PROP-' . date('Y') . '-' . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+            $result['generated_at']    = now()->format('d F Y');
+            $result['language']        = $language;
+            return $result;
+        }
+
+        Log::warning('⚠️ Proposal parse failed — falling back to mock', [
+            'json_error' => json_last_error_msg(),
+        ]);
+        return $this->generateContent($req, $language);
     }
 
     private function buildPrompt(RequirementAnalysis $req, string $language): string
     {
-        $ai = $req->ai_analysis ?? [];
-        $lang = ucfirst($language);
+        $ai       = $req->ai_analysis ?? [];
+        $lang     = ucfirst($language);
+        $features = implode(', ', $req->core_features ?? []);
+        $techStack = isset($ai['tech_stack']) ? implode(', ', (array) $ai['tech_stack']) : '';
+
         return <<<EOT
 You are a senior business consultant. Generate a professional project proposal in {$lang} language.
-Based on: Title={$req->project_title}, Client={$req->client->company_name}, Platform={$req->platform}, Budget={$req->budget_range}
-AI Analysis: Complexity={$ai['project_complexity']}, Duration={$ai['estimated_duration']}, Score={$ai['feasibility_score']}
-Return ONLY JSON with: executive_summary, proposed_solution, scope_of_work (array), technical_approach, project_timeline (phases array), investment_breakdown (items array with name/cost/percentage), total_investment, team_overview (array), terms_and_conditions (array), validity_period, company_strengths (array), next_steps (array)
+
+Project: {$req->project_title}
+Client: {$req->client->company_name}
+Platform: {$req->platform}
+Budget: {$req->budget_range}
+Features: {$features}
+Complexity: {$ai['project_complexity']}
+Duration: {$ai['estimated_duration']}
+Feasibility Score: {$ai['feasibility_score']}
+Tech Stack: {$techStack}
+
+Return ONLY this JSON (no markdown, no explanation):
+{
+  "executive_summary": "...",
+  "proposed_solution": "...",
+  "scope_of_work": [{"item": "...", "description": "...", "priority": "high|medium|low"}],
+  "technical_approach": {
+    "methodology": "...",
+    "tech_stack": ["..."],
+    "architecture": "...",
+    "hosting": "...",
+    "security": "...",
+    "testing": "..."
+  },
+  "project_timeline": [{"phase": "Phase 1", "name": "...", "duration": "...", "deliverables": ["..."]}],
+  "investment_breakdown": [{"name": "...", "cost": 5000, "percentage": 30}],
+  "total_investment": "...",
+  "payment_terms": ["..."],
+  "team_overview": [{"role": "...", "count": 1, "responsibility": "..."}],
+  "company_strengths": ["..."],
+  "terms_and_conditions": ["..."],
+  "next_steps": ["..."],
+  "validity_period": "30 days from proposal date"
+}
 EOT;
     }
-    */
 
-    // ── MOCK DATA GENERATOR ───────────────────────
+    // ── MOCK DATA GENERATOR ───────────────────────────────────
     private function generateContent(RequirementAnalysis $req, string $language): array
     {
         $ai        = $req->ai_analysis ?? [];
@@ -111,8 +193,8 @@ EOT;
 
         // Team overview
         $teamOverview = array_map(fn($m) => [
-            'role'         => $m['role'],
-            'count'        => $m['count'],
+            'role'           => $m['role'],
+            'count'          => $m['count'],
             'responsibility' => $m['reason'],
         ], $team);
 
@@ -181,24 +263,24 @@ EOT;
     private function calculateInvestment(string $budget, string $complexity, string $platform): array
     {
         $budgetMap = [
-            '< $5,000'            => ['min' => 3000,  'max' => 5000],
-            '$5,000 – $15,000'    => ['min' => 5000,  'max' => 15000],
-            '$15,000 – $50,000'   => ['min' => 15000, 'max' => 50000],
-            '$50,000 – $100,000'  => ['min' => 50000, 'max' => 100000],
-            '> $100,000'          => ['min' => 100000,'max' => 150000],
+            '< $5,000'            => ['min' => 3000,   'max' => 5000],
+            '$5,000 – $15,000'    => ['min' => 5000,   'max' => 15000],
+            '$15,000 – $50,000'   => ['min' => 15000,  'max' => 50000],
+            '$50,000 – $100,000'  => ['min' => 50000,  'max' => 100000],
+            '> $100,000'          => ['min' => 100000, 'max' => 150000],
         ];
 
         $range = $budgetMap[$budget] ?? ['min' => 10000, 'max' => 30000];
         $total = ($range['min'] + $range['max']) / 2;
 
         $breakdown = [
-            ['name' => 'UI/UX Design & Prototyping',    'percentage' => 15, 'cost' => round($total * 0.15)],
-            ['name' => 'Frontend Development',           'percentage' => 25, 'cost' => round($total * 0.25)],
-            ['name' => 'Backend Development & APIs',     'percentage' => 30, 'cost' => round($total * 0.30)],
-            ['name' => 'Testing & Quality Assurance',    'percentage' => 10, 'cost' => round($total * 0.10)],
-            ['name' => 'Project Management',             'percentage' => 10, 'cost' => round($total * 0.10)],
-            ['name' => 'Deployment & Infrastructure',    'percentage' => 5,  'cost' => round($total * 0.05)],
-            ['name' => 'Documentation & Training',       'percentage' => 5,  'cost' => round($total * 0.05)],
+            ['name' => 'UI/UX Design & Prototyping',    'item' => 'UI/UX Design & Prototyping',    'percentage' => 15, 'cost' => round($total * 0.15)],
+            ['name' => 'Frontend Development',           'item' => 'Frontend Development',           'percentage' => 25, 'cost' => round($total * 0.25)],
+            ['name' => 'Backend Development & APIs',     'item' => 'Backend Development & APIs',     'percentage' => 30, 'cost' => round($total * 0.30)],
+            ['name' => 'Testing & Quality Assurance',    'item' => 'Testing & Quality Assurance',    'percentage' => 10, 'cost' => round($total * 0.10)],
+            ['name' => 'Project Management',             'item' => 'Project Management',             'percentage' => 10, 'cost' => round($total * 0.10)],
+            ['name' => 'Deployment & Infrastructure',    'item' => 'Deployment & Infrastructure',    'percentage' => 5,  'cost' => round($total * 0.05)],
+            ['name' => 'Documentation & Training',       'item' => 'Documentation & Training',       'percentage' => 5,  'cost' => round($total * 0.05)],
         ];
 
         if (in_array($platform, ['mobile', 'both'])) {

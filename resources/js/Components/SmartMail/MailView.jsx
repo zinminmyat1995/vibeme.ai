@@ -5,7 +5,7 @@ import { useState } from 'react';
 const LANGUAGES = [
     { code: 'en', label: 'English',    flag: '🇬🇧' },
     { code: 'ja', label: 'Japanese',   flag: '🇯🇵' },
-    { code: 'my', label: 'Burmese',    flag: '🇲🇲' },
+    { code: 'my', label: 'Myanmar',    flag: '🇲🇲' },  // Burmese → Myanmar
     { code: 'km', label: 'Khmer',      flag: '🇰🇭' },
     { code: 'vi', label: 'Vietnamese', flag: '🇻🇳' },
     { code: 'ko', label: 'Korean',     flag: '🇰🇷' },
@@ -47,6 +47,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
         setSelectedLang(lang);
         setTranslating(true);
         setShowTranslated(false);
+        const startTime = Date.now();
         try {
             const res = await fetch(`/smart-mail/${mail.id}/translate`, {
                 method: 'POST',
@@ -58,10 +59,29 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                 body: JSON.stringify({ language: lang.code }),
             });
             const data = await res.json();
+            const elapsed = Date.now() - startTime;
+
             if (data.success) {
                 setTranslated(data.translated);
                 setShowTranslated(true);
                 if (data.demo) onShowToast('Demo mode — configure API for real translation', 'warning');
+
+                // ── Token console ──────────────────────────
+                const usage = data.usage;
+                console.group(`🌐 AI Translate → ${lang.label} — SmartMail [mail #${mail.id}]`);
+                console.log(`⏱️  Time:    ${elapsed}ms`);
+                console.log(`⚡ Cached:  ${data.cached ? '✅ Yes (no API call)' : '❌ No (API used)'}`);
+                if (usage) {
+                    const inputCost  = (usage.input_tokens  / 1_000_000) * 15;
+                    const outputCost = (usage.output_tokens / 1_000_000) * 75;
+                    const total      = inputCost + outputCost;
+                    console.log(`🔢 Tokens:`);
+                    console.log(`   Input:   ${usage.input_tokens}`);
+                    console.log(`   Output:  ${usage.output_tokens}`);
+                    console.log(`   Total:   ${usage.input_tokens + usage.output_tokens}`);
+                    console.log(`💰 Cost:    ~$${total.toFixed(6)} USD`);
+                }
+                console.groupEnd();
             }
         } catch {
             onShowToast('Translation failed.', 'error');
@@ -139,17 +159,13 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                 <div style={{ flex: 1 }} />
 
                 {/* Toggle translated / original */}
-                {translated && (
-                    <ToolBtn onClick={() => setShowTranslated(!showTranslated)} active={showTranslated}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 8l6 6"/>
-                            <path d="M4 14l6-6 2-3"/>
-                            <path d="M2 5h12"/>
-                            <path d="M7 2h1"/>
-                            <path d="M22 22l-5-10-5 10"/>
-                            <path d="M14 18h6"/>
-                        </svg>
-                        {showTranslated ? 'Original' : `${selectedLang?.flag} Translated`}
+                {showTranslated && (
+                    <ToolBtn
+                        onClick={() => setShowTranslated(v => !v)}
+                        active={!showTranslated}
+                        theme={theme}
+                    >
+                        {showTranslated ? `Original` : `${selectedLang?.label} Translated`}
                     </ToolBtn>
                 )}
 
@@ -205,7 +221,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                             borderRadius: 16,
                             boxShadow: theme.shadow,
                             padding: 6,
-                            minWidth: 190,
+                            minWidth: 120,
                             animation: 'slideIn 0.15s ease',
                         }}>
                             {!hasApi && (
@@ -238,13 +254,9 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                                             ? theme.primarySoft : 'transparent';
                                     }}
                                 >
-                                    <span style={{ fontSize: 16 }}>{l.flag}</span>
+                                 
                                     <span style={{ flex: 1 }}>{l.label}</span>
-                                    {selectedLang?.code === l.code && showTranslated && (
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3">
-                                            <polyline points="20 6 9 17 4 12"/>
-                                        </svg>
-                                    )}
+                                    
                                 </button>
                             ))}
                         </div>
@@ -253,7 +265,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
 
                 {/* Download */}
                 <button
-                    onClick={() => window.location.href = `/smart-mail/${mail.id}/download`}
+                    onClick={() => window.location.href = `/smart-mail/${mail.id}/download-pdf`}
                     title="Download"
                     style={{
                         width: 36, height: 36, borderRadius: 12,
@@ -276,7 +288,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
             </div>
 
             {/* ── Body ── */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none',padding: '24px 28px'}}>
 
                 {/* Subject */}
                 <h2 style={{
@@ -331,19 +343,20 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                 {showTranslated && selectedLang && (
                     <div style={{
                         display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '10px 16px',
+                        padding: '8px 14px',
                         background: theme.successSoft,
-                        borderRadius: 12,
-                        border: `1px solid ${theme.success}30`,
-                        marginBottom: 18,
-                        fontSize: 12, fontWeight: 700,
+                        borderRadius: 10,
+                        border: `1px solid ${theme.success}25`,
+                        marginBottom: 14,
+                        fontSize: 12, fontWeight: 600,
                         color: theme.success,
                     }}>
-                        <span style={{ fontSize: 16 }}>{selectedLang.flag}</span>
+                        <span style={{ fontSize: 14 }}>🌐</span>
                         Showing {selectedLang.label} translation
                         <button onClick={() => setShowTranslated(false)} style={{
                             marginLeft: 'auto', background: 'none', border: 'none',
-                            cursor: 'pointer', color: theme.success, fontSize: 16, lineHeight: 1,
+                            cursor: 'pointer', color: theme.success, fontSize: 14, lineHeight: 1,
+                            padding: '0 2px',
                         }}>×</button>
                     </div>
                 )}

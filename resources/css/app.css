@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+.mail-scroll::-webkit-scrollbar { display: none; }
 
 @layer components {
     .input {

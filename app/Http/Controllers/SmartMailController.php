@@ -12,6 +12,7 @@ use App\Services\MailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SmartMailController extends Controller
 {
@@ -258,45 +259,56 @@ class SmartMailController extends Controller
     {
         $request->validate(['language' => 'required|in:en,ja,my,km,vi,ko']);
         $this->authorizeMail($mail);
-
         $lang = $request->language;
 
         if ($mail->hasTranslation($lang)) {
             return response()->json(['success' => true, 'translated' => $mail->translated_body[$lang], 'cached' => true]);
         }
-
         if (!$this->aiService->hasApiKey()) {
             return response()->json(['success' => true, 'translated' => $mail->body_html ?? $mail->body_text, 'demo' => true]);
         }
 
-        $translated = $this->aiService->translate(strip_tags($mail->body_html ?? $mail->body_text ?? ''), $lang);
+        [$translated, $usage] = $this->aiService->translateWithUsage(
+            strip_tags($mail->body_html ?? $mail->body_text ?? ''), $lang
+        );
 
-        $translations        = $mail->translated_body ?? [];
+        $translations = $mail->translated_body ?? [];
         $translations[$lang] = $translated;
         $mail->update(['translated_body' => $translations]);
 
-        return response()->json(['success' => true, 'translated' => $translated]);
+        return response()->json(['success' => true, 'translated' => $translated, 'usage' => $usage]);
     }
 
     // ── AI Generate ─────────────────────────────────────────────────
     public function aiGenerate(Request $request)
     {
         $request->validate(['prompt' => 'required|string|max:500', 'tone' => 'nullable|in:professional,friendly,formal,casual']);
-        return response()->json(['success' => true, 'result' => $this->aiService->generateMail($request->prompt, $request->tone ?? 'professional')]);
+        
+        [$result, $usage] = $this->aiService->generateMailWithUsage(
+            $request->prompt, $request->tone ?? 'professional'
+        );
+        
+        return response()->json(['success' => true, 'result' => $result, 'usage' => $usage]);
     }
 
     // ── AI Translate Preview ─────────────────────────────────────────
     public function aiTranslatePreview(Request $request)
     {
         $request->validate(['content' => 'required|string', 'language' => 'required|in:en,ja,my,km,vi,ko']);
-        return response()->json(['success' => true, 'translated' => $this->aiService->translate($request->content, $request->language)]);
+        
+        [$translated, $usage] = $this->aiService->translateWithUsage($request->content, $request->language);
+        
+        return response()->json(['success' => true, 'translated' => $translated, 'usage' => $usage]);
     }
 
     // ── AI Improve ───────────────────────────────────────────────────
     public function aiImprove(Request $request)
     {
         $request->validate(['content' => 'required|string']);
-        return response()->json(['success' => true, 'improved' => $this->aiService->improveMail($request->content)]);
+        
+        [$improved, $usage] = $this->aiService->improveMailWithUsage($request->content);
+        
+        return response()->json(['success' => true, 'improved' => $improved, 'usage' => $usage]);
     }
 
     // ── Template Render ──────────────────────────────────────────────
@@ -310,8 +322,107 @@ class SmartMailController extends Controller
     public function downloadPdf(Mail $mail)
     {
         $this->authorizeMail($mail);
-        $html = "<h2>{$mail->subject}</h2><p><strong>From:</strong> {$mail->from_name} &lt;{$mail->from_address}&gt;</p><p><strong>Date:</strong> {$mail->mail_date}</p><hr>{$mail->body_html}";
-        return response($html)->header('Content-Type', 'text/html')->header('Content-Disposition', 'attachment; filename="mail-' . $mail->id . '.html"');
+
+        $pdf = Pdf::loadHTML($this->buildMailHtml($mail));
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->set_option('defaultFont', 'DejaVu Sans');
+        $pdf->set_option('isHtml5ParserEnabled', true);
+
+        $filename = 'mail-' . now()->format('Ymd-His') . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    private function buildMailHtml(Mail $mail): string
+    {
+        $subject = e($mail->subject ?: '(No Subject)');
+        $from    = e($mail->from_name ? "{$mail->from_name} <{$mail->from_address}>" : $mail->from_address);
+        $to      = e(implode(', ', $mail->to_addresses ?? []));
+        $date    = e($mail->mail_date);
+        $body    = $mail->body_html ?: nl2br(e($mail->body_text ?? ''));
+
+        return <<<HTML
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body {
+                    font-family: 'DejaVu Sans', sans-serif;
+                    font-size: 13px;
+                    color: #1e293b;
+                    background: #ffffff;
+                }
+                .header {
+                    background-color: #4f46e5;
+                    padding: 32px 40px 28px;
+                    color: #ffffff;
+                }
+                .header-brand {
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    color: rgba(255,255,255,0.7);
+                    margin-bottom: 10px;
+                }
+                .header-subject {
+                    font-size: 20px;
+                    font-weight: 800;
+                    margin-bottom: 20px;
+                    color: #ffffff;
+                }
+                .meta-row {
+                    margin-bottom: 5px;
+                    font-size: 12px;
+                    color: rgba(255,255,255,0.85);
+                }
+                .meta-label {
+                    display: inline-block;
+                    width: 45px;
+                    color: rgba(255,255,255,0.55);
+                    font-weight: 700;
+                }
+                .divider {
+                    height: 4px;
+                    background-color: #7c3aed;
+                }
+                .body-wrap {
+                    padding: 36px 40px;
+                }
+                .body-content {
+                    font-size: 13px;
+                    line-height: 1.85;
+                    color: #334155;
+                }
+                .body-content p { margin-bottom: 12px; }
+                .footer {
+                    margin-top: 40px;
+                    padding: 18px 40px;
+                    border-top: 1px solid #e2e8f0;
+                    font-size: 10px;
+                    color: #94a3b8;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="header-brand">VibeMe.AI — Smart Mail</div>
+                <div class="header-subject">{$subject}</div>
+                <div class="meta-row"><span class="meta-label">From</span>{$from}</div>
+                <div class="meta-row"><span class="meta-label">To</span>{$to}</div>
+                <div class="meta-row"><span class="meta-label">Date</span>{$date}</div>
+            </div>
+            <div class="divider"></div>
+            <div class="body-wrap">
+                <div class="body-content">{$body}</div>
+            </div>
+            <div class="footer">
+                VibeMe.AI Smart Mail &nbsp;·&nbsp; Downloaded on {$date}
+            </div>
+        </body>
+        </html>
+        HTML;
     }
 
     // ── Helpers ──────────────────────────────────────────────────────

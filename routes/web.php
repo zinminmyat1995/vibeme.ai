@@ -157,7 +157,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/ai/translate-preview',     [SmartMailController::class, 'aiTranslatePreview'])->name('smart-mail.ai.translate');
         Route::post('/ai/improve',               [SmartMailController::class, 'aiImprove'])->name('smart-mail.ai.improve');
         Route::post('/templates/{template}/render', [SmartMailController::class, 'renderTemplate'])->name('smart-mail.template.render');
-        Route::get('/{mail}/download',           [SmartMailController::class, 'downloadPdf'])->name('smart-mail.download');
+        Route::get('/{mail}/download-pdf',       [SmartMailController::class, 'downloadPdf'])->name('smart-mail.download');
     });
 
     // ── AI Chat ──

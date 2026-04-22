@@ -112,12 +112,11 @@ class RequirementAnalysisController extends Controller
             $result = (new AIAnalysisService())->analyze($analysis);
             $analysis->update([
                 'status'      => 'completed',
-                'ai_analysis' => $result,
+                'ai_analysis' => $result,   // ← ဒါ JSON cast ဖြစ်လား?
             ]);
         } catch (\Exception $e) {
             $analysis->update(['status' => 'failed']);
         }
-
         return back()->with('success', 'Re-analysis completed!');
     }
 }

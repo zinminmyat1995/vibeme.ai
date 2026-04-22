@@ -648,10 +648,38 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
     };
 
     const aiPost = async (url, body) => {
+        const startTime = Date.now();
         const res = await window.apiFetch(url, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
         });
-        return res.json();
+        const data = await res.json();
+        const elapsed = Date.now() - startTime;
+
+        // ── Token usage console ──────────────────────────
+        const feature = url.includes('generate')  ? '✨ AI Write'
+                    : url.includes('improve')   ? '🔧 AI Improve'
+                    : url.includes('translate') ? '🌐 AI Translate'
+                    : '🤖 AI';
+
+        const usage = data.usage;
+        console.group(`${feature} — SmartMail`);
+        console.log(`⏱️  Time:    ${elapsed}ms`);
+        console.log(`⚡ Cached:  ${data.cached ? '✅ Yes' : '❌ No (API used)'}`);
+        if (usage) {
+            const inputCost  = (usage.input_tokens  / 1_000_000) * 15;
+            const outputCost = (usage.output_tokens / 1_000_000) * 75;
+            const total      = inputCost + outputCost;
+            console.log(`🔢 Tokens:`);
+            console.log(`   Input:   ${usage.input_tokens}`);
+            console.log(`   Output:  ${usage.output_tokens}`);
+            console.log(`   Total:   ${usage.input_tokens + usage.output_tokens}`);
+            console.log(`💰 Cost:    ~$${total.toFixed(6)} USD`);
+        }
+        console.groupEnd();
+
+        return data;
     };
 
     const handleAiGenerate = async () => {
@@ -659,7 +687,17 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
         setAiLoading(true);
         try {
             const data = await aiPost('/smart-mail/ai/generate', { prompt: aiPrompt, tone: aiTone });
-            if (data.success) { setSubject(data.result.subject); setContent(data.result.body); setAiGenerated(true); setAiMode(null); }
+            if (data.success) {
+                setSubject(data.result.subject);
+
+                // ── ```html fence တွေ strip ──
+                let body = data.result.body || '';
+                body = body.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+
+                setContent(body);
+                setAiGenerated(true);
+                setAiMode(null);
+            }
         } catch {}
         setAiLoading(false);
     };
@@ -676,10 +714,17 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
     const handleTranslatePreview = async () => {
         if (!translateLang) return;
         setAiLoading(true);
+        setTranslatePreview(null); // ← reset အရင်
         try {
-            const data = await aiPost('/smart-mail/ai/translate-preview', { content: getContent(), language: translateLang });
+            const data = await aiPost('/smart-mail/ai/translate-preview', {
+                content: getContent(),
+                language: translateLang,
+            });
+
             if (data.success) setTranslatePreview(data.translated);
-        } catch {}
+        } catch (e) {
+            console.error('Translate preview error:', e);
+        }
         setAiLoading(false);
     };
 
@@ -1105,23 +1150,36 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                             )}
 
                             {aiMode === 'translate' && (
-                                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                                    {LANGS.map(l => (
-                                        <button key={l.code} type="button" onClick={() => setTranslateLang(l.code)} style={{
-                                            padding: '5px 12px', borderRadius: 99,
-                                            border: `1px solid ${translateLang === l.code ? theme.secondary : theme.border}`,
-                                            background: translateLang === l.code ? theme.secondarySoft : 'transparent',
-                                            color: translateLang === l.code ? theme.secondary : theme.textMute,
-                                            fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                        }}>{l.flag} {l.label}</button>
-                                    ))}
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                    {/* Language buttons — scroll လုပ်လို့ရ */}
+                                    <div style={{
+                                        display: 'flex', gap: 6, flex: 1,
+                                        overflowX: 'auto', paddingBottom: 2,
+                                    }}>
+                                        {LANGS.map(l => (
+                                            <button key={l.code} type="button"
+                                                onClick={() => setTranslateLang(l.code)}
+                                                style={{
+                                                    padding: '5px 12px', borderRadius: 99, whiteSpace: 'nowrap',
+                                                    border: `1px solid ${translateLang === l.code ? theme.secondary : theme.border}`,
+                                                    background: translateLang === l.code ? theme.secondarySoft : 'transparent',
+                                                    color: translateLang === l.code ? theme.secondary : theme.textMute,
+                                                    fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+                                                }}
+                                            >{l.flag} {l.label}</button>
+                                        ))}
+                                    </div>
+
+                                    {/* Preview button — အမြဲ right မှာ */}
                                     {translateLang && (
-                                        <button type="button" onClick={handleTranslatePreview} disabled={aiLoading} style={{
-                                            padding: '5px 14px', borderRadius: 99, border: 'none',
-                                            background: `linear-gradient(135deg, ${theme.secondary}, ${theme.primary})`,
-                                            color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                            marginLeft: 'auto',
-                                        }}>
+                                        <button type="button" onClick={handleTranslatePreview} disabled={aiLoading}
+                                            style={{
+                                                padding: '5px 14px', borderRadius: 99, border: 'none', flexShrink: 0,
+                                                background: `linear-gradient(135deg, ${theme.secondary}, ${theme.primary})`,
+                                                color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                                opacity: aiLoading ? 0.7 : 1, minWidth: 80, textAlign: 'center',
+                                            }}
+                                        >
                                             {aiLoading ? 'Translating...' : 'Preview'}
                                         </button>
                                     )}
@@ -1129,8 +1187,38 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                             )}
 
                             {translatePreview && aiMode === 'translate' && (
-                                <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 12, background: theme.secondarySoft, border: `1px solid ${theme.secondary}22`, fontSize: 12, color: theme.textSoft, whiteSpace: 'pre-wrap', maxHeight: 120, overflowY: 'auto' }}>
-                                    {translatePreview}
+                                <div style={{
+                                    marginTop: 10, padding: '10px 14px', borderRadius: 12,
+                                    background: theme.secondarySoft,
+                                    border: `1px solid ${theme.secondary}33`,
+                                    fontSize: 12, color: theme.textSoft,
+                                }}>
+                                    <div style={{
+                                        display: 'flex', justifyContent: 'space-between',
+                                        alignItems: 'center', marginBottom: 6,
+                                    }}>
+                                        <span style={{ fontSize: 11, fontWeight: 700, color: theme.secondary }}>
+                                            Preview
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setContent(translatePreview);  // ← body မှာ replace
+                                                setTranslatePreview(null);
+                                                setAiMode(null);               // ← AI panel ပိတ်
+                                            }}
+                                            style={{
+                                                padding: '4px 12px', borderRadius: 8, border: 'none',
+                                                background: `linear-gradient(135deg, ${theme.secondary}, ${theme.primary})`,
+                                                color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                            }}
+                                        >
+                                            ✓ Apply to Body
+                                        </button>
+                                    </div>
+                                    <div style={{ whiteSpace: 'pre-wrap', maxHeight: 100, overflowY: 'auto' }}>
+                                        {translatePreview}
+                                    </div>
                                 </div>
                             )}
                         </div>

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>{{ $content['proposal_number'] ?? 'Proposal' }}</title>
 <style>
+* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#1a1a1a; background:#fff; }
 @page { margin:0; size:A4 portrait; }

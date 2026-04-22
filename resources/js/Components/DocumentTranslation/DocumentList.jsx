@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
+import { createPortal } from 'react-dom';
 
 const LANGUAGES = {
-    en: { label: 'English', flag: '🇬🇧' },
-    ja: { label: 'Japanese', flag: '🇯🇵' },
-    my: { label: 'Burmese', flag: '🇲🇲' },
-    km: { label: 'Khmer', flag: '🇰🇭' },
-    vi: { label: 'Vietnamese', flag: '🇻🇳' },
-    ko: { label: 'Korean', flag: '🇰🇷' },
+    en: { label: 'English',    flag: null },
+    ja: { label: 'Japanese',   flag: null },
+    my: { label: 'Myanmar',    flag: null },  // Burmese → Myanmar
+    km: { label: 'Khmer',      flag: null },
+    vi: { label: 'Vietnamese', flag: null },
+    ko: { label: 'Korean',     flag: null },
 };
 
 const FILE_META = {
@@ -499,162 +500,95 @@ function fileMetaFor(doc) {
     return FILE_META[doc.file_type?.toLowerCase()] || FILE_META.txt;
 }
 
-function DownloadModal({ document, hasApi, onClose, darkMode = false }) {
+function DownloadModal({ document: doc, hasApi, onClose, darkMode = false }) {
     const theme = getTheme(darkMode);
-    if (!document) return null;
+    if (!doc) return null;
 
-    const availableLangs = document.translated_paths || [];
+    const availableLangs = doc.translated_paths || [];
 
     const handleDownload = (language) => {
-        window.location.href = `/documents/${document.id}/download/${language}`;
+        window.location.href = `/documents/${doc.id}/download/${language}`;
         onClose();
     };
 
-    return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: theme.overlay, backdropFilter: 'blur(12px)' }} />
-            <div style={{ ...card(theme, { width: '100%', maxWidth: 560, overflow: 'hidden', position: 'relative' }) }}>
-                <div style={{ padding: '26px 24px 22px', background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 42%, #2563eb 100%)', position: 'relative' }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 34%), radial-gradient(circle at bottom right, rgba(255,255,255,0.12), transparent 30%)', pointerEvents: 'none' }} />
-                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 16 }}>
-                        <div>
-                            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.82)', marginBottom: 8 }}>
-                                Downloads
-                            </div>
-                            <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', lineHeight: 1.15 }}>
-                                Choose file version
-                            </div>
-                            <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.78)' }}>
-                                {document.original_filename}
-                            </div>
-                        </div>
+    // SVG flags
+    const FLAG_SVGS = {
+        en: <svg width="22" height="16" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="40" fill="#012169"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" strokeWidth="8"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" strokeWidth="5"/><path d="M30,0 V40 M0,20 H60" stroke="#fff" strokeWidth="12"/><path d="M30,0 V40 M0,20 H60" stroke="#C8102E" strokeWidth="8"/></svg>,
+        ja: <svg width="22" height="16" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="40" fill="#fff"/><circle cx="30" cy="20" r="12" fill="#BC002D"/></svg>,
+        my: <svg width="22" height="16" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="40" fill="#FECB00"/><rect y="13" width="60" height="14" fill="#34B233"/><rect y="27" width="60" height="13" fill="#EA2839"/><polygon points="30,4 33,13 42,13 35,19 38,28 30,22 22,28 25,19 18,13 27,13" fill="#fff"/></svg>,
+        km: <svg width="22" height="16" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="40" fill="#032EA1"/><rect y="10" width="60" height="20" fill="#E00025"/><rect x="18" y="10" width="24" height="20" fill="#032EA1"/><rect x="22" y="13" width="16" height="14" fill="#fff"/></svg>,
+        vi: <svg width="22" height="16" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="40" fill="#DA251D"/><polygon points="30,8 32.9,17 42,17 34.5,22.4 37.4,31.4 30,26 22.6,31.4 25.5,22.4 18,17 27.1,17" fill="#FFFF00"/></svg>,
+        ko: <svg width="22" height="16" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="40" fill="#fff"/><circle cx="30" cy="20" r="10" fill="#CD2E3A"/><path d="M30,10 A10,10 0 0,1 30,30" fill="#0047A0"/><line x1="10" y1="8" x2="18" y2="16" stroke="#000" strokeWidth="2"/><line x1="12" y1="5" x2="20" y2="13" stroke="#000" strokeWidth="2"/><line x1="14" y1="2" x2="22" y2="10" stroke="#000" strokeWidth="2"/><line x1="42" y1="24" x2="50" y2="32" stroke="#000" strokeWidth="2"/><line x1="40" y1="27" x2="48" y2="35" stroke="#000" strokeWidth="2"/><line x1="38" y1="30" x2="46" y2="38" stroke="#000" strokeWidth="2"/></svg>,
+    };
 
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            style={{
-                                width: 46,
-                                height: 46,
-                                borderRadius: 16,
-                                border: '1px solid rgba(255,255,255,0.16)',
-                                background: 'rgba(255,255,255,0.12)',
-                                color: '#fff',
-                                cursor: 'pointer',
-                                fontSize: 26,
-                                lineHeight: 1,
-                            }}
-                        >
-                            ×
-                        </button>
+    const modal = (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(2,8,23,0.72)', backdropFilter: 'blur(14px)' }} />
+            <div style={{ ...card(theme, { width: '100%', maxWidth: 520, overflow: 'hidden', position: 'relative', zIndex: 1 }) }}>
+
+                {/* Header */}
+                <div style={{ padding: '26px 24px 22px', background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 42%, #2563eb 100%)', position: 'relative' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top left, rgba(255,255,255,0.18), transparent 40%)' }} />
+                    <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, width: 32, height: 32, borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>×</button>
+                    <div style={{ position: 'relative' }}>
+                        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>DOWNLOADS</div>
+                        <div style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>Choose file version</div>
+                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>{doc.original_filename}</div>
                     </div>
                 </div>
 
-                <div style={{ padding: 24, display: 'grid', gap: 12 }}>
-                    <button
-                        type="button"
-                        onClick={() => handleDownload('original')}
-                        style={{
-                            width: '100%',
-                            padding: '16px 18px',
-                            borderRadius: 18,
-                            border: `1px solid ${theme.border}`,
-                            background: theme.panelSoft,
-                            color: theme.text,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                        }}
-                    >
-                        <div style={{ width: 48, height: 48, borderRadius: 16, background: theme.primarySoft, color: theme.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <path d="M7 10l5 5 5-5" />
-                                <path d="M12 15V3" />
-                            </svg>
-                        </div>
-                        <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 900, color: theme.text }}>Original file</div>
-                            <div style={{ marginTop: 4, fontSize: 11.5, color: theme.textMute }}>
-                                {document.file_type?.toUpperCase()} · {document.file_size}
-                            </div>
-                        </div>
-                        <div style={{ marginLeft: 'auto', fontSize: 11, color: theme.primary, fontWeight: 900 }}>
-                            Download
-                        </div>
-                    </button>
+                {/* Body */}
+                <div style={{ padding: '20px 24px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-                    {hasApi && availableLangs.length > 0 && (
-                        <div style={{ display: 'grid', gap: 12 }}>
-                            <div style={{ fontSize: 11, color: theme.textMute, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.10em', marginTop: 4 }}>
-                                Translated versions
-                            </div>
-
-                            {availableLangs.map((lang) => {
-                                const meta = LANGUAGES[lang];
-                                if (!meta) return null;
-
-                                return (
-                                    <button
-                                        key={lang}
-                                        type="button"
-                                        onClick={() => handleDownload(lang)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '16px 18px',
-                                            borderRadius: 18,
-                                            border: `1px solid ${theme.border}`,
-                                            background: theme.panelSoft,
-                                            color: theme.text,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 14,
-                                            cursor: 'pointer',
-                                            textAlign: 'left',
-                                        }}
-                                    >
-                                        <div style={{ width: 48, height: 48, borderRadius: 16, background: darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
-                                            {meta.flag}
-                                        </div>
-                                        <div style={{ minWidth: 0 }}>
-                                            <div style={{ fontSize: 13, fontWeight: 900, color: theme.text }}>{meta.label}</div>
-                                            <div style={{ marginTop: 4, fontSize: 11.5, color: theme.textMute }}>
-                                                Translated · {document.file_type?.toUpperCase()}
-                                            </div>
-                                        </div>
-                                        <div style={{ marginLeft: 'auto', fontSize: 11, color: theme.success, fontWeight: 900 }}>
-                                            Download
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                    {/* Original */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 14, border: `1px solid ${theme.border}`, background: theme.panelSoft }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 12, background: theme.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         </div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: theme.text }}>Original file</div>
+                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{doc.file_type?.toUpperCase()} · {doc.file_size ? Math.round(doc.file_size / 1024) + ' KB' : '—'}</div>
+                        </div>
+                        <button onClick={() => handleDownload('original')} style={{ padding: '7px 16px', borderRadius: 10, border: 'none', background: theme.primary, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Download</button>
+                    </div>
+
+                    {/* Translated versions */}
+                    {availableLangs.length > 0 && (
+                        <>
+                            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.textMute, marginTop: 4 }}>Translated Versions</div>
+                            {availableLangs.map(lang => (
+                                <div key={lang} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 14, border: `1px solid ${theme.success}30`, background: darkMode ? 'rgba(16,185,129,0.06)' : '#f0fdf4' }}>
+                                    <div style={{ width: 40, height: 40, borderRadius: 12, background: darkMode ? 'rgba(16,185,129,0.15)' : '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                        {FLAG_SVGS[lang] || <span style={{ fontSize: 18 }}>🌐</span>}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: 13, fontWeight: 800, color: theme.text }}>{LANGUAGES[lang]?.label || lang}</div>
+                                        <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>Translated · {doc.file_type?.toUpperCase()}</div>
+                                    </div>
+                                    <button onClick={() => handleDownload(lang)} style={{ padding: '7px 16px', borderRadius: 10, border: 'none', background: theme.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Download</button>
+                                </div>
+                            ))}
+                        </>
                     )}
 
-                    {!hasApi && (
-                        <div style={{ padding: '14px 16px', borderRadius: 16, border: `1px solid ${theme.border}`, background: darkMode ? 'rgba(245,158,11,0.12)' : '#fef3c7', color: theme.warning, fontSize: 12.5, fontWeight: 700 }}>
-                            API is not configured, so only the original document is available.
-                        </div>
-                    )}
-                </div>
-
-                <div style={{ padding: '0 24px 24px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <UIButton onClick={onClose} variant="ghost" theme={theme}>Close</UIButton>
+                    {/* Close */}
+                    <button onClick={onClose} style={{ marginTop: 4, width: '100%', padding: '10px', borderRadius: 12, border: `1px solid ${theme.border}`, background: 'transparent', color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Close</button>
                 </div>
             </div>
         </div>
     );
+
+    return createPortal(modal, window.document.body);  // ← full screen ဖြစ်မယ်
 }
 
 function DeleteConfirm({ document, onClose, onConfirm, loading, darkMode = false }) {
     const theme = getTheme(darkMode);
     if (!document) return null;
 
-    return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: theme.overlay, backdropFilter: 'blur(12px)' }} />
-            <div style={{ ...card(theme, { width: '100%', maxWidth: 460, padding: 28, position: 'relative' }) }}>
+    const modal = (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(2,8,23,0.72)', backdropFilter: 'blur(14px)' }} />
+            <div style={{ ...card(theme, { width: '100%', maxWidth: 460, padding: 28, position: 'relative', zIndex: 1 }) }}>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ width: 82, height: 82, margin: '0 auto 18px', borderRadius: 26, background: darkMode ? 'rgba(248,113,113,0.14)' : '#fee2e2', border: `1px solid ${theme.border}`, color: theme.danger, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -665,13 +599,11 @@ function DeleteConfirm({ document, onClose, onConfirm, loading, darkMode = false
                             <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                         </svg>
                     </div>
-
                     <div style={{ fontSize: 22, fontWeight: 900, color: theme.text }}>Delete document?</div>
                     <div style={{ marginTop: 10, fontSize: 13, color: theme.textMute, lineHeight: 1.7 }}>
                         This will remove <strong style={{ color: theme.text }}>{document.original_filename}</strong> and all translated versions linked to it.
                     </div>
                 </div>
-
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 26 }}>
                     <UIButton onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
                     <UIButton onClick={onConfirm} disabled={loading} variant="danger" theme={theme}>
@@ -681,6 +613,8 @@ function DeleteConfirm({ document, onClose, onConfirm, loading, darkMode = false
             </div>
         </div>
     );
+
+    return createPortal(modal, window.document.body);
 }
 
 function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false }) {
@@ -719,9 +653,7 @@ function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false }
 
             <td style={{ padding: '16px 18px' }}>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(255,255,255,0.06)' : '#f1f5f9', color: theme.textSoft, fontWeight: 800 }}>
-                        {LANGUAGES[doc.source_language]?.flag} {LANGUAGES[doc.source_language]?.label || 'Unknown'}
-                    </span>
+                   
                     {doc.target_languages?.map((lang) => (
                         <span key={lang} style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5', color: theme.success, fontWeight: 800 }}>
                             {LANGUAGES[lang]?.flag} {LANGUAGES[lang]?.label}
@@ -742,8 +674,8 @@ function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false }
                 {doc.tags?.length ? (
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 220 }}>
                         {doc.tags.map((tag) => (
-                            <span key={tag} style={{ fontSize: 10, padding: '5px 8px', borderRadius: 999, background: darkMode ? 'rgba(124,58,237,0.18)' : '#ede9fe', color: theme.primary, fontWeight: 800 }}>
-                                #{tag}
+                            <span key={tag} style={{ fontSize: 10, padding: '5px 8px',  color: theme.textSoft, fontWeight: 800 }}>
+                                {tag}
                             </span>
                         ))}
                     </div>
@@ -807,9 +739,7 @@ function DocumentCard({ doc, onDownload, onDelete, darkMode = false }) {
             </div>
 
             <div style={{ position: 'relative', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(255,255,255,0.06)' : '#f1f5f9', color: theme.textSoft, fontWeight: 800 }}>
-                    {LANGUAGES[doc.source_language]?.flag} {LANGUAGES[doc.source_language]?.label || 'Unknown'}
-                </span>
+                
                 {doc.target_languages?.map((lang) => (
                     <span key={lang} style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5', color: theme.success, fontWeight: 800 }}>
                         {LANGUAGES[lang]?.flag} {LANGUAGES[lang]?.label}

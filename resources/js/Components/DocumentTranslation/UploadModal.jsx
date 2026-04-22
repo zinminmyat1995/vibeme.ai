@@ -14,7 +14,7 @@ const FLAGS = {
 const LANGUAGES = [
     { code: 'en', label: 'English', flag: FLAGS.en },
     { code: 'ja', label: 'Japanese', flag: FLAGS.ja },
-    { code: 'my', label: 'Burmese', flag: FLAGS.my },
+    { code: 'my', label: 'Myanmar', flag: FLAGS.my },
     { code: 'km', label: 'Khmer', flag: FLAGS.km },
     { code: 'vi', label: 'Vietnamese', flag: FLAGS.vi },
     { code: 'ko', label: 'Korean', flag: FLAGS.ko },
@@ -140,6 +140,8 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
     const [preview, setPreview] = useState(null);
     const inputRef = useRef(null);
 
+    const isImageFile = preview ? ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(preview.ext?.toLowerCase()) : false;
+
     const form = useForm({ file: null, folder_id: currentFolderId || '', source_language: 'en', target_languages: [], visibility: 'all', tags: '' });
 
     useEffect(() => { if (open) form.setData('folder_id', currentFolderId || ''); }, [currentFolderId, open]);
@@ -216,8 +218,52 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
 
                                 <div style={{ ...card(theme, { padding: 20, borderRadius: 22 }) }}>
                                     <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>Language direction</div>
-                                    <div><div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 10 }}>Source language</div><div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>{LANGUAGES.map((lang) => { const active = form.data.source_language === lang.code; return <button key={lang.code} type="button" onClick={() => form.setData('source_language', lang.code)} style={{ height: 42, padding: '0 14px', borderRadius: 999, border: `1px solid ${active ? theme.primary : theme.inputBorder}`, background: active ? theme.primarySoft : theme.inputBg, color: active ? theme.primary : theme.textSoft, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800 }}><span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>{lang.label}</button>; })}</div><FieldError msg={form.errors.source_language} theme={theme} /></div>
-                                    <div style={{ marginTop: 18 }}><div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}><div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>Translate to</div>{!hasApi && <div style={{ padding: '5px 10px', borderRadius: 999, background: darkMode ? 'rgba(245,158,11,0.14)' : '#fef3c7', color: theme.warning, fontSize: 10.5, fontWeight: 900 }}>API not configured</div>}</div><div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>{LANGUAGES.filter((lang) => lang.code !== form.data.source_language).map((lang) => { const selected = form.data.target_languages.includes(lang.code); return <button key={lang.code} type="button" onClick={() => toggleTargetLang(lang.code)} style={{ height: 42, padding: '0 14px', borderRadius: 999, border: `1px solid ${selected ? theme.success : theme.inputBorder}`, background: selected ? (darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5') : theme.inputBg, color: selected ? theme.success : theme.textSoft, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800 }}><span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>{lang.label}</button>; })}</div></div>
+
+                                    {isImageFile ? (
+                                        // ── Image file → notice box ပဲပြ ──
+                                        <div style={{ padding: '12px 16px', borderRadius: 14, background: darkMode ? 'rgba(245,158,11,0.12)' : '#fef3c7', border: `1px solid ${darkMode ? 'rgba(245,158,11,0.25)' : '#fde68a'}`, color: theme.warning, fontSize: 12, fontWeight: 700, lineHeight: 1.6 }}>
+                                            ⚠ Image files cannot be translated. Only text-based files (TXT, DOC, DOCX, PDF) are supported.
+                                        </div>
+                                    ) : (
+                                        // ── Text file → source + target languages ပြ ──
+                                        <>
+                                            <div>
+                                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 10 }}>Source language</div>
+                                                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                                    {LANGUAGES.map((lang) => {
+                                                        const active = form.data.source_language === lang.code;
+                                                        return (
+                                                            <button key={lang.code} type="button" onClick={() => form.setData('source_language', lang.code)}
+                                                                style={{ height: 42, padding: '0 14px', borderRadius: 999, border: `1px solid ${active ? theme.primary : theme.inputBorder}`, background: active ? theme.primarySoft : theme.inputBg, color: active ? theme.primary : theme.textSoft, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800 }}>
+                                                                <span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>
+                                                                {lang.label}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <FieldError msg={form.errors.source_language} theme={theme} />
+                                            </div>
+
+                                            <div style={{ marginTop: 18 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
+                                                    <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>Translate to</div>
+                                                    {!hasApi && <div style={{ padding: '5px 10px', borderRadius: 999, background: darkMode ? 'rgba(245,158,11,0.14)' : '#fef3c7', color: theme.warning, fontSize: 10.5, fontWeight: 900 }}>API not configured</div>}
+                                                </div>
+                                                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                                    {LANGUAGES.filter((lang) => lang.code !== form.data.source_language).map((lang) => {
+                                                        const selected = form.data.target_languages.includes(lang.code);
+                                                        return (
+                                                            <button key={lang.code} type="button" onClick={() => toggleTargetLang(lang.code)}
+                                                                style={{ height: 42, padding: '0 14px', borderRadius: 999, border: `1px solid ${selected ? theme.success : theme.inputBorder}`, background: selected ? (darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5') : theme.inputBg, color: selected ? theme.success : theme.textSoft, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800 }}>
+                                                                <span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>
+                                                                {lang.label}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
 
                                 <div style={{ ...card(theme, { padding: 20, borderRadius: 22 }) }}>

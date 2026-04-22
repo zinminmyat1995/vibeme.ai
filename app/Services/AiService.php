@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Services;
-
 use Illuminate\Support\Facades\Http;
 
 class AiService
@@ -16,15 +14,33 @@ class AiService
 
     public function hasApiKey(): bool { return $this->hasApi; }
 
-    // ── Translate text ──
+    // ── Translate text (original — backward compatible) ──
     public function translate(string $text, string $targetLang): string
     {
-        if (!$this->hasApi) return $text;
+        [$translated] = $this->translateWithUsage($text, $targetLang);
+        return $translated;
+    }
 
-        $langs = ['en'=>'English','ja'=>'Japanese','my'=>'Burmese','km'=>'Khmer','vi'=>'Vietnamese','ko'=>'Korean'];
-        $lang  = $langs[$targetLang] ?? $targetLang;
+    // ── Translate text + return usage (for console logging) ──
+    public function translateWithUsage(string $text, string $targetLang): array
+    {
+        if (!$this->hasApi) return [$text, null];
 
-        return $this->call("Translate the following to {$lang}. Return only the translated text:\n\n{$text}");
+        $langs = [
+            'en' => 'English',
+            'ja' => 'Japanese',
+            'my' => 'Burmese',
+            'km' => 'Khmer',
+            'vi' => 'Vietnamese',
+            'ko' => 'Korean',
+        ];
+        $lang = $langs[$targetLang] ?? $targetLang;
+
+        $result = $this->callWithUsage(
+            "Translate the following to {$lang}. Return only the translated text:\n\n{$text}"
+        );
+
+        return [$result['text'], $result['usage']];
     }
 
     // ── Generate mail from prompt ──
@@ -39,7 +55,7 @@ class AiService
 
         $response = $this->call(
             "Write a {$tone} email for: {$prompt}\n\n" .
-            "Return JSON only: {\"subject\": \"...\", \"body\": \"...HTML...\"}"
+            "Return JSON only — no markdown fences: {\"subject\": \"...\", \"body\": \"...HTML only, no code blocks...\"}"
         );
 
         try {
@@ -72,8 +88,14 @@ class AiService
         return $this->call("Summarize this email in 2-3 sentences:\n\n" . strip_tags($body));
     }
 
-    // ── Core API call ──
+    // ── Core API call (text only — backward compatible) ──
     private function call(string $prompt): string
+    {
+        return $this->callWithUsage($prompt)['text'];
+    }
+
+    // ── Core API call with usage tracking ──
+    private function callWithUsage(string $prompt): array
     {
         $response = Http::withHeaders([
             'x-api-key'         => config('services.anthropic.key'),
@@ -86,9 +108,61 @@ class AiService
         ]);
 
         if ($response->successful()) {
-            return $response->json('content.0.text', '');
+            $json = $response->json();
+
+            // usage: { input_tokens: x, output_tokens: y }
+            $usage = isset($json['usage']) ? [
+                'input_tokens'  => $json['usage']['input_tokens']  ?? 0,
+                'output_tokens' => $json['usage']['output_tokens'] ?? 0,
+            ] : null;
+
+            return [
+                'text'  => $json['content'][0]['text'] ?? '',
+                'usage' => $usage,
+            ];
         }
 
-        return '';
+        return ['text' => '', 'usage' => null];
     }
+
+    // ── Generate mail + usage ──
+    public function generateMailWithUsage(string $prompt, string $tone = 'professional'): array
+    {
+        if (!$this->hasApi) {
+            return [
+                ['subject' => 'Sample Subject', 'body' => '<p>Demo mail. Configure API key.</p>'],
+                null
+            ];
+        }
+
+        $result = $this->callWithUsage(
+            "Write a {$tone} email for: {$prompt}\n\n" .
+            "Return JSON only — no markdown fences: {\"subject\": \"...\", \"body\": \"...HTML only, no code blocks...\"}"
+        );
+
+        try {
+            $clean = preg_replace('/```json|```/', '', $result['text']);
+            $parsed = json_decode(trim($clean), true) ?? [
+                'subject' => 'Generated Subject',
+                'body'    => $result['text'],
+            ];
+            return [$parsed, $result['usage']];
+        } catch (\Exception $e) {
+            return [['subject' => 'Generated Subject', 'body' => $result['text']], $result['usage']];
+        }
+    }
+
+    // ── Improve mail + usage ──
+    public function improveMailWithUsage(string $body): array
+    {
+        if (!$this->hasApi) return [$body, null];
+
+        $result = $this->callWithUsage(
+            "Improve this email to be more professional and clear. " .
+            "Return only the improved HTML body:\n\n{$body}"
+        );
+
+        return [$result['text'], $result['usage']];
+    }
+
 }

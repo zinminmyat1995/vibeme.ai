@@ -244,37 +244,74 @@ class DocumentTranslationController extends Controller
     }
 
     // ── Private Helpers ────────────────────
-    private function translateDocument(Document $document): void
-    {
-        $document->update(['status' => 'translating']);
+private function translateDocument(Document $document): void
+{
+    // ── Translatable file types သာ translate လုပ် ──
+    $translatableTypes = ['txt', 'html', 'htm', 'csv', 'md', 'doc', 'docx'];
+    $fileExt = strtolower(pathinfo($document->storage_path, PATHINFO_EXTENSION));
 
-        try {
-            $content         = Storage::disk('public')->get($document->storage_path);
-            $translatedPaths = [];
+    if (!in_array($fileExt, $translatableTypes)) {
+        // Image/binary files → translate မလုပ်
+        $document->update(['status' => 'completed']);
+        \Log::info("⏭️ Skipped translation (binary file): {$document->original_filename}");
+        return;
+    }
 
-            foreach ($document->target_languages as $lang) {
-                $translated = $this->translator->translate($content, $lang);
-                $slug       = Str::slug(pathinfo($document->original_filename, PATHINFO_FILENAME));
-                $ext        = pathinfo($document->storage_path, PATHINFO_EXTENSION);
-                $fileName   = $slug . '-' . $lang . '-' . time() . '.' . $ext;
-                $path       = 'documents/translated/' . $fileName;
+    $document->update(['status' => 'translating']);
 
-                Storage::disk('public')->put($path, $translated);
-                $translatedPaths[$lang] = $path;
+    try {
+        $content = Storage::disk('public')->get($document->storage_path);
+
+        // UTF-8 valid check
+        if (!mb_check_encoding($content, 'UTF-8')) {
+            $content = mb_convert_encoding($content, 'UTF-8', 'auto');
+        }
+
+        $translatedPaths = [];
+        $totalUsage = ['input_tokens' => 0, 'output_tokens' => 0];
+
+        foreach ($document->target_languages as $lang) {
+            [$translated, $usage] = $this->translator->translateWithUsage($content, $lang);
+
+            if ($usage) {
+                $totalUsage['input_tokens']  += $usage['input_tokens'];
+                $totalUsage['output_tokens'] += $usage['output_tokens'];
+                $inputCost  = ($usage['input_tokens']  / 1_000_000) * 15;
+                $outputCost = ($usage['output_tokens'] / 1_000_000) * 75;
+                \Log::info("📄 Document Translate → {$lang} [{$document->original_filename}]", [
+                    'input_tokens'  => $usage['input_tokens'],
+                    'output_tokens' => $usage['output_tokens'],
+                    'total_tokens'  => $usage['input_tokens'] + $usage['output_tokens'],
+                    'cost_usd'      => '$' . number_format($inputCost + $outputCost, 6),
+                ]);
             }
 
-            $document->update([
-                'status'           => 'completed',
-                'translated_paths' => $translatedPaths,
-            ]);
+            $slug     = Str::slug(pathinfo($document->original_filename, PATHINFO_FILENAME));
+            $ext      = pathinfo($document->storage_path, PATHINFO_EXTENSION);
+            $fileName = $slug . '-' . $lang . '-' . time() . '.' . $ext;
+            $path     = 'documents/translated/' . $fileName;
+            Storage::disk('public')->put($path, $translated);
+            $translatedPaths[$lang] = $path;
+        }
 
-        } catch (\Exception $e) {
-            $document->update([
-                'status'        => 'failed',
-                'error_message' => $e->getMessage(),
+        if ($totalUsage['input_tokens'] > 0) {
+            $totalInput  = ($totalUsage['input_tokens']  / 1_000_000) * 15;
+            $totalOutput = ($totalUsage['output_tokens'] / 1_000_000) * 75;
+            \Log::info("💰 Document Translation TOTAL [{$document->original_filename}]", [
+                'total_cost_usd' => '$' . number_format($totalInput + $totalOutput, 6),
             ]);
         }
+
+        $document->update([
+            'status'           => 'completed',
+            'translated_paths' => $translatedPaths,
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error('Translation failed: ' . $e->getMessage());
+        $document->update(['status' => 'failed']);
     }
+}
 
     private function deleteFolderFiles(Folder $folder): void
     {

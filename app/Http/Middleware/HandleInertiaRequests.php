@@ -25,6 +25,8 @@ class HandleInertiaRequests extends Middleware
                 'success' => session('success'),
                 'error'   => session('error'),
             ],
+            // Share fresh CSRF token with every Inertia response
+            'csrf_token' => csrf_token(),
         ]);
     }
 }

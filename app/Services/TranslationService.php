@@ -55,4 +55,36 @@ class TranslationService
 
         return $text; // error ဖြစ်ရင် original ပြန်ပေး
     }
+
+
+    public function translateWithUsage(string $text, string $targetLang): array
+    {
+        if (!$this->hasApi) return [$text, null];
+
+        $langName = $this->languageNames[$targetLang] ?? $targetLang;
+
+        $response = \Http::withHeaders([
+            'x-api-key'         => config('services.anthropic.key'),
+            'anthropic-version' => '2023-06-01',
+            'content-type'      => 'application/json',
+        ])->post('https://api.anthropic.com/v1/messages', [
+            'model'      => 'claude-opus-4-6',
+            'max_tokens' => 4096,
+            'messages'   => [[
+                'role'    => 'user',
+                'content' => "Translate the following text to {$langName}. Return only the translated text, no explanations:\n\n{$text}",
+            ]],
+        ]);
+
+        if ($response->successful()) {
+            $json  = $response->json();
+            $usage = isset($json['usage']) ? [
+                'input_tokens'  => $json['usage']['input_tokens']  ?? 0,
+                'output_tokens' => $json['usage']['output_tokens'] ?? 0,
+            ] : null;
+            return [$json['content'][0]['text'] ?? $text, $usage];
+        }
+
+        return [$text, null];
+    }
 }

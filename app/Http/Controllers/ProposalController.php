@@ -42,7 +42,7 @@ class ProposalController extends Controller
     {
         $request->validate([
             'requirement_analysis_id' => 'required|exists:requirement_analyses,id',
-            'language'                => 'required|in:english,myanmar,khmer,vietnamese,korean,japanese',
+            'language'                => 'required|in:english',
             'template'                => 'nullable|in:executive,magazine,minimal',
         ]);
 
@@ -139,6 +139,8 @@ class ProposalController extends Controller
         );
         $content['template'] = $proposal->content['template'] ?? 'executive';
         $proposal->update(['content' => $content, 'status' => 'draft']);
-        return back()->with('success', 'Regenerated!');
+        
+        return redirect()->route('proposal.show', $proposal->id)  // ← back() မဟုတ်ဘဲ redirect
+            ->with('success', 'Regenerated successfully!');
     }
 }

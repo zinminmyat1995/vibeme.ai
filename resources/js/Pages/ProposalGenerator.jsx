@@ -1,6 +1,7 @@
 import { useEffect, useMemo,useRef , useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { useForm, usePage, router } from '@inertiajs/react';
+import { createPortal } from 'react-dom';
 
 const STATUS_MAP = {
     draft: { label: 'Draft', color: '#6b7280', bg: '#f3f4f6', dot: '#9ca3af' },
@@ -523,163 +524,137 @@ function TemplateCard({ active, onClick, title, desc, darkMode = false }) {
 }
 
 function PremiumSelect({
-    options = [],
-    value = '',
-    onChange,
+    options = [], value = '', onChange,
     placeholder = 'Select option...',
-    theme,
-    darkMode = false,
-    minWidth = 170,
-    width = 'auto',
-    renderOption,
-    zIndex = 300,
+    theme, darkMode = false, minWidth = 170, width = 'auto',
+    renderOption, zIndex = 300,
 }) {
     const [open, setOpen] = useState(false);
+    const [menuStyle, setMenuStyle] = useState({});
     const wrapRef = useRef(null);
+    const btnRef = useRef(null);
+    const menuRef = useRef(null);
 
-    const selected = options.find(
-        (opt) => String(opt.value) === String(value) && !opt.disabled,
-    );
+    const selected = options.find(opt => String(opt.value) === String(value) && !opt.disabled);
+
+    const calcMenuStyle = () => {
+        if (!btnRef.current) return;
+        const rect = btnRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const estimatedMenuHeight = Math.min(options.length * 54, 300);
+
+        if (spaceBelow >= estimatedMenuHeight || spaceBelow >= spaceAbove) {
+            setMenuStyle({ position: 'fixed', top: rect.bottom + 8, left: rect.left, width: rect.width, zIndex: 99999 });
+        } else {
+            setMenuStyle({ position: 'fixed', bottom: viewportHeight - rect.top + 8, left: rect.left, width: rect.width, zIndex: 99999 });
+        }
+    };
 
     useEffect(() => {
         const handler = (e) => {
-            if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-                setOpen(false);
-            }
+            if (
+                wrapRef.current && !wrapRef.current.contains(e.target) &&
+                menuRef.current && !menuRef.current.contains(e.target)
+            ) setOpen(false);
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
+    useEffect(() => {
+        if (!open) return;
+        const update = () => calcMenuStyle();
+        window.addEventListener('scroll', update, true);
+        window.addEventListener('resize', update);
+        return () => {
+            window.removeEventListener('scroll', update, true);
+            window.removeEventListener('resize', update);
+        };
+    }, [open]);
+
+    const handleOpen = () => { calcMenuStyle(); setOpen(v => !v); };
+
     const triggerBg = darkMode
         ? 'linear-gradient(180deg, rgba(12,22,44,0.96) 0%, rgba(8,17,36,0.96) 100%)'
         : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)';
-
     const menuBg = darkMode
         ? 'linear-gradient(180deg, rgba(5,17,38,0.99) 0%, rgba(3,12,28,0.99) 100%)'
         : '#ffffff';
-
     const selectedBg = darkMode ? 'rgba(37,99,235,0.22)' : '#2563eb';
-    const selectedText = '#ffffff';
+
+    const menu = open && createPortal(
+        <div ref={menuRef} style={{
+            ...menuStyle,
+            background: menuBg,
+            border: `1px solid ${theme.borderStrong}`,
+            borderRadius: 20,
+            overflow: 'hidden',
+            boxShadow: theme.shadow,
+            backdropFilter: 'blur(16px)',
+        }}>
+            {options.map((opt, index) => {
+                const isSelected = String(opt.value) === String(value);
+                const isDisabled = !!opt.disabled;
+                return (
+                    <button
+                        key={String(opt.value) || `opt-${index}`}
+                        type="button"
+                        onClick={() => { if (isDisabled) return; onChange(opt.value); setOpen(false); }}
+                        style={{
+                            width: '100%', minHeight: 50, padding: '0 16px',
+                            border: 'none',
+                            borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none',
+                            background: isSelected ? selectedBg : 'transparent',
+                            color: isSelected ? '#fff' : theme.textSoft,
+                            opacity: isDisabled ? 0.45 : 1,
+                            display: 'flex', alignItems: 'center', textAlign: 'left',
+                            cursor: isDisabled ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { if (!isSelected && !isDisabled) e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.04)' : '#f8fafc'; }}
+                        onMouseLeave={(e) => { if (!isSelected && !isDisabled) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                        {renderOption ? renderOption(opt, false, isSelected) : (
+                            <span style={{ fontSize: 13, fontWeight: isSelected ? 800 : 600 }}>{opt.label}</span>
+                        )}
+                    </button>
+                );
+            })}
+        </div>,
+        window.document.body
+    );
 
     return (
         <div ref={wrapRef} style={{ position: 'relative', minWidth, width, zIndex }}>
-            <button
-                type="button"
-                onClick={() => setOpen((v) => !v)}
-                style={{
-                    width: '100%',
-                    height: 52,
-                    padding: '0 16px',
-                    borderRadius: 18,
-                    border: `1px solid ${open ? theme.borderStrong : theme.inputBorder}`,
-                    background: triggerBg,
-                    color: selected ? theme.text : theme.textMute,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 12,
-                    cursor: 'pointer',
-                    boxShadow: open ? theme.shadowSoft : 'none',
-                    backdropFilter: 'blur(12px)',
-                    transition: 'all 0.18s ease',
-                    textAlign: 'left',
-                }}
-            >
-                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 10, textAlign: 'left' }}>
+            <button ref={btnRef} type="button" onClick={handleOpen} style={{
+                width: '100%', height: 52, padding: '0 16px', borderRadius: 18,
+                border: `1px solid ${open ? theme.borderStrong : theme.inputBorder}`,
+                background: triggerBg,
+                color: selected ? theme.text : theme.textMute,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 12, cursor: 'pointer',
+                boxShadow: open ? theme.shadowSoft : 'none',
+                backdropFilter: 'blur(12px)', transition: 'all 0.18s ease',
+            }}>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
                     {selected ? (
                         renderOption ? renderOption(selected, true, true) : (
-                            <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {selected.label}
                             </span>
                         )
                     ) : (
-                        <span style={{ fontSize: 13, color: theme.textMute, textAlign: 'left' }}>{placeholder}</span>
+                        <span style={{ fontSize: 13, color: theme.textMute }}>{placeholder}</span>
                     )}
                 </div>
-
-                <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease', flexShrink: 0 }}
-                >
-                    <path
-                        d="M4 6L8 10L12 6"
-                        stroke={theme.textMute}
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+                    style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease', flexShrink: 0 }}>
+                    <path d="M4 6L8 10L12 6" stroke={theme.textMute} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             </button>
-
-            {open && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 10px)',
-                        left: 0,
-                        right: 0,
-                        zIndex: zIndex + 50,
-                        background: menuBg,
-                        border: `1px solid ${theme.borderStrong}`,
-                        borderRadius: 20,
-                        overflow: 'hidden',
-                        boxShadow: theme.shadow,
-                        backdropFilter: 'blur(16px)',
-                    }}
-                >
-                    {options.map((opt, index) => {
-                        const isSelected = String(opt.value) === String(value);
-                        const isDisabled = !!opt.disabled;
-
-                        return (
-                            <button
-                                key={String(opt.value) || `opt-${index}`}
-                                type="button"
-                                onClick={() => {
-                                    if (isDisabled) return;
-                                    onChange(opt.value);
-                                    setOpen(false);
-                                }}
-                                style={{
-                                    width: '100%',
-                                    minHeight: 54,
-                                    padding: '0 16px',
-                                    border: 'none',
-                                    borderBottom: index < options.length - 1 ? `1px solid ${theme.border}` : 'none',
-                                    background: isSelected ? selectedBg : 'transparent',
-                                    color: isSelected ? selectedText : theme.textSoft,
-                                    opacity: isDisabled ? 0.45 : 1,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    textAlign: 'left',
-                                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                    transition: 'all 0.15s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!isSelected && !isDisabled) {
-                                        e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.03)' : '#f8fafc';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!isSelected && !isDisabled) {
-                                        e.currentTarget.style.background = 'transparent';
-                                    }
-                                }}
-                            >
-                                {renderOption ? renderOption(opt, false, isSelected) : (
-                                    <span style={{ fontSize: 13, fontWeight: isSelected ? 800 : 600 }}>
-                                        {opt.label}
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
+            {menu}
         </div>
     );
 }
@@ -943,83 +918,91 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                 </div>
 
                 <form onSubmit={submit}>
-                    <div style={{ padding: '24px 28px', overflowY: 'auto', maxHeight: 'calc(92vh - 170px)' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                            <div style={{ position: 'relative', zIndex: 250 }}>
-                                <label style={lbl}>Select Project <span style={{ color: theme.danger }}>*</span></label>
-                               <PremiumSelect
-                                    options={projectOptions}
-                                    value={form.data.requirement_analysis_id}
-                                    onChange={(val) => {
-                                        form.setData('requirement_analysis_id', val);
-                                        setErrors((prev) => ({ ...prev, requirement_analysis_id: '' }));
-                                    }}
-                                    placeholder="Choose a completed analysis..."
-                                    theme={theme}
-                                    darkMode={darkMode}
-                                    minWidth={0}
-                                    width="100%"
-                                    zIndex={250}
-                                    renderOption={(opt, isTriggerView, isSelectedItem) => {
-                                        const primaryColor = isTriggerView ? theme.text : isSelectedItem ? '#ffffff' : theme.textSoft;
-                                        const secondaryColor = isTriggerView ? theme.textMute : isSelectedItem ? 'rgba(255,255,255,0.78)' : theme.textMute;
+                    <div style={{
+                        padding: '24px 28px 20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 20,
+                        overflowY: 'auto',
+                        maxHeight: 'calc(92vh - 170px)',
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                    }}>
+                        <style>{`.gen-scroll::-webkit-scrollbar{display:none}`}</style>
 
-                                        return (
-                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
-                                                <span style={{ fontSize: 13, fontWeight: 800, color: primaryColor }}>
-                                                    {opt.label}
-                                                </span>
-                                                {!isTriggerView && opt.sublabel && (
-                                                    <span style={{ fontSize: 11, color: secondaryColor }}>
-                                                        {opt.sublabel}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        );
-                                    }}
-                                    />
-                                <FieldError msg={errors.requirement_analysis_id} darkMode={darkMode} />
-                                {analyses.length === 0 && <div style={{ fontSize: 12, color: theme.textMute, marginTop: 8 }}>No completed analyses available yet.</div>}
-                            </div>
-
-                            <div>
-                                <label style={lbl}>Proposal Language</label>
-                                <div className="pg-language-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                                    {LANGUAGES.map((language) => {
-                                        const active = form.data.language === language.value;
-                                        return (
-                                            <ChoiceCard key={language.value} active={active} onClick={() => form.setData('language', language.value)} darkMode={darkMode}>
-                                                <span style={{ display: 'inline-flex', borderRadius: 4, overflow: 'hidden' }}>{FLAGS[language.value]}</span>
-                                                <span>{language.label}</span>
-                                            </ChoiceCard>
-                                        );
-                                    })}
+                        {/* Select Project */}
+                        <div style={{ position: 'relative', zIndex: 250 }}>
+                            <label style={lbl}>Select Project <span style={{ color: theme.danger }}>*</span></label>
+                            <PremiumSelect
+                                options={projectOptions}
+                                value={form.data.requirement_analysis_id}
+                                onChange={(val) => {
+                                    form.setData('requirement_analysis_id', val);
+                                    setErrors((prev) => ({ ...prev, requirement_analysis_id: '' }));
+                                }}
+                                placeholder="Choose a completed analysis..."
+                                theme={theme}
+                                darkMode={darkMode}
+                                minWidth={0}
+                                width="100%"
+                                zIndex={250}
+                                renderOption={(opt, isTriggerView, isSelectedItem) => {
+                                    const primaryColor = isTriggerView ? theme.text : isSelectedItem ? '#ffffff' : theme.textSoft;
+                                    const secondaryColor = isTriggerView ? theme.textMute : isSelectedItem ? 'rgba(255,255,255,0.78)' : theme.textMute;
+                                    return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
+                                            <span style={{ fontSize: 13, fontWeight: 800, color: primaryColor }}>{opt.label}</span>
+                                            {!isTriggerView && opt.sublabel && (
+                                                <span style={{ fontSize: 11, color: secondaryColor }}>{opt.sublabel}</span>
+                                            )}
+                                        </div>
+                                    );
+                                }}
+                            />
+                            <FieldError msg={errors.requirement_analysis_id} darkMode={darkMode} />
+                            {analyses.length === 0 && (
+                                <div style={{ fontSize: 12, color: theme.textMute, marginTop: 8 }}>
+                                    No completed analyses available yet.
                                 </div>
-                            </div>
+                            )}
+                        </div>
 
-                            <div>
-                                <label style={lbl}>Template Style</label>
-                                <div className="pg-template-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                                    {TEMPLATES.map((template) => {
-                                        const active = form.data.template === template.value;
-                                        return (
-                                            <TemplateCard
-                                                key={template.value}
-                                                active={active}
-                                                onClick={() => form.setData('template', template.value)}
-                                                title={template.label}
-                                                desc={template.desc}
-                                                darkMode={darkMode}
-                                            />
-                                        );
-                                    })}
-                                </div>
+                        {/* Template Style */}
+                        <div>
+                            <label style={lbl}>Template Style</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                                {TEMPLATES.map((template) => {
+                                    const active = form.data.template === template.value;
+                                    return (
+                                        <TemplateCard
+                                            key={template.value}
+                                            active={active}
+                                            onClick={() => form.setData('template', template.value)}
+                                            title={template.label}
+                                            desc={template.desc}
+                                            darkMode={darkMode}
+                                        />
+                                    );
+                                })}
                             </div>
+                        </div>
+
+                        {/* Info note */}
+                        <div style={{
+                            padding: '10px 14px',
+                            borderRadius: 12,
+                            background: theme.primarySoft,
+                            border: `1px solid ${theme.primary}30`,
+                            fontSize: 12,
+                            color: theme.primary,
+                            fontWeight: 600,
+                        }}>
+                            🌐 Proposals are generated in English for best PDF compatibility.
                         </div>
                     </div>
 
                     <div style={{
-                        padding: '18px 28px 24px',
+                        padding: '16px 28px 20px',
                         borderTop: `1px solid ${theme.border}`,
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -1030,8 +1013,7 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                         <UIButton type="submit" disabled={form.processing} variant="primary" theme={theme}>
                             {form.processing && (
                                 <span style={{
-                                    width: 14,
-                                    height: 14,
+                                    width: 14, height: 14,
                                     border: '2px solid rgba(255,255,255,0.35)',
                                     borderTopColor: '#fff',
                                     borderRadius: '50%',

@@ -272,7 +272,11 @@ function SettingsModal({ open, onClose, mailSetting, theme, onShowToast }) {
                 border: `1px solid ${theme.borderStrong}`,
                 borderRadius: 24,
                 width: '100%', maxWidth: 540,
-                maxHeight: '90vh', overflowY: 'auto',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                scrollbarWidth: 'none',      // ← Firefox
+                msOverflowStyle: 'none',     // ← IE
                 boxShadow: theme.shadow,
             }}>
                 <button onClick={onClose} style={{

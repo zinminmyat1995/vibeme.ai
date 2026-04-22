@@ -223,17 +223,27 @@ class MessageController extends Controller
 
         $existing = $message->getTranslation($lang);
         if ($existing) {
-            return response()->json(['success' => true, 'translated' => $existing, 'cached' => true]);
+            return response()->json([
+                'success'    => true,
+                'translated' => $existing,
+                'cached'     => true,
+            ]);
         }
 
-        $translated = $this->aiService->translate($message->body ?? '', $lang);
+        [$translated, $usage] = $this->aiService->translateWithUsage($message->body ?? '', $lang);
 
+        // saveTranslation() မရှိဘူး — ရှိပြီးသား relation နဲ့ save:
         $message->translations()->updateOrCreate(
             ['language' => $lang],
             ['translated' => $translated]
         );
 
-        return response()->json(['success' => true, 'translated' => $translated]);
+        return response()->json([
+            'success'    => true,
+            'translated' => $translated,
+            'cached'     => false,
+            'usage'      => $usage,
+        ]);
     }
 
     // ── Media gallery ──

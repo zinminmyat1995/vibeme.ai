@@ -26,37 +26,37 @@ function useReactiveTheme() {
 
 function getTheme(dark) {
     if (dark) return {
-        bg:                '#0d1117',
-        surface:           '#161b22',
-        surfaceSoft:       'rgba(255,255,255,0.04)',
-        surfaceSofter:     'rgba(255,255,255,0.08)',
+        bg:                '#080e1a',
+        surface:           'linear-gradient(180deg, rgba(10,18,36,0.96) 0%, rgba(9,16,32,0.92) 100%)',
+        surfaceSoft:       'rgba(255,255,255,0.035)',
+        surfaceSofter:     'rgba(255,255,255,0.055)',
         border:            'rgba(148,163,184,0.12)',
         borderSoft:        'rgba(148,163,184,0.08)',
-        text:              '#f1f5f9',
+        text:              '#f8fafc',
         textSoft:          '#cbd5e1',
-        textMute:          '#64748b',
+        textMute:          '#8da0b8',
         textSecondary:     '#94a3b8',
-        bubbleOther:       '#1e293b',
+        bubbleOther:       'rgba(10,18,36,0.96)',
         bubbleOtherBorder: 'rgba(148,163,184,0.12)',
-        bubbleTextOther:   '#f1f5f9',
-        inputBg:           'rgba(255,255,255,0.05)',
-        inputBorder:       'rgba(148,163,184,0.15)',
+        bubbleTextOther:   '#f8fafc',
+        inputBg:           'rgba(255,255,255,0.04)',
+        inputBorder:       'rgba(148,163,184,0.16)',
         convActive:        'rgba(99,102,241,0.15)',
-        convHover:         'rgba(255,255,255,0.04)',
-        menuBg:            '#1e293b',
+        convHover:         'rgba(255,255,255,0.035)',
+        menuBg:            '#0b1324',
         menuBorder:        'rgba(148,163,184,0.15)',
-        dateDivider:       'rgba(148,163,184,0.1)',
-        replyBg:           'rgba(255,255,255,0.06)',
-        reactionBg:        'rgba(255,255,255,0.06)',
+        dateDivider:       'rgba(148,163,184,0.08)',
+        replyBg:           'rgba(255,255,255,0.055)',
+        reactionBg:        'rgba(255,255,255,0.055)',
         reactionBorder:    'rgba(255,255,255,0.1)',
-        shadow:            '0 8px 32px rgba(0,0,0,0.5)',
+        shadow:            '0 28px 80px rgba(0,0,0,0.42)',
         shadowSm:          '0 1px 4px rgba(0,0,0,0.3)',
-        headerBg:          '#161b22',
-        sidebarBg:         '#161b22',
-        sidebarBorder:     'rgba(148,163,184,0.1)',
-        msgAreaBg:         '#0d1117',
+        headerBg:          'rgba(10,18,36,0.97)',
+        sidebarBg:         'rgba(10,18,36,0.97)',
+        sidebarBorder:     'rgba(148,163,184,0.10)',
+        msgAreaBg:         '#080e1a',
         scrollThumb:       'rgba(255,255,255,0.12)',
-        modalBg:           '#1e293b',
+        modalBg:           '#0b1324',
         modalBorder:       'rgba(148,163,184,0.15)',
         inputFocusBorder:  '#6366f1',
         tagBg:             'rgba(99,102,241,0.15)',
@@ -241,7 +241,10 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
     const handleReactClick = (e, emoji) => { e.stopPropagation(); onReact(msg.id, emoji); setShowEmojiPicker(false); setOpenMenuId(null); };
     const handleRemoveReact = (e) => { e.stopPropagation(); if (myReaction) onReact(msg.id, myReaction); };
     const handleTranslate = async (lang) => {
-        setShowLangPicker(false); setOpenMenuId(null); setTranslating(true);
+        setShowLangPicker(false);
+        setOpenMenuId(null);
+        setTranslating(true);
+        setTranslation(null); // ← ဟောင်းတာကို ချက်ချင်း ဖျက်
         const result = await onTranslate(msg.id, lang);
         if (result) setTranslation({ lang, text: result });
         setTranslating(false);
@@ -353,9 +356,26 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
                     {msg.type === 'sticker' && <div style={{ fontSize: 52, lineHeight: 1, padding: '4px 2px', userSelect: 'none' }}>{msg.body}</div>}
                 </div>
 
-                {translation && (
-                    <div style={{ marginTop: 4, padding: '6px 12px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', borderRadius: 10, fontSize: 12, color: '#6366f1', maxWidth: '100%' }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, marginRight: 6 }}>{FLAGS[translation.lang]} {LANG_LABELS[translation.lang]}</span>
+                {translating && (
+                    <div style={{
+                        marginTop: 4, padding: '6px 12px',
+                        background: 'rgba(99,102,241,0.06)',
+                        border: '1px solid rgba(99,102,241,0.15)',
+                        borderRadius: 10, fontSize: 12,
+                        color: '#6366f1',
+                    }}>
+                        <span style={{ opacity: 0.7 }}>Translating...</span>
+                    </div>
+                )}
+
+                {!translating && translation && (
+                    <div style={{
+                        marginTop: 4, padding: '6px 12px',
+                        background: 'rgba(99,102,241,0.06)',
+                        border: '1px solid rgba(99,102,241,0.15)',
+                        borderRadius: 10, fontSize: 12,
+                        color: t.text, maxWidth: '100%',
+                    }}>
                         {translation.text}
                     </div>
                 )}
@@ -791,7 +811,52 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
     };
 
     const handleDelete    = async (messageId) => { const data = await api(`/ai-chat/messages/${messageId}`, { method: 'DELETE' }); if (data.success) setMessages(prev => prev.filter(m => m.id !== messageId)); };
-    const handleTranslate = async (messageId, lang) => { const data = await api(`/ai-chat/messages/${messageId}/translate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ language: lang }) }); return data.success ? data.translated : null; };
+    // AiChat.jsx ထဲမှာ ရှိပြီးသား handleTranslate function ကို ဒါနဲ့ replace:
+
+    const handleTranslate = async (messageId, lang) => {
+        const startTime = Date.now();
+        
+        const data = await api(
+            `/ai-chat/messages/${messageId}/translate`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ language: lang }),
+            }
+        );
+
+        const elapsed = Date.now() - startTime;
+
+        if (data.success) {
+            // ── Token & cost console ──────────────────────────
+            const usage = data.usage; // backend မှာ return လုပ်ရင်
+            
+            console.group(`🌐 AI Translate → ${lang.toUpperCase()} [msg #${messageId}]`);
+            console.log(`📝 Translated:   "${data.translated?.slice(0, 80)}..."`);
+            console.log(`⚡ Cached:       ${data.cached ? '✅ Yes (no API call)' : '❌ No (API used)'}`);
+            console.log(`⏱️  Time:         ${elapsed}ms`);
+            
+            if (usage) {
+                const inputCost  = (usage.input_tokens  / 1_000_000) * 15;   // $15/1M input
+                const outputCost = (usage.output_tokens / 1_000_000) * 75;   // $75/1M output
+                const totalCost  = inputCost + outputCost;
+                
+                console.log(`🔢 Tokens Used:`);
+                console.log(`   Input:   ${usage.input_tokens} tokens`);
+                console.log(`   Output:  ${usage.output_tokens} tokens`);
+                console.log(`   Total:   ${usage.input_tokens + usage.output_tokens} tokens`);
+                console.log(`💰 Cost:     ~$${totalCost.toFixed(6)} USD`);
+            } else if (!data.cached) {
+                console.log(`💡 Token info: Backend မှာ usage return မလုပ်ထားသေးဘူး`);
+                console.log(`   (MessageController@translate မှာ usage ထည့်ဖို့ လိုသေး)`);
+            }
+            console.groupEnd();
+        } else {
+            console.error(`❌ Translate failed for msg #${messageId}`);
+        }
+
+        return data.success ? data.translated : null;
+    };
 
     const handleTyping = useCallback(() => {
         if (!activeConv) return;
