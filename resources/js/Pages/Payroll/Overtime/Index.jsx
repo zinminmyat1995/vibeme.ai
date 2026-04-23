@@ -114,38 +114,121 @@ const STATUS_CFG = {
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // ── Premium Dropdown ───────────────────────────────────────────
-function PremiumDropdown({ options, value, onChange, theme, dark, width }) {
+function PremiumDropdown({ options, value, onChange, placeholder = 'Select...', theme, dark, disabled = false, width = 'auto' }) {
     const [open, setOpen] = useState(false);
-    const ref = useRef(null);
-    const sel = options.find(o => String(o.value) === String(value));
+    const [pos,  setPos]  = useState({ top: 0, left: 0, width: 0, above: false });
+    const triggerRef = useRef(null);
+    const menuRef    = useRef(null);
+    const selected   = options.find(o => String(o.value) === String(value) && !o.disabled);
+ 
     useEffect(() => {
-        const fn = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-        document.addEventListener('mousedown', fn);
-        return () => document.removeEventListener('mousedown', fn);
+        const handler = e => {
+            if (triggerRef.current?.contains(e.target) || menuRef.current?.contains(e.target)) return;
+            setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
     }, []);
+ 
+    function handleOpen() {
+        if (disabled) return;
+        const rect = triggerRef.current?.getBoundingClientRect();
+        if (rect) {
+            const MENU_H    = Math.min(options.filter(o => !o.disabled).length * 44, 220);
+            const GAP       = 6;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            // flip up when not enough space below OR more space above
+            const above = spaceBelow < MENU_H + GAP || spaceAbove > spaceBelow + 40;
+            setPos({
+                // use fixed positioning so it escapes modal overflow
+                top:   above ? rect.top  - MENU_H - GAP : rect.bottom + GAP,
+                left:  rect.left,
+                width: rect.width,
+                above,
+            });
+        }
+        setOpen(v => !v);
+    }
+ 
     return (
-        <div ref={ref} style={{ position:'relative', width: width||'auto', minWidth:110 }}>
-            <button onClick={() => setOpen(v => !v)} style={{ width:'100%', border:`1px solid ${open ? '#7c3aed' : theme.border}`, borderRadius:10, padding:'8px 12px', fontSize:13, fontWeight:600, color:theme.text, background: dark ? theme.panelSoft : '#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, boxShadow: open ? '0 0 0 3px rgba(124,58,237,0.18)' : 'none', outline:'none', transition:'all 0.15s' }}>
-                <span>{sel?.label || '—'}</span>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: open ? 'rotate(180deg)' : 'none', transition:'transform 0.18s', color:theme.textMute, flexShrink:0 }}><path d="M6 9l6 6 6-6"/></svg>
+        <>
+            <button
+                ref={triggerRef}
+                type="button"
+                onClick={handleOpen}
+                disabled={disabled}
+                style={{
+                    width, height: 44, padding: '0 14px', borderRadius: 12,
+                    border: `1.5px solid ${open ? '#7c3aed' : theme.inputBorder}`,
+                    background: dark
+                        ? 'linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))'
+                        : 'linear-gradient(180deg,#fff,#f8fafc)',
+                    color: selected ? theme.text : theme.textMute,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    fontSize: 13, fontWeight: selected ? 600 : 400,
+                    boxShadow: open ? '0 0 0 3px rgba(124,58,237,0.18)' : 'none',
+                    transition: 'all 0.18s', opacity: disabled ? 0.5 : 1, outline: 'none',
+                }}
+            >
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {selected ? selected.label : (placeholder || '—')}
+                </span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2.5"
+                    style={{ flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none', color: theme.textMute }}>
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
             </button>
-            {open && (
-                <div style={{ position:'absolute', top:'calc(100% + 6px)', left:0, minWidth:'100%', background: dark ? '#111e38' : '#fff', border:`1px solid ${theme.border}`, borderRadius:12, boxShadow:theme.shadow, zIndex:300, overflow:'hidden', animation:'otDrop 0.14s ease' }}>
-                    {options.map(opt => {
-                        const active = String(opt.value) === String(value);
+ 
+            {open && createPortal(
+                <div
+                    ref={menuRef}
+                    className="ot-hide"
+                    style={{
+                        position: 'fixed',          // ← fixed, escapes modal overflow
+                        top:  pos.top,
+                        left: pos.left,
+                        width: pos.width,
+                        background: dark ? '#111e38' : '#fff',
+                        border: `1px solid ${theme.border}`,
+                        borderRadius: 14,
+                        boxShadow: dark
+                            ? '0 24px 60px rgba(0,0,0,0.55)'
+                            : '0 12px 40px rgba(15,23,42,0.14)',
+                        zIndex: 99999,
+                        maxHeight: 220,
+                        overflowY: 'auto',
+                        animation: pos.above ? 'otDropUp 0.16s ease' : 'otDrop 0.16s ease',
+                    }}
+                >
+                    {options.filter(o => !o.disabled).map(opt => {
+                        const isSel = String(opt.value) === String(value);
                         return (
-                            <button key={opt.value} onClick={() => { onChange(opt.value); setOpen(false); }}
-                                style={{ width:'100%', background: active ? (dark ? 'rgba(139,92,246,0.16)' : '#f3e8ff') : 'transparent', border:'none', padding:'9px 14px', fontSize:13, fontWeight: active ? 700 : 500, color: active ? '#7c3aed' : theme.textSoft, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:8, transition:'background 0.1s' }}
-                                onMouseEnter={e => { if (!active) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.05)' : '#f8fafc'; }}
-                                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
-                                {active && <span style={{ color:'#7c3aed', fontSize:11 }}>✓</span>}
+                            <div
+                                key={opt.value}
+                                onClick={() => { onChange(opt.value); setOpen(false); }}
+                                style={{
+                                    padding: '10px 14px', fontSize: 13,
+                                    fontWeight: isSel ? 700 : 500,
+                                    color: isSel ? '#fff' : theme.text,
+                                    background: isSel ? '#7c3aed' : 'transparent',
+                                    cursor: 'pointer', transition: 'background 0.1s',
+                                    display: 'flex', alignItems: 'center', gap: 8,
+                                }}
+                                onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.06)' : '#f8fafc'; }}
+                                onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
+                            >
+                                {isSel && <span style={{ fontSize: 11 }}>✓</span>}
                                 {opt.label}
-                            </button>
+                            </div>
                         );
                     })}
-                </div>
+                </div>,
+                document.body
             )}
-        </div>
+        </>
     );
 }
 
@@ -155,37 +238,68 @@ function PremiumDropdown({ options, value, onChange, theme, dark, width }) {
 function OTPolicyCards({ overtimePolicies, dark, theme }) {
     if (!overtimePolicies?.length) return null;
     return (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(175px, 1fr))', gap:12 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {overtimePolicies.map(pol => {
                 const c        = getOTColor(pol.title);
                 const bg       = dark ? c.bgDark : c.bg;
-                const dayLabel = pol.day_type === 'public_holiday' ? 'Public Holiday' : pol.day_type === 'weekend' ? 'Weekend' : 'Weekday';
-                const shiftLbl = pol.shift_type === 'day' ? '☀️ Day' : pol.shift_type === 'night' ? '🌙 Night' : '🕐 All';
-                const rateVal  = pol.rate_type === 'multiplier' ? `${Number(pol.rate_value).toFixed(1)}x` : Number(pol.rate_value).toLocaleString();
-                const pct      = pol.shift_type === 'day' ? 60 : pol.shift_type === 'night' ? 100 : 80;
-
+                const dayLabel = pol.day_type === 'public_holiday' ? 'Public Holiday'
+                               : pol.day_type === 'weekend'        ? 'Weekend' : 'Weekday';
+                const shiftLbl = pol.shift_type === 'day'   ? 'Day'
+                               : pol.shift_type === 'night' ? 'Night' : 'All';
+                const rateVal  = pol.rate_type === 'multiplier'
+                               ? `${Number(pol.rate_value).toFixed(1)}×`
+                               : Number(pol.rate_value).toLocaleString();
+                const pct = pol.shift_type === 'day' ? 60 : pol.shift_type === 'night' ? 100 : 80;
+ 
                 return (
-                    <div key={pol.id} style={{ background: dark ? theme.panelSolid : '#fff', border:`1px solid ${dark ? theme.border : c.border}`, borderRadius:16, padding:'16px', boxShadow: dark ? 'none' : '0 1px 6px rgba(0,0,0,0.05)', position:'relative', overflow:'hidden' }}>
-                        {/* blob */}
-                        <div style={{ position:'relative' }}>
-                            {/* title + active dot */}
-                            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-                                <span style={{ fontSize:10, fontWeight:800, color:c.color, textTransform:'uppercase', letterSpacing:'0.05em' }}>{pol.title}</span>
-                               
+                    <div key={pol.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        background: dark ? 'rgba(255,255,255,0.04)' : '#fff',
+                        border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : c.border}`,
+                        borderRadius: 14,
+                        padding: '12px 16px',
+                        boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.18)' : '0 1px 4px rgba(0,0,0,0.04)',
+                        position: 'relative', overflow: 'hidden',
+                        minWidth: 170,
+                    }}>
+                        {/* top color bar */}
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: c.color }} />
+ 
+                        {/* rate number box */}
+                        <div style={{
+                            width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                            background: bg,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            border: `1px solid ${dark ? 'transparent' : c.border}`,
+                        }}>
+                            <span style={{ fontSize: 15, fontWeight: 900, color: c.color, lineHeight: 1 }}>
+                                {rateVal}
+                            </span>
+                        </div>
+ 
+                        {/* text */}
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{
+                                fontSize: 11, fontWeight: 800, color: c.color,
+                                textTransform: 'uppercase', letterSpacing: '0.5px',
+                                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                            }}>
+                                {pol.title}
                             </div>
-                            {/* big rate number — like leave balance number */}
-                            <div style={{ display:'flex', alignItems:'baseline', gap:4, marginBottom:8 }}>
-                                <span style={{ fontSize:28, fontWeight:900, color:theme.text, lineHeight:1 }}>{rateVal}</span>
-                                <span style={{ fontSize:11, color:theme.textMute }}>{pol.rate_type === 'multiplier' ? '/ base' : 'flat'}</span>
+                            <div style={{ fontSize: 10, color: theme.textMute, marginTop: 2 }}>
+                                {dayLabel} · {shiftLbl} shift
                             </div>
-                            {/* progress bar */}
-                            <div style={{ background: dark ? 'rgba(255,255,255,0.08)' : '#f0f0f0', borderRadius:99, height:4, overflow:'hidden', marginBottom:8 }}>
-                                <div style={{ height:'100%', borderRadius:99, background:c.grad, width:`${pct}%`, transition:'width 0.5s ease' }}/>
-                            </div>
-                            {/* footer */}
-                            <div style={{ display:'flex', justifyContent:'space-between', fontSize:11 }}>
-                                <span style={{ color:theme.textMute }}>{dayLabel}</span>
-                                <span style={{ color:c.color, fontWeight:700 }}>{shiftLbl}</span>
+                            {/* mini bar */}
+                            <div style={{
+                                marginTop: 6, height: 3, borderRadius: 99,
+                                background: dark ? 'rgba(255,255,255,0.08)' : '#f0f0f0',
+                                width: 80, overflow: 'hidden',
+                            }}>
+                                <div style={{
+                                    height: '100%', borderRadius: 99,
+                                    background: c.grad,
+                                    width: `${pct}%`,
+                                }} />
                             </div>
                         </div>
                     </div>
@@ -199,20 +313,19 @@ function OTPolicyCards({ overtimePolicies, dark, theme }) {
 //  OT REQUEST ROW  ← matches Leave RequestRow layout exactly
 // ─────────────────────────────────────────────────────────────
 function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDelete, isLast }) {
-    const sc          = STATUS_CFG[req.status] || STATUS_CFG.pending;
-    const isMine      = req.user_id === userId;
-    const isAssigned  = req.approver_id === userId;
+    const sc         = STATUS_CFG[req.status] || STATUS_CFG.pending;
+    const isMine     = req.user_id === userId;
+    const isAssigned = req.approver_id === userId;
     const showActions = canApprove && req.status === 'pending' && isAssigned && !isMine;
-    const statusBg    = dark ? sc.bgDark : sc.bg;
-
-    const segments   = req.segments || [];
-    const isMultiDay = req.end_date && req.end_date !== req.start_date;
-
-    // approved ဆိုရင် hours_approved=0 ဖြစ်တဲ့ segments ဖယ်ထုတ်
+    const showDelete  = req.user_id === userId && req.status === 'pending';
+    const statusBg   = dark ? sc.bgDark : sc.bg;
+ 
+    const segments       = req.segments || [];
+    const isMultiDay     = req.end_date && req.end_date !== req.start_date;
     const visibleSegments = req.status === 'approved'
         ? segments.filter(seg => parseFloat(seg.hours_approved) > 0)
         : segments;
-
+ 
     const grouped = {};
     visibleSegments.forEach(seg => {
         const d = seg.segment_date || req.start_date;
@@ -221,187 +334,354 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
     });
     const groupedDates  = Object.keys(grouped).sort();
     const hasMultiGroup = groupedDates.length > 1;
-
+ 
     const typeTotals = {};
     visibleSegments.forEach(seg => {
         const k = seg.overtime_policy?.title || 'OT';
         const h = parseFloat(req.status === 'approved' ? seg.hours_approved : seg.hours) || 0;
         typeTotals[k] = (typeTotals[k] || 0) + h;
     });
-
-    // accent bar color from first segment
+ 
     const barColor = segments[0] ? getOTColor(segments[0].overtime_policy?.title).color : theme.primary;
-    const showDelete = req.user_id === userId && req.status === 'pending';
-
+ 
+    // chip style (same as Leave)
+    const chipLabel = {
+        fontSize: 9, fontWeight: 800,
+        textTransform: 'uppercase', letterSpacing: '0.5px',
+        marginRight: 5,
+    };
+    const chipValue = { fontSize: 12, fontWeight: 700 };
+ 
     return (
-        <div style={{ display:'flex', alignItems:'stretch', borderBottom: isLast ? 'none' : `1px solid ${theme.border}` }}>
-            {/* left bar */}
-            <div style={{ width:3, background:barColor, flexShrink:0 }}/>
-
-            <div style={{ flex:1, padding:'14px 20px', display:'flex', gap:14, alignItems:'flex-start' }}>
-                <div style={{ flex:1, minWidth:0 }}>
-
-                    {/* Row 1 */}
-                    <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap', marginBottom:5 }}>
-                        <span style={{ fontSize:14, fontWeight:800, color:theme.text }}>Overtime</span>
-                        <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 9px', background:statusBg, color:sc.color }}>
+        <div
+            style={{
+                display: 'flex', alignItems: 'stretch',
+                borderBottom: isLast ? 'none' : `1px solid ${theme.border}`,
+                transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.02)' : '#fafbff'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+            {/* left accent bar */}
+            <div style={{ width: 3, background: barColor, flexShrink: 0 }} />
+ 
+            <div style={{ flex: 1, padding: '13px 18px', minWidth: 0 }}>
+ 
+                {/* ── Row 1: title · status · hours  /  right: awaiting/actions/delete ── */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                    {/* Left */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Overtime</span>
+ 
+                        <span style={{
+                            fontSize: 10, fontWeight: 700,
+                            background: statusBg, color: sc.color,
+                            borderRadius: 99, padding: '2px 8px',
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                        }}>
                             {sc.label}
                         </span>
+ 
+                        {/* hours badge */}
                         {req.status === 'approved' && parseFloat(req.hours_approved) !== parseFloat(req.hours_requested) ? (
                             <>
-                                <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 9px',
-                                    background: dark ? 'rgba(16,185,129,0.15)' : '#d1fae5', color:'#059669' }}>
-                                    ✓ {fmtHrs(req.hours_approved)} approved
+                                <span style={{
+                                    fontSize: 10, fontWeight: 700, borderRadius: 99, padding: '2px 8px',
+                                    background: dark ? 'rgba(16,185,129,0.15)' : '#d1fae5', color: '#059669',
+                                }}>
+                                    ✓ {fmtHrs(req.hours_approved)}
                                 </span>
-                                <span style={{ fontSize:10, fontWeight:600, borderRadius:99, padding:'2px 9px',
+                                <span style={{
+                                    fontSize: 10, fontWeight: 600, borderRadius: 99, padding: '2px 8px',
                                     background: dark ? theme.panelSoft : '#f3f4f6',
-                                    color: theme.textMute, textDecoration:'line-through' }}>
+                                    color: theme.textMute, textDecoration: 'line-through',
+                                }}>
                                     {fmtHrs(req.hours_requested)}
                                 </span>
                             </>
                         ) : (
-                            <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 9px',
-                                background: dark ? theme.primarySoft : '#ede9fe', color:theme.primary }}>
+                            <span style={{
+                                fontSize: 10, fontWeight: 700, borderRadius: 99, padding: '2px 8px',
+                                background: dark ? theme.primarySoft : '#ede9fe', color: theme.primary,
+                            }}>
                                 {req.status === 'approved'
-                                    ? `✓ ${fmtHrs(req.hours_approved)} approved`
-                                    : `${fmtHrs(req.hours_requested)} total`}
+                                    ? `✓ ${fmtHrs(req.hours_approved)}`
+                                    : `${fmtHrs(req.hours_requested)}`}
                             </span>
                         )}
                     </div>
-
-                    {/* Row 2: employee (approver view) */}
-                    {!isMine && req.user && (
-                        <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:6 }}>
-                            {req.user.avatar_url
-                                ? <img src={`/storage/${req.user.avatar_url}`} alt={req.user.name} style={{ width:24, height:24, borderRadius:7, objectFit:'cover', border:`1px solid ${theme.border}`, flexShrink:0 }}/>
-                                : <div style={{ width:24, height:24, borderRadius:7, flexShrink:0, background: dark ? theme.primarySoft : '#ede9fe', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:theme.primary }}>{initials(req.user.name)}</div>
-                            }
-                            <span style={{ fontSize:13, fontWeight:700, color:theme.text }}>{req.user.name}</span>
-                            {req.user.position && <span style={{ fontSize:11, color:theme.textMute }}>{req.user.position}</span>}
-                            {req.user.department && <><span style={{ color:theme.border }}>·</span><span style={{ fontSize:11, color:'#6366f1' }}>{req.user.department}</span></>}
-                        </div>
-                    )}
-
-                    {/* Row 3: date */}
-                    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8, flexWrap:'wrap' }}>
-                        <span style={{ fontSize:12, fontWeight:700, color:theme.textSoft }}>{fmtDate(req.start_date)}</span>
-                        {isMultiDay && (
-                            <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                            <span style={{ fontSize:12, fontWeight:700, color:theme.textSoft }}>{fmtDate(req.end_date)}</span></>
+ 
+                    {/* Right */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+ 
+                        {/* Awaiting stacked */}
+                        {req.status === 'pending' && req.approver && !showActions && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Awaiting</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: '#2563eb' }}>
+                                    {req.approver.name}
+                                </div>
+                            </div>
                         )}
-                        <span style={{ fontSize:11, fontWeight:700, color:theme.primary, background: dark ? theme.primarySoft : '#ede9fe', borderRadius:6, padding:'2px 8px' }}>
+ 
+                        {/* Approved by */}
+                        {req.status === 'approved' && req.approvedBy && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Approved by</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.success }}>
+                                    {req.approvedBy.name}
+                                </div>
+                            </div>
+                        )}
+ 
+                        {/* Rejected by */}
+                        {req.status === 'rejected' && req.approvedBy && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Rejected by</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.danger }}>
+                                    {req.approvedBy.name}
+                                </div>
+                            </div>
+                        )}
+ 
+                        {/* Approve / Reject pill buttons */}
+                        {showActions && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                                <button
+                                    onClick={onApprove}
+                                    style={{
+                                        background: dark
+                                            ? 'linear-gradient(135deg,#065f46,#059669)'
+                                            : 'linear-gradient(135deg,#059669,#10b981)',
+                                        border: 'none', borderRadius: 20,
+                                        padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                                        cursor: 'pointer', color: '#fff',
+                                        display: 'flex', alignItems: 'center', gap: 5,
+                                        boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                                        transition: 'opacity 0.15s',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+                                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                                >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" strokeWidth="3"
+                                        strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    Approve
+                                </button>
+                                <button
+                                    onClick={onReject}
+                                    style={{
+                                        background: dark
+                                            ? 'linear-gradient(135deg,rgba(220,38,38,0.28),rgba(239,68,68,0.22))'
+                                            : 'linear-gradient(135deg,#fef2f2,#fee2e2)',
+                                        border: 'none', borderRadius: 20,
+                                        padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                                        cursor: 'pointer', color: dark ? '#f87171' : '#dc2626',
+                                        display: 'flex', alignItems: 'center', gap: 5,
+                                        boxShadow: dark
+                                            ? '0 2px 8px rgba(248,113,113,0.15)'
+                                            : '0 2px 8px rgba(220,38,38,0.10)',
+                                        transition: 'opacity 0.15s',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = '0.82'}
+                                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                                >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                    Reject
+                                </button>
+                            </div>
+                        )}
+ 
+                        {/* Delete — no border, faint icon */}
+                        {showDelete && (
+                            <button
+                                onClick={() => onDelete(req)}
+                                title="Delete request"
+                                style={{
+                                    width: 28, height: 28, borderRadius: 7,
+                                    background: 'transparent', border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.15s', flexShrink: 0,
+                                    color: dark ? 'rgba(248,113,113,0.4)' : '#fca5a5',
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.16)' : '#fee2e2';
+                                    e.currentTarget.style.color = dark ? '#f87171' : '#dc2626';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = dark ? 'rgba(248,113,113,0.4)' : '#fca5a5';
+                                }}
+                            >
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" strokeWidth="2.2"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                    <path d="M10 11v6M14 11v6"/>
+                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+                </div>
+ 
+                {/* ── Employee row (approver/all view) ── */}
+                {!isMine && req.user && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                        {req.user.avatar_url ? (
+                            <img src={`/storage/${req.user.avatar_url}`} alt={req.user.name}
+                                style={{ width: 22, height: 22, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                        ) : (
+                            <div style={{
+                                width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                                background: dark ? theme.primarySoft : '#ede9fe',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 10, fontWeight: 800, color: theme.primary,
+                            }}>
+                                {initials(req.user.name)}
+                            </div>
+                        )}
+                        <span style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{req.user.name}</span>
+                        {req.user.position && <span style={{ fontSize: 11, color: theme.textMute }}>{req.user.position}</span>}
+                        {req.user.department && <span style={{ fontSize: 11, color: '#6366f1' }}>{req.user.department}</span>}
+                    </div>
+                )}
+ 
+                {/* ── Date + time chip row ── */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 9, flexWrap: 'wrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                        <span style={{ ...chipLabel, color: theme.textMute }}>Date</span>
+                        <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.start_date)}</span>
+                    </span>
+ 
+                    {isMultiDay && (
+                        <>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                stroke={theme.textMute} strokeWidth="2.5" strokeLinecap="round">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                            <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                                <span style={{ ...chipLabel, color: theme.textMute }}>To</span>
+                                <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.end_date)}</span>
+                            </span>
+                        </>
+                    )}
+ 
+                    <span style={{ color: theme.border, fontSize: 12 }}>·</span>
+ 
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                        <span style={{ ...chipLabel, color: theme.textMute }}>Time</span>
+                        <span style={{ ...chipValue, color: theme.primary }}>
                             {to12h(req.start_time)} — {to12h(req.end_time)}
                         </span>
-                    </div>
-
-                    {/* Row 4: segments */}
-                    {segments.length > 0 && (
-                        <div style={{ display:'flex', flexDirection:'column', gap: hasMultiGroup ? 7 : 4, marginBottom: req.reason ? 8 : 0 }}>
-                            {groupedDates.map(date => (
-                                <div key={date}>
-                                    {hasMultiGroup && <div style={{ fontSize:10, color:theme.textMute, marginBottom:4, fontStyle:'italic' }}>{fmtDate(date)}</div>}
-                                    <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
-                                        {grouped[date].map(seg => {
-                                            const oc  = getOTColor(seg.overtime_policy?.title);
-                                            const obg = dark ? oc.bgDark : oc.bg;
-                                            const hrs = fmtHrs(req.status === 'approved' ? seg.hours_approved : seg.hours);
-                                            return (
-                                                <div key={seg.id} style={{ display:'inline-flex', alignItems:'center', gap:5, background:obg, border:`1px solid ${oc.border}`, borderRadius:8, padding:'3px 9px' }}>
-                                                    <span style={{ width:5, height:5, borderRadius:'50%', background:oc.color, flexShrink:0 }}/>
-                                                    <span style={{ fontSize:11, fontWeight:700, color:oc.color }}>{seg.overtime_policy?.title || 'OT'}</span>
-                                                    <span style={{ fontSize:11, color:theme.textMute }}>{to12h(seg.start_time)}–{to12h(seg.end_time)}</span>
-                                                    <span style={{ fontSize:11, fontWeight:800, color:oc.color }}>{hrs}</span>
-                                                </div>
-                                            );
-                                        })}
+                    </span>
+                </div>
+ 
+                {/* ── Segments row ── */}
+                {visibleSegments.length > 0 && (
+                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                        {groupedDates.map(date => (
+                            <div key={date}>
+                                {hasMultiGroup && (
+                                    <div style={{
+                                        fontSize: 10, color: theme.textMute,
+                                        marginBottom: 3, fontStyle: 'italic',
+                                    }}>
+                                        {fmtDate(date)}
                                     </div>
-                                </div>
-                            ))}
-                            {Object.keys(typeTotals).length > 1 && (
-                                <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginTop:3, paddingTop:5, borderTop:`1px dashed ${theme.border}` }}>
-                                    <span style={{ fontSize:9, fontWeight:700, color:theme.textMute, alignSelf:'center', textTransform:'uppercase', letterSpacing:'0.05em' }}>TOTAL BY TYPE</span>
-                                    {Object.entries(typeTotals).map(([t, h]) => {
-                                        const tc = getOTColor(t);
-                                        return <span key={t} style={{ fontSize:11, fontWeight:700, color:tc.color, background: dark ? tc.bgDark : tc.bg, border:`1px solid ${tc.border}`, borderRadius:99, padding:'1px 8px' }}>{t.replace(' OT','')} · {fmtHrs(h)}</span>;
+                                )}
+                                {/* Each segment on its own inline row */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                    {grouped[date].map(seg => {
+                                        const oc  = getOTColor(seg.overtime_policy?.title);
+                                        const hrs = fmtHrs(req.status === 'approved' ? seg.hours_approved : seg.hours);
+                                        return (
+                                            <div key={seg.id} style={{
+                                                display: 'flex', alignItems: 'center',
+                                                gap: 6, flexWrap: 'wrap',marginLeft: "30px"
+                                            }}>
+                                                {/* colored dot */}
+                                                <span style={{
+                                                    width: 6, height: 6, borderRadius: '50%',
+                                                    background: oc.color, flexShrink: 0,
+                                                    marginRight: 2,
+                                                }} />
+                                                {/* type label */}
+                                                <span style={{
+                                                    fontSize: 11, fontWeight: 700, color: oc.color,
+                                                }}>
+                                                    {seg.overtime_policy?.title || 'OT'}
+                                                </span>
+                                                {/* time range */}
+                                                <span style={{ fontSize: 11, color: theme.textMute }}>
+                                                    {to12h(seg.start_time)}–{to12h(seg.end_time)}
+                                                </span>
+                                                {/* hours chip — small pill, no border */}
+                                                <span style={{
+                                                    fontSize: 10, fontWeight: 800,
+                                                    color: oc.color,
+                                                    background: dark ? oc.bgDark : oc.bg,
+                                                    borderRadius: 99, padding: '1px 7px',
+                                                }}>
+                                                    {hrs}
+                                                </span>
+                                            </div>
+                                        );
                                     })}
                                 </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Row 5: reason — same style as Leave */}
-                    {req.reason && (
-                        <div style={{ display:'flex', gap:8, background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb',
-                            border:`1px solid ${theme.border}`, borderRadius:10, padding:'8px 12px' }}>
-                            <span style={{ fontSize:12, fontWeight:800, color:theme.textMute, flexShrink:0, marginTop:1, textTransform:'uppercase', letterSpacing:'0.4px' }}>Reason</span>
-                            <span style={{ fontSize:12, color:theme.textSoft, lineHeight:1.5 }}>{req.reason}</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Right side */}
-                <div style={{
-                    flexShrink: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    justifyContent: 'space-between',
-                    gap: 6,
-                    minWidth: 130,
-                    alignSelf: 'stretch',
-                }}>
-                    {/* အပေါ် — actions/status */}
-                    <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6 }}>
-                        {showActions && (
-                            <div style={{ display:'flex', gap:6 }}>
-                                <button onClick={onApprove} style={{ background:'#059669', border:'none', borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer' }}>✓ Approve</button>
-                                <button onClick={onReject}  style={{ background: dark ? 'rgba(248,113,113,0.12)' : '#fff', border:`1px solid ${dark ? 'rgba(248,113,113,0.3)' : '#fca5a5'}`, borderRadius:8, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#ef4444', cursor:'pointer' }}>✕ Reject</button>
                             </div>
-                        )}
-                        {req.status === 'approved' && !showActions && <span style={{ fontSize:12, color:'#059669', fontWeight:700 }}>✓ Approved</span>}
-                        {req.status === 'rejected' && <span style={{ fontSize:12, color:'#ef4444', fontWeight:700 }}>✕ Rejected</span>}
-                        {req.approver && req.status === 'pending' && !showActions && (
-                            <div style={{ textAlign:'right' }}>
-                                <div style={{ fontSize:10, color:theme.textMute }}>Awaiting</div>
-                                <div style={{ fontSize:12, fontWeight:800, color:theme.primary }}>{req.approver.name}</div>
+                        ))}
+ 
+                        {/* Type totals — only show when multiple types */}
+                        {Object.keys(typeTotals).length > 1 && (
+                            <div style={{
+                                display: 'flex', alignItems: 'center',
+                                gap: 6, flexWrap: 'wrap',
+                                marginTop: 4, paddingTop: 5,
+                                borderTop: `1px dashed ${theme.border}`,
+                            }}>
+                                <span style={{
+                                    fontSize: 9, fontWeight: 700, color: theme.textMute,
+                                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                                }}>
+                                    Total
+                                </span>
+                                {Object.entries(typeTotals).map(([t, h]) => {
+                                    const tc = getOTColor(t);
+                                    return (
+                                        <span key={t} style={{
+                                            fontSize: 11, fontWeight: 700, color: tc.color,
+                                            background: dark ? tc.bgDark : tc.bg,
+                                            borderRadius: 99, padding: '1px 8px',
+                                        }}>
+                                            {t.replace(' OT', '')} {fmtHrs(h)}
+                                        </span>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
-
-                    {/* အောက် — delete icon */}
-                    {showDelete ? (
-                        <button
-                            onClick={() => onDelete(req)}
-                            title="Delete request"
-                            style={{
-                                width: 32, height: 32, borderRadius: 8,
-                                background: dark ? 'rgba(248,113,113,0.12)' : '#fee2e2',
-                                border: `1px solid ${dark ? 'rgba(248,113,113,0.22)' : '#fca5a5'}`,
-                                cursor: 'pointer', display: 'flex', alignItems: 'center',
-                                justifyContent: 'center', transition: 'all 0.15s', flexShrink: 0,
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.25)' : '#fecaca';
-                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.45)' : '#f87171';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.12)' : '#fee2e2';
-                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.22)' : '#fca5a5';
-                            }}
-                        >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                stroke={dark ? '#f87171' : '#dc2626'}
-                                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                <path d="M10 11v6" /><path d="M14 11v6" />
-                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                            </svg>
-                        </button>
-                    ) : (
-                        <div style={{ width: 32, height: 32 }} />
-                    )}
-                </div>
+                )}
+ 
+                {/* ── Reason row — chip style, no box ── */}
+                {req.reason && (
+                    <div style={{ display: 'inline-flex', alignItems: 'baseline', marginTop: 7 }}>
+                        <span style={{ ...chipLabel, color: theme.textMute }}>Reason</span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft }}>
+                            {req.reason}
+                        </span>
+                    </div>
+                )}
+ 
             </div>
         </div>
     );
@@ -499,6 +779,7 @@ const handleReject = req => {
         <AppLayout title="Overtime Request">
             <Head title="Overtime"/>
             <style>{`
+                @keyframes otDropUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes otDrop  { from { opacity:0; transform:translateY(-7px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes otPopIn { from { opacity:0; transform:scale(0.96); }    to { opacity:1; transform:scale(1); } }
                 @keyframes otSpin  { to   { transform:rotate(360deg); } }
@@ -637,6 +918,11 @@ function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess }
     const inp = err => ({ width:'100%', border:`1.5px solid ${err?theme.danger:theme.inputBorder}`, borderRadius:10, padding:'9px 12px', fontSize:13, color:theme.text, outline:'none', boxSizing:'border-box', background: dark?theme.inputBg:'#fff', transition:'border-color 0.15s', fontFamily:'inherit' });
     const lbl = { fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.06em', display:'block', marginBottom:5 };
 
+    const approverOptions = [
+        { value: '', label: 'Select approver', disabled: true },
+        ...employees.map(e => ({ value: e.id, label: e.name })),
+    ];
+
     return createPortal(
         <div style={{ position:'fixed', inset:0, background:theme.overlay, backdropFilter:'blur(6px)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }} onClick={e => e.target===e.currentTarget&&onClose()}>
             <div style={{ background: dark?'#0f1b34':'#fff', borderRadius:22, width:'100%', maxWidth:510, maxHeight:'92vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:theme.shadow, border:`1px solid ${theme.border}`, animation:'otPopIn 0.22s ease' }}>
@@ -678,13 +964,34 @@ function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess }
 
                     <div><label style={lbl}>Reason</label><textarea value={form.reason} onChange={e=>set('reason',e.target.value)} rows={3} placeholder="Describe the reason for overtime..." className="ot-hide" style={{...inp(errors.reason),resize:'none'}}/>{errors.reason&&<ErrMsg msg={errors.reason} theme={theme}/>}</div>
 
-                    {!isAdmin && employees.length>0 && (
-                        <div><label style={lbl}>Approver</label>
-                        <select value={form.approver_id} onChange={e=>set('approver_id',e.target.value)} style={{...inp(false),cursor:'pointer'}}>
-                            <option value="">— Select approver —</option>
-                            {employees.map(emp=><option key={emp.id} value={emp.id}>{emp.name}</option>)}
-                        </select>
-                        {errors.approver_id&&<ErrMsg msg={errors.approver_id} theme={theme}/>} 
+                    {!isAdmin && employees.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                            <label style={lbl}>Approver</label>
+                            <PremiumDropdown
+                                options={approverOptions}
+                                value={form.approver_id}
+                                onChange={v => set('approver_id', v)}
+                                placeholder="Select approver"
+                                theme={theme}
+                                dark={dark}
+                                width="100%"
+                            />
+                            {errors.approver_id && <ErrMsg msg={errors.approver_id} theme={theme} />}
+                        </div>
+                    )}
+                
+                    {!isAdmin && employees.length === 0 && (
+                        <div style={{
+                            background: dark ? 'rgba(245,158,11,0.1)' : '#fff7ed',
+                            border: `1px solid ${dark ? 'rgba(245,158,11,0.25)' : '#fed7aa'}`,
+                            borderRadius: 12, padding: '12px 16px',
+                        }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: dark ? '#f59e0b' : '#c2410c' }}>
+                                ⚠ No approver available
+                            </div>
+                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>
+                                No approver found for your branch. Please contact HR.
+                            </div>
                         </div>
                     )}
                     {isAdmin && <div style={{ background: dark?theme.successSoft:'#ecfdf5', border:`1px solid ${dark?'rgba(16,185,129,0.3)':'#6ee7b7'}`, borderRadius:10, padding:'9px 13px', fontSize:12, color:theme.success, fontWeight:600 }}>✓ As admin, this request will be auto-approved.</div>}

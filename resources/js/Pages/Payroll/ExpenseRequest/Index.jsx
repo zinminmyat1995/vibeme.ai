@@ -57,9 +57,17 @@ function fmtDate(d) {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('en-US', { day:'numeric', month:'short', year:'numeric' });
 }
-function fmtMoney(n, currency='') {
+function fmtMoney(n, currency = '') {
     if (!n && n !== 0) return '—';
-    return `${currency} ${Number(n).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })}`.trim();
+    const num = Number(n);
+    // .00 ဆိုရင် integer ပြ၊ .50 ကဲ့သို့ decimal ရှိမှ decimal ပြ
+    const formatted = Number.isInteger(num)
+        ? num.toLocaleString('en-US')
+        : num.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+    return currency ? `${currency} ${formatted}` : formatted;
 }
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -171,11 +179,11 @@ function PremiumDropdown({ options, value, onChange, theme, dark, width, placeho
 // ── Approver Select (premium with avatar) ─────────────────────
 function ApproverSelect({ approvers, value, onChange, error, theme, dark }) {
     const [open, setOpen] = useState(false);
-    const [pos, setPos]   = useState({top:0,left:0,width:0});
+    const [pos,  setPos]  = useState({ top: 0, left: 0, width: 0, above: false });
     const triggerRef = useRef(null);
     const menuRef    = useRef(null);
     const sel = approvers.find(a => String(a.id) === String(value));
-
+ 
     useEffect(() => {
         const fn = e => {
             if (triggerRef.current?.contains(e.target) || menuRef.current?.contains(e.target)) return;
@@ -184,71 +192,126 @@ function ApproverSelect({ approvers, value, onChange, error, theme, dark }) {
         document.addEventListener('mousedown', fn);
         return () => document.removeEventListener('mousedown', fn);
     }, []);
-
-    const handleOpen = () => {
+ 
+    function handleOpen() {
         const rect = triggerRef.current?.getBoundingClientRect();
-        if (rect) setPos({top:rect.bottom+window.scrollY+6, left:rect.left+window.scrollX, width:rect.width});
-        setOpen(v=>!v);
-    };
-
+        if (rect) {
+            const ITEM_H  = 54;
+            const PAD     = 6;
+            const MENU_H  = Math.min(approvers.length * ITEM_H + PAD * 2, 260);
+            const GAP     = 6;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            const above = spaceBelow < MENU_H + GAP || spaceAbove > spaceBelow + 40;
+            setPos({
+                top:   above ? rect.top  - MENU_H - GAP : rect.bottom + GAP,
+                left:  rect.left,
+                width: rect.width,
+                above,
+            });
+        }
+        setOpen(v => !v);
+    }
+ 
     return (
         <>
-            <button ref={triggerRef} type="button" onClick={handleOpen} style={{
-                width:'100%', height:44, padding:'0 13px',
-                borderRadius:10, border:`1.5px solid ${error?theme.danger:open?theme.primary:theme.inputBorder}`,
-                background:dark?theme.inputBg:(error?'#fff9f9':'#fff'),
-                display:'flex', alignItems:'center', justifyContent:'space-between', gap:10,
-                cursor:'pointer', fontSize:13,
-                boxShadow:open?`0 0 0 3px ${theme.primary}22`:error?`0 0 0 3px ${theme.danger}22`:'none',
-                transition:'all 0.15s', outline:'none',
-            }}>
+            <button
+                ref={triggerRef}
+                type="button"
+                onClick={handleOpen}
+                style={{
+                    width: '100%', height: 44, padding: '0 13px',
+                    borderRadius: 12,
+                    border: `1.5px solid ${error ? theme.danger : open ? theme.primary : theme.inputBorder}`,
+                    background: dark ? theme.inputBg : (error ? '#fff9f9' : '#fff'),
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                    cursor: 'pointer', fontSize: 13,
+                    boxShadow: open
+                        ? `0 0 0 3px ${theme.primary}22`
+                        : error ? `0 0 0 3px ${theme.danger}22` : 'none',
+                    transition: 'all 0.15s', outline: 'none',
+                }}
+            >
                 {sel ? (
-                    <div style={{display:'flex',alignItems:'center',gap:8,minWidth:0}}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                         <Avatar name={sel.name} url={sel.avatar_url} size={24} theme={theme}/>
-                        <div style={{minWidth:0}}>
-                            <div style={{fontSize:13,fontWeight:700,color:theme.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sel.name}</div>
-                           
-                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {sel.name}
+                        </span>
                     </div>
                 ) : (
-                    <span style={{fontSize:13,color:theme.textMute}}>— Select approver —</span>
+                    <span style={{ fontSize: 13, color: theme.textMute }}>— Select approver —</span>
                 )}
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                    style={{transform:open?'rotate(180deg)':'none',transition:'transform 0.18s',color:theme.textMute,flexShrink:0}}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2.5"
+                    style={{ flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none', color: theme.textMute }}>
                     <polyline points="6 9 12 15 18 9"/>
                 </svg>
             </button>
-
+ 
             {open && createPortal(
-                <div ref={menuRef} className="ex-hide" style={{
-                    position:'absolute', top:pos.top, left:pos.left, width:Math.max(pos.width,200),
-                    zIndex:9999, background:dark?'#111e38':'#fff',
-                    border:`1px solid ${theme.borderStrong}`, borderRadius:14,
-                    boxShadow:theme.shadow, overflow:'hidden', animation:'exDrop 0.14s ease',
-                    padding:6,
-                }}>
+                <div
+                    ref={menuRef}
+                    className="ex-hide"
+                    style={{
+                        position: 'fixed',          // ← fixed: escapes modal overflow
+                        top:   pos.top,
+                        left:  pos.left,
+                        width: pos.width,
+                        background: dark ? '#111e38' : '#fff',
+                        border: `1px solid ${theme.borderStrong}`,
+                        borderRadius: 14,
+                        boxShadow: theme.shadow,
+                        zIndex: 99999,
+                        maxHeight: 260,
+                        overflowY: 'auto',
+                        padding: 6,
+                        animation: pos.above ? 'exDropUp 0.16s ease' : 'exDrop 0.16s ease',
+                    }}
+                >
                     {approvers.length === 0 ? (
-                        <div style={{padding:'14px 12px',fontSize:12,color:theme.textMute,textAlign:'center'}}>No approvers available</div>
+                        <div style={{ padding: '14px 12px', fontSize: 12, color: theme.textMute, textAlign: 'center' }}>
+                            No approvers available
+                        </div>
                     ) : approvers.map(a => {
                         const active = String(a.id) === String(value);
                         return (
-                            <button key={a.id} type="button" onClick={()=>{onChange(String(a.id));setOpen(false);}}
+                            <button
+                                key={a.id}
+                                type="button"
+                                onClick={() => { onChange(String(a.id)); setOpen(false); }}
                                 style={{
-                                    width:'100%', background:active?(dark?`${theme.primary}22`:theme.primarySoft):'transparent',
-                                    border:'none', padding:'8px 10px', borderRadius:9,
-                                    cursor:'pointer', textAlign:'left',
-                                    display:'flex', alignItems:'center', gap:10,
-                                    transition:'background 0.12s', marginBottom:2,
+                                    width: '100%',
+                                    background: active ? (dark ? `${theme.primary}22` : theme.primarySoft) : 'transparent',
+                                    border: 'none', padding: '8px 10px', borderRadius: 9,
+                                    cursor: 'pointer', textAlign: 'left',
+                                    display: 'flex', alignItems: 'center', gap: 10,
+                                    transition: 'background 0.12s', marginBottom: 2,
                                 }}
-                                onMouseEnter={e=>{if(!active)e.currentTarget.style.background=dark?'rgba(255,255,255,0.06)':theme.panelSoft;}}
-                                onMouseLeave={e=>{if(!active)e.currentTarget.style.background='transparent';}}
+                                onMouseEnter={e => { if (!active) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.06)' : theme.panelSoft; }}
+                                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
                             >
                                 <Avatar name={a.name} url={a.avatar_url} size={32} theme={theme}/>
-                                <div style={{flex:1,minWidth:0}}>
-                                    <div style={{fontSize:13,fontWeight:700,color:active?theme.primary:theme.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.name}</div>
-                                  
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{
+                                        fontSize: 13, fontWeight: 700,
+                                        color: active ? theme.primary : theme.text,
+                                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                    }}>
+                                        {a.name}
+                                    </div>
+                                    {a.role?.name && (
+                                        <div style={{ fontSize: 10, color: theme.textMute, marginTop: 1 }}>
+                                            {a.role.name}
+                                        </div>
+                                    )}
                                 </div>
-                                {active && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                                {active && (
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                        stroke={theme.primary} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                )}
                             </button>
                         );
                     })}
@@ -286,129 +349,309 @@ function ExpenseRow({ req, dark, theme, canViewAll, userId, onApprove, onReject,
     const sc      = STATUS_CFG[req.status] || STATUS_CFG.pending;
     const catC    = CAT_COLORS[req.category] || CAT_COLORS.other;
     const catIcon = CAT_ICONS[req.category]  || '📋';
-    const isMine  = req.user_id === userId;
+    const isMine      = req.user_id === userId;
     const showActions = canViewAll && req.status === 'pending' && !isMine;
     const showDelete  = isMine && req.status === 'pending';
-
+ 
+    const chipLabel = {
+        fontSize: 9, fontWeight: 800,
+        textTransform: 'uppercase', letterSpacing: '0.5px',
+        marginRight: 5, color: theme.textMute,
+    };
+    const chipValue = { fontSize: 12, fontWeight: 700 };
+ 
     return (
-        <div style={{display:'flex',alignItems:'stretch',borderBottom:isLast?'none':`1px solid ${theme.border}`}}>
-            <div style={{width:3,background:catC.color,flexShrink:0,borderRadius:'3px 0 0 3px'}}/>
-            <div style={{flex:1,padding:'14px 20px',display:'flex',gap:14,alignItems:'flex-start'}}>
-
-                {/* Category icon */}
-                <div style={{width:42,height:42,borderRadius:12,flexShrink:0,background:dark?catC.bgDark:catC.bg,border:`1px solid ${catC.color}22`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>
-                    {catIcon}
-                </div>
-
-                <div style={{flex:1,minWidth:0}}>
-                    {/* Title + badges */}
-                    <div style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap',marginBottom:5}}>
-                        <span style={{fontSize:14,fontWeight:800,color:theme.text}}>{req.title}</span>
-                        <span style={{fontSize:10,fontWeight:700,borderRadius:99,padding:'2px 9px',background:dark?sc.bgDark:sc.bg,color:sc.color}}>{sc.label}</span>
-                        <span style={{fontSize:10,fontWeight:700,borderRadius:99,padding:'2px 9px',background:dark?catC.bgDark:catC.bg,color:catC.color,border:`1px solid ${catC.color}22`}}>
-                            {catIcon} {req.category?.charAt(0).toUpperCase()+req.category?.slice(1)}
+        <div
+            style={{
+                display: 'flex', alignItems: 'stretch',
+                borderBottom: isLast ? 'none' : `1px solid ${theme.border}`,
+                transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+            {/* Left accent bar — category color */}
+            <div style={{ width: 3, flexShrink: 0, background: catC.color }} />
+ 
+            <div style={{ flex: 1, padding: '13px 18px', minWidth: 0 }}>
+ 
+                {/* ── Row 1: title · status · category  /  right: awaiting/actions/delete ── */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+ 
+                    {/* Left */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        {/* category icon */}
+                        <span style={{
+                            fontSize: 14, width: 26, height: 26, flexShrink: 0,
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            background: dark ? catC.bgDark : catC.bg,
+                            borderRadius: 7,
+                        }}>
+                            {catIcon}
+                        </span>
+ 
+                        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>
+                            {req.title}
+                        </span>
+ 
+                        <span style={{
+                            fontSize: 10, fontWeight: 700, borderRadius: 99, padding: '2px 8px',
+                            background: dark ? sc.bgDark : sc.bg, color: sc.color,
+                        }}>
+                            {sc.label}
+                        </span>
+ 
+                        <span style={{
+                            fontSize: 10, fontWeight: 600, color: theme.textMute,
+                        }}>
+                            {req.category?.charAt(0).toUpperCase() + req.category?.slice(1)}
                         </span>
                     </div>
-
-                    {/* Employee (HR view) */}
-                    {canViewAll && req.user && (
-                        <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:6}}>
-                            <Avatar name={req.user.name} url={req.user.avatar_url} size={20} theme={theme}/>
-                            <span style={{fontSize:12,fontWeight:700,color:theme.textSoft}}>{req.user.name}</span>
-                            {req.user.department && <span style={{fontSize:11,color:theme.textMute}}>· {req.user.department}</span>}
-                        </div>
-                    )}
-
-                    {/* Date + Amount */}
-                    <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',marginBottom:req.description?6:0}}>
-                        <span style={{fontSize:12,color:theme.textMute}}>📅 {fmtDate(req.expense_date)}</span>
-                        <span style={{fontSize:13,fontWeight:800,color:catC.color,background:dark?catC.bgDark:catC.bg,borderRadius:8,padding:'2px 10px'}}>
+ 
+                    {/* Right */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+ 
+                        {/* Awaiting stacked */}
+                        {req.status === 'pending' && !showActions && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Awaiting</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: '#2563eb' }}>
+                                    {req.approver?.name || 'HR'}
+                                </div>
+                            </div>
+                        )}
+ 
+                        {/* Approved by */}
+                        {req.status === 'approved' && req.approver && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Approved by</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.success }}>
+                                    {req.approver.name}
+                                </div>
+                            </div>
+                        )}
+ 
+                        {/* Rejected by */}
+                        {req.status === 'rejected' && req.approver && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Rejected by</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.danger }}>
+                                    {req.approver.name}
+                                </div>
+                            </div>
+                        )}
+ 
+                        {/* Approve / Reject pill buttons */}
+                        {showActions && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                                <button
+                                    onClick={onApprove}
+                                    style={{
+                                        background: dark
+                                            ? 'linear-gradient(135deg,#065f46,#059669)'
+                                            : 'linear-gradient(135deg,#059669,#10b981)',
+                                        border: 'none', borderRadius: 20,
+                                        padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                                        cursor: 'pointer', color: '#fff',
+                                        display: 'flex', alignItems: 'center', gap: 5,
+                                        boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                                        transition: 'opacity 0.15s',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+                                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                                >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" strokeWidth="3"
+                                        strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    Approve
+                                </button>
+                                <button
+                                    onClick={onReject}
+                                    style={{
+                                        background: dark
+                                            ? 'linear-gradient(135deg,rgba(220,38,38,0.28),rgba(239,68,68,0.22))'
+                                            : 'linear-gradient(135deg,#fef2f2,#fee2e2)',
+                                        border: 'none', borderRadius: 20,
+                                        padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                                        cursor: 'pointer', color: dark ? '#f87171' : '#dc2626',
+                                        display: 'flex', alignItems: 'center', gap: 5,
+                                        boxShadow: dark
+                                            ? '0 2px 8px rgba(248,113,113,0.15)'
+                                            : '0 2px 8px rgba(220,38,38,0.10)',
+                                        transition: 'opacity 0.15s',
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = '0.82'}
+                                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                                >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                    Reject
+                                </button>
+                            </div>
+                        )}
+ 
+                        {/* Delete — no border, faint icon */}
+                        {showDelete && (
+                            <button
+                                onClick={onDelete}
+                                title="Delete request"
+                                style={{
+                                    width: 28, height: 28, borderRadius: 7,
+                                    background: 'transparent', border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.15s', flexShrink: 0,
+                                    color: dark ? 'rgba(248,113,113,0.4)' : '#fca5a5',
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.16)' : '#fee2e2';
+                                    e.currentTarget.style.color = dark ? '#f87171' : '#dc2626';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = dark ? 'rgba(248,113,113,0.4)' : '#fca5a5';
+                                }}
+                            >
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" strokeWidth="2.2"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                    <path d="M10 11v6M14 11v6"/>
+                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+                </div>
+ 
+                {/* ── Employee row (HR/admin view) ── */}
+                {canViewAll && req.user && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                        <Avatar name={req.user.name} url={req.user.avatar_url} size={22} theme={theme}/>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{req.user.name}</span>
+                        {req.user.department && (
+                            <span style={{ fontSize: 11, color: theme.textMute }}>{req.user.department}</span>
+                        )}
+                    </div>
+                )}
+ 
+                {/* ── Date · Amount · Reimbursed chip row ── */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 9, flexWrap: 'wrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                        <span style={{ ...chipLabel }}>Date</span>
+                        <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.expense_date)}</span>
+                    </span>
+ 
+                    <span style={{ color: theme.border, fontSize: 12 }}>·</span>
+ 
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                        <span style={{ ...chipLabel, color: catC.color }}>Amount</span>
+                        <span style={{ ...chipValue, color: catC.color }}>
                             {fmtMoney(req.amount, req.currency)}
                         </span>
-                        {req.reimbursed_at && (
-                            <span style={{fontSize:10,fontWeight:700,color:theme.success,background:dark?theme.successSoft:'#ecfdf5',borderRadius:99,padding:'2px 8px'}}>
+                    </span>
+ 
+                    {req.reimbursed_at && (
+                        <>
+                            <span style={{ color: theme.border, fontSize: 12 }}>·</span>
+                            <span style={{
+                                fontSize: 10, fontWeight: 700, color: theme.success,
+                                background: dark ? theme.successSoft : '#ecfdf5',
+                                borderRadius: 99, padding: '2px 8px',
+                            }}>
                                 ✓ Reimbursed
                             </span>
-                        )}
-                    </div>
-
-                    {/* Description — styled */}
-                    {req.description && (
-                        <div style={{marginTop:4,marginBottom:6,padding:'6px 10px',borderRadius:8,background:dark?'rgba(255,255,255,0.03)':'#f8fafc',border:`1px solid ${theme.border}`,borderLeft:`3px solid ${theme.border}`,fontSize:11,color:theme.textSoft,lineHeight:1.6}}>
+                        </>
+                    )}
+                </div>
+ 
+                {/* ── Description ── */}
+                {req.description && (
+                    <div style={{ display: 'inline-flex', alignItems: 'baseline', marginTop: 6 }}>
+                        <span style={{ ...chipLabel }}>Note</span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft, lineHeight: 1.5 }}>
                             {req.description}
-                        </div>
-                    )}
-
-                    {/* Attachments */}
-                    {req.attachments?.length > 0 && (
-                        <div style={{display:'flex',gap:5,marginTop:5,flexWrap:'wrap'}}>
-                            {req.attachments.map((f,i) => (
-                                <a key={i} href={`/payroll/expenses/${req.id}/attachments/${i}`}
-                                    target="_blank" rel="noopener noreferrer"
-                                    style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 9px',borderRadius:8,background:dark?theme.panelSofter:'#f1f5f9',border:`1px solid ${theme.border}`,fontSize:10,color:theme.textSoft,fontWeight:600,textDecoration:'none',transition:'all 0.13s'}}
-                                    onMouseEnter={e=>{e.currentTarget.style.background=theme.primarySoft;e.currentTarget.style.color=theme.primary;}}
-                                    onMouseLeave={e=>{e.currentTarget.style.background=dark?theme.panelSofter:'#f1f5f9';e.currentTarget.style.color=theme.textSoft;}}
-                                >
-                                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                                    {f.name?.length>18?f.name.slice(0,16)+'…':f.name}
-                                    <span style={{color:theme.textMute}}>{f.size}</span>
-                                </a>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Rejection reason card */}
-                    {req.status==='rejected' && req.rejection_reason && (
-                        <div style={{marginTop:8,display:'flex',alignItems:'flex-start',gap:10,padding:'10px 14px',borderRadius:12,background:dark?'rgba(239,68,68,0.08)':'#fff5f5',border:`1.5px solid ${dark?'rgba(239,68,68,0.25)':'#fecaca'}`}}>
-                            <div style={{width:28,height:28,borderRadius:8,flexShrink:0,background:dark?'rgba(239,68,68,0.18)':'#fee2e2',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13}}>✕</div>
-                            <div>
-                                <div style={{fontSize:10,fontWeight:800,color:'#ef4444',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:3}}>Rejection Reason</div>
-                                <div style={{fontSize:12,color:dark?'#fca5a5':'#dc2626',lineHeight:1.6}}>{req.rejection_reason}</div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Approval note card */}
-                    {req.status==='approved' && req.hr_note && (
-                        <div style={{marginTop:8,display:'flex',alignItems:'flex-start',gap:10,padding:'10px 14px',borderRadius:12,background:dark?'rgba(16,185,129,0.08)':'#f0fdf4',border:`1.5px solid ${dark?'rgba(16,185,129,0.25)':'#86efac'}`}}>
-                            <div style={{width:28,height:28,borderRadius:8,flexShrink:0,background:dark?'rgba(16,185,129,0.18)':'#dcfce7',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>💬</div>
-                            <div>
-                                <div style={{fontSize:10,fontWeight:800,color:'#059669',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:3}}>Approver Note</div>
-                                <div style={{fontSize:12,color:dark?'#6ee7b7':'#15803d',lineHeight:1.6}}>{req.hr_note}</div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Right: actions */}
-                <div style={{flexShrink:0,display:'flex',flexDirection:'column',alignItems:'flex-end',gap:8,minWidth:120,alignSelf:'stretch',justifyContent:'space-between'}}>
-                    <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
-                        {showActions && (
-                            <div style={{display:'flex',gap:6}}>
-                                <button onClick={onApprove} style={{background:'#059669',border:'none',borderRadius:8,padding:'6px 14px',fontSize:12,fontWeight:700,color:'#fff',cursor:'pointer'}}>✓ Approve</button>
-                                <button onClick={onReject} style={{background:dark?'rgba(239,68,68,0.12)':'#fff',border:`1px solid ${dark?'rgba(239,68,68,0.3)':'#fca5a5'}`,borderRadius:8,padding:'6px 14px',fontSize:12,fontWeight:700,color:'#ef4444',cursor:'pointer'}}>✕ Reject</button>
-                            </div>
-                        )}
-                        {req.status==='approved' && <span style={{fontSize:12,color:theme.success,fontWeight:700}}>✓ Approved</span>}
-                        {req.status==='rejected' && <span style={{fontSize:12,color:theme.danger,fontWeight:700}}>✕ Rejected</span>}
-                        {req.status==='pending' && !showActions && (
-                            <div style={{textAlign:'right'}}>
-                                <div style={{fontSize:10,color:theme.textMute}}>Awaiting</div>
-                                <div style={{fontSize:11,fontWeight:700,color:theme.primary}}>{req.approver?.name||'HR'}</div>
-                            </div>
-                        )}
+                        </span>
                     </div>
-                    {showDelete && (
-                        <button onClick={onDelete} style={{width:32,height:32,borderRadius:8,background:dark?'rgba(239,68,68,0.12)':'#fee2e2',border:`1px solid ${dark?'rgba(239,68,68,0.22)':'#fca5a5'}`,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}
-                            onMouseEnter={e=>{e.currentTarget.style.background=dark?'rgba(239,68,68,0.25)':'#fecaca';}}
-                            onMouseLeave={e=>{e.currentTarget.style.background=dark?'rgba(239,68,68,0.12)':'#fee2e2';}}>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={dark?'#f87171':'#dc2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                                <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                            </svg>
-                        </button>
-                    )}
-                </div>
+                )}
+ 
+                {/* ── Attachments — Download pill buttons ── */}
+                {req.attachments?.length > 0 && (
+                    <div style={{ display: 'flex', gap: 6, marginTop: 7, flexWrap: 'wrap' }}>
+                        {req.attachments.map((f, i) => (
+                            <a
+                                key={i}
+                                href={`/payroll/expenses/${req.id}/attachments/${i}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                                    padding: '5px 12px', borderRadius: 20,
+                                    background: dark
+                                        ? 'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(37,99,235,0.12))'
+                                        : 'linear-gradient(135deg,#eff6ff,#dbeafe)',
+                                    color: dark ? '#60a5fa' : '#2563eb',
+                                    fontSize: 11, fontWeight: 700,
+                                    textDecoration: 'none',
+                                    boxShadow: dark
+                                        ? '0 1px 6px rgba(59,130,246,0.15)'
+                                        : '0 1px 4px rgba(37,99,235,0.10)',
+                                    transition: 'opacity 0.15s',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                            >
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" strokeWidth="2.5"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                {f.name?.length > 20 ? f.name.slice(0, 18) + '…' : (f.name || `File ${i + 1}`)}
+                            </a>
+                        ))}
+                    </div>
+                )}
+ 
+                {/* ── Rejection reason ── */}
+                {req.status === 'rejected' && req.rejection_reason && (
+                    <div style={{
+                        marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 8,
+                        padding: '8px 12px', borderRadius: 10,
+                        background: dark ? 'rgba(239,68,68,0.08)' : '#fff5f5',
+                        border: `1px solid ${dark ? 'rgba(239,68,68,0.2)' : '#fecaca'}`,
+                        borderLeft: `3px solid #ef4444`,
+                    }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0, marginTop: 1 }}>Rejected</span>
+                        <span style={{ fontSize: 12, color: dark ? '#fca5a5' : '#dc2626', lineHeight: 1.5 }}>
+                            {req.rejection_reason}
+                        </span>
+                    </div>
+                )}
+ 
+                {/* ── Approver note ── */}
+                {req.status === 'approved' && req.hr_note && (
+                    <div style={{
+                        marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 8,
+                        padding: '8px 12px', borderRadius: 10,
+                        background: dark ? 'rgba(16,185,129,0.08)' : '#f0fdf4',
+                        border: `1px solid ${dark ? 'rgba(16,185,129,0.2)' : '#86efac'}`,
+                        borderLeft: `3px solid #059669`,
+                    }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0, marginTop: 1 }}>Note</span>
+                        <span style={{ fontSize: 12, color: dark ? '#6ee7b7' : '#15803d', lineHeight: 1.5 }}>
+                            {req.hr_note}
+                        </span>
+                    </div>
+                )}
+ 
             </div>
         </div>
     );
@@ -811,6 +1054,7 @@ export default function ExpenseRequestIndex({
         <AppLayout title="Expense Request">
             <Head title="Expense Request"/>
             <style>{`
+                @keyframes exDropUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes exDrop  { from{opacity:0;transform:translateY(-7px);}to{opacity:1;transform:translateY(0);} }
                 @keyframes exPopIn { from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);} }
                 @keyframes exSpin  { to{transform:rotate(360deg);} }

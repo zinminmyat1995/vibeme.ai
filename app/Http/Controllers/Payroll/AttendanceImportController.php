@@ -461,15 +461,31 @@ class AttendanceImportController extends Controller
         $lsM  = $this->toMin($ls);
         $leM  = $this->toMin($le);
 
-        $lunchOverlap = max(0, min($outM, $leM) - max($inM, $lsM));
-        $grossMinutes = max(0, $outM - $inM);
-        $netMinutes   = max(0, $grossMinutes - $lunchOverlap);
-        $wh           = round($netMinutes / 60, 2);
+        // ✅ Clamp to work window (same as AttendanceRequestController)
+        $effIn  = max($inM, $wsM);
+        $effOut = min($outM, $weM);
 
-        $late  = max(0, $inM - $wsM);
-        $short = round(max(0, ($weM - $wsM - ($leM - $lsM) - ($outM - $inM - $lunchOverlap)) / 60), 2);
+        $wh   = 0;
+        $late = 0;
+        $short = 0;
 
-        return [$wh, $late, $short, $late > 0 ? 'late' : 'present'];
+        if ($effOut > $effIn) {
+            $lunchOverlap = max(0, min($effOut, $leM) - max($effIn, $lsM));
+            $workMins     = $effOut - $effIn - $lunchOverlap;
+            $wh           = round(max(0, $workMins) / 60, 2);
+        }
+
+        // ✅ Late: only if check-in before lunch_end (same logic)
+        if ($inM < $leM) {
+            $late = max(0, $inM - $wsM);
+        }
+
+        // ✅ Short hours
+        $short = round(max(0, ($weM - $outM) / 60), 2);
+
+        $status = $late > 0 ? 'late' : 'present';
+
+        return [$wh, $late, $short, $status];
     }
 
     private function toMin(string $t): int
