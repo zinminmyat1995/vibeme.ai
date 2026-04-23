@@ -359,384 +359,519 @@ export default function RecruitmentIndex({
                 @keyframes rcPopIn  { from{opacity:0;transform:scale(0.94) translateY(12px)} to{opacity:1;transform:scale(1) translateY(0)} }
                 @keyframes rcFadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
                 .rc-job-item:hover  { background: ${dark ? "rgba(255,255,255,0.04)" : "#fafafa"} !important; }
-                .rc-app-card:hover  { box-shadow: ${dark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 4px 20px rgba(0,0,0,0.07)"} !important; }
+                .rc-app-card:hover  { box-shadow: ${dark ? "0 2px 12px rgba(0,0,0,0.25)" : "0 2px 12px rgba(0,0,0,0.06)"} !important; }
                 .rc-tbl-row:hover td { background: ${dark ? "rgba(255,255,255,0.03)" : "#fafbff"} !important; }
-                .rc-tab-btn:hover   { background: ${dark ? "rgba(255,255,255,0.06)" : "#f0f0f0"} !important; }
+                .rc-hide::-webkit-scrollbar { display:none; }
+                .rc-hide { scrollbar-width:none; -ms-overflow-style:none; }
             `}</style>
 
-            <div style={{ animation: "rcFadeUp 0.25s ease" }}>
+            <div style={{ animation: "rcFadeUp 0.25s ease", display: "flex", flexDirection: "column", gap: 16 }}>
 
-                {/* ── Stats ── */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 22 }}>
+                {/* ═══ ① STATS — compact horizontal strip ═══ */}
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                     {[
-                        { n: totalJobs, l: "Total Postings",   icon: "📋", accent: false, grad: dark ? "rgba(139,92,246,0.08)" : "rgba(124,58,237,0.04)", iconBg: dark ? "rgba(139,92,246,0.18)" : "#ede9fe", iconClr: theme.primary },
-                        { n: openJobs,  l: "Open Positions",   icon: "🟢", accent: true,  grad: dark ? "rgba(52,211,153,0.08)" : "rgba(5,150,105,0.04)",   iconBg: dark ? "rgba(52,211,153,0.18)" : "#d1fae5", iconClr: theme.success },
-                        { n: totalApps, l: "Total Applicants", icon: "👥", accent: false, grad: dark ? "rgba(251,191,36,0.08)" : "rgba(217,119,6,0.04)",   iconBg: dark ? "rgba(251,191,36,0.18)" : "#fef3c7", iconClr: theme.warning },
-                        { n: newApps,   l: "New (Unread)",     icon: "🔔", accent: true,  grad: dark ? "rgba(139,92,246,0.08)" : "rgba(124,58,237,0.04)", iconBg: dark ? "rgba(139,92,246,0.18)" : "#ede9fe", iconClr: theme.primary },
+                        { n: totalJobs,  l: "Total Postings",   icon: "📋", color: theme.primary,  soft: theme.primarySoft  },
+                        { n: openJobs,   l: "Open Positions",   icon: "🟢", color: theme.success,  soft: theme.successSoft  },
+                        { n: totalApps,  l: "Total Applicants", icon: "👥", color: theme.warning,  soft: theme.warningSoft  },
+                        { n: newApps,    l: "New (Unread)",     icon: "🔔", color: theme.primary,  soft: theme.primarySoft  },
                     ].map(s => (
                         <div key={s.l} style={{
-                            background: theme.surface, border: `1px solid ${theme.border}`,
-                            borderRadius: 14, padding: "18px 20px", boxShadow: theme.shadow,
+                            display: "flex", alignItems: "center", gap: 10,
+                            background: dark ? "rgba(255,255,255,0.04)" : "#fff",
+                            border: `1px solid ${theme.border}`,
+                            borderRadius: 14, padding: "10px 16px",
+                            boxShadow: theme.shadow, minWidth: 160,
                             position: "relative", overflow: "hidden",
                         }}>
-                            <div style={{ position: "absolute", inset: 0, background: s.grad, pointerEvents: "none" }} />
-                            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: s.accent ? `linear-gradient(90deg,${s.iconClr},${s.iconClr}88)` : `linear-gradient(90deg,${theme.border},transparent)`, borderRadius: "14px 14px 0 0" }} />
-                            <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                                <div>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>{s.l}</div>
-                                    <div style={{ fontSize: 36, fontWeight: 900, color: s.accent ? s.iconClr : theme.text, letterSpacing: "-0.04em", lineHeight: 1 }}>{s.n}</div>
-                                </div>
-                                <div style={{ width: 40, height: 40, borderRadius: 10, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0, marginTop: 2 }}>{s.icon}</div>
+                            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: s.color, borderRadius: "14px 14px 0 0" }} />
+                            <div style={{
+                                width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+                                background: s.soft,
+                                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
+                            }}>{s.icon}</div>
+                            <div>
+                                <div style={{ fontSize: 20, fontWeight: 900, color: s.color, lineHeight: 1, letterSpacing: "-0.04em" }}>{s.n}</div>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginTop: 2, textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.l}</div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                {/* ── Tabs ── */}
-                <div style={{ display: "flex", gap: 0, marginBottom: 20, background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 4, width: "fit-content", boxShadow: theme.shadow }}>
-                    {[
-                        { k: "jobs",         l: "Job Postings", icon: "📋", count: jobs.length },
-                        { k: "applications", l: "Applications", icon: "👥", count: totalApps  },
-                    ].map(t => {
-                        const isActive = tab === t.k;
-                        return (
-                            <button key={t.k} className="rc-tab-btn" onClick={() => setTab(t.k)} style={{
-                                display: "flex", alignItems: "center", gap: 8,
-                                padding: "8px 18px", borderRadius: 8, fontSize: 13, fontWeight: 700,
-                                border: "none",
-                                cursor: "pointer", fontFamily: "inherit", transition: "all 0.18s",
-                                background: isActive
-                                    ? "linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%)"
-                                    : "transparent",
-                                color: isActive ? "#fff" : theme.textMute,
-                                boxShadow: isActive ? "0 2px 8px rgba(124,58,237,0.3)" : "none",
-                            }}>
-                                <span>{t.l}</span>
-                                <span style={{
-                                    fontSize: 11, fontWeight: 800,
-                                    padding: "1px 7px", borderRadius: 99,
-                                    background: isActive ? "rgba(255,255,255,0.25)" : (dark ? "rgba(255,255,255,0.08)" : "#f3f4f6"),
+                {/* ═══ ② TABS ═══ */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div style={{
+                        display: "flex", gap: 0,
+                        background: theme.surface, border: `1px solid ${theme.border}`,
+                        borderRadius: 10, padding: 3, width: "fit-content", boxShadow: theme.shadow,
+                    }}>
+                        {[
+                            { k: "jobs",         l: "Job Postings", count: jobs.length  },
+                            { k: "applications", l: "Applications",  count: totalApps   },
+                        ].map(t => {
+                            const isActive = tab === t.k;
+                            return (
+                                <button key={t.k} className="rc-tab-btn" onClick={() => setTab(t.k)} style={{
+                                    display: "flex", alignItems: "center", gap: 7,
+                                    padding: "7px 16px", borderRadius: 7,
+                                    fontSize: 12, fontWeight: 700, border: "none",
+                                    cursor: "pointer", fontFamily: "inherit", transition: "all 0.18s",
+                                    background: isActive ? "linear-gradient(135deg,#7c3aed,#6d28d9)" : "transparent",
                                     color: isActive ? "#fff" : theme.textMute,
-                                    minWidth: 18, textAlign: "center",
-                                }}>{t.count}</span>
-                            </button>
-                        );
-                    })}
-                </div>
+                                    boxShadow: isActive ? "0 2px 8px rgba(124,58,237,0.28)" : "none",
+                                }}>
+                                    {t.l}
+                                    <span style={{
+                                        fontSize: 10, fontWeight: 800, padding: "1px 6px", borderRadius: 99,
+                                        background: isActive ? "rgba(255,255,255,0.22)" : (dark ? "rgba(255,255,255,0.08)" : "#f3f4f6"),
+                                        color: isActive ? "#fff" : theme.textMute,
+                                    }}>{t.count}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
 
-                {/* ══════════════ JOBS TAB ══════════════ */}
-                {tab === "jobs" && (
-                    <>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                {/* Admin ဆိုရင်ဘဲ All Countries dropdown ပြ */}
-                                {isAdmin && (
-                                    <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width={160} dark={dark} theme={theme} />
-                                )}
-                                <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width={130} dark={dark} theme={theme} />
-                            </div>
-                            {/* Admin ဆိုရင် New Job Posting button မပြ */}
+                    {/* Controls row — changes based on tab */}
+                    {tab === "jobs" && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            {isAdmin && (
+                                <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width={150} dark={dark} theme={theme} />
+                            )}
+                            <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width={120} dark={dark} theme={theme} />
                             {!isAdmin && (
-                                <button onClick={() => { setEditJob(null); setJobModal(true); }} style={{ padding: "9px 20px", background: theme.primary, border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
-                                    + New Job Posting
+                                <button onClick={() => { setEditJob(null); setJobModal(true); }} style={{
+                                    padding: "8px 16px", background: theme.primary, border: "none",
+                                    borderRadius: 8, color: "#fff", fontSize: 12, fontWeight: 700,
+                                    cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5,
+                                    boxShadow: `0 4px 14px ${theme.primary}44`,
+                                }}>
+                                    + New Posting
                                 </button>
                             )}
                         </div>
+                    )}
 
-                        <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 14, overflow: "hidden", boxShadow: theme.shadow }}>
-                            {filteredJobs.length === 0 ? (
-                                <div style={{ padding: "56px 24px", textAlign: "center" }}>
-                                    <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
-                                    <div style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 4 }}>No job postings yet</div>
-                                    <div style={{ fontSize: 13, color: theme.textMute }}>Create your first job posting.</div>
-                                </div>
-                            ) : (
-                                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                                    <thead>
-                                        <tr style={{ background: theme.tableHead, borderBottom: `2px solid ${theme.border}` }}>
-                                            {["Position", "Company", "Type", "Positions", "Applications", "Deadline", "Status", "Actions"].map(h => (
-                                                <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 10, fontWeight: 800, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" }}>{h}</th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredJobs.map((job, i) => (
-                                            <tr key={job.id} className="rc-tbl-row" style={{ background: i % 2 === 0 ? theme.surface : theme.rowAlt, borderBottom: `1px solid ${theme.border}` }}>
-                                                <td style={{ padding: "12px 14px" }}>
-                                                    <div style={{ fontWeight: 700, color: theme.text }}>{job.title}</div>
-                                                    {job.department && <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{job.department}</div>}
-                                                </td>
-                                                <td style={{ padding: "12px 14px", color: theme.textSoft }}>{job.office?.company_name}</td>
-                                                <td style={{ padding: "12px 14px" }}>
-                                                    <span style={{ background: theme.primarySoft, color: theme.primary, padding: "2px 8px", borderRadius: 99, fontSize: 11, fontWeight: 600 }}>
-                                                        {JOB_TYPE_OPTS.find(t => t.value === job.type)?.label}
-                                                    </span>
-                                                </td>
-                                                <td style={{ padding: "12px 14px", fontWeight: 700, color: theme.text }}>{job.slots} person{job.slots > 1 ? "s" : ""}</td>
-                                                <td style={{ padding: "12px 14px" }}>
-                                                    <button onClick={() => { handleSelectJob(job); setTab("applications"); }} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.primarySoft}`, background: theme.primarySoft, color: theme.primary, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                                                        {job.applications_count || 0} applicants
-                                                    </button>
-                                                </td>
-                                                <td style={{ padding: "12px 14px", color: theme.textMute, fontSize: 11 }}>{job.deadline || "—"}</td>
-                                                <td style={{ padding: "12px 14px" }}><StatusPill status={job.status} opts={JOB_STATUS_OPTS} dark={dark} small /></td>
-                                                <td style={{ padding: "12px 14px" }}>
-                                                    <div style={{ display: "flex", gap: 6 }}>
-                                                        {/* Admin = View only, HR = Edit/Delete */}
-                                                        {isAdmin ? (
-                                                            <span style={{ fontSize: 11, color: theme.textMute }}>View only</span>
-                                                        ) : (
-                                                            <>
-                                                                <button onClick={() => { setEditJob(job); setJobModal(true); }} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Edit</button>
-                                                                <button onClick={() => setDeleteJobModal(job)} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.dangerSoft}`, background: theme.dangerSoft, color: theme.danger, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                    {tab === "applications" && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <PremiumSelect options={appSortOpts} value={appSort} onChange={v => setAppSort(v)} width={130} dark={dark} theme={theme} />
+                            {!isAdmin && selectedApps.length > 0 && (
+                                <button onClick={() => setBulkModal(true)} style={{
+                                    padding: "7px 14px", borderRadius: 8, background: theme.primary, border: "none",
+                                    color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                                }}>
+                                    ✏️ Update {selectedApps.length}
+                                </button>
                             )}
                         </div>
-                    </>
+                    )}
+                </div>
+
+                {/* ═══ JOBS TAB — full width table ═══ */}
+                {tab === "jobs" && (
+                    <div style={{
+                        background: theme.surface, border: `1px solid ${theme.border}`,
+                        borderRadius: 14, overflow: "hidden", boxShadow: theme.shadow,
+                    }}>
+                        {filteredJobs.length === 0 ? (
+                            <div style={{ padding: "56px 24px", textAlign: "center" }}>
+                                <div style={{ fontSize: 32, marginBottom: 10 }}>📋</div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4 }}>No job postings</div>
+                                <div style={{ fontSize: 12, color: theme.textMute }}>Create your first job posting.</div>
+                            </div>
+                        ) : (
+                            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                                <thead>
+                                    <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
+                                        {["Position", "Company", "Type", "Slots", "Applicants", "Deadline", "Status", "Actions"].map(h => (
+                                            <th key={h} style={{ padding: "9px 14px", textAlign: "left", fontSize: 10, fontWeight: 800, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" }}>{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredJobs.map((job, i) => (
+                                        <tr key={job.id} className="rc-tbl-row" style={{ borderBottom: `1px solid ${theme.border}` }}>
+                                            <td style={{ padding: "11px 14px", maxWidth: 240, width: 240 }}>
+                                                <div style={{
+                                                    fontWeight: 700, color: theme.text, fontSize: 13,
+                                                    overflow: "hidden", textOverflow: "ellipsis",
+                                                    whiteSpace: "nowrap", maxWidth: 220,
+                                                }} title={job.title}>{job.title}</div>
+                                                {job.department && <div style={{ fontSize: 10, color: theme.textMute, marginTop: 2 }}>{job.department}</div>}
+                                            </td>
+                                            <td style={{ padding: "11px 14px", color: theme.textSoft, fontSize: 12 }}>{job.office?.company_name}</td>
+                                            <td style={{ padding: "11px 14px" }}>
+                                                <span style={{ background: theme.primarySoft, color: theme.primary, padding: "2px 8px", borderRadius: 99, fontSize: 10, fontWeight: 700 }}>
+                                                    {JOB_TYPE_OPTS.find(t => t.value === job.type)?.label}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: "11px 14px", fontWeight: 700, color: theme.text, fontSize: 12 }}>{job.slots}</td>
+                                            <td style={{ padding: "11px 14px" }}>
+                                                <button onClick={() => { handleSelectJob(job); setTab("applications"); }} style={{
+                                                    padding: "3px 10px", borderRadius: 6,
+                                                    border: `1px solid ${theme.primarySoft}`,
+                                                    background: theme.primarySoft, color: theme.primary,
+                                                    fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                                                }}>
+                                                    {job.applications_count || 0}
+                                                </button>
+                                            </td>
+                                            <td style={{ padding: "11px 14px", color: theme.textMute, fontSize: 11 }}>{job.deadline || "—"}</td>
+                                            <td style={{ padding: "11px 14px" }}><StatusPill status={job.status} opts={JOB_STATUS_OPTS} dark={dark} small /></td>
+                                            <td style={{ padding: "11px 14px" }}>
+                                                {isAdmin ? (
+                                                    <span style={{ fontSize: 11, color: theme.textMute }}>View only</span>
+                                                ) : (
+                                                    <div style={{ display: "flex", gap: 5 }}>
+                                                        <button onClick={() => { setEditJob(job); setJobModal(true); }} style={{
+                                                            padding: "4px 10px", borderRadius: 6,
+                                                            border: `1px solid ${theme.border}`, background: "transparent",
+                                                            color: theme.textSoft, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                                                        }}>Edit</button>
+                                                        <button onClick={() => setDeleteJobModal(job)} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.dangerSoft}`, background: theme.dangerSoft, color: theme.danger, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
                 )}
 
-                {/* ══════════════ APPLICATIONS TAB ══════════════ */}
+                {/* ═══ APPLICATIONS TAB — full width ═══ */}
                 {tab === "applications" && (
-                    <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 16, alignItems: "start" }}>
+                    <div>
+                        {/* ── Job selector: Search+Status fixed left, chips scroll right ── */}
+                        <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "center" }}>
 
-                        {/* ── Job Sidebar ── */}
-                        <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 14, overflow: "hidden", boxShadow: theme.shadow }}>
-                            <div style={{ background: "linear-gradient(135deg,#5b21b6,#7c3aed)", padding: "14px 18px", display: "flex", alignItems: "center", gap: 8 }}>
-                                <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>Job Postings</div>
-                                <div style={{ marginLeft: "auto", background: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "2px 9px", borderRadius: 99 }}>{filteredJobs.length}</div>
-                            </div>
-
-                            {/* Search */}
-                            <div style={{ padding: "10px 12px", borderBottom: `1px solid ${theme.border}` }}>
-                                <input value={jobSearch} onChange={e => setJobSearch(e.target.value)} placeholder="Search jobs…"
-                                    style={{ ...inp(false), padding: "7px 10px", fontSize: 12 }}
-                                    onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
-                                    onBlur={e => { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; }} />
-                            </div>
-
-                            {/* Filters — Admin ဆိုရင် country filter ပြ, HR ဆိုရင် status filter ဘဲပြ */}
-                            <div style={{ padding: "8px 12px", borderBottom: `1px solid ${theme.border}`, display: "flex", gap: 6 }}>
-                                {isAdmin && (
-                                    <div style={{ flex: 1 }}>
-                                        <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width="100%" dark={dark} theme={theme} zIndex={4000} />
-                                    </div>
-                                )}
-                                <div style={{ flex: 1 }}>
-                                    <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width="100%" dark={dark} theme={theme} zIndex={4000} />
+                            {/* Fixed left: search + status filters */}
+                            <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+                                <div style={{ position: "relative" }}>
+                                    <input value={jobSearch} onChange={e => setJobSearch(e.target.value)}
+                                        placeholder="Search jobs…"
+                                        style={{
+                                            height: 34, padding: "0 12px 0 30px",
+                                            border: `1px solid ${theme.border}`, borderRadius: 8,
+                                            background: theme.surface, color: theme.text,
+                                            fontSize: 12, outline: "none", width: 150, fontFamily: "inherit",
+                                        }}
+                                        onFocus={e => e.target.style.borderColor = theme.primary}
+                                        onBlur={e => e.target.style.borderColor = theme.border}
+                                    />
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2" style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+                                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                    </svg>
                                 </div>
+
+                                {isAdmin && (
+                                    <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width={130} dark={dark} theme={theme} zIndex={4000} />
+                                )}
+                                <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width={110} dark={dark} theme={theme} zIndex={4000} />
+
+                                {/* Separator */}
+                                <div style={{ width: 1, height: 22, background: theme.border, flexShrink: 0 }} />
                             </div>
 
-                            {/* List */}
-                            <div style={{ maxHeight: 500, overflowY: "auto", scrollbarWidth: "none" }}>
-                                {filteredJobs.length === 0 ? (
-                                    <div style={{ padding: "32px 18px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>No matching jobs</div>
-                                ) : filteredJobs.map(job => {
+                            {/* Scrollable chips — only the job chips scroll */}
+                            <div style={{
+                                display: "flex", gap: 6,
+                                overflowX: "auto", flex: 1,
+                                paddingBottom: 2,
+                            }} className="rc-hide">
+                                {filteredJobs.map(job => {
                                     const isActive = selectedJob?.id === job.id;
                                     const appCount = recentApps.filter(a => a.job_posting_id === job.id).length;
                                     return (
-                                        <div key={job.id} className="rc-job-item" onClick={() => handleSelectJob(job)} style={{
-                                            padding: "13px 18px", borderBottom: `1px solid ${theme.border}`, cursor: "pointer",
-                                            background: isActive ? (dark ? "rgba(124,58,237,0.12)" : "#faf5ff") : theme.surface,
-                                            borderLeft: isActive ? `3px solid ${theme.primary}` : "3px solid transparent",
+                                        <button key={job.id} onClick={() => handleSelectJob(job)} style={{
+                                            height: 34, padding: "0 12px", borderRadius: 8, flexShrink: 0,
+                                            border: `1px solid ${isActive ? theme.primary : theme.border}`,
+                                            background: isActive ? (dark ? "rgba(124,58,237,0.14)" : "#faf5ff") : theme.surface,
+                                            color: isActive ? theme.primary : theme.textSoft,
+                                            fontSize: 12, fontWeight: isActive ? 700 : 500,
+                                            cursor: "pointer", fontFamily: "inherit",
+                                            display: "flex", alignItems: "center", gap: 6,
                                             transition: "all 0.15s",
+                                            boxShadow: isActive ? `0 0 0 2px ${theme.primary}22` : "none",
+                                            maxWidth: 180,
                                         }}>
-                                            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
-                                                <div style={{ fontSize: 13, fontWeight: 600, color: isActive ? theme.primary : theme.text, lineHeight: 1.3 }}>{job.title}</div>
-                                                {appCount > 0 && (
-                                                    <div style={{ flexShrink: 0, minWidth: 20, height: 20, borderRadius: 99, background: isActive ? theme.primary : (dark ? "rgba(255,255,255,0.1)" : "#e5e7eb"), color: isActive ? "#fff" : theme.textMute, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 6px" }}>{appCount}</div>
-                                                )}
-                                            </div>
-                                            <div style={{ fontSize: 11, color: theme.textMute, marginBottom: 5 }}>{job.office?.company_name}</div>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                                <StatusPill status={job.status} opts={JOB_STATUS_OPTS} dark={dark} small />
-                                                {job.deadline && <span style={{ fontSize: 10, color: theme.textMute }}>· {job.deadline}</span>}
-                                            </div>
-                                        </div>
+                                            <span style={{
+                                                overflow: "hidden", textOverflow: "ellipsis",
+                                                whiteSpace: "nowrap",
+                                            }} title={job.title}>{job.title}</span>
+                                            {appCount > 0 && (
+                                                <span style={{
+                                                    fontSize: 10, fontWeight: 800, padding: "1px 6px", borderRadius: 99,
+                                                    flexShrink: 0,
+                                                    background: isActive ? theme.primary : (dark ? "rgba(255,255,255,0.1)" : "#f3f4f6"),
+                                                    color: isActive ? "#fff" : theme.textMute,
+                                                }}>{appCount}</span>
+                                            )}
+                                        </button>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        {/* ── Applicants Panel ── */}
-                        <div>
-                            {selectedJob && (
-                                <>
-                                    {/* Panel header */}
-                                    <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 14, padding: "16px 20px", marginBottom: 12, boxShadow: theme.shadow }}>
-                                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
-                                            <div>
-                                                <div style={{ fontSize: 16, fontWeight: 800, color: theme.text, letterSpacing: "-0.02em", marginBottom: 3 }}>{selectedJob.title}</div>
-                                                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: theme.textMute, flexWrap: "wrap" }}>
-                                                    <span>{selectedJob.office?.company_name}</span>
-                                                    <span>·</span>
-                                                    <span style={{ fontWeight: 700, color: selectedJobApps.length > 0 ? theme.primary : theme.textMute }}>{selectedJobApps.length} applicant{selectedJobApps.length !== 1 ? "s" : ""}</span>
-                                                    {selectedJobApps.length > 0 && (
-                                                        <span style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                                                            {APP_STATUS_OPTS.map(s => { const cnt = selectedJobApps.filter(a => a.status === s.value).length; return cnt > 0 ? <StatusPill key={s.value} status={s.value} opts={APP_STATUS_OPTS} dark={dark} small /> : null; })}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                <PremiumSelect options={appSortOpts} value={appSort} onChange={v => setAppSort(v)} width={140} dark={dark} theme={theme} />
-                                                {/* Bulk update — HR ဘဲ */}
-                                                {!isAdmin && selectedApps.length > 0 && (
-                                                    <button onClick={() => setBulkModal(true)} style={{ padding: "7px 14px", borderRadius: 8, background: theme.primary, border: "none", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                                                        ✏️ Update {selectedApps.length}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Filter pills */}
-                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-                                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                                {[{ value: "all", label: "All", color: theme.primary, bg: theme.primarySoft, darkBg: theme.primarySoft }, ...APP_STATUS_OPTS].map(s => (
-                                                    <button key={s.value} type="button"
-                                                        onClick={() => { setAppFilter(s.value); setSelectedApps([]); }}
-                                                        style={{
-                                                            padding: "5px 12px", borderRadius: 99, fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "all 0.15s", fontFamily: "inherit",
-                                                            border: appFilter === s.value ? `1.5px solid ${s.color}` : `1.5px solid ${theme.border}`,
-                                                            background: appFilter === s.value ? (dark ? s.darkBg : s.bg) : "transparent",
-                                                            color: appFilter === s.value ? s.color : theme.textMute,
-                                                        }}>
-                                                        {s.label}
-                                                        {s.value !== "all" && selectedJobApps.filter(a => a.status === s.value).length > 0 && (
-                                                            <span style={{ marginLeft: 4, opacity: 0.7 }}>({selectedJobApps.filter(a => a.status === s.value).length})</span>
-                                                        )}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            {/* Select all — HR ဘဲ */}
-                                            {!isAdmin && filteredApps.length > 1 && (
-                                                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: theme.textMute, cursor: "pointer", userSelect: "none" }}>
-                                                    <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ width: 14, height: 14, accentColor: theme.primary, cursor: "pointer" }} />
-                                                    Select all ({filteredApps.length})
-                                                </label>
-                                            )}
+                        {selectedJob && (
+                            <>
+                                {/* ── Selected job info + filter pills ── */}
+                                <div style={{
+                                    background: theme.surface, border: `1px solid ${theme.border}`,
+                                    borderRadius: 12, padding: "12px 18px", marginBottom: 10,
+                                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                                    gap: 12, flexWrap: "wrap", boxShadow: theme.shadow,
+                                }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                        <div>
+                                            <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{selectedJob.title}</span>
+                                            <span style={{ fontSize: 12, color: theme.textMute, marginLeft: 8 }}>{selectedJob.office?.company_name}</span>
+                                            <span style={{ fontSize: 12, color: theme.textMute, marginLeft: 6 }}>· <span style={{ fontWeight: 700, color: selectedJobApps.length > 0 ? theme.primary : theme.textMute }}>{selectedJobApps.length} applicant{selectedJobApps.length !== 1 ? "s" : ""}</span></span>
                                         </div>
                                     </div>
 
-                                    {/* Applicant cards */}
-                                    {filteredApps.length === 0 ? (
-                                        <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 14, padding: "48px 32px", textAlign: "center", boxShadow: theme.shadow }}>
-                                            <div style={{ fontSize: 36, marginBottom: 12 }}>📭</div>
-                                            <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4 }}>No applications yet</div>
-                                            <div style={{ fontSize: 12, color: theme.textMute }}>Applications will appear here once candidates apply.</div>
-                                        </div>
-                                    ) : (
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                                            {filteredApps.map(app => {
-                                                const initials = app.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-                                                const avatarColors = ["#7c3aed", "#0891b2", "#059669", "#d97706", "#dc2626", "#6366f1"];
-                                                const avatarBg = avatarColors[app.name.charCodeAt(0) % avatarColors.length];
-                                                const isSelected = selectedApps.includes(app.id);
-                                                return (
-                                                    <div key={app.id} className="rc-app-card" style={{
-                                                        background: isSelected ? (dark ? "rgba(124,58,237,0.08)" : "#faf5ff") : theme.surface,
-                                                        border: `${isSelected ? "1.5px" : "1px"} solid ${isSelected ? theme.primary : theme.border}`,
-                                                        borderRadius: 14, padding: "16px 20px",
-                                                        // Admin ဆိုရင် checkbox column မလိုဘဲ 3 column ပဲ
-                                                        display: "grid",
-                                                        gridTemplateColumns: isAdmin ? "46px 1fr auto" : "20px 46px 1fr auto",
-                                                        gap: 14, alignItems: "start", transition: "all 0.15s",
-                                                    }}>
-                                                        {/* Checkbox — HR ဘဲပြ */}
+                                    {/* Filter pills */}
+                                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", alignItems: "center" }}>
+                                        {[{ value: "all", label: "All", color: theme.primary, bg: theme.primarySoft, darkBg: theme.primarySoft }, ...APP_STATUS_OPTS].map(s => (
+                                            <button key={s.value} type="button"
+                                                onClick={() => { setAppFilter(s.value); setSelectedApps([]); }}
+                                                style={{
+                                                    padding: "4px 11px", borderRadius: 99, fontSize: 11, fontWeight: 600,
+                                                    cursor: "pointer", transition: "all 0.15s", fontFamily: "inherit",
+                                                    border: appFilter === s.value ? `1.5px solid ${s.color}` : `1px solid ${theme.border}`,
+                                                    background: appFilter === s.value ? (dark ? s.darkBg : s.bg) : "transparent",
+                                                    color: appFilter === s.value ? s.color : theme.textMute,
+                                                }}>
+                                                {s.label}
+                                                {s.value !== "all" && selectedJobApps.filter(a => a.status === s.value).length > 0 && (
+                                                    <span style={{ marginLeft: 4, opacity: 0.7 }}>({selectedJobApps.filter(a => a.status === s.value).length})</span>
+                                                )}
+                                            </button>
+                                        ))}
+
+                                        {!isAdmin && filteredApps.length > 1 && (
+                                            <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: theme.textMute, cursor: "pointer", userSelect: "none", marginLeft: 4 }}>
+                                                <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ width: 13, height: 13, accentColor: theme.primary, cursor: "pointer" }} />
+                                                All
+                                            </label>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* ── Applicant cards — full width, clean ── */}
+                                {filteredApps.length === 0 ? (
+                                    <div style={{
+                                        background: theme.surface, border: `1px solid ${theme.border}`,
+                                        borderRadius: 12, padding: "44px 24px", textAlign: "center",
+                                    }}>
+                                        <div style={{ fontSize: 32, marginBottom: 10 }}>📭</div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: theme.text, marginBottom: 4 }}>No applications yet</div>
+                                        <div style={{ fontSize: 11, color: theme.textMute }}>Applications will appear here once candidates apply.</div>
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        background: theme.surface, border: `1px solid ${theme.border}`,
+                                        borderRadius: 12, overflow: "hidden", boxShadow: theme.shadow,
+                                    }}>
+                                        {filteredApps.map((app, idx) => {
+                                            const initials = app.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+                                            const avatarBg = ["#7c3aed","#0891b2","#059669","#d97706","#dc2626","#6366f1"][app.name.charCodeAt(0) % 6];
+                                            const isSelected = selectedApps.includes(app.id);
+                                            const isLast = idx === filteredApps.length - 1;
+
+                                            return (
+                                                <div key={app.id} className="rc-app-card" style={{
+                                                    display: "flex", alignItems: "stretch",
+                                                    borderBottom: isLast ? "none" : `1px solid ${theme.border}`,
+                                                    background: isSelected ? (dark ? "rgba(124,58,237,0.06)" : "#fdf8ff") : "transparent",
+                                                    transition: "all 0.15s",
+                                                }}>
+                                                    {/* Left accent */}
+                                                    <div style={{ width: 3, background: avatarBg, flexShrink: 0 }} />
+
+                                                    <div style={{ flex: 1, padding: "14px 18px", display: "flex", alignItems: "flex-start", gap: 14, minWidth: 0 }}>
+
+                                                        {/* Checkbox */}
                                                         {!isAdmin && (
-                                                            <div style={{ paddingTop: 14 }}>
-                                                                <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(app.id)} style={{ width: 14, height: 14, accentColor: theme.primary, cursor: "pointer" }} />
+                                                            <div style={{ paddingTop: 2, flexShrink: 0 }}>
+                                                                <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(app.id)}
+                                                                    style={{ width: 13, height: 13, accentColor: theme.primary, cursor: "pointer" }} />
                                                             </div>
                                                         )}
 
                                                         {/* Avatar */}
-                                                        <div style={{ width: 46, height: 46, borderRadius: 12, background: avatarBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{initials}</div>
+                                                        <div style={{
+                                                            width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                                                            background: avatarBg, display: "flex", alignItems: "center",
+                                                            justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff",
+                                                        }}>{initials}</div>
 
                                                         {/* Info */}
-                                                        <div style={{ minWidth: 0 }}>
-                                                            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 3, flexWrap: "wrap" }}>
-                                                                <div style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{app.name}</div>
+                                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                                            {/* Row 1: name + status */}
+                                                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                                                                <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{app.name}</span>
                                                                 <StatusPill status={app.status} opts={APP_STATUS_OPTS} dark={dark} small />
                                                             </div>
-                                                            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 8 }}>
-                                                                <a href={`mailto:${app.email}`} style={{ fontSize: 12, color: theme.textMute, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-                                                                    <span style={{ opacity: 0.5 }}>✉</span> {app.email}
+
+                                                            {/* Row 2: email · phone · ref · date — inline chips */}
+                                                            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
+                                                                <a href={`mailto:${app.email}`} style={{ fontSize: 11, color: theme.textMute, textDecoration: "none" }}>
+                                                                    {app.email}
                                                                 </a>
-                                                                {app.phone && <span style={{ fontSize: 12, color: theme.textMute, display: "flex", alignItems: "center", gap: 4 }}><span style={{ opacity: 0.5 }}>☎</span> {app.phone}</span>}
+                                                                {app.phone && <span style={{ fontSize: 11, color: theme.textMute }}>{app.phone}</span>}
+                                                                <span style={{ fontSize: 10, color: theme.textMute, fontFamily: "monospace", background: dark ? "rgba(255,255,255,0.06)" : "#f3f4f6", padding: "1px 6px", borderRadius: 4 }}>
+                                                                    #{app.reference_code}
+                                                                </span>
+                                                                <span style={{ fontSize: 10, color: theme.textMute }}>Applied {app.applied_at}</span>
                                                             </div>
-                                                            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                                                                <span style={{ fontSize: 10, color: theme.textMute, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, padding: "2px 8px", borderRadius: 5, fontFamily: "monospace" }}>#{app.reference_code}</span>
-                                                                <span style={{ fontSize: 11, color: theme.textMute }}>Applied {app.applied_at}</span>
-                                                            </div>
+
+                                                            {/* HR note — inline, no box */}
                                                             {app.hr_note && (
-                                                                <div style={{ marginTop: 10, fontSize: 12, color: theme.textSoft, background: dark ? "rgba(255,255,255,0.04)" : "#f9fafb", border: `1px solid ${theme.border}`, borderLeft: `3px solid ${theme.primary}`, borderRadius: "0 8px 8px 0", padding: "8px 12px", fontStyle: "italic", lineHeight: 1.6 }}>{app.hr_note}</div>
+                                                                <div style={{ display: "inline-flex", alignItems: "baseline", marginBottom: 6 }}>
+                                                                    <span style={{ fontSize: 9, fontWeight: 800, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.5px", marginRight: 6 }}>Note</span>
+                                                                    <span style={{ fontSize: 11, color: theme.textSoft, fontStyle: "italic" }}>{app.hr_note}</span>
+                                                                </div>
                                                             )}
+
+                                                            {/* Interview info — compact, no heavy box */}
                                                             {app.interview && (
-                                                                <div style={{ marginTop: 10, background: dark ? "rgba(8,145,178,0.1)" : "#f0f9ff", border: `1px solid ${dark ? "rgba(8,145,178,0.25)" : "#bae6fd"}`, borderLeft: "3px solid #0891b2", borderRadius: "0 8px 8px 0", padding: "10px 12px" }}>
-                                                                    <div style={{ fontSize: 10, fontWeight: 700, color: "#0891b2", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 5 }}>Interview Scheduled</div>
-                                                                    <div style={{ fontSize: 12, color: dark ? "#7dd3fc" : "#0c4a6e", fontWeight: 500 }}>📅 {app.interview.scheduled_at}</div>
-                                                                    {app.interview.meeting_link && <a href={app.interview.meeting_link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#0891b2", display: "block", marginTop: 3 }}>🔗 {app.interview.meeting_link}</a>}
-                                                                    {app.interview.location && <div style={{ fontSize: 11, color: dark ? "#7dd3fc" : "#0c4a6e", marginTop: 3 }}>📍 {app.interview.location}</div>}
+                                                                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 5 }}>
+                                                                    <span style={{ fontSize: 10, fontWeight: 700, color: "#0891b2", textTransform: "uppercase", letterSpacing: "0.5px" }}>Interview</span>
+                                                                    <span style={{ fontSize: 11, color: dark ? "#7dd3fc" : "#0c4a6e", fontWeight: 600 }}>📅 {app.interview.scheduled_at}</span>
+                                                                    {app.interview.meeting_link && (
+                                                                        <a href={app.interview.meeting_link} target="_blank" rel="noopener noreferrer"
+                                                                            style={{ fontSize: 11, color: "#0891b2", textDecoration: "none" }}>
+                                                                            🔗 Link
+                                                                        </a>
+                                                                    )}
+                                                                    {app.interview.location && (
+                                                                        <span style={{ fontSize: 11, color: theme.textMute }}>📍 {app.interview.location}</span>
+                                                                    )}
                                                                     {app.interview.score != null && (
-                                                                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                                                                            <div style={{ fontSize: 13, fontWeight: 700, color: app.interview.score >= 70 ? "#059669" : app.interview.score >= 50 ? "#d97706" : "#dc2626" }}>Score: {app.interview.score}/100</div>
+                                                                        <>
+                                                                            <span style={{ color: theme.border }}>·</span>
+                                                                            <span style={{ fontSize: 11, fontWeight: 700, color: app.interview.score >= 70 ? "#059669" : app.interview.score >= 50 ? "#d97706" : "#dc2626" }}>
+                                                                                {app.interview.score}/100
+                                                                            </span>
                                                                             {app.interview.recommendation && (
-                                                                                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: app.interview.recommendation === "proceed" ? "#d1fae5" : app.interview.recommendation === "hold" ? "#fef3c7" : "#fee2e2", color: app.interview.recommendation === "proceed" ? "#059669" : app.interview.recommendation === "hold" ? "#d97706" : "#dc2626" }}>
+                                                                                <span style={{
+                                                                                    fontSize: 10, fontWeight: 700, padding: "1px 7px", borderRadius: 99,
+                                                                                    background: app.interview.recommendation === "proceed" ? (dark ? "rgba(5,150,105,0.16)" : "#d1fae5") : app.interview.recommendation === "hold" ? (dark ? "rgba(217,119,6,0.16)" : "#fef3c7") : (dark ? "rgba(220,38,38,0.16)" : "#fee2e2"),
+                                                                                    color: app.interview.recommendation === "proceed" ? "#059669" : app.interview.recommendation === "hold" ? "#d97706" : "#dc2626",
+                                                                                }}>
                                                                                     {app.interview.recommendation.charAt(0).toUpperCase() + app.interview.recommendation.slice(1)}
                                                                                 </span>
                                                                             )}
-                                                                        </div>
+                                                                        </>
                                                                     )}
                                                                 </div>
                                                             )}
                                                         </div>
 
-                                                        {/* Actions */}
-                                                        <div style={{ display: "flex", flexDirection: "column", gap: 7, alignItems: "flex-end", flexShrink: 0 }}>
-                                                            {/* CV — Admin ရော HR ရော မြင်ရ, download route သုံး */}
-                                                            <a href={app.cv_download_url || `/recruitment/applications/${app.id}/cv`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, color: theme.textSoft, fontSize: 12, fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap" }}>
-                                                                📄 CV
+                                                        {/* ── Action buttons — compact right column ── */}
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+                                                            {/* CV */}
+                                                            <a href={app.cv_download_url || `/recruitment/applications/${app.id}/cv`} style={{
+                                                                display: "inline-flex", alignItems: "center", gap: 4,
+                                                                padding: "5px 10px", borderRadius: 7,
+                                                                background: "transparent",
+                                                                border: `1px solid ${theme.border}`,
+                                                                color: theme.textSoft, fontSize: 11, fontWeight: 600,
+                                                                textDecoration: "none", whiteSpace: "nowrap",
+                                                                transition: "all 0.15s",
+                                                            }}
+                                                                onMouseEnter={e => { e.currentTarget.style.borderColor = theme.primary; e.currentTarget.style.color = theme.primary; }}
+                                                                onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textSoft; }}
+                                                            >
+                                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                                                    <polyline points="7 10 12 15 17 10"/>
+                                                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                                                </svg>
+                                                                CV
                                                             </a>
 
-                                                            {/* Status, Interview, Score, Delete — HR ဘဲ */}
+                                                            {/* HR actions */}
                                                             {!isAdmin && (
                                                                 <>
-                                                                    <button onClick={() => setNoteModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: theme.primarySoft, border: `1px solid ${dark ? "rgba(139,92,246,0.3)" : "#ddd6fe"}`, color: theme.primary, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>✏️ Status</button>
-                                                                    <button onClick={() => setInterviewModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: app.interview ? (dark ? "rgba(8,145,178,0.12)" : "#f0f9ff") : "transparent", border: `1px solid ${app.interview ? (dark ? "rgba(8,145,178,0.3)" : "#bae6fd") : theme.border}`, color: app.interview ? "#0891b2" : theme.textMute, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-                                                                        📅 {app.interview ? "Reschedule" : "Interview"}
+                                                                    <button onClick={() => setNoteModal(app)} style={{
+                                                                        padding: "5px 10px", borderRadius: 7, fontSize: 11, fontWeight: 600,
+                                                                        border: "none", background: theme.primarySoft,
+                                                                        color: theme.primary, cursor: "pointer", fontFamily: "inherit",
+                                                                        transition: "opacity 0.15s",
+                                                                    }}
+                                                                        onMouseEnter={e => e.currentTarget.style.opacity = "0.8"}
+                                                                        onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+                                                                    >
+                                                                        Status
                                                                     </button>
+
+                                                                    <button onClick={() => setInterviewModal(app)} style={{
+                                                                        padding: "5px 10px", borderRadius: 7, fontSize: 11, fontWeight: 600,
+                                                                        border: "none",
+                                                                        background: app.interview ? (dark ? "rgba(8,145,178,0.14)" : "#e0f2fe") : (dark ? "rgba(255,255,255,0.06)" : "#f3f4f6"),
+                                                                        color: app.interview ? "#0891b2" : theme.textMute,
+                                                                        cursor: "pointer", fontFamily: "inherit",
+                                                                        transition: "opacity 0.15s",
+                                                                    }}
+                                                                        onMouseEnter={e => e.currentTarget.style.opacity = "0.8"}
+                                                                        onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+                                                                    >
+                                                                        {app.interview ? "Reschedule" : "Interview"}
+                                                                    </button>
+
                                                                     {app.status === "interview" && (
-                                                                        <button onClick={() => setScoreModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: app.interview?.score != null ? (dark ? "rgba(5,150,105,0.14)" : "#d1fae5") : (dark ? "rgba(217,119,6,0.12)" : "#fff7ed"), border: `1px solid ${app.interview?.score != null ? (dark ? "rgba(5,150,105,0.3)" : "#6ee7b7") : (dark ? "rgba(217,119,6,0.3)" : "#fed7aa")}`, color: app.interview?.score != null ? "#059669" : "#d97706", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-                                                                            ⭐ {app.interview?.score != null ? `Score: ${app.interview.score}` : "Add Score"}
+                                                                        <button onClick={() => setScoreModal(app)} style={{
+                                                                            padding: "5px 10px", borderRadius: 7, fontSize: 11, fontWeight: 600,
+                                                                            border: "none",
+                                                                            background: app.interview?.score != null ? (dark ? "rgba(5,150,105,0.14)" : "#d1fae5") : (dark ? "rgba(217,119,6,0.12)" : "#fef3c7"),
+                                                                            color: app.interview?.score != null ? "#059669" : "#d97706",
+                                                                            cursor: "pointer", fontFamily: "inherit",
+                                                                            transition: "opacity 0.15s",
+                                                                        }}
+                                                                            onMouseEnter={e => e.currentTarget.style.opacity = "0.8"}
+                                                                            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+                                                                        >
+                                                                            {app.interview?.score != null ? `⭐ ${app.interview.score}` : "Score"}
                                                                         </button>
                                                                     )}
+
                                                                     {app.status === "rejected" && (
-                                                                        <button onClick={() => setDeleteModal(app)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, background: "transparent", border: `1px solid ${dark ? "rgba(73,67,61,0.3)" : "rgba(247,99,99,1)"}`, color: theme.danger, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-                                                                            <ActionGlyph type="delete" color={theme.danger} /> Delete
+                                                                        <button onClick={() => setDeleteModal(app)} style={{
+                                                                            width: 28, height: 28, padding: 0, borderRadius: 7, fontSize: 11,
+                                                                            border: "none", background: "transparent",
+                                                                            color: dark ? "rgba(248,113,113,0.4)" : "#fca5a5",
+                                                                            cursor: "pointer", fontFamily: "inherit",
+                                                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                                                            transition: "all 0.15s",
+                                                                        }}
+                                                                            onMouseEnter={e => { e.currentTarget.style.background = dark ? "rgba(248,113,113,0.16)" : "#fee2e2"; e.currentTarget.style.color = dark ? "#f87171" : "#dc2626"; }}
+                                                                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = dark ? "rgba(248,113,113,0.4)" : "#fca5a5"; }}
+                                                                        >
+                                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                                                                <polyline points="3 6 5 6 21 6"/>
+                                                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                                                                <path d="M10 11v6M14 11v6"/>
+                                                                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                                                            </svg>
                                                                         </button>
                                                                     )}
                                                                 </>
                                                             )}
                                                         </div>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 )}
             </div>
 
-            {/* ── Modals — HR ဘဲ render လုပ် ── */}
+            {/* Modals — unchanged */}
             {jobModal && !isAdmin && <JobModal offices={offices} editJob={editJob} hrOffice={hrOffice} onClose={() => { setJobModal(false); setEditJob(null); }} dark={dark} theme={theme} />}
             {noteModal && !isAdmin && <StatusModal app={noteModal} onClose={() => setNoteModal(null)} dark={dark} theme={theme} />}
             {interviewModal && !isAdmin && <InterviewModal app={interviewModal} onClose={() => setInterviewModal(null)} dark={dark} theme={theme} />}
@@ -794,8 +929,18 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
         if (Object.keys(v).length) { setErrs(v); return; }
         setErrs({}); setSubmitting(true);
         const payload = { ...data, description: toStr(descItems), requirements: toStr(reqItems), responsibilities: toStr(respItems), salary_range: negotiate ? "Negotiable" : data.salary_range };
-        const opts = { preserveScroll: true, onSuccess: () => { setSubmitting(false); onClose(); }, onError: () => setSubmitting(false) };
-        isEdit ? router.put(`/recruitment/jobs/${editJob.id}`, payload, opts) : router.post("/recruitment/jobs", payload, opts);
+        const opts = {
+            preserveScroll: true,
+            preserveState: false,   // ← fresh props ယူ
+            onSuccess: () => {
+                setSubmitting(false);
+                onClose();
+            },
+            onError: () => setSubmitting(false)
+        };
+        isEdit
+            ? router.put(`/recruitment/jobs/${editJob.id}`, payload, opts)
+            : router.post("/recruitment/jobs", payload, opts);
     };
 
     const errTxt = (key) => errs[key] ? <div style={{ fontSize: 11, color: theme.danger, marginTop: 5, display: "flex", alignItems: "center", gap: 4 }}><span>⚠</span> {errs[key]}</div> : null;

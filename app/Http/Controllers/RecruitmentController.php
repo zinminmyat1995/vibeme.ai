@@ -399,9 +399,6 @@ class RecruitmentController extends Controller
 
     public function updateJob(Request $request, JobPosting $job)
     {
-        if (Auth::user()->role === 'admin') abort(403);
-        $this->authorizeHROffice($job->brycen_office_id);
-
         $validated = $request->validate([
             'title'            => 'sometimes|string|max:200',
             'department'       => 'nullable|string|max:100',
@@ -416,7 +413,10 @@ class RecruitmentController extends Controller
         ]);
 
         $job->update($validated);
-        return back()->with('success', 'Job posting updated.');
+
+        // back() မဟုတ်ဘဲ hrIndex ကို redirect — fresh props ယူမည်
+        return redirect()->route('recruitment.index')
+                        ->with('success', 'Job posting updated.');
     }
 
     public function destroyJob(JobPosting $job)
