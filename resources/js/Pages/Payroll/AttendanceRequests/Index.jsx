@@ -629,197 +629,330 @@ function ConfirmModal({ type, request, loading, dark, theme, onCancel, onApprove
     );
 }
 
+// ─── REPLACE the entire RequestRow function with this ───────────────────────
+// UI ONLY — logic unchanged
+
 function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDelete, isLast }) {
-    const statusCfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending;
-    const isMyRequest = req.user_id === userId;
-    const isAssignedToMe = req.approver_id === userId;
-    const showActions = canApprove && req.status === 'pending' && isAssignedToMe && !isMyRequest;
-    const statusBg = dark ? statusCfg.bgDark : statusCfg.bg;
-    const showDelete = isMyRequest && req.status === 'pending';
+    const statusCfg       = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending;
+    const isMyRequest     = req.user_id === userId;
+    const isAssignedToMe  = req.approver_id === userId;
+    const showActions     = canApprove && req.status === 'pending' && isAssignedToMe && !isMyRequest;
+    const showDelete      = isMyRequest && req.status === 'pending';
+
+    const statusBg    = dark ? statusCfg.bgDark : statusCfg.bg;
+    const accentColor = req.status === 'approved' ? theme.success
+                      : req.status === 'rejected' ? theme.danger
+                      : theme.primary;
+
+    const typeLabel = req.requested_check_in_time && req.requested_check_out_time
+        ? 'Both'
+        : req.requested_check_in_time ? 'In Only' : 'Out Only';
+
+    // Shared chip label style (IN / OUT / WH / Late / Reason)
+    const chipLabel = {
+        fontSize: 9,
+        fontWeight: 800,
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px',
+        marginRight: 5,
+    };
+    const chipValue = {
+        fontSize: 12,
+        fontWeight: 700,
+    };
 
     return (
-        <div style={{ display: 'flex', alignItems: 'stretch', borderBottom: isLast ? 'none' : `1px solid ${theme.border}` }}>
-            <div style={{ width: 4, background: req.status === 'approved' ? theme.success : req.status === 'rejected' ? theme.danger : theme.primary, flexShrink: 0 }} />
-            <div style={{ display: 'flex', flex: 1, alignItems: 'flex-start', gap: 14, padding: '18px 20px', transition: 'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'stretch',
+                borderBottom: isLast ? 'none' : `1px solid ${theme.border}`,
+                transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+            {/* Left accent bar */}
+            <div style={{ width: 3, flexShrink: 0, background: accentColor }} />
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: theme.text }}>
-                        {formatDate(req.date)}
-                    </span>
+            {/* Main content */}
+            <div style={{ flex: 1, padding: '13px 18px', minWidth: 0 }}>
 
-                    <span
-                        style={{
-                            fontSize: 10,
-                            fontWeight: 700,
-                            background: statusBg,
-                            color: statusCfg.color,
-                            borderRadius: 99,
-                            padding: '2px 9px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 3
-                        }}
-                    >
-                        {statusCfg.icon} {statusCfg.label}
-                    </span>
-
-                    <span
-                        style={{
-                            fontSize: 10,
-                            fontWeight: 700,
-                            background: theme.panelSoft,
-                            color: theme.textSoft,
-                            borderRadius: 99,
-                            padding: '2px 9px',
-                        }}
-                    >
-                        {req.requested_check_in_time && req.requested_check_out_time
-                            ? 'Both In/Out'
-                            : req.requested_check_in_time
-                            ? 'Check In Only'
-                            : 'Check Out Only'}
-                    </span>
-                </div>
-
-                    {req.user && !isMyRequest && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                            {req.user.avatar_url ? (
-                                <img src={`/storage/${req.user.avatar_url}`} alt={req.user.name}
-                                    style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover', flexShrink: 0, border: `1.5px solid ${theme.border}` }} />
-                            ) : (
-                                <div style={{ width: 30, height: 30, borderRadius: 10, flexShrink: 0, background: theme.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: theme.primary }}>
-                                    {req.user.name?.charAt(0).toUpperCase()}
-                                </div>
-                            )}
-                            <div>
-                                <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{req.user.name}</div>
-                                {(req.user.position || req.user.department) && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
-                                        {req.user.position && <span style={{ fontSize: 10, fontWeight: 600, color: theme.textSoft }}>{req.user.position}</span>}
-                                        {req.user.position && req.user.department && <span style={{ color: theme.border, fontSize: 10 }}>·</span>}
-                                        {req.user.department && <span style={{ fontSize: 10, fontWeight: 500, color: theme.secondary }}>{req.user.department}</span>}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(120px, 1fr))', gap: 10, marginBottom: req.note ? 10 : 0 }}>
-                        <div style={{ background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 10, padding: '10px 12px' }}>
-                            <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, textTransform: 'uppercase' }}>Requested Check In</div>
-                            <div style={{ marginTop: 4, fontSize: 13, fontWeight: 800, color: theme.text }}>{to12h(req.requested_check_in_time)}</div>
-                        </div>
-                        <div style={{ background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 10, padding: '10px 12px' }}>
-                            <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, textTransform: 'uppercase' }}>Requested Check Out</div>
-                            <div style={{ marginTop: 4, fontSize: 13, fontWeight: 800, color: theme.text }}>{to12h(req.requested_check_out_time)}</div>
-                        </div>
-                        <div style={{ background: theme.panelSoft, border: `1px solid ${theme.border}`, borderRadius: 10, padding: '10px 12px' }}>
-                            <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, textTransform: 'uppercase' }}>Auto Preview</div>
-                            <div style={{ marginTop: 4, fontSize: 13, fontWeight: 800, color: theme.primary }}>
-                                {req.requested_work_hours ? `${hToHM(req.requested_work_hours)} / ${req.requested_late_minutes || 0}m late` : '—'}
-                            </div>
-                        </div>
-                    </div>
-
-                    {req.note && (
-                        <div style={{ display: 'flex', gap: 8, background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb', border: `1px solid ${theme.border}`, borderRadius: 10, padding: '8px 12px' }}>
-                            <span style={{ fontSize: 12, fontWeight: 800, color: theme.textMute, flexShrink: 0, marginTop: 1, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Reason</span>
-                            <span style={{ fontSize: 12, color: theme.textSoft, lineHeight: 1.5 }}>{req.note}</span>
-                        </div>
-                    )}
-                </div>
-
+                {/* ── Row 1: date · status · type  /  right: approver + delete ── */}
                 <div style={{
-                    flexShrink: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    justifyContent: 'space-between',
-                    gap: 8,
-                    minWidth: 130,
-                    alignSelf: 'stretch',
+                    display: 'flex', alignItems: 'flex-start',
+                    justifyContent: 'space-between', gap: 10,
                 }}>
-                    {/* ── အပေါ်ပိုင်း ── */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-                        {showActions && (
-                            <div style={{ display: 'flex', gap: 7 }}>
-                                <button onClick={() => onApprove(req)}
-                                    style={{ background: dark ? 'rgba(16,185,129,0.14)' : '#d1fae5', border: `1px solid ${dark ? 'rgba(16,185,129,0.3)' : '#6ee7b7'}`, borderRadius: 10, padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: dark ? '#34d399' : '#059669' }}>
-                                    ✓ Approve
-                                </button>
-                                <button onClick={() => onReject(req)}
-                                    style={{ background: dark ? 'rgba(248,113,113,0.12)' : '#fee2e2', border: `1px solid ${dark ? 'rgba(248,113,113,0.25)' : '#fca5a5'}`, borderRadius: 10, padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: dark ? '#f87171' : '#dc2626' }}>
-                                    ✕ Reject
-                                </button>
-                            </div>
-                        )}
-
-                        {req.status === 'approved' && (
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: 12, color: dark ? '#34d399' : '#059669', fontWeight: 700 }}>✓ Approved</div>
-                                {req.approvedBy && <div style={{ fontSize: 11, color: theme.textMute, marginTop: 3 }}>by {req.approvedBy.name}</div>}
-                            </div>
-                        )}
-
-                        {req.status === 'rejected' && (
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: 12, color: dark ? '#f87171' : '#dc2626', fontWeight: 700 }}>✕ Rejected</div>
-                                {req.approvedBy && <div style={{ fontSize: 11, color: theme.textMute, marginTop: 3 }}>by {req.approvedBy.name}</div>}
-                            </div>
-                        )}
-
-                        {req.status === 'pending' && !showActions && req.approver && (
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Awaiting</div>
-                                <div style={{ fontSize: 11, color: theme.secondary, fontWeight: 800 }}>{req.approver.name}</div>
-                            </div>
-                        )}
+                    {/* Left */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>
+                            {formatDate(req.date)}
+                        </span>
+                        <span style={{
+                            fontSize: 10, fontWeight: 700,
+                            background: statusBg, color: statusCfg.color,
+                            borderRadius: 99, padding: '2px 8px',
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                        }}>
+                            {statusCfg.icon} {statusCfg.label}
+                        </span>
+                        <span style={{ fontSize: 10, fontWeight: 600, color: theme.textMute }}>
+                            {typeLabel}
+                        </span>
                     </div>
 
-                    {/* ── အောက်ပိုင်း — Delete icon (ညာ အောက်ထောင့်) ── */}
-                    {showDelete ? (
-                        <button
-                            onClick={() => onDelete(req)}
-                            title="Delete request"
-                            style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 8,
-                                background: dark ? 'rgba(248,113,113,0.12)' : '#fee2e2',
-                                border: `1px solid ${dark ? 'rgba(248,113,113,0.22)' : '#fca5a5'}`,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.15s',
-                                flexShrink: 0,
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.25)' : '#fecaca';
-                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.45)' : '#f87171';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.12)' : '#fee2e2';
-                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.22)' : '#fca5a5';
-                            }}
-                        >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                stroke={dark ? '#f87171' : '#dc2626'}
-                                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                <path d="M10 11v6" />
-                                <path d="M14 11v6" />
-                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                            </svg>
-                        </button>
-                    ) : (
-                        <div style={{ width: 32, height: 32 }} /> 
+                    {/* Right */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+
+                        {/* CHANGE 1: Awaiting stacked — "Awaiting" label + name below */}
+                        {req.status === 'pending' && req.approver && !showActions && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>
+                                    Awaiting
+                                </div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.secondary }}>
+                                    {req.approver.name}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Approved by */}
+                        {req.status === 'approved' && req.approvedBy && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>
+                                    Approved by
+                                </div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.success }}>
+                                    {req.approvedBy.name}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Rejected by */}
+                        {req.status === 'rejected' && req.approvedBy && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>
+                                    Rejected by
+                                </div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.danger }}>
+                                    {req.approvedBy.name}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Approve / Reject buttons */}
+                        {showActions && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                                {/* Approve — solid green pill */}
+                                <button
+                                    onClick={() => onApprove(req)}
+                                    style={{
+                                        background: dark
+                                            ? 'linear-gradient(135deg,#065f46,#059669)'
+                                            : 'linear-gradient(135deg,#059669,#10b981)',
+                                        border: 'none',
+                                        borderRadius: 20,
+                                        padding: '6px 16px',
+                                        fontSize: 11, fontWeight: 700,
+                                        cursor: 'pointer',
+                                        color: '#fff',
+                                        display: 'flex', alignItems: 'center', gap: 5,
+                                        boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                                        transition: 'opacity 0.15s, box-shadow 0.15s',
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.opacity = '0.88';
+                                        e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.45)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.opacity = '1';
+                                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(16,185,129,0.35)';
+                                    }}
+                                >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" strokeWidth="3"
+                                        strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    Approve
+                                </button>
+
+                                {/* Reject — solid red pill, same shape */}
+                                <button
+                                    onClick={() => onReject(req)}
+                                    style={{
+                                        background: dark
+                                            ? 'linear-gradient(135deg,rgba(220,38,38,0.28),rgba(239,68,68,0.22))'
+                                            : 'linear-gradient(135deg,#fef2f2,#fee2e2)',
+                                        border: 'none',
+                                        borderRadius: 20,
+                                        padding: '6px 16px',
+                                        fontSize: 11, fontWeight: 700,
+                                        cursor: 'pointer',
+                                        color: dark ? '#f87171' : '#dc2626',
+                                        display: 'flex', alignItems: 'center', gap: 5,
+                                        boxShadow: dark
+                                            ? '0 2px 8px rgba(248,113,113,0.15)'
+                                            : '0 2px 8px rgba(220,38,38,0.10)',
+                                        transition: 'opacity 0.15s, box-shadow 0.15s',
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.opacity = '0.82';
+                                        e.currentTarget.style.boxShadow = dark
+                                            ? '0 4px 14px rgba(248,113,113,0.25)'
+                                            : '0 4px 14px rgba(220,38,38,0.18)';
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.opacity = '1';
+                                        e.currentTarget.style.boxShadow = dark
+                                            ? '0 2px 8px rgba(248,113,113,0.15)'
+                                            : '0 2px 8px rgba(220,38,38,0.10)';
+                                    }}
+                                >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                    Reject
+                                </button>
+                            </div>
+                        )}
+
+                        {/* CHANGE 2: Delete — border none, faint icon, hover shows color */}
+                        {showDelete && (
+                            <button
+                                onClick={() => onDelete(req)}
+                                title="Delete request"
+                                style={{
+                                    width: 28, height: 28, borderRadius: 7,
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.15s', flexShrink: 0,
+                                    color: dark ? 'rgba(248,113,113,0.4)' : '#fca5a5',
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.16)' : '#fee2e2';
+                                    e.currentTarget.style.color = dark ? '#f87171' : '#dc2626';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = dark ? 'rgba(248,113,113,0.4)' : '#fca5a5';
+                                }}
+                            >
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" strokeWidth="2.2"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                    <path d="M10 11v6M14 11v6"/>
+                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Employee info row (approver/all view) ── */}
+                {req.user && !isMyRequest && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                        {req.user.avatar_url ? (
+                            <img src={`/storage/${req.user.avatar_url}`} alt={req.user.name}
+                                style={{ width: 22, height: 22, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                        ) : (
+                            <div style={{
+                                width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                                background: theme.primarySoft,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 10, fontWeight: 800, color: theme.primary,
+                            }}>
+                                {req.user.name?.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        <span style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{req.user.name}</span>
+                        {req.user.position && (
+                            <span style={{ fontSize: 11, color: theme.textMute }}>{req.user.position}</span>
+                        )}
+                        {req.user.department && (
+                            <span style={{ fontSize: 11, color: theme.secondary }}>{req.user.department}</span>
+                        )}
+                    </div>
+                )}
+
+                {/* ── Times row: IN → OUT · WH · Late ── */}
+                {/* CHANGE 3 & 4: WH and Late use same chipLabel+chipValue style as IN/OUT */}
+                <div style={{
+                    display: 'flex', alignItems: 'center',
+                    gap: 14, marginTop: 9, flexWrap: 'wrap',
+                }}>
+                    {req.requested_check_in_time && (
+                        <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                            <span style={{ ...chipLabel, color: theme.textMute }}>IN</span>
+                            <span style={{ ...chipValue, color: theme.text }}>
+                                {to12h(req.requested_check_in_time)}
+                            </span>
+                        </span>
+                    )}
+
+                    {req.requested_check_in_time && req.requested_check_out_time && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                            stroke={theme.textMute} strokeWidth="2.5" strokeLinecap="round">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    )}
+
+                    {req.requested_check_out_time && (
+                        <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                            <span style={{ ...chipLabel, color: theme.textMute }}>OUT</span>
+                            <span style={{ ...chipValue, color: theme.text }}>
+                                {to12h(req.requested_check_out_time)}
+                            </span>
+                        </span>
+                    )}
+
+                    {/* CHANGE 3: WH — same chip style, neutral color */}
+                    {req.requested_work_hours && (
+                        <>
+                            <span style={{ color: theme.border, fontSize: 12, lineHeight: 1 }}>·</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                                <span style={{ ...chipLabel, color: theme.textMute }}>WH</span>
+                                <span style={{ ...chipValue, color: theme.text }}>
+                                    {hToHM(req.requested_work_hours)}
+                                </span>
+                            </span>
+                        </>
+                    )}
+
+                    {/* CHANGE 4: Late — same chip style, warning color */}
+                    {req.requested_late_minutes > 0 && (
+                        <>
+                            <span style={{ color: theme.border, fontSize: 12, lineHeight: 1 }}>·</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                                <span style={{ ...chipLabel, color: theme.warning }}>Late</span>
+                                <span style={{ ...chipValue, color: theme.warning }}>
+                                    {req.requested_late_minutes}m
+                                </span>
+                            </span>
+                        </>
                     )}
                 </div>
+
+                {/* CHANGE 5: Reason — separate row, no quotes, same chip style */}
+                {req.note && (
+                    <div style={{
+                        display: 'inline-flex', alignItems: 'baseline',
+                        marginTop: 6,
+                    }}>
+                        <span style={{ ...chipLabel, color: theme.textMute }}>Reason</span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft }}>
+                            {req.note}
+                        </span>
+                    </div>
+                )}
+
             </div>
         </div>
     );

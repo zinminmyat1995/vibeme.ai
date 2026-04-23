@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class ForgotPasswordController extends Controller
 {
@@ -74,48 +75,50 @@ class ForgotPasswordController extends Controller
     }
 
     // ── Step 4: Process Password Reset ────────────────────────────
-    public function resetPassword(Request $request)
-    {
-        $request->validate([
-            'token'                 => 'required',
-            'email'                 => 'required|email',
-            'password'              => 'required|min:8|confirmed',
-            'password_confirmation' => 'required',
-        ]);
+public function resetPassword(Request $request)
+{
+    $request->validate([
+        'token'                 => 'required',
+        'email'                 => 'required|email',
+        'password'              => 'required|min:8|confirmed',
+        'password_confirmation' => 'required',
+    ]);
 
-        // Find token record
-        $record = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->first();
+    $record = DB::table('password_reset_tokens')
+        ->where('email', $request->email)
+        ->first();
 
-        if (!$record) {
-            return back()->withErrors(['email' => 'Invalid or expired reset link.']);
-        }
+    if (!$record) {
+        return back()->withErrors(['email' => 'Invalid or expired reset link.']);
+    }
 
-        // Check token validity (expire after 60 minutes)
-        if (now()->diffInMinutes($record->created_at) > 60) {
-            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
-            return back()->withErrors(['token' => 'This reset link has expired. Please request a new one.']);
-        }
+    $createdAt = Carbon::parse($record->created_at);
+    $expiresAt = $createdAt->copy()->addMinute();
 
-        // Verify token hash
-        if (!Hash::check($request->token, $record->token)) {
-            return back()->withErrors(['token' => 'Invalid reset token.']);
-        }
-
-        // Update password
-        $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            return back()->withErrors(['email' => 'User not found.']);
-        }
-
-        $user->update([
-            'password' => Hash::make($request->password),
-        ]);
-
-        // Delete used token
+    if (now()->greaterThan($expiresAt)) {
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-        return redirect()->route('login')->with('status', 'password_reset');
+        return back()->withErrors([
+            'token' => 'This reset link has expired. Please request a new one.'
+        ]);
     }
+
+    if (!Hash::check($request->token, $record->token)) {
+        return back()->withErrors(['token' => 'Invalid reset token.']);
+    }
+
+    $user = User::where('email', $request->email)->first();
+
+    if (!$user) {
+        return back()->withErrors(['email' => 'User not found.']);
+    }
+
+    $user->update([
+        'password' => Hash::make($request->password),
+    ]);
+
+    DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+    return redirect()->route('login')->with('status', 'password_reset');
+}
 }

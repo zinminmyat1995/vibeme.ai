@@ -135,11 +135,11 @@ function buildLeaveTypeConfig(leavePolicies) {
 // ─── Premium Portal Dropdown ──────────────────────────────────
 function PremiumDropdown({ options, value, onChange, placeholder = 'Select...', theme, dark, disabled = false, width = 'auto' }) {
     const [open, setOpen] = useState(false);
-    const [pos, setPos]   = useState({ top:0, left:0, width:0 });
+    const [pos, setPos]   = useState({ top: 0, left: 0, width: 0, above: false });
     const triggerRef      = useRef(null);
     const menuRef         = useRef(null);
     const selected        = options.find(o => String(o.value) === String(value) && !o.disabled);
-
+ 
     useEffect(() => {
         const handler = (e) => {
             if (triggerRef.current?.contains(e.target) || menuRef.current?.contains(e.target)) return;
@@ -148,55 +148,102 @@ function PremiumDropdown({ options, value, onChange, placeholder = 'Select...', 
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
-
+ 
     function handleOpen() {
         if (disabled) return;
         const rect = triggerRef.current?.getBoundingClientRect();
-        if (rect) setPos({ top: rect.bottom + window.scrollY + 6, left: rect.left + window.scrollX, width: rect.width });
+        if (rect) {
+            const MENU_H   = Math.min(options.filter(o => !o.disabled).length * 44, 240);
+            const GAP      = 6;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            const above = spaceBelow < MENU_H + GAP || spaceAbove > spaceBelow;
+
+            setPos({
+                top:   above
+                    ? rect.top  - MENU_H - GAP   // ← scrollY မထည့် (fixed position)
+                    : rect.bottom + GAP,
+                left:  rect.left,
+                width: rect.width,
+                above,
+            });
+        }
         setOpen(v => !v);
     }
-
+ 
     return (
         <>
-            <button ref={triggerRef} type="button" onClick={handleOpen}
-                style={{ width, height:44, padding:'0 14px', borderRadius:12,
-                    border:`1.5px solid ${open ? theme.inputBorderFocus : theme.inputBorder}`,
+            <button
+                ref={triggerRef}
+                type="button"
+                onClick={handleOpen}
+                style={{
+                    width, height: 44, padding: '0 14px', borderRadius: 12,
+                    border: `1.5px solid ${open ? theme.inputBorderFocus : theme.inputBorder}`,
                     background: dark
                         ? 'linear-gradient(180deg,rgba(255,255,255,0.06) 0%,rgba(255,255,255,0.03) 100%)'
                         : 'linear-gradient(180deg,#fff 0%,#f8fafc 100%)',
                     color: selected ? theme.text : theme.textMute,
-                    display:'flex', alignItems:'center', justifyContent:'space-between', gap:10,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
                     cursor: disabled ? 'not-allowed' : 'pointer',
-                    fontSize:13, fontWeight: selected ? 600 : 400,
+                    fontSize: 13, fontWeight: selected ? 600 : 400,
                     boxShadow: open ? `0 0 0 3px ${theme.primary}22` : 'none',
-                    transition:'all 0.18s', opacity: disabled ? 0.5 : 1, outline:'none' }}>
-                <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    transition: 'all 0.18s', opacity: disabled ? 0.5 : 1, outline: 'none',
+                }}
+            >
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selected ? selected.label : placeholder}
                 </span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                    style={{ flexShrink:0, transition:'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }}>
+                <svg
+                    width="14" height="14" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2.5"
+                    style={{
+                        flexShrink: 0, transition: 'transform 0.2s',
+                        transform: open ? 'rotate(180deg)' : 'none',
+                    }}
+                >
                     <polyline points="6 9 12 15 18 9"/>
                 </svg>
             </button>
+ 
             {open && createPortal(
-                <div ref={menuRef} className="hide-scrollbar"
-                    style={{ position:'absolute', top:pos.top, left:pos.left, width:pos.width,
+                <div
+                    ref={menuRef}
+                    className="hide-scrollbar"
+                    style={{
+                        position: 'absolute',
+                        top: pos.top,
+                        left: pos.left,
+                        width: pos.width,
                         background: dark ? '#0d1b38' : '#fff',
-                        border:`1px solid ${theme.borderStrong}`,
-                        borderRadius:14,
-                        boxShadow: dark ? '0 24px 60px rgba(0,0,0,0.5)' : '0 12px 40px rgba(15,23,42,0.14)',
-                        zIndex:99999, overflow:'hidden', animation:'dropIn 0.18s ease',
-                        maxHeight:240, overflowY:'auto' }}>
+                        border: `1px solid ${theme.borderStrong}`,
+                        borderRadius: 14,
+                        boxShadow: dark
+                            ? '0 24px 60px rgba(0,0,0,0.5)'
+                            : '0 12px 40px rgba(15,23,42,0.14)',
+                        zIndex: 99999,
+                        overflow: 'hidden',
+                        animation: pos.above ? 'dropUp 0.18s ease' : 'dropIn 0.18s ease',
+                        maxHeight: 240,
+                        overflowY: 'auto',
+                    }}
+                >
                     {options.filter(o => !o.disabled).map(opt => {
                         const isSel = String(opt.value) === String(value);
                         return (
-                            <div key={opt.value} onClick={() => { onChange(opt.value); setOpen(false); }}
-                                style={{ padding:'10px 14px', fontSize:13, fontWeight: isSel ? 700 : 500,
+                            <div
+                                key={opt.value}
+                                onClick={() => { onChange(opt.value); setOpen(false); }}
+                                style={{
+                                    padding: '10px 14px', fontSize: 13,
+                                    fontWeight: isSel ? 700 : 500,
                                     color: isSel ? '#fff' : theme.text,
                                     background: isSel ? theme.primary : 'transparent',
-                                    cursor:'pointer', transition:'all 0.12s' }}
+                                    cursor: 'pointer', transition: 'all 0.12s',
+                                }}
                                 onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.06)' : '#f8fafc'; }}
-                                onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}>
+                                onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
+                            >
                                 {opt.label}
                             </div>
                         );
@@ -208,10 +255,9 @@ function PremiumDropdown({ options, value, onChange, placeholder = 'Select...', 
     );
 }
 
-// ─── Leave Balance Cards (top section) ───────────────────────
 function LeaveBalanceCards({ leavePolicies, leaveTypeConfig, balanceMap, dark, theme }) {
     return (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(195px,1fr))', gap:12 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {leavePolicies.map((pol) => {
                 const cfg       = leaveTypeConfig[pol.leave_type] || COLOR_POOL[0];
                 const bal       = balanceMap[pol.leave_type];
@@ -222,35 +268,54 @@ function LeaveBalanceCards({ leavePolicies, leaveTypeConfig, balanceMap, dark, t
 
                 return (
                     <div key={pol.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
                         background: dark ? 'rgba(255,255,255,0.04)' : '#fff',
-                        borderRadius:16, border: dark ? `1px solid rgba(255,255,255,0.08)` : `1px solid ${cfg.border}`,
-                        padding:'18px 20px',
-                        boxShadow: dark ? '0 4px 16px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
-                        display:'flex', flexDirection:'column', gap:12, position:'relative', overflow:'hidden' }}>
-                        <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:cfg.color, borderRadius:'16px 16px 0 0' }} />
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-                            <div style={{ minWidth:0, flex:1 }}>
-                                <div style={{ fontSize:10, fontWeight:800, color:cfg.color, textTransform:'uppercase', letterSpacing:'0.7px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                                    {pol.leave_type}
-                                </div>
-                                <div style={{ fontSize:10, color:theme.textMute, marginTop:3, display:'flex', alignItems:'center', gap:4 }}>
-                                    <span style={{ width:5, height:5, borderRadius:'50%', background: pol.is_paid ? '#059669' : '#d97706', display:'inline-block' }} />
-                                    {pol.is_paid ? 'Paid Leave' : 'Unpaid'}
-                                </div>
-                            </div>
-                            <div style={{ textAlign:'right', flexShrink:0 }}>
-                                <div style={{ fontSize:28, fontWeight:900, color:theme.text, lineHeight:1, letterSpacing:'-1.5px' }}>
-                                    {formatNum(remaining)}
-                                </div>
-                                <div style={{ fontSize:10, color:theme.textMute, marginTop:2 }}>/ {formatNum(total)} days</div>
-                            </div>
+                        border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : cfg.border}`,
+                        borderRadius: 14,
+                        padding: '12px 16px',
+                        boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.18)' : '0 1px 4px rgba(0,0,0,0.04)',
+                        position: 'relative', overflow: 'hidden',
+                        minWidth: 170,
+                    }}>
+                        {/* top color bar */}
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: cfg.color }} />
+
+                        {/* big number */}
+                        <div style={{
+                            width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                            background: dark ? cfg.bgDark : cfg.bg,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            border: `1px solid ${dark ? 'transparent' : cfg.border}`,
+                        }}>
+                            <span style={{ fontSize: 18, fontWeight: 900, color: cfg.color, lineHeight: 1 }}>
+                                {formatNum(remaining)}
+                            </span>
                         </div>
-                        <div style={{ background: dark ? 'rgba(255,255,255,0.08)' : '#f0f0f0', borderRadius:99, height:5, overflow:'hidden' }}>
-                            <div style={{ height:'100%', borderRadius:99, background:`linear-gradient(90deg, ${cfg.color}bb, ${cfg.color})`, width:`${pct}%`, transition:'width 0.5s ease' }} />
-                        </div>
-                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:11 }}>
-                            <span style={{ color:theme.textMute }}>Used <span style={{ color:theme.textSoft, fontWeight:700 }}>{formatNum(used)}</span></span>
-                            <span style={{ color:theme.textMute }}>Left <span style={{ color:cfg.color, fontWeight:800 }}>{formatNum(remaining)}</span></span>
+
+                        {/* text */}
+                        <div style={{ minWidth: 0 }}>
+                            <div style={{
+                                fontSize: 11, fontWeight: 800, color: cfg.color,
+                                textTransform: 'uppercase', letterSpacing: '0.5px',
+                                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                            }}>
+                                {pol.leave_type}
+                            </div>
+                            <div style={{ fontSize: 10, color: theme.textMute, marginTop: 2 }}>
+                                Used {formatNum(used)} · Total {formatNum(total)}
+                            </div>
+                            {/* mini bar */}
+                            <div style={{
+                                marginTop: 6, height: 3, borderRadius: 99,
+                                background: dark ? 'rgba(255,255,255,0.08)' : '#f0f0f0',
+                                width: 80, overflow: 'hidden',
+                            }}>
+                                <div style={{
+                                    height: '100%', borderRadius: 99,
+                                    background: cfg.color,
+                                    width: `${pct}%`,
+                                }} />
+                            </div>
                         </div>
                     </div>
                 );
@@ -259,169 +324,275 @@ function LeaveBalanceCards({ leavePolicies, leaveTypeConfig, balanceMap, dark, t
     );
 }
 
-// ─── Request Row ──────────────────────────────────────────────
 function RequestRow({ req, leaveTypeConfig, dark, theme, canApprove, userId, onApprove, onReject, onDelete, isLast }) {
     const typeCfg    = leaveTypeConfig[req.leave_type] || COLOR_POOL[0];
     const statusCfg  = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending;
     const dayTypeCfg = DAY_TYPE_CONFIG[req.day_type || 'full_day'];
+
     const isMyRequest    = req.user_id === userId;
     const isAssignedToMe = req.approver_id === userId;
     const showActions    = canApprove && req.status === 'pending' && isAssignedToMe && !isMyRequest;
+    const showDelete     = req.user_id === userId && req.status === 'pending';
 
     const statusBg  = dark ? statusCfg.bgDark  : statusCfg.bg;
-    const dayTypeBg = dark ? dayTypeCfg.bgDark : dayTypeCfg.bg;
     const typeBg    = dark ? typeCfg.bgDark    : typeCfg.bg;
 
-    const showDelete = req.user_id === userId && req.status === 'pending';
-    
-    return (
-        <div style={{ display:'flex', alignItems:'stretch', borderBottom: isLast ? 'none' : `1px solid ${theme.border}` }}>
-            <div style={{ width:4, background:typeCfg.color, flexShrink:0 }} />
-            <div style={{ display:'flex', flex:1, alignItems:'flex-start', gap:14, padding:'18px 20px', transition:'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+    // chip label/value style — same as CheckInOut
+    const chipLabel = {
+        fontSize: 9, fontWeight: 800,
+        textTransform: 'uppercase', letterSpacing: '0.5px',
+        marginRight: 5,
+    };
+    const chipValue = { fontSize: 12, fontWeight: 700 };
 
-                <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap', marginBottom:8 }}>
-                        <span style={{ fontSize:13, fontWeight:800, color:theme.text }}>{req.leave_type}</span>
-                        <span style={{ fontSize:10, fontWeight:700, background:statusBg, color:statusCfg.color, borderRadius:99, padding:'2px 9px', display:'inline-flex', alignItems:'center', gap:3 }}>
+    return (
+        <div
+            style={{
+                display: 'flex', alignItems: 'stretch',
+                borderBottom: isLast ? 'none' : `1px solid ${theme.border}`,
+                transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+            {/* Left accent */}
+            <div style={{ width: 3, flexShrink: 0, background: typeCfg.color }} />
+
+            <div style={{ flex: 1, padding: '13px 18px', minWidth: 0 }}>
+
+                {/* ── Row 1: type · status · day type  /  right side ── */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+
+                    {/* Left */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>
+                            {req.leave_type}
+                        </span>
+                        <span style={{
+                            fontSize: 10, fontWeight: 700,
+                            background: statusBg, color: statusCfg.color,
+                            borderRadius: 99, padding: '2px 8px',
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                        }}>
                             {statusCfg.icon} {statusCfg.label}
                         </span>
-                        <span style={{ fontSize:10, fontWeight:600, background:dayTypeBg, color:dayTypeCfg.color, borderRadius:99, padding:'2px 9px' }}>
+                        <span style={{
+                            fontSize: 10, fontWeight: 600,
+                            color: theme.textMute,
+                        }}>
                             {dayTypeCfg.label}
                         </span>
                     </div>
 
-                    {req.user && !isMyRequest && (
-                        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                            {req.user.avatar_url
-                                ? <img src={`/storage/${req.user.avatar_url}`} alt={req.user.name}
-                                    style={{ width:30, height:30, borderRadius:10, objectFit:'cover', flexShrink:0, border:`1.5px solid ${theme.border}` }} />
-                                : <div style={{ width:30, height:30, borderRadius:10, flexShrink:0,
-                                    background:typeBg, border:`1.5px solid ${dark ? 'transparent' : typeCfg.border}`,
-                                    display:'flex', alignItems:'center', justifyContent:'center',
-                                    fontSize:12, fontWeight:800, color:typeCfg.color }}>
-                                    {req.user.name?.charAt(0).toUpperCase()}
-                                  </div>
-                            }
-                            <div>
-                                <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{req.user.name}</div>
-                                {(req.user.position || req.user.department) && (
-                                    <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:1 }}>
-                                        {req.user.position && <span style={{ fontSize:10, fontWeight:600, color:theme.textSoft }}>{req.user.position}</span>}
-                                        {req.user.position && req.user.department && <span style={{ color:theme.border, fontSize:10 }}>·</span>}
-                                        {req.user.department && <span style={{ fontSize:10, fontWeight:500, color:theme.secondary }}>{req.user.department}</span>}
-                                    </div>
-                                )}
+                    {/* Right */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+
+                        {/* Awaiting stacked */}
+                        {req.status === 'pending' && req.approver && !showActions && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Awaiting</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.secondary }}>
+                                    {req.approver.name}
+                                </div>
                             </div>
-                        </div>
-                    )}
-
-                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom: req.note ? 8 : 0 }}>
-                        <span style={{ fontSize:12, color:theme.textSoft, fontWeight:600 }}>{formatDate(req.start_date)}</span>
-                        {req.day_type === 'full_day' && req.start_date !== req.end_date && (
-                            <>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                                <span style={{ fontSize:12, color:theme.textSoft, fontWeight:600 }}>{formatDate(req.end_date)}</span>
-                            </>
                         )}
-                        <span style={{ fontSize:11, fontWeight:700, color:typeCfg.color,
-                            background:typeBg, borderRadius:7, padding:'2px 9px',
-                            border:`1px solid ${dark ? 'transparent' : typeCfg.border}` }}>
-                            {formatNum(req.total_days)} {req.total_days === 0.5 ? 'half day' : req.total_days == 1 ? 'day' : 'days'}
-                        </span>
-                    </div>
 
-                    {req.note && (
-                        <div style={{ display:'flex', gap:8, background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb',
-                            border:`1px solid ${theme.border}`, borderRadius:10, padding:'8px 12px' }}>
-                            <span style={{ fontSize:12, fontWeight:800, color:theme.textMute, flexShrink:0, marginTop:1, textTransform:'uppercase', letterSpacing:'0.4px' }}>Reason</span>
-                            <span style={{ fontSize:12, color:theme.textSoft, lineHeight:1.5 }}>{req.note}</span>
-                        </div>
-                    )}
-                </div>
+                        {/* Approved by */}
+                        {req.status === 'approved' && req.approvedBy && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Approved by</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.success }}>
+                                    {req.approvedBy.name}
+                                </div>
+                            </div>
+                        )}
 
-                <div style={{
-                    flexShrink: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    justifyContent: 'space-between',
-                    gap: 8,
-                    minWidth: 130,
-                    alignSelf: 'stretch',
-                }}>
-                    {/* အပေါ် — status / actions */}
-                    <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8 }}>
+                        {/* Rejected by */}
+                        {req.status === 'rejected' && req.approvedBy && (
+                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Rejected by</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.danger }}>
+                                    {req.approvedBy.name}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Approve / Reject pill buttons */}
                         {showActions && (
-                            <div style={{ display:'flex', gap:7 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                                 <button onClick={() => onApprove(req)} style={{
-                                    background: dark ? 'rgba(16,185,129,0.14)' : '#d1fae5',
-                                    border:`1px solid ${dark ? 'rgba(16,185,129,0.3)' : '#6ee7b7'}`,
-                                    borderRadius:10, padding:'7px 14px', fontSize:12, fontWeight:700, cursor:'pointer',
-                                    color: dark ? '#34d399' : '#059669', transition:'all 0.15s' }}
-                                    onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(16,185,129,0.25)' : '#a7f3d0'}
-                                    onMouseLeave={e => e.currentTarget.style.background = dark ? 'rgba(16,185,129,0.14)' : '#d1fae5'}>
-                                    ✓ Approve
+                                    background: dark
+                                        ? 'linear-gradient(135deg,#065f46,#059669)'
+                                        : 'linear-gradient(135deg,#059669,#10b981)',
+                                    border: 'none', borderRadius: 20,
+                                    padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                                    cursor: 'pointer', color: '#fff',
+                                    display: 'flex', alignItems: 'center', gap: 5,
+                                    boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                                    transition: 'opacity 0.15s, box-shadow 0.15s',
+                                }}
+                                    onMouseEnter={e => { e.currentTarget.style.opacity = '0.88'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+                                >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    Approve
                                 </button>
                                 <button onClick={() => onReject(req)} style={{
-                                    background: dark ? 'rgba(248,113,113,0.12)' : '#fee2e2',
-                                    border:`1px solid ${dark ? 'rgba(248,113,113,0.25)' : '#fca5a5'}`,
-                                    borderRadius:10, padding:'7px 14px', fontSize:12, fontWeight:700, cursor:'pointer',
-                                    color: dark ? '#f87171' : '#dc2626', transition:'all 0.15s' }}
-                                    onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.22)' : '#fecaca'}
-                                    onMouseLeave={e => e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.12)' : '#fee2e2'}>
-                                    ✕ Reject
+                                    background: dark
+                                        ? 'linear-gradient(135deg,rgba(220,38,38,0.28),rgba(239,68,68,0.22))'
+                                        : 'linear-gradient(135deg,#fef2f2,#fee2e2)',
+                                    border: 'none', borderRadius: 20,
+                                    padding: '6px 16px', fontSize: 11, fontWeight: 700,
+                                    cursor: 'pointer', color: dark ? '#f87171' : '#dc2626',
+                                    display: 'flex', alignItems: 'center', gap: 5,
+                                    boxShadow: dark ? '0 2px 8px rgba(248,113,113,0.15)' : '0 2px 8px rgba(220,38,38,0.10)',
+                                    transition: 'opacity 0.15s',
+                                }}
+                                    onMouseEnter={e => { e.currentTarget.style.opacity = '0.82'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+                                >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                    Reject
                                 </button>
                             </div>
                         )}
-                        {req.status === 'approved' && <span style={{ fontSize:12, color: dark ? '#34d399' : '#059669', fontWeight:700 }}>✓ Approved</span>}
-                        {req.status === 'rejected' && <span style={{ fontSize:12, color: dark ? '#f87171' : '#dc2626', fontWeight:700 }}>✕ Rejected</span>}
-                        {req.status === 'pending' && !showActions && req.approver && (
-                            <div style={{ textAlign:'right' }}>
-                                <div style={{ fontSize:10, color:theme.textMute, fontWeight:500 }}>Awaiting</div>
-                                <div style={{ fontSize:11, color:theme.secondary, fontWeight:800 }}>{req.approver.name}</div>
-                            </div>
-                        )}
-                        {req.status === 'pending' && !showActions && !req.approver && req.user_id === userId && (
-                            <span style={{ fontSize:11, color:theme.textMute, fontStyle:'italic' }}>Pending review</span>
+
+                        {/* Delete — no border */}
+                        {showDelete && (
+                            <button onClick={() => onDelete(req)} title="Delete request" style={{
+                                width: 28, height: 28, borderRadius: 7,
+                                background: 'transparent', border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                transition: 'all 0.15s', flexShrink: 0,
+                                color: dark ? 'rgba(248,113,113,0.4)' : '#fca5a5',
+                            }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.16)' : '#fee2e2';
+                                    e.currentTarget.style.color = dark ? '#f87171' : '#dc2626';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = dark ? 'rgba(248,113,113,0.4)' : '#fca5a5';
+                                }}
+                            >
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                    <path d="M10 11v6M14 11v6"/>
+                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                            </button>
                         )}
                     </div>
-
-                    {/* အောက် — delete icon (ညာ အောက်ထောင့်) */}
-                    {showDelete ? (
-                        <button
-                            onClick={() => onDelete(req)}
-                            title="Delete request"
-                            style={{
-                                width: 32, height: 32, borderRadius: 8,
-                                background: dark ? 'rgba(248,113,113,0.12)' : '#fee2e2',
-                                border: `1px solid ${dark ? 'rgba(248,113,113,0.22)' : '#fca5a5'}`,
-                                cursor: 'pointer', display: 'flex', alignItems: 'center',
-                                justifyContent: 'center', transition: 'all 0.15s', flexShrink: 0,
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.25)' : '#fecaca';
-                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.45)' : '#f87171';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.12)' : '#fee2e2';
-                                e.currentTarget.style.borderColor = dark ? 'rgba(248,113,113,0.22)' : '#fca5a5';
-                            }}
-                        >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                stroke={dark ? '#f87171' : '#dc2626'}
-                                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6" />
-                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                <path d="M10 11v6" /><path d="M14 11v6" />
-                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                            </svg>
-                        </button>
-                    ) : (
-                        <div style={{ width: 32, height: 32 }} />
-                    )}
                 </div>
+
+                {/* ── Employee row (approver/all view) ── */}
+                {req.user && !isMyRequest && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                        {req.user.avatar_url ? (
+                            <img src={`/storage/${req.user.avatar_url}`} alt={req.user.name}
+                                style={{ width: 22, height: 22, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                        ) : (
+                            <div style={{
+                                width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                                background: typeBg,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 10, fontWeight: 800, color: typeCfg.color,
+                            }}>
+                                {req.user.name?.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        <span style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{req.user.name}</span>
+                        {req.user.position && <span style={{ fontSize: 11, color: theme.textMute }}>{req.user.position}</span>}
+                        {req.user.department && <span style={{ fontSize: 11, color: theme.secondary }}>{req.user.department}</span>}
+                    </div>
+                )}
+
+                {/* ── Dates + days row ── */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 9, flexWrap: 'wrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                        <span style={{ ...chipLabel, color: theme.textMute }}>From</span>
+                        <span style={{ ...chipValue, color: theme.text }}>{formatDate(req.start_date)}</span>
+                    </span>
+
+                    {req.day_type === 'full_day' && req.start_date !== req.end_date && (
+                        <>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                stroke={theme.textMute} strokeWidth="2.5" strokeLinecap="round">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                            <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                                <span style={{ ...chipLabel, color: theme.textMute }}>To</span>
+                                <span style={{ ...chipValue, color: theme.text }}>{formatDate(req.end_date)}</span>
+                            </span>
+                        </>
+                    )}
+
+                    <span style={{ color: theme.border, fontSize: 12 }}>·</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                        <span style={{ ...chipLabel, color: typeCfg.color }}>Days</span>
+                        <span style={{ ...chipValue, color: typeCfg.color }}>
+                            {formatNum(req.total_days)}{req.total_days === 0.5 ? ' half' : ''}
+                        </span>
+                    </span>
+                </div>
+
+                {/* ── Download Document row (above Reason) ── */}
+                {req.document_path && (
+                    <div style={{ marginTop: 7 }}>
+                        <a
+                            href={`/storage/${req.document_path}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 6,
+                                padding: '5px 12px',
+                                borderRadius: 20,
+                                background: dark
+                                    ? 'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(37,99,235,0.12))'
+                                    : 'linear-gradient(135deg,#eff6ff,#dbeafe)',
+                                color: dark ? '#60a5fa' : '#2563eb',
+                                fontSize: 11, fontWeight: 700,
+                                textDecoration: 'none',
+                                boxShadow: dark
+                                    ? '0 1px 6px rgba(59,130,246,0.15)'
+                                    : '0 1px 4px rgba(37,99,235,0.10)',
+                                transition: 'opacity 0.15s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                        >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Download Document
+                        </a>
+                    </div>
+                )}
+
+                {/* ── Reason row ── */}
+                {req.note && (
+                    <div style={{ display: 'inline-flex', alignItems: 'baseline', marginTop: 6 }}>
+                        <span style={{ ...chipLabel, color: theme.textMute }}>Reason</span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft }}>
+                            {req.note}
+                        </span>
+                    </div>
+                )}
+
             </div>
         </div>
     );
@@ -659,23 +830,38 @@ function LeaveRequestModal({ saving, setSaving, policyMap, balanceMap, leaveType
                         {leaveTypes.length === 0
                             ? <div style={{ fontSize:12, color:theme.textMute, background:theme.panelSoft, borderRadius:10, padding:'10px 14px', border:`1px solid ${theme.border}` }}>No leave types configured. Please contact HR.</div>
                             : <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-                                {leaveTypes.map(type => {
-                                    const cfg2 = leaveTypeConfig[type];
-                                    const pol2 = policyMap[type];
-                                    const isActive = form.leave_type === type;
-                                    return (
-                                        <button key={type} onClick={() => { set('leave_type', type); setDocFile(null); setErrors(e => ({...e, document:null})); }}
-                                            style={{ border:`1.5px solid ${isActive ? cfg2.color : theme.inputBorder}`, borderRadius:10, padding:'7px 14px', fontSize:12, cursor:'pointer',
-                                                background: isActive ? (dark ? cfg2.bgDark : cfg2.bg) : (dark ? 'rgba(255,255,255,0.05)' : '#f9fafb'),
-                                                color: isActive ? cfg2.color : theme.textSoft, fontWeight: isActive ? 800 : 500,
-                                                display:'flex', alignItems:'center', gap:6, transition:'all 0.15s' }}>
-                                            {type}
-                                            {pol2?.requires_document == 1 && (
-                                                <span style={{ fontSize:9, background: isActive ? cfg2.color : (dark ? 'rgba(255,255,255,0.1)' : '#e5e7eb'), color: isActive ? '#fff' : theme.textMute, borderRadius:4, padding:'1px 5px', fontWeight:800 }}>DOC</span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
+                                    {leaveTypes.map(type => {
+                                        const pol2    = policyMap[type];
+                                        const isActive = form.leave_type === type;
+                                        return (
+                                            <button key={type} onClick={() => { set('leave_type', type); setDocFile(null); setErrors(e => ({...e, document:null})); }}
+                                                style={{
+                                                    border: `1.5px solid ${isActive ? theme.primary : theme.inputBorder}`,
+                                                    borderRadius: 20,
+                                                    padding: '6px 16px',
+                                                    fontSize: 12,
+                                                    cursor: 'pointer',
+                                                    background: isActive
+                                                        ? (dark ? 'rgba(139,92,246,0.18)' : '#f3e8ff')
+                                                        : (dark ? 'rgba(255,255,255,0.04)' : '#f9fafb'),
+                                                    color: isActive ? theme.primary : theme.textSoft,
+                                                    fontWeight: isActive ? 800 : 500,
+                                                    display: 'flex', alignItems: 'center', gap: 6,
+                                                    transition: 'all 0.15s',
+                                                    boxShadow: isActive ? `0 0 0 3px ${theme.primary}18` : 'none',
+                                                }}>
+                                                {type}
+                                                {pol2?.requires_document == 1 && (
+                                                    <span style={{
+                                                        fontSize: 9,
+                                                        background: isActive ? theme.primary : (dark ? 'rgba(255,255,255,0.1)' : '#e5e7eb'),
+                                                        color: isActive ? '#fff' : theme.textMute,
+                                                        borderRadius: 4, padding: '1px 5px', fontWeight: 800,
+                                                    }}>DOC</span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                               </div>
                         }
                         {errors.leave_type && <span style={{ fontSize:11, color:theme.danger, fontWeight:600 }}>{errors.leave_type}</span>}
@@ -689,9 +875,22 @@ function LeaveRequestModal({ saving, setSaving, policyMap, balanceMap, leaveType
                                 const isActive = form.day_type === type;
                                 return (
                                     <button key={type} onClick={() => set('day_type', type)}
-                                        style={{ flex:1, border:`1.5px solid ${isActive ? cfg2.color : theme.inputBorder}`, borderRadius:10, padding:'9px 10px', fontSize:11, cursor:'pointer',
-                                            background: isActive ? (dark ? cfg2.bgDark : cfg2.bg) : (dark ? 'rgba(255,255,255,0.04)' : '#f9fafb'),
-                                            color: isActive ? cfg2.color : theme.textSoft, fontWeight: isActive ? 800 : 500, textAlign:'center', transition:'all 0.15s' }}>
+                                        style={{
+                                            flex: 1,
+                                            border: `1.5px solid ${isActive ? theme.primary : theme.inputBorder}`,
+                                            borderRadius: 20,
+                                            padding: '8px 10px',
+                                            fontSize: 12,
+                                            cursor: 'pointer',
+                                            background: isActive
+                                                ? (dark ? 'rgba(139,92,246,0.18)' : '#f3e8ff')
+                                                : (dark ? 'rgba(255,255,255,0.04)' : '#f9fafb'),
+                                            color: isActive ? theme.primary : theme.textSoft,
+                                            fontWeight: isActive ? 800 : 500,
+                                            textAlign: 'center',
+                                            transition: 'all 0.15s',
+                                            boxShadow: isActive ? `0 0 0 3px ${theme.primary}18` : 'none',
+                                        }}>
                                         {cfg2.label}
                                     </button>
                                 );
@@ -821,22 +1020,40 @@ function LeaveRequestModal({ saving, setSaving, policyMap, balanceMap, leaveType
                     </div>
 
                     {/* Approver */}
-                    {roleName === 'hr' ? (
-                        approvers.length > 0 && (
-                            <div style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb', borderRadius:12, padding:'12px 16px', border:`1px solid ${theme.border}` }}>
-                                <div style={{ fontSize:10, color:theme.textMute, fontWeight:800, marginBottom:4, textTransform:'uppercase', letterSpacing:'0.5px' }}>Sending Approval To</div>
-                                <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{approvers[0]?.name} <span style={{ fontSize:11, color:theme.primary, fontWeight:600 }}>(Admin)</span></div>
-                            </div>
-                        )
-                    ) : !['admin'].includes(roleName) && approvers.length > 0 ? (
-                        <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
-                            <label style={lbl}>Approver <span style={{ color:theme.danger }}>*</span></label>
-                            <PremiumDropdown options={approverOptions} value={form.approver_id}
-                                onChange={v => set('approver_id', v)} placeholder="Select approver"
-                                theme={theme} dark={dark} width="100%" />
-                            {errors.approver_id && <span style={{ fontSize:11, color:theme.danger, fontWeight:600 }}>{errors.approver_id}</span>}
+                    {!['admin'].includes(roleName) && approvers.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                            <label style={lbl}>Approver <span style={{ color: theme.danger }}>*</span></label>
+                            <PremiumDropdown
+                                options={approverOptions}
+                                value={form.approver_id}
+                                onChange={v => set('approver_id', v)}
+                                placeholder="Select approver"
+                                theme={theme}
+                                dark={dark}
+                                width="100%"
+                            />
+                            {errors.approver_id && (
+                                <span style={{ fontSize: 11, color: theme.danger, fontWeight: 600 }}>
+                                    {errors.approver_id}
+                                </span>
+                            )}
                         </div>
-                    ) : null}
+                    )}
+                    
+                    {!['admin'].includes(roleName) && approvers.length === 0 && (
+                        <div style={{
+                            background: dark ? 'rgba(245,158,11,0.1)' : '#fff7ed',
+                            border: `1px solid ${dark ? 'rgba(245,158,11,0.25)' : '#fed7aa'}`,
+                            borderRadius: 12, padding: '12px 16px',
+                        }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: dark ? '#f59e0b' : '#c2410c' }}>
+                                ⚠ No approver available
+                            </div>
+                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>
+                                No admin found for your branch. Please contact HR.
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}

@@ -132,10 +132,7 @@
 </head>
 <body>
     <div class="wrapper">
-        <div class="header">
-            <img src="{{ $logoUrl }}" alt="VibeMe.AI" class="main-logo" />
-        </div>
-
+    
         <div class="card">
             <div class="card-top">
                 <div class="card-top-logo">
@@ -149,7 +146,7 @@
                 <p class="greeting">Hello, <strong>{{ $user->name }}</strong> 👋</p>
                 <p class="desc">
                     Click the button below to create a new password for your account.
-                    This link is valid for <strong style="color: #dde8f5;">60 minutes</strong> only.
+                    This link is valid for <strong style="color: #dde8f5;">1 minutes</strong> only.
                     If you didn't request this, you can safely ignore this email.
                 </p>
 
@@ -158,7 +155,7 @@
                 </div>
 
                 <div class="warning">
-                    ⚠️ This link will expire in 60 minutes. If you didn't request a password reset,
+                    ⚠️ This link will expire in 1 minutes. If you didn't request a password reset,
                     please contact our support team immediately.
                 </div>
             </div>

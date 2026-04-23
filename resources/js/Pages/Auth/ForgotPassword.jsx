@@ -106,7 +106,7 @@ export default function ForgotPassword({ status }) {
                                         </div>
                                     ))}
                                 </div>
-                                <p style={S.expireNote}>Link expires in <strong style={{ color: '#f59e0b' }}>60 minutes</strong>. Check spam if not received.</p>
+                                <p style={S.expireNote}>Link expires in <strong style={{ color: '#f59e0b' }}>1 minutes</strong>. Check spam if not received.</p>
                                 <button onClick={() => { setSent(false); setData('email', ''); }} style={S.resendBtn}>
                                     Send to a different email
                                 </button>

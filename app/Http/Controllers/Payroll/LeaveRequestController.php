@@ -57,18 +57,30 @@ class LeaveRequestController extends Controller
         $leavePolicies = LeavePolicy::where('country_id', $user->country_id)->where('is_active', true)->get();
 
         $employees = match (true) {
+            // Employee / Member → ကိုယ့် country ထဲက management role
             in_array($roleName, self::LOWER_ROLES) =>
                 User::select('id', 'name', 'avatar_url', 'role_id')->with('role:id,name')
-                    ->where('is_active', 1)->where('country_id', $user->country_id)
-                    ->whereHas('role', fn($q) => $q->where('name', 'management'))->get(),
+                    ->where('is_active', 1)
+                    ->where('country_id', $user->country_id)
+                    ->whereHas('role', fn($q) => $q->where('name', 'management'))
+                    ->get(),
+        
+            // Management → ကိုယ့် country ထဲက hr role
             $roleName === 'management' =>
                 User::select('id', 'name', 'avatar_url', 'role_id')->with('role:id,name')
-                    ->where('is_active', 1)->where('country_id', $user->country_id)
-                    ->whereHas('role', fn($q) => $q->where('name', 'hr'))->get(),
+                    ->where('is_active', 1)
+                    ->where('country_id', $user->country_id)
+                    ->whereHas('role', fn($q) => $q->where('name', 'hr'))
+                    ->get(),
+        
+            // HR → ကိုယ့် country ထဲက admin role (country filter ထည့်)
             $roleName === 'hr' =>
                 User::select('id', 'name', 'avatar_url', 'role_id')->with('role:id,name')
                     ->where('is_active', 1)
-                    ->whereHas('role', fn($q) => $q->where('name', 'admin'))->get(),
+                    ->where('country_id', $user->country_id)   // ← ဒါထည့်
+                    ->whereHas('role', fn($q) => $q->where('name', 'admin'))
+                    ->get(),
+        
             default => collect(),
         };
 

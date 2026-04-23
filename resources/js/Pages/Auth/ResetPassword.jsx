@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 
 const LOGO = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzk5IiBoZWlnaHQ9IjM5MyIgdmlld0JveD0iMCAwIDM5OSAzOTMiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPgo8cmVjdCB3aWR0aD0iMzk5IiBoZWlnaHQ9IjM5MyIgZmlsbD0idXJsKCNwYXR0ZXJuMF8xNl8yKSIvPgo8ZGVmcz4KPHBhdHRlcm4gaWQ9InBhdHRlcm4wXzE2XzIiIHBhdHRlcm5Db250ZW50VW5pdHM9Im9iamVjdEJvdW5kaW5nQm94IiB3aWR0aD0iMSIgaGVpZ2h0PSIxIj4KPHVzZSB4bGluazpocmVmPSIjaW1hZ2UwXzE2XzIiIHRyYW5zZm9ybT0ic2NhbGUoMC4wMDI1MDYyNyAwLjAwMjU0NDUzKSIvPgo8L3BhdHRlcm4+CjxpbWFnZSBpZD0iaW1hZ2UwXzE2XzIiIHdpZHRoPSIzOTkiIGhlaWdodD0iMzkzIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiB4bGluazpocmVmPSJkYXRhOmltYWdlL3BuZztiYXNlNjQsaVZCT1J3MEtHZ29BQUFBTlNVaEVVZ0FBQWI4QUFBR0pDQVlBQUFCeXc3LzZBQUFBQVhOU1IwSUFyczRjNlFBQUFBbHdTRmx6QUFBQW5nQUFBSjRCdThBQ1ZRQUFBQUEiLz4KPC9kZWZzPgo8L3N2Zz4K";
 
@@ -10,7 +10,10 @@ const SLIDES_BG = [
     { icon: "🌐", headline: "Speak Every Language", sub: "Break barriers instantly with real-time translation." },
 ];
 
-export default function ResetPassword({ token, email, errors: serverErrors = {} }) {
+export default function ResetPassword({ token, email }) {
+    const { props } = usePage();
+    const serverErrors = props.errors || {};
+
     const { data, setData, post, processing } = useForm({
         token: token || '',
         email: email || '',
