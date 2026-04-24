@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import GlobalToast from '@/Components/Toast';
 import NotificationBell from '@/Components/NotificationBell';
+import HrChatbotWidget from '@/Components/HrChatbotWidget';
 
 const roleConfig = {
     admin:      { label: 'Administrator', color: '#7c3aed', bg: '#ede9fe', dot: '#7c3aed' },
@@ -85,6 +86,18 @@ const menuItems = [
     {
         group: 'PEOPLE & HR',
         items: [
+
+            {
+                icon: (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                ),
+                label: 'Performance Review',
+                route: '/performance',
+                roles: ['admin', 'hr', 'management'],
+            },
             {
                 icon: (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -389,6 +402,8 @@ export default function AppLayout({ children, title = 'Dashboard' }) {
             `}</style>
 
             <GlobalToast />
+
+            <HrChatbotWidget user={user} darkMode={darkMode} />
 
             {/* ── Sidebar ── */}
             <aside style={{

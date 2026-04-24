@@ -28,6 +28,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Payroll\AttendanceRequestController;
 use App\Http\Controllers\Payroll\ExpenseRequestController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\HrChatbotController;
+
+
 
 // Home page (existing route ကို replace)
 Route::get('/', [RecruitmentController::class, 'home']);
@@ -88,6 +91,35 @@ Route::middleware(['auth', 'role:hr,admin'])->group(function () {
         ->name('recruitment.application.delete');
 
 });
+
+
+
+Route::middleware(['auth'])->prefix('hr-chatbot')->name('hr-chatbot.')->group(function () {
+    Route::get   ('messages', [App\Http\Controllers\HrChatbotController::class, 'messages'])->name('messages');
+    Route::post  ('ask',      [App\Http\Controllers\HrChatbotController::class, 'ask'])     ->name('ask');
+    Route::delete('messages', [App\Http\Controllers\HrChatbotController::class, 'clear'])   ->name('clear');
+});
+
+
+
+Route::middleware(['auth', 'role:admin,hr,management'])
+    ->prefix('performance')
+    ->name('performance.')
+    ->group(function () {
+ 
+    // Main page (Inertia)
+    Route::get('/', [App\Http\Controllers\PerformanceController::class, 'index'])
+        ->name('index');
+ 
+    // AJAX: refresh metrics on filter change
+    Route::get('/metrics', [App\Http\Controllers\PerformanceController::class, 'metrics'])
+        ->name('metrics');
+ 
+    // SSE: AI analysis stream
+    Route::get('/analyze', [App\Http\Controllers\PerformanceController::class, 'analyze'])
+        ->name('analyze');
+});
+
 
 
 // Forgot Password
