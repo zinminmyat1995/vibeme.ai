@@ -240,6 +240,14 @@ public function store(Request $request): RedirectResponse
 
         $this->syncToAttendanceRecords($attendanceRequest->fresh(), $shortHours);
 
+        \App\Models\Notification::send(
+            userId: $attendanceRequest->user_id,
+            type:   'system',
+            title:  'Check-In/Out Request Approved ✓',
+            body:   'Your attendance correction for ' . Carbon::parse($attendanceRequest->date)->format('d M Y') . ' has been approved.',
+            url:    '/payroll/check-in-out-requests',
+        );
+
         return back()->with('success', 'Check In/Out request approved.');
     }
 
@@ -272,6 +280,14 @@ public function reject(Request $request, int $id): RedirectResponse
         'approved_at'      => now(),
         'rejection_reason' => $request->rejection_reason,
     ]);
+    \App\Models\Notification::send(
+        userId: $attendanceRequest->user_id,
+        type:   'system',
+        title:  'Check-In/Out Request Rejected',
+        body:   'Your attendance correction for ' . Carbon::parse($attendanceRequest->date)->format('d M Y') . ' has been rejected.',
+        url:    '/payroll/check-in-out-requests',
+    );
+
 
     return back()->with('success', 'Check In/Out request rejected.');
 }

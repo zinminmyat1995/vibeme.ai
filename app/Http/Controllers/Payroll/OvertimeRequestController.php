@@ -346,6 +346,14 @@ class OvertimeRequestController extends Controller
             ], $dateUpdate));
         });
 
+        \App\Models\Notification::send(
+            userId: $overtimeRequest->user_id,
+            type:   'overtime_request',
+            title:  'Overtime Request Approved ✓',
+            body:   "Your overtime request ({$overtimeRequest->hours_approved} hrs) has been approved.",
+            url:    '/payroll/overtimes',
+        );
+
         return back()->with('success', 'Overtime request approved.');
     }
 
@@ -369,6 +377,14 @@ class OvertimeRequestController extends Controller
             'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
+
+        \App\Models\Notification::send(
+            userId: $overtimeRequest->user_id,
+            type:   'overtime_request',
+            title:  'Overtime Request Rejected',
+            body:   "Your overtime request has been rejected.",
+            url:    '/payroll/overtimes',
+        );
 
         return back()->with('success', 'Overtime request rejected.');
     }

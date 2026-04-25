@@ -446,6 +446,14 @@ class LeaveRequestController extends Controller
             return response()->json(['success' => true, 'message' => 'Leave request approved']);
         }
 
+        \App\Models\Notification::send(
+            userId: $leaveRequest->user_id,
+            type:   'leave_request',
+            title:  'Leave Request Approved ✓',
+            body:   "Your {$leaveRequest->leave_type} leave ({$leaveRequest->total_days} days) has been approved.",
+            url:    '/payroll/leaves',
+        );
+
         return redirect()->back()->with('success', 'Leave request approved');
     }
 
@@ -469,6 +477,14 @@ class LeaveRequestController extends Controller
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Leave request rejected']);
         }
+
+        \App\Models\Notification::send(
+            userId: $leaveRequest->user_id,
+            type:   'leave_request',
+            title:  'Leave Request Rejected',
+            body:   "Your {$leaveRequest->leave_type} leave request has been rejected.",
+            url:    '/payroll/leaves',
+        );
         return redirect()->back()->with('success', 'Leave request rejected');
     }
 

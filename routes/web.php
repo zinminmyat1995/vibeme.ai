@@ -93,12 +93,13 @@ Route::middleware(['auth', 'role:hr,admin'])->group(function () {
 });
 
 
-
 Route::middleware(['auth'])->prefix('hr-chatbot')->name('hr-chatbot.')->group(function () {
-    Route::get   ('messages', [App\Http\Controllers\HrChatbotController::class, 'messages'])->name('messages');
-    Route::post  ('ask',      [App\Http\Controllers\HrChatbotController::class, 'ask'])     ->name('ask');
-    Route::delete('messages', [App\Http\Controllers\HrChatbotController::class, 'clear'])   ->name('clear');
+    Route::get   ('messages',      [App\Http\Controllers\HrChatbotController::class, 'messages'])     ->name('messages');
+    Route::post  ('ask',           [App\Http\Controllers\HrChatbotController::class, 'ask'])          ->name('ask');
+    Route::delete('messages',      [App\Http\Controllers\HrChatbotController::class, 'clear'])        ->name('clear');
+    Route::get   ('quick-actions', [App\Http\Controllers\HrChatbotController::class, 'quickActions']) ->name('quick-actions');
 });
+ 
 
 
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\User;
@@ -21,37 +20,24 @@ class HrChatbotService
     private string $model = 'claude-sonnet-4-20250514';
 
     // ─────────────────────────────────────────────────────────────
-    //  MAIN ENTRY — ask()
+    //  MAIN — ask()
     // ─────────────────────────────────────────────────────────────
     public function ask(User $user, string $message): array
     {
-        // 1. Check DB cache first
+        // Cache check
         $cacheHit = $this->getCache($user->id, $message);
         if ($cacheHit) {
-            Log::info('💾 HrChatbot Cache HIT', [
-                'user'     => $user->name,
-                'question' => substr($message, 0, 80),
-            ]);
-
-            // Save both messages to DB
-            $this->saveMessage($user->id, 'user',      $message,          false);
-            $this->saveMessage($user->id, 'assistant', $cacheHit,         true);
-
+            Log::info('💾 HrChatbot Cache HIT', ['user' => $user->name, 'q' => substr($message, 0, 60)]);
+            $this->saveMessage($user->id, 'user',      $message,   false);
+            $this->saveMessage($user->id, 'assistant', $cacheHit,  true);
             return ['reply' => $cacheHit, 'cached' => true];
         }
 
-        // 2. Build history from DB (last 10 pairs = 20 messages)
-        $history = $this->getHistory($user->id);
-
-        // 3. Build context + system prompt
         $context      = $this->buildUserContext($user);
         $systemPrompt = $this->buildSystemPrompt($user, $context);
+        $history      = $this->getHistory($user->id);
+        $messages     = array_merge($history, [['role' => 'user', 'content' => $message]]);
 
-        // 4. Add current message
-        $messages   = $history;
-        $messages[] = ['role' => 'user', 'content' => $message];
-
-        // 5. Call Claude API
         $startTime = microtime(true);
 
         $response = Http::withHeaders([
@@ -68,35 +54,25 @@ class HrChatbotService
         $elapsed = round((microtime(true) - $startTime) * 1000);
 
         if (!$response->successful()) {
-            Log::error('❌ HrChatbot API failed', [
-                'status' => $response->status(),
-                'body'   => $response->body(),
-            ]);
-            return ['reply' => 'Sorry, I\'m having trouble connecting right now. Please try again.', 'cached' => false];
+            Log::error('❌ HrChatbot API failed', ['status' => $response->status()]);
+            return ['reply' => 'Sorry, I\'m having trouble connecting. Please try again.', 'cached' => false];
         }
 
         $json  = $response->json();
-        $reply = $json['content'][0]['text'] ?? 'Sorry, I could not process your request.';
+        $reply = $json['content'][0]['text'] ?? 'Sorry, I could not process that.';
         $usage = $json['usage'] ?? null;
 
-        // 6. Log token usage
         if ($usage) {
-            $inputTokens  = $usage['input_tokens']  ?? 0;
-            $outputTokens = $usage['output_tokens'] ?? 0;
-            $inputCost    = ($inputTokens  / 1_000_000) * 3;
-            $outputCost   = ($outputTokens / 1_000_000) * 15;
-
+            $cost = (($usage['input_tokens'] / 1_000_000) * 3) + (($usage['output_tokens'] / 1_000_000) * 15);
             Log::info('🤖 HrChatbot API Usage', [
-                'user'          => $user->name . ' (id:' . $user->id . ')',
-                'input_tokens'  => $inputTokens,
-                'output_tokens' => $outputTokens,
-                'total_tokens'  => $inputTokens + $outputTokens,
-                'cost_usd'      => '$' . number_format($inputCost + $outputCost, 6),
-                'time_ms'       => $elapsed,
+                'user'         => $user->name . ' (id:' . $user->id . ')',
+                'input_tokens' => $usage['input_tokens'],
+                'output_tokens'=> $usage['output_tokens'],
+                'cost_usd'     => '$' . number_format($cost, 6),
+                'time_ms'      => $elapsed,
             ]);
         }
 
-        // 7. Save to DB (messages + cache)
         $this->saveMessage($user->id, 'user',      $message, false);
         $this->saveMessage($user->id, 'assistant', $reply,   false);
         $this->setCache($user->id, $message, $reply);
@@ -105,99 +81,70 @@ class HrChatbotService
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  GET MESSAGES — for frontend to load on open
+    //  MESSAGES — paginated (scroll-up to load more)
     // ─────────────────────────────────────────────────────────────
-    public function getMessages(int $userId, int $limit = 50): array
+    public function getMessages(int $userId, int $limit = 10, ?string $beforeId = null): array
     {
-        return HrChatbotMessage::where('user_id', $userId)
-            ->orderBy('created_at')
-            ->limit($limit)
-            ->get()
+        $query = HrChatbotMessage::where('user_id', $userId)->orderByDesc('id');
+        if ($beforeId) $query->where('id', '<', $beforeId);
+
+        return $query->limit($limit)->get()
+            ->reverse()->values()
             ->map(fn($m) => [
                 'id'         => $m->id,
                 'role'       => $m->role,
                 'content'    => $m->content,
                 'from_cache' => $m->from_cache,
                 'time'       => $m->created_at->toISOString(),
-            ])
-            ->toArray();
+            ])->toArray();
     }
 
-    // ─────────────────────────────────────────────────────────────
-    //  CLEAR MESSAGES — for ↺ button
-    // ─────────────────────────────────────────────────────────────
+    public function hasMoreMessages(int $userId, ?string $beforeId, int $limit): bool
+    {
+        $query = HrChatbotMessage::where('user_id', $userId);
+        if ($beforeId) $query->where('id', '<', $beforeId);
+        return $query->count() > $limit;
+    }
+
     public function clearMessages(int $userId): void
     {
         HrChatbotMessage::where('user_id', $userId)->delete();
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  PRIVATE: DB Cache helpers
+    //  QUICK ACTIONS — role-based
     // ─────────────────────────────────────────────────────────────
-    private function hashQuestion(string $question): string
+    public function getQuickActions(string $role): array
     {
-        return hash('sha256', mb_strtolower(trim(preg_replace('/\s+/', ' ', $question))));
-    }
+        $common = [
+            ['label' => '🗓 Leave Balance',     'message' => 'How many leave days do I have left?'],
+            ['label' => '⏰ My Attendance',      'message' => 'Show my attendance this month'],
+            ['label' => '💰 Payroll Status',     'message' => 'Has my salary been processed this month?'],
+            ['label' => '⚡ OT Requests',        'message' => 'Show my pending overtime requests'],
+        ];
 
-    private function getCache(int $userId, string $question): ?string
-    {
-        $entry = HrChatbotCache::where('user_id', $userId)
-            ->where('question_hash', $this->hashQuestion($question))
-            ->first();
+        $hrExtra = [
+            ['label' => '👥 Team Leave Today',   'message' => 'Who is on leave today?'],
+            ['label' => '📋 Pending Approvals',  'message' => 'How many requests are pending approval?'],
+            ['label' => '📅 Working Hours',       'message' => 'What are the working hours and late policy?'],
+            ['label' => '💼 Leave Policies',      'message' => 'What are the leave policies for our company?'],
+        ];
 
-        if (!$entry) return null;
-        if (!$entry->isValid()) {
-            $entry->delete();
-            return null;
-        }
-        return $entry->answer;
-    }
+        $mgmtExtra = [
+            ['label' => '👥 Team Leave Today',   'message' => 'Who is on leave today?'],
+            ['label' => '📋 Pending Approvals',  'message' => 'How many requests are pending approval?'],
+            ['label' => '📈 Late Policy',         'message' => 'What is the late deduction policy?'],
+        ];
 
-    private function setCache(int $userId, string $question, string $answer): void
-    {
-        HrChatbotCache::updateOrCreate(
-            [
-                'user_id'       => $userId,
-                'question_hash' => $this->hashQuestion($question),
-            ],
-            [
-                'question'   => $question,
-                'answer'     => $answer,
-                'expires_at' => null, // never expires (HR rules don't change often)
-            ]
-        );
+        return match($role) {
+            'hr', 'admin' => array_merge($common, $hrExtra),
+            'management'  => array_merge($common, $mgmtExtra),
+            default       => $common,
+        };
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  PRIVATE: Save message to DB
-    // ─────────────────────────────────────────────────────────────
-    private function saveMessage(int $userId, string $role, string $content, bool $fromCache): void
-    {
-        HrChatbotMessage::create([
-            'user_id'    => $userId,
-            'role'       => $role,
-            'content'    => $content,
-            'from_cache' => $fromCache,
-        ]);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    //  PRIVATE: Get recent history for multi-turn context
-    // ─────────────────────────────────────────────────────────────
-    private function getHistory(int $userId): array
-    {
-        return HrChatbotMessage::where('user_id', $userId)
-            ->orderByDesc('created_at')
-            ->limit(20) // last 10 pairs
-            ->get()
-            ->reverse()
-            ->values()
-            ->map(fn($m) => ['role' => $m->role, 'content' => $m->content])
-            ->toArray();
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    //  COLLECT USER DATA FROM DB
+    //  COLLECT USER CONTEXT FROM DB
     // ─────────────────────────────────────────────────────────────
     private function buildUserContext(User $user): array
     {
@@ -218,27 +165,59 @@ class HrChatbotService
             ])->toArray();
 
         $leavePolicies = LeavePolicy::where('country_id', $countryId)->get()
-            ->map(fn($p) => [
-                'type'          => $p->leave_type,
-                'days_per_year' => $p->days_per_year,
-            ])->toArray();
+            ->map(fn($p) => ['type' => $p->leave_type, 'days_per_year' => $p->days_per_year])->toArray();
 
-        $attendanceRecords = AttendanceRecord::where('user_id', $user->id)
+        $att = AttendanceRecord::where('user_id', $user->id)
             ->whereMonth('date', $month)->whereYear('date', $year)->get();
 
-        $pendingOT = OvertimeRequest::where('user_id', $user->id)
-            ->where('status', 'pending')->count();
+        $pendingOT = OvertimeRequest::where('user_id', $user->id)->where('status', 'pending')->count();
+        $approvedOTHours = OvertimeRequest::where('user_id', $user->id)->where('status', 'approved')
+            ->whereMonth('start_date', $month)->whereYear('start_date', $year)->sum('hours_approved');
 
-        $approvedOTHours = OvertimeRequest::where('user_id', $user->id)
-            ->where('status', 'approved')
-            ->whereMonth('start_date', $month)->whereYear('start_date', $year)
-            ->sum('hours_approved');
-
-        $pendingLeave = LeaveRequest::where('user_id', $user->id)
-            ->where('status', 'pending')->count();
+        $pendingLeave = LeaveRequest::where('user_id', $user->id)->where('status', 'pending')->count();
 
         $latestPayroll = PayrollRecord::where('user_id', $user->id)
             ->orderByDesc('year')->orderByDesc('month')->first();
+
+        // ── Colleagues data (same country, for HR/Management questions) ──
+        $colleagues = \App\Models\User::where('country_id', $countryId)
+            ->where('id', '!=', $user->id)
+            ->where('is_active', 1)
+            ->whereHas('role', fn($q) => $q->whereIn('name', ['employee', 'member', 'hr', 'management']))
+            ->get(['id', 'name', 'department', 'position'])
+            ->map(fn($u) => [
+                'id'         => $u->id,
+                'name'       => $u->name,
+                'department' => $u->department,
+                'position'   => $u->position,
+                // Is on leave today?
+                'on_leave_today' => LeaveRequest::where('user_id', $u->id)
+                    ->where('status', 'approved')
+                    ->whereDate('start_date', '<=', $now->toDateString())
+                    ->whereDate('end_date',   '>=', $now->toDateString())
+                    ->exists(),
+            ])->toArray();
+            // ── Public Holidays (this month + upcoming) ──
+            $thisMonthHolidays = \App\Models\PublicHoliday::where('country_id', $countryId)
+                ->whereMonth('date', $now->month)
+                ->whereYear('date', $now->year)
+                ->orderBy('date')
+                ->get()
+                ->map(fn($h) => [
+                    'name' => $h->name,
+                    'date' => $h->date->format('d M Y (l)'),
+                ])->toArray();
+
+            $upcomingHolidays = \App\Models\PublicHoliday::where('country_id', $countryId)
+                ->whereDate('date', '>', $now->toDateString())
+                ->whereDate('date', '<=', $now->copy()->addDays(30)->toDateString())
+                ->orderBy('date')
+                ->get()
+                ->map(fn($h) => [
+                    'name' => $h->name,
+                    'date' => $h->date->format('d M Y (l)'),
+                    'days_away' => $now->diffInDays($h->date),
+                ])->toArray();
 
         return [
             'salary_rule'    => $salaryRule ? [
@@ -254,14 +233,14 @@ class HrChatbotService
             'leave_policies' => $leavePolicies,
             'attendance'     => [
                 'this_month'         => $now->format('F Y'),
-                'present_days'       => $attendanceRecords->whereIn('status', ['present','late'])->count(),
-                'late_days'          => $attendanceRecords->where('status', 'late')->count(),
-                'absent_days'        => $attendanceRecords->where('status', 'absent')->count(),
-                'total_late_minutes' => $attendanceRecords->sum('late_minutes'),
+                'present_days'       => $att->whereIn('status', ['present', 'late'])->count(),
+                'late_days'          => $att->where('status', 'late')->count(),
+                'absent_days'        => $att->where('status', 'absent')->count(),
+                'total_late_minutes' => (int) $att->sum('late_minutes'),
             ],
             'overtime'       => [
                 'pending_requests'          => $pendingOT,
-                'approved_hours_this_month' => round((float)$approvedOTHours, 2),
+                'approved_hours_this_month' => round((float) $approvedOTHours, 2),
             ],
             'leave_requests' => ['pending_count' => $pendingLeave],
             'latest_payroll' => $latestPayroll ? [
@@ -269,14 +248,19 @@ class HrChatbotService
                 'net_salary' => number_format($latestPayroll->net_salary, 2),
                 'status'     => $latestPayroll->status,
             ] : null,
+            'colleagues'     => $colleagues,
+            'holidays_this_month' => $thisMonthHolidays,
+            'upcoming_holidays'   => $upcomingHolidays,
         ];
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  BUILD SYSTEM PROMPT
+    //  SYSTEM PROMPT
     // ─────────────────────────────────────────────────────────────
     private function buildSystemPrompt(User $user, array $ctx): string
     {
+        $now = Carbon::now();
+        
         $country    = $user->country?->name ?? 'Cambodia';
         $role       = $user->role?->name    ?? 'employee';
         $workStart  = $ctx['salary_rule']['work_start']  ?? '08:00';
@@ -303,22 +287,57 @@ class HrChatbotService
             ));
         }
 
-        $att         = $ctx['attendance'];
+        $att = $ctx['attendance'];
         $payrollText = $ctx['latest_payroll']
             ? "Period: {$ctx['latest_payroll']['period']}, Net: {$ctx['latest_payroll']['net_salary']}, Status: {$ctx['latest_payroll']['status']}"
-            : 'No payroll record.';
+            : 'No payroll record found.';
+
+        // Colleagues list
+        $colleaguesText = 'No colleague data.';
+        if (!empty($ctx['colleagues'])) {
+            $onLeave = array_filter($ctx['colleagues'], fn($c) => $c['on_leave_today']);
+            $colleaguesList = implode("\n", array_map(
+                fn($c) => "  - {$c['name']} | Dept: {$c['department']} | Position: {$c['position']} | On leave today: " . ($c['on_leave_today'] ? 'Yes' : 'No'),
+                $ctx['colleagues']
+            ));
+            $onLeaveNames = implode(', ', array_map(fn($c) => $c['name'], $onLeave));
+            $colleaguesText = $colleaguesList;
+            $colleaguesText .= "\nOn leave today: " . ($onLeaveNames ?: 'None');
+        }
+
+        $holidaysThisMonth = 'No holidays this month.';
+        if (!empty($ctx['holidays_this_month'])) {
+            $holidaysThisMonth = implode("\n", array_map(
+                fn($h) => "  - {$h['name']}: {$h['date']}",
+                $ctx['holidays_this_month']
+            ));
+        }
+
+        $upcomingHolidaysText = 'No upcoming holidays in next 30 days.';
+        if (!empty($ctx['upcoming_holidays'])) {
+            $upcomingHolidaysText = implode("\n", array_map(
+                fn($h) => "  - {$h['name']}: {$h['date']} ({$h['days_away']} days away)",
+                $ctx['upcoming_holidays']
+            ));
+        }
+
 
         return <<<PROMPT
 You are HRBot, the friendly internal HR assistant for Brycen {$country}.
-You assist employees and HR staff with questions about this HR system ONLY.
 
-━━━ YOUR RULES ━━━
-- Answer ONLY: attendance, leave, overtime, payroll, HR policies, working hours, system features.
-- For unrelated questions: politely decline and redirect.
-- Be warm, helpful, concise. Use bullet points for lists.
-- Respond in the same language the user writes in (English or Myanmar).
+━━━ YOUR SCOPE ━━━
+You answer questions about:
+1. HR SYSTEM: attendance, leave, overtime, payroll, policies, working hours, system features
+2. SELF DATA: anything about the current user's own records (leave balance, attendance, salary, OT)
+3. COLLEAGUE GENERAL INFO: department, position, whether someone is on leave today — using the colleagues data below
+   - You MAY answer: "Is So Yi on leave today?", "What department is Ko Ko in?", "Who is on leave today?"
+   - You MAY NOT answer: personal salary, personal leave balance, personal attendance of other employees
 
-━━━ COMPANY RULES ━━━
+For unrelated questions: politely decline and redirect to HR topics.
+Respond in the same language the user writes in (English or Myanmar).
+Be warm, concise, and helpful. Use bullet points for lists.
+
+━━━ COMPANY RULES — Brycen {$country} ━━━
 - Working hours  : {$workStart} – {$workEnd}
 - Lunch break    : {$lunchStart} – {$lunchEnd}
 - Late definition: Check-in after {$workStart} = LATE
@@ -330,41 +349,75 @@ You assist employees and HR staff with questions about this HR system ONLY.
 - Role    : {$role}
 - Country : {$country}
 
-━━━ LEAVE BALANCES ━━━
+━━━ MY LEAVE BALANCES ━━━
 {$leaveBalanceText}
 
 ━━━ LEAVE POLICIES ━━━
 {$leavePoliciesText}
 
-━━━ ATTENDANCE ({$att['this_month']}) ━━━
-Present: {$att['present_days']} days | Late: {$att['late_days']} days | Absent: {$att['absent_days']} days | Total late: {$att['total_late_minutes']} min
+━━━ MY ATTENDANCE ({$att['this_month']}) ━━━
+Present: {$att['present_days']} | Late: {$att['late_days']} | Absent: {$att['absent_days']} | Total late: {$att['total_late_minutes']} min
 
-━━━ OVERTIME ━━━
+━━━ MY OVERTIME ━━━
 Pending: {$ctx['overtime']['pending_requests']} | Approved this month: {$ctx['overtime']['approved_hours_this_month']} hrs
 
-━━━ LEAVE REQUESTS ━━━
+━━━ MY LEAVE REQUESTS ━━━
 Pending: {$ctx['leave_requests']['pending_count']}
 
-━━━ LATEST PAYROLL ━━━
+━━━ MY LATEST PAYROLL ━━━
 {$payrollText}
 
-━━━ PAYROLL CALCULATION FORMULA ━━━
-Net Salary = Base Salary + Allowances + Overtime + Bonus - Late Deduction - Short Hour Deduction - Salary Deductions - Tax - Social Security
+━━━ COLLEAGUES (same country) ━━━
+{$colleaguesText}
 
-Step by step:
-1. DAILY RATE     = Base Salary ÷ Working Days in month
-2. HOURLY RATE    = Daily Rate ÷ Hours per day (work_end - work_start - lunch)
-3. ALLOWANCES     = Fixed amount OR percentage of Base Salary (per country setup)
-4. OVERTIME PAY   = Hourly Rate × OT multiplier (default 1.5x) × Approved OT hours
-5. LATE DEDUCTION = Late minutes × {$lateRate} per minute
-6. SHORT HOUR     = (Standard hours - Actual work hours) × Hourly Rate (per day)
-7. UNPAID LEAVE   = Daily Rate × Unpaid leave days
-8. TAX            = Progressive brackets (applied on gross salary, last period only)
-9. SOCIAL SEC.    = Base Salary × Employee rate % (last period only)
-10. BONUS         = Scheduled bonus (quarterly/monthly, last period only)
+━━━ PUBLIC HOLIDAYS ━━━
+This month ({$now->format('F Y')}):
+{$holidaysThisMonth}
 
-Pay cycle: {$payCycle} (semi_monthly = 2 payroll runs/month, last run includes tax/bonus/allowances)
+Upcoming (next 30 days):
+{$upcomingHolidaysText}
+
 PROMPT;
+    }
 
+    // ─────────────────────────────────────────────────────────────
+    //  HISTORY for multi-turn
+    // ─────────────────────────────────────────────────────────────
+    private function getHistory(int $userId): array
+    {
+        return HrChatbotMessage::where('user_id', $userId)
+            ->orderByDesc('id')->limit(20)->get()
+            ->reverse()->values()
+            ->map(fn($m) => ['role' => $m->role, 'content' => $m->content])
+            ->toArray();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  DB helpers
+    // ─────────────────────────────────────────────────────────────
+    private function saveMessage(int $userId, string $role, string $content, bool $fromCache): void
+    {
+        HrChatbotMessage::create(['user_id' => $userId, 'role' => $role, 'content' => $content, 'from_cache' => $fromCache]);
+    }
+
+    private function hashQuestion(string $q): string
+    {
+        return hash('sha256', mb_strtolower(trim(preg_replace('/\s+/', ' ', $q))));
+    }
+
+    private function getCache(int $userId, string $question): ?string
+    {
+        $entry = HrChatbotCache::where('user_id', $userId)
+            ->where('question_hash', $this->hashQuestion($question))->first();
+        if (!$entry || !$entry->isValid()) { $entry?->delete(); return null; }
+        return $entry->answer;
+    }
+
+    private function setCache(int $userId, string $question, string $answer): void
+    {
+        HrChatbotCache::updateOrCreate(
+            ['user_id' => $userId, 'question_hash' => $this->hashQuestion($question)],
+            ['question' => $question, 'answer' => $answer, 'expires_at' => null]
+        );
     }
 }

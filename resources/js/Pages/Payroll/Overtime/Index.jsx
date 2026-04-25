@@ -893,18 +893,26 @@ function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess }
         } catch { return null; }
     }, [form.start_date,form.start_time,form.end_date,form.end_time]);
 
-    const validate = () => {
-        const e={};
-        if(!form.start_date) e.start_date='Start date is required.';
-        if(!form.start_time) e.start_time='Start time is required.';
-        if(!form.end_date)   e.end_date='End date is required.';
-        if(!form.end_time)   e.end_time='End time is required.';
-        if(form.start_date&&form.end_date&&form.end_date<form.start_date) e.end_date='End date must be on or after start date.';
-        if(form.start_date===form.end_date&&form.start_time===form.end_time) e.end_time='Start and end cannot be the same.';
-        if(!form.reason.trim()) e.reason='Reason is required.';
-        if(!isAdmin && !form.approver_id) e.approver_id='Please select an approver.';
-        return e;
-    };
+const validate = () => {
+    const e={};
+    if(!form.start_date) e.start_date='Start date is required.';
+    if(!form.start_time) e.start_time='Start time is required.';
+    if(!form.end_date)   e.end_date='End date is required.';
+    if(!form.end_time)   e.end_time='End time is required.';
+    if(!form.reason.trim()) e.reason='Reason is required.';
+    if(!isAdmin && !form.approver_id) e.approver_id='Please select an approver.';
+
+    // ── datetime comparison ──
+    if(form.start_date && form.start_time && form.end_date && form.end_time) {
+        const start = new Date(`${form.start_date}T${form.start_time}`);
+        const end   = new Date(`${form.end_date}T${form.end_time}`);
+        if(end <= start) {
+            e.end_date = 'End must be after start.';
+            e.end_time = 'End time must be after start time.';
+        }
+    }
+    return e;
+};
 
     const handleSubmit = () => {
         const e=validate(); if(Object.keys(e).length){setErrors(e);return;}
@@ -945,11 +953,17 @@ function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess }
                 <div className="ot-hide" style={{ padding:'20px 24px', display:'flex', flexDirection:'column', gap:14, overflowY:'auto', flex:1 }}>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                         <div><label style={lbl}>Start date</label><input type="date" value={form.start_date} onChange={e=>set('start_date',e.target.value)} style={inp(errors.start_date)}/>{errors.start_date&&<ErrMsg msg={errors.start_date} theme={theme}/>}</div>
-                        <div><label style={lbl}>Start time</label><input type="time" value={form.start_time} onChange={e=>set('start_time',e.target.value)} style={inp(errors.start_time)}/>{errors.start_time&&<ErrMsg msg={errors.start_time} theme={theme}/>}</div>
+                        <div><label style={lbl}>Start time</label>
+                            <TimePicker value={form.start_time} onChange={v=>set('start_time',v)} theme={theme} dark={dark} error={errors.start_time}/>
+                            {errors.start_time&&<ErrMsg msg={errors.start_time} theme={theme}/>}
+                        </div>
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                         <div><label style={lbl}>End date</label><input type="date" value={form.end_date} min={form.start_date||undefined} onChange={e=>set('end_date',e.target.value)} style={inp(errors.end_date)}/>{errors.end_date&&<ErrMsg msg={errors.end_date} theme={theme}/>}</div>
-                        <div><label style={lbl}>End time</label><input type="time" value={form.end_time} onChange={e=>set('end_time',e.target.value)} style={inp(errors.end_time)}/>{errors.end_time&&<ErrMsg msg={errors.end_time} theme={theme}/>}</div>
+                        <div><label style={lbl}>End time</label>
+                            <TimePicker value={form.end_time} onChange={v=>set('end_time',v)} theme={theme} dark={dark} error={errors.end_time}/>
+                            {errors.end_time&&<ErrMsg msg={errors.end_time} theme={theme}/>}
+                        </div>
                     </div>
 
                     {summary && (
@@ -1125,6 +1139,91 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, on
             </div>
         </div>,
         document.body
+    );
+}
+
+function TimePicker({ value, onChange, theme, dark, error }) {
+    const hours   = Array.from({length:12}, (_,i) => String(i+1).padStart(2,'0'));
+    const minutes = Array.from({length:60}, (_,i) => String(i).padStart(2,'0'));
+
+    const parseVal = (v) => {
+        if (!v) return { h:'08', m:'00', p:'AM' };
+        const [hStr, mStr] = v.split(':');
+        const h24 = parseInt(hStr);
+        const p   = h24 >= 12 ? 'PM' : 'AM';
+        const h12 = h24 % 12 || 12;
+        return { h: String(h12).padStart(2,'0'), m: (mStr||'00').slice(0,2), p };
+    };
+
+    const { h, m, p } = parseVal(value);
+
+    const emit = (nh, nm, np) => {
+        let h24 = parseInt(nh);
+        if (np === 'PM' && h24 !== 12) h24 += 12;
+        if (np === 'AM' && h24 === 12) h24 = 0;
+        onChange(`${String(h24).padStart(2,'0')}:${nm}`);
+    };
+
+    const sel = {
+        height: 40, border: 'none', background: 'transparent',
+        color: theme.text, fontSize: 14, fontWeight: 600,
+        cursor: 'pointer', fontFamily: 'inherit', outline: 'none',
+        appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+        textAlign: 'center', padding: '0 4px',
+        scrollbarWidth: 'none', msOverflowStyle: 'none',
+    };
+
+    return (
+        <>
+        <style>{`
+            .tp-sel::-webkit-scrollbar { display: none; }
+            .tp-sel option {
+                background: ${dark ? '#1e2d4a' : '#ffffff'} !important;
+                color: ${dark ? '#f1f5f9' : '#0f172a'} !important;
+            }
+        `}</style>
+        <div style={{
+            display: 'inline-flex', alignItems: 'center',
+            border: `1.5px solid ${error ? theme.danger : theme.inputBorder}`,
+            borderRadius: 12, overflow: 'hidden',
+            background: dark ? 'rgba(255,255,255,0.06)' : '#fff',
+            height: 44, transition: 'border-color 0.15s',
+        }}>
+            {/* Clock icon */}
+            <div style={{ paddingLeft:10, paddingRight:4, color:theme.textMute, display:'flex', alignItems:'center' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </div>
+
+            {/* Hour select */}
+            <select className="tp-sel" value={h} onChange={e=>emit(e.target.value,m,p)} style={{...sel,width:42}}>
+                {hours.map(hv=><option key={hv} value={hv}>{hv}</option>)}
+            </select>
+
+            <span style={{color:theme.textMute,fontWeight:800,fontSize:15,userSelect:'none'}}>:</span>
+
+            {/* Minute select */}
+            <select className="tp-sel" value={m} onChange={e=>emit(h,e.target.value,p)} style={{...sel,width:42}}>
+                {minutes.map(mv=><option key={mv} value={mv}>{mv}</option>)}
+            </select>
+
+            {/* Divider */}
+            <div style={{width:1,height:24,background:dark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.08)',margin:'0 4px'}}/>
+
+            {/* AM/PM toggle buttons */}
+            {['AM','PM'].map(period => (
+                <button key={period} type="button" onClick={()=>emit(h,m,period)} style={{
+                    width:36, height:'100%', border:'none',
+                    background: p===period ? (dark?'rgba(124,58,237,0.35)':'#ede9fe') : 'transparent',
+                    color: p===period ? theme.primary : theme.textMute,
+                    fontSize:11, fontWeight:800, cursor:'pointer',
+                    fontFamily:'inherit', transition:'all .15s',
+                    borderLeft: period==='PM' ? `1px solid ${dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)'}` : 'none',
+                }}>{period}</button>
+            ))}
+        </div>
+        </>
     );
 }
 

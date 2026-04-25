@@ -490,6 +490,7 @@ export default function PerformanceIndex({
                 .pf-row:hover td { background:${dark?'rgba(124,58,237,0.05)':'#faf5ff'} !important; }
                 .pf-row td { transition:background .12s; }
                 .pf-pill-in { animation:pf-fade .2s ease both; }
+                .pf-table-wrap::-webkit-scrollbar { display:none; }
             `}</style>
 
             <div style={{ display:'flex', flexDirection:'column', gap:16, animation:'pf-fade .25s ease' }}>
@@ -619,7 +620,6 @@ export default function PerformanceIndex({
                             background:theme.primarySoft, color:theme.primary }}>
                             {displayRows.length} employees
                         </span>
-                        <span style={{ fontSize:12, color:theme.textMute }}>— {year}</span>
                         {fetching && (
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2"
                                 style={{animation:'pf-spin 1s linear infinite', marginLeft:4}}>
@@ -629,7 +629,7 @@ export default function PerformanceIndex({
                     </div>
 
                     {/* Scrollable table */}
-                    <div style={{ overflowX:'auto' }}>
+                    <div className="pf-table-wrap" style={{ overflowX:'auto', scrollbarWidth:'none', msOverflowStyle:'none' }}>
                         <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
                             <thead>
                                 <tr>
