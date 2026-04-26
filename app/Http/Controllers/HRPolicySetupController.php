@@ -440,6 +440,10 @@ public function destroyBank(PayrollBank $bank)
             'lunch_start'            => 'nullable|date_format:H:i',
             'lunch_end'              => 'nullable|date_format:H:i',
             'payroll_cutoff_day'     => 'required|integer|min:1|max:31',
+            'late_alert_threshold'   => 'required|integer|min:1|max:31',   // ← ထည့်
+            'late_alert_enabled'     => 'required|boolean',                 // ← ထည့်
+            'absent_alert_threshold' => 'required|integer|min:1|max:31',   // ← ထည့်
+            'absent_alert_enabled'   => 'required|boolean',
         ], [
             'day_shift_start.required'    => 'Day shift start time is required.',
             'day_shift_start.date_format' => 'Day shift start must be in HH:MM format.',

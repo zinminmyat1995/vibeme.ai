@@ -109,7 +109,10 @@ Route::middleware(['auth', 'role:admin,hr,management'])->prefix('hr-alerts')->na
 });
 
 
-
+Route::middleware(['auth'])->group(function () {
+    Route::patch('/hr-alerts/{alert}/acknowledge', [App\Http\Controllers\HrAlertController::class, 'acknowledge'])
+        ->name('hr-alerts.acknowledge');
+});
 
 Route::middleware(['auth', 'role:admin,hr,management'])
     ->prefix('performance')

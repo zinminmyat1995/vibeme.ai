@@ -29,6 +29,10 @@ class SalaryRule extends Model
         'payroll_cutoff_day',
         'lunch_start',
         'lunch_end',
+        'late_alert_threshold',    // ← ထည့်
+        'late_alert_enabled',      // ← ထည့်
+        'absent_alert_threshold',  // ← ထည့်
+        'absent_alert_enabled',  
     ];
 
     protected $casts = [
@@ -36,6 +40,10 @@ class SalaryRule extends Model
         'bonus_during_probation' => 'boolean',
         'bonus_for_contract'     => 'boolean',
         'payroll_cutoff_day'     => 'integer',
+        'late_alert_enabled'     => 'boolean',   // ← ထည့်
+        'absent_alert_enabled'   => 'boolean',   // ← ထည့်
+        'late_alert_threshold'   => 'integer',   // ← ထည့်
+        'absent_alert_threshold' => 'integer',   // ← ထည့်
     ];
 
     // ── Belongs To ────────────────────────────────────────────────────────────

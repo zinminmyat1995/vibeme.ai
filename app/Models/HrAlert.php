@@ -8,7 +8,7 @@ class HrAlert extends Model
     protected $fillable = [
         'country_id', 'user_id', 'type', 'trigger_count',
         'letter_draft', 'status', 'actioned_by', 'actioned_at',
-        'alert_month', 'alert_year',
+        'alert_month', 'alert_year','acknowledged_at',  
     ];
 
     protected $casts = [

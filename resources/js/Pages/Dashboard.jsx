@@ -434,17 +434,19 @@ function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload })
                         onClick={() => setExpanded(v => !v)}
                         style={{
                             marginTop: 8,
-                            display: 'inline-flex', alignItems: 'center', gap: 4,
-                            padding: '4px 10px', borderRadius: 99,
-                            border: `1px solid ${t.amber}55`,
-                            background: t.amberSoft, color: t.amber,
-                            fontSize: 11, fontWeight: 700,
+                            background: 'none', border: 'none', padding: 0, margin: '8px 0 0 0',
+                            color: t.amber, fontSize: 12, fontWeight: 600,
                             cursor: 'pointer', fontFamily: 'inherit',
-                            transition: 'all 0.15s',
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                            opacity: 0.85,
+                            transition: 'opacity 0.15s',
                         }}
+                        onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                        onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}
                     >
                         {expanded ? 'See less' : 'See more'}
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" strokeWidth="2.5"
                             style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
@@ -1538,96 +1540,166 @@ function EmployeeView({ props, t }) {
     );
 }
 
-function WarningCard({ w, dark, t }) {
-    const [expanded, setExpanded] = useState(false);
+function WarningCard({ warnings, dark, t }) {
+    const [idx,        setIdx]      = useState(0);
+    const [expanded,   setExpanded] = useState(false);
+    const [ackLoading, setAckLoading] = useState(false);
+ 
+    if (!warnings?.length) return null;
+ 
+    const w        = warnings[Math.min(idx, warnings.length - 1)];
     const isAbsent = w.type === 'absent';
-    const color  = isAbsent ? (dark ? '#f87171' : '#dc2626') : (dark ? '#fbbf24' : '#d97706');
-    const soft   = isAbsent ? (dark ? 'rgba(239,68,68,0.10)' : '#fef2f2') : (dark ? 'rgba(251,191,36,0.10)' : '#fffbeb');
-    const border = isAbsent ? (dark ? 'rgba(239,68,68,0.25)' : '#fca5a5') : (dark ? 'rgba(251,191,36,0.25)' : '#fde68a');
+ 
+    const color  = dark ? '#f87171' : '#dc2626';
+    const soft   = dark ? 'rgba(239,68,68,0.10)' : '#fef2f2';
+    const border = dark ? 'rgba(239,68,68,0.28)' : '#fca5a5';
     const icon   = isAbsent ? '📅' : '⏰';
-
+ 
+    const PREVIEW = 160;
+    const letter  = w.letter_draft || '';
+    const isLong  = letter.length > PREVIEW;
+    const display = expanded || !isLong ? letter : letter.slice(0, PREVIEW) + '…';
+ 
+    const go = (newIdx) => { setIdx(newIdx); setExpanded(false); };
+ 
+    const handleAcknowledge = () => {
+        setAckLoading(true);
+        router.patch(
+            `/hr-alerts/${w.id}/acknowledge`,
+            {},
+            {
+                onSuccess: () => setAckLoading(false),
+                onError:   () => setAckLoading(false),
+            }
+        );
+    };
+ 
     return (
         <div style={{
-            background: soft,
-            border: `1px solid ${border}`,
-            borderRadius: 16,
-            marginBottom: 10,
-            overflow: 'hidden',
-            boxShadow: dark ? '0 2px 12px rgba(0,0,0,0.2)' : '0 1px 6px rgba(0,0,0,0.06)',
+            ...card(t, { padding: 0, marginBottom: 12, overflow: 'hidden' }),
+            borderLeft: `3px solid ${color}`,
         }}>
-            {/* Top accent bar */}
-            <div style={{ height: 3, background: `linear-gradient(90deg, ${color}, ${color}88)` }} />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px' }}>
-                {/* Icon box */}
+ 
+            {/* ── Top bar ── */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 18px' }}>
+ 
+                {/* Icon */}
                 <div style={{
-                    width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-                    background: `${color}22`,
-                    border: `1px solid ${color}44`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 18,
+                    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                    background: soft, border: `1px solid ${border}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
                 }}>
                     {icon}
                 </div>
-
-                {/* Text */}
+ 
+                {/* Title + meta */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color }}>
-                            {isAbsent ? 'Absence Warning' : 'Late Arrival Warning'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color }}>
+                            ⚠ Warning
                         </span>
-                        <span style={{
-                            fontSize: 10, fontWeight: 700,
-                            padding: '2px 8px', borderRadius: 99,
-                            background: `${color}22`, color,
-                        }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 8px', borderRadius: 99, background: soft, color }}>
                             {isAbsent ? `${w.trigger_count} days absent` : `${w.trigger_count}x late`}
                         </span>
                         <span style={{ fontSize: 10, color: t.textMute }}>{w.month_label}</span>
                     </div>
-                    
-                </div>
-
-                {/* See more / See less button */}
-                <button
-                    onClick={() => setExpanded(v => !v)}
-                    style={{
-                        flexShrink: 0,
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        padding: '6px 12px', borderRadius: 99,
-                        border: `1px solid ${border}`,
-                        background: expanded ? `${color}18` : 'transparent',
-                        color, fontSize: 11, fontWeight: 700,
-                        cursor: 'pointer', fontFamily: 'inherit',
-                        transition: 'all 0.15s',
-                    }}
-                >
-                    {expanded ? 'See less' : 'See more'}
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2.5"
-                        style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>
-                        <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                </button>
-            </div>
-
-            {/* Expanded letter */}
-            {expanded && (
-                <div style={{
-                    borderTop: `1px solid ${border}`,
-                    padding: '16px 20px',
-                    background: dark ? `${color}08` : '#fff',
-                }}>
-                   
-                    <div style={{
-                        fontSize: 13, color: t.textSoft,
-                        lineHeight: 1.8, whiteSpace: 'pre-wrap',
-                      
-                    }}>
-                        {w.letter_draft}
+                    <div style={{ fontSize: 13, fontWeight: 700, color }}>
+                        {isAbsent ? 'Absence Warning' : 'Late Arrival Warning'}
                     </div>
                 </div>
-            )}
+ 
+                {/* Pagination */}
+                {warnings.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                        <button onClick={() => go(Math.max(0, idx - 1))} disabled={idx === 0}
+                            style={{ width: 26, height: 26, borderRadius: 7, border: `1px solid ${t.border}`, background: t.surface2, color: t.textSoft, cursor: idx === 0 ? 'not-allowed' : 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: idx === 0 ? 0.4 : 1, fontFamily: 'inherit' }}>‹</button>
+                        <span style={{ fontSize: 11, fontWeight: 700, color, background: soft, borderRadius: 7, padding: '3px 9px', minWidth: 36, textAlign: 'center' }}>
+                            {idx + 1} / {warnings.length}
+                        </span>
+                        <button onClick={() => go(Math.min(warnings.length - 1, idx + 1))} disabled={idx === warnings.length - 1}
+                            style={{ width: 26, height: 26, borderRadius: 7, border: `1px solid ${t.border}`, background: t.surface2, color: t.textSoft, cursor: idx === warnings.length - 1 ? 'not-allowed' : 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: idx === warnings.length - 1 ? 0.4 : 1, fontFamily: 'inherit' }}>›</button>
+                    </div>
+                )}
+            </div>
+ 
+            {/* ── Letter + actions ── */}
+            <div style={{ padding: '0 18px 14px 66px' }}>
+ 
+                {/* Letter text */}
+                <div style={{ fontSize: 12, color: t.textSoft, lineHeight: 1.65, whiteSpace: 'pre-wrap', marginBottom: 10 }}>
+                    {display}
+                </div>
+ 
+                {/* See more/less (text only) + Mark as read button — same row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+ 
+                    {/* Text-only see more / see less */}
+                    {isLong ? (
+                        <button
+                            onClick={() => setExpanded(v => !v)}
+                            style={{
+                                background: 'none', border: 'none', padding: 0, margin: 0,
+                                color, fontSize: 12, fontWeight: 600,
+                                cursor: 'pointer', fontFamily: 'inherit',
+                                display: 'inline-flex', alignItems: 'center', gap: 3,
+                                opacity: 0.8,
+                                transition: 'opacity 0.15s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                            onMouseLeave={e => e.currentTarget.style.opacity = '0.8'}
+                        >
+                            {expanded ? 'See less' : 'See more'}
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" strokeWidth="2.5"
+                                style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                    ) : (
+                        <span />
+                    )}
+ 
+                    {/* Mark as read button */}
+                    <button
+                        onClick={handleAcknowledge}
+                        disabled={ackLoading}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            padding: '6px 14px', borderRadius: 99,
+                            border: `1px solid ${border}`,
+                            background: ackLoading ? soft : `linear-gradient(135deg, #dc2626, #ef4444)`,
+                            color: ackLoading ? color : '#fff',
+                            fontSize: 11, fontWeight: 700,
+                            cursor: ackLoading ? 'not-allowed' : 'pointer',
+                            fontFamily: 'inherit',
+                            boxShadow: ackLoading ? 'none' : '0 2px 8px rgba(220,38,38,0.25)',
+                            transition: 'opacity 0.15s',
+                            opacity: ackLoading ? 0.7 : 1,
+                        }}
+                        onMouseEnter={e => { if (!ackLoading) e.currentTarget.style.opacity = '0.88'; }}
+                        onMouseLeave={e => { e.currentTarget.style.opacity = ackLoading ? '0.7' : '1'; }}
+                    >
+                        {ackLoading ? (
+                            <>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+                                    style={{ animation: 'spin 0.7s linear infinite' }}>
+                                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                                </svg>
+                                Marking…
+                            </>
+                        ) : (
+                            <>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" strokeWidth="3"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                Mark as read
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
@@ -1719,9 +1791,9 @@ export default function Dashboard(props) {
                 </div>
 
 
-                {myWarnings.length > 0 && myWarnings.map(w => (
-                    <WarningCard key={w.id} w={w} dark={dark} t={t} />
-                ))}
+                {myWarnings.length > 0 && (
+                    <WarningCard warnings={myWarnings} dark={dark} t={t} />
+                )}
 
                 {/* ① Announcement banner — ALL roles see this */}
                 <AnnouncementBanner

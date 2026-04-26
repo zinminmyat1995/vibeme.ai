@@ -408,6 +408,12 @@ function ConfirmModal({ open, onClose, onConfirm, data, isEdit, processing, T, d
         {icon:'💼',label:'Work Hours',value:`${to12h(data.work_start??'08:00')} – ${to12h(data.work_end??'17:00')}`},
         {icon:'⚡',label:'OT Base',value:data.overtime_base==='hourly_rate'?'Hourly Rate':'Daily Rate'},
         {icon:'⚠️',label:'Late Deduction',value:`${data.late_deduction_rate||0} / ${data.late_deduction_unit==='per_minute'?'min':'hr'}`},
+        {icon:'⏰',label:'Late Warning',  value: data.late_alert_enabled
+            ? `Enabled — ≥ ${data.late_alert_threshold} times/month`
+            : 'Disabled'},
+        {icon:'📅',label:'Absent Warning', value: data.absent_alert_enabled
+            ? `Enabled — ≥ ${data.absent_alert_threshold} days/month`
+            : 'Disabled'},
         {icon:'🎁',label:'Bonus (Probation)',value:data.bonus_during_probation?'Yes — pay bonus':'No — skip'},
         {icon:'📋',label:'Bonus (Contract)',value:data.bonus_for_contract?'Yes — pay bonus':'No — skip'},
         {icon:'📆',label:'Pay Dates',value:payDates()},
@@ -624,6 +630,10 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             late_deduction_rate:    salaryRule.late_deduction_rate    ?? 0,
             currency_id:            salaryRule.currency_id            ?? '',
             payroll_cutoff_day:     salaryRule.payroll_cutoff_day     ?? 25,
+            late_alert_threshold:    salaryRule.late_alert_threshold   ?? 3,
+            late_alert_enabled:      salaryRule.late_alert_enabled     ?? true,
+            absent_alert_threshold:  salaryRule.absent_alert_threshold ?? 2,
+            absent_alert_enabled:    salaryRule.absent_alert_enabled   ?? true,
             period_days:            salaryRule.period_days            ?? {},
         } : {
             pay_cycle:'monthly', probation_days:'',
@@ -634,6 +644,10 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             work_start:'08:00', work_end:'17:00',
             overtime_base:'hourly_rate', late_deduction_unit:'per_minute',
             late_deduction_rate:0, currency_id:'', payroll_cutoff_day:25, period_days:{},
+            late_alert_threshold:   3,
+            late_alert_enabled:     true,
+            absent_alert_threshold: 2,
+            absent_alert_enabled:   true,
         }
     );
 
@@ -968,6 +982,151 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                 </div>
             </SectionCard>
 
+            <SectionCard emoji="⚠️" title="Attendance Warning" T={T}>
+
+                {/* Late Warning */}
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:14}}>
+                    <div>
+                        <label style={lbl}>
+                            <span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:'#f59e0b',marginRight:6,verticalAlign:'middle'}}/>
+                            Late Warning Threshold
+                            <span style={{color:T.textMute,fontWeight:500,textTransform:'none',fontSize:9,marginLeft:4}}>(times/month)</span>
+                        </label>
+                        <div ref={el=>errorRefs.current.late_alert_threshold=el} style={{position:'relative'}}>
+                            <input
+                                className="sr-inp"
+                                type="number"
+                                value={data.late_alert_threshold}
+                                min="1" max="31"
+                                disabled={!data.late_alert_enabled}
+                                onKeyDown={e=>{if(['-','e','E','.'].includes(e.key))e.preventDefault();}}
+                                onChange={e=>setData('late_alert_threshold', e.target.value)}
+                                placeholder="e.g. 3"
+                                style={{
+                                    ...inp(false),
+                                    paddingRight:52,
+                                    opacity: data.late_alert_enabled ? 1 : 0.45,
+                                }}
+                            />
+                            <span style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',fontSize:12,color:T.textMute,fontWeight:600,pointerEvents:'none'}}>times</span>
+                        </div>
+                        <div style={{fontSize:10,color:T.textMute,marginTop:4}}>
+                            Warning fires when late ≥ threshold times in a month.
+                        </div>
+                    </div>
+
+                    {/* Late active/inactive toggle */}
+                    <div style={{display:'flex',flexDirection:'column'}}>
+                        <label style={lbl}>Late Warning</label>
+                        <div
+                            onClick={()=>setData('late_alert_enabled', !data.late_alert_enabled)}
+                            style={{
+                                flex:1, padding:'12px 14px', borderRadius:12, cursor:'pointer',
+                                border:`1.5px solid ${data.late_alert_enabled ? '#f59e0b' : T.border}`,
+                                background: data.late_alert_enabled
+                                    ? (dark ? 'rgba(245,158,11,0.12)' : '#fffbeb')
+                                    : T.panelSolid,
+                                display:'flex', alignItems:'center', justifyContent:'space-between', gap:10,
+                                transition:'all 0.15s',
+                            }}
+                        >
+                            <div style={{minWidth:0}}>
+                                <div style={{fontSize:12, fontWeight:700, color: data.late_alert_enabled ? '#d97706' : T.textMute}}>
+                                    {data.late_alert_enabled ? '✓ Active' : 'Inactive'}
+                                </div>
+                                <div style={{fontSize:10, color:T.textMute, marginTop:2, lineHeight:1.4}}>
+                                    {data.late_alert_enabled ? 'Late warning is enabled' : 'Late warning is disabled'}
+                                </div>
+                            </div>
+                            <div style={{
+                                position:'relative', width:36, height:20, borderRadius:99, flexShrink:0,
+                                background: data.late_alert_enabled ? '#f59e0b' : (dark?'rgba(148,163,184,0.2)':'#d1d5db'),
+                                transition:'background 0.2s',
+                            }}>
+                                <span style={{
+                                    position:'absolute', top:2,
+                                    left: data.late_alert_enabled ? 18 : 2,
+                                    width:16, height:16, borderRadius:'50%', background:'#fff',
+                                    boxShadow:'0 1px 4px rgba(0,0,0,0.2)', transition:'left 0.2s',
+                                }}/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{height:1, background:T.divider}}/>
+
+                {/* Absent Warning */}
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:14}}>
+                    <div>
+                        <label style={lbl}>
+                            <span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:'#ef4444',marginRight:6,verticalAlign:'middle'}}/>
+                            Absent Warning Threshold
+                            <span style={{color:T.textMute,fontWeight:500,textTransform:'none',fontSize:9,marginLeft:4}}>(days/month)</span>
+                        </label>
+                        <div ref={el=>errorRefs.current.absent_alert_threshold=el} style={{position:'relative'}}>
+                            <input
+                                className="sr-inp"
+                                type="number"
+                                value={data.absent_alert_threshold}
+                                min="1" max="31"
+                                disabled={!data.absent_alert_enabled}
+                                onKeyDown={e=>{if(['-','e','E','.'].includes(e.key))e.preventDefault();}}
+                                onChange={e=>setData('absent_alert_threshold', e.target.value)}
+                                placeholder="e.g. 2"
+                                style={{
+                                    ...inp(false),
+                                    paddingRight:36,
+                                    opacity: data.absent_alert_enabled ? 1 : 0.45,
+                                }}
+                            />
+                            <span style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',fontSize:12,color:T.textMute,fontWeight:600,pointerEvents:'none'}}>days</span>
+                        </div>
+                        <div style={{fontSize:10,color:T.textMute,marginTop:4}}>
+                            Warning fires when absent ≥ threshold days in a month.
+                        </div>
+                    </div>
+
+                    {/* Absent active/inactive toggle */}
+                    <div style={{display:'flex',flexDirection:'column'}}>
+                        <label style={lbl}>Absent Warning</label>
+                        <div
+                            onClick={()=>setData('absent_alert_enabled', !data.absent_alert_enabled)}
+                            style={{
+                                flex:1, padding:'12px 14px', borderRadius:12, cursor:'pointer',
+                                border:`1.5px solid ${data.absent_alert_enabled ? '#ef4444' : T.border}`,
+                                background: data.absent_alert_enabled
+                                    ? (dark ? 'rgba(239,68,68,0.10)' : '#fef2f2')
+                                    : T.panelSolid,
+                                display:'flex', alignItems:'center', justifyContent:'space-between', gap:10,
+                                transition:'all 0.15s',
+                            }}
+                        >
+                            <div style={{minWidth:0}}>
+                                <div style={{fontSize:12, fontWeight:700, color: data.absent_alert_enabled ? '#dc2626' : T.textMute}}>
+                                    {data.absent_alert_enabled ? '✓ Active' : 'Inactive'}
+                                </div>
+                                <div style={{fontSize:10, color:T.textMute, marginTop:2, lineHeight:1.4}}>
+                                    {data.absent_alert_enabled ? 'Absent warning is enabled' : 'Absent warning is disabled'}
+                                </div>
+                            </div>
+                            <div style={{
+                                position:'relative', width:36, height:20, borderRadius:99, flexShrink:0,
+                                background: data.absent_alert_enabled ? '#ef4444' : (dark?'rgba(148,163,184,0.2)':'#d1d5db'),
+                                transition:'background 0.2s',
+                            }}>
+                                <span style={{
+                                    position:'absolute', top:2,
+                                    left: data.absent_alert_enabled ? 18 : 2,
+                                    width:16, height:16, borderRadius:'50%', background:'#fff',
+                                    boxShadow:'0 1px 4px rgba(0,0,0,0.2)', transition:'left 0.2s',
+                                }}/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </SectionCard>
             {/* ── 6. OT & Late ── */}
             <SectionCard emoji="⏰" title="Overtime & Late Deduction" T={T}>
                 <div>
@@ -1179,6 +1338,18 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             if(cycle==='ten_day'){const c=Math.floor(total/3);const p1E=new Date(pS.getTime()+(c-1)*86400000);const p2E=new Date(pS.getTime()+(c*2-1)*86400000);return`${p1E.getDate()}, ${p2E.getDate()} & ${pE.getDate()} of month`;}
                             return`${pE.getDate()} of each month`;
                         })()} T={T}/>
+                        <SavedCard
+                            label="Late Warning"
+                            value={salaryRule.late_alert_enabled ? `≥ ${salaryRule.late_alert_threshold ?? 3}x / month` : 'Disabled'}
+                            sub={salaryRule.late_alert_enabled ? 'Active' : 'Inactive'}
+                            T={T}
+                        />
+                        <SavedCard
+                            label="Absent Warning"
+                            value={salaryRule.absent_alert_enabled ? `≥ ${salaryRule.absent_alert_threshold ?? 2} days / month` : 'Disabled'}
+                            sub={salaryRule.absent_alert_enabled ? 'Active' : 'Inactive'}
+                            T={T}
+                        />
                         <SavedCard label="Bonus (Probation)" value={salaryRule.bonus_during_probation?'Yes — pay bonus':'No — skip'} T={T}/>
                         <SavedCard label="Bonus (Contract)"  value={salaryRule.bonus_for_contract?'Yes — pay bonus':'No — skip'} T={T}/>
                     </div>

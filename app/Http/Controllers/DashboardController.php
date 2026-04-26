@@ -573,16 +573,17 @@ class DashboardController extends Controller
             'todayStatus'      => $todayStatus,
             'weeklyAttendance' => $weeklyAttend,
             'myWarnings' => \App\Models\HrAlert::where('user_id', Auth::id())
-                            ->where('status', 'sent')
-                            ->orderByDesc('created_at')
-                            ->get(['id','type','trigger_count','letter_draft','alert_month','alert_year'])
-                            ->map(fn($w) => [
-                                'id'            => $w->id,
-                                'type'          => $w->type,
-                                'trigger_count' => $w->trigger_count,
-                                'letter_draft'  => $w->letter_draft,
-                                'month_label'   => \Carbon\Carbon::create($w->alert_year, $w->alert_month)->format('F Y'),
-                            ])->toArray(),
+                ->where('status', 'sent')
+                ->whereNull('acknowledged_at')          // ← ဒါထည့် — acknowledge လုပ်ပြီးရင် မပြတော့
+                ->orderByDesc('created_at')
+                ->get(['id', 'type', 'trigger_count', 'letter_draft', 'alert_month', 'alert_year'])
+                ->map(fn($w) => [
+                    'id'            => $w->id,
+                    'type'          => $w->type,
+                    'trigger_count' => $w->trigger_count,
+                    'letter_draft'  => $w->letter_draft,
+                    'month_label'   => \Carbon\Carbon::create($w->alert_year, $w->alert_month)->format('F Y'),
+                ])->toArray(),
         ]);
     }
 
@@ -617,13 +618,22 @@ class DashboardController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     // Delete announcement
     // ─────────────────────────────────────────────────────────────────────────
-    public function deleteAnnouncement(Announcement $announcement)
+    public function deleteAnnouncement($id)
     {
+        $announcement = Announcement::find($id);
+
+        if (!$announcement) {
+            return response()->json(['message' => 'Already deleted or not found.'], 404);
+        }
+
         $user = Auth::user();
         $role = strtolower($user->role?->name ?? 'employee');
         abort_unless(in_array($role, ['admin', 'hr'], true), 403);
+
         if ($role === 'hr' && $announcement->country !== $user->country) abort(403);
+
         $announcement->delete();
-        return back()->with('success', 'Announcement deleted.');
+
+        return response()->json(['message' => 'Announcement deleted.']);
     }
 }

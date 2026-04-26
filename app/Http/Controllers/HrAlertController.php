@@ -60,6 +60,24 @@ class HrAlertController extends Controller
         return back()->with('success', 'Alert dismissed.');
     }
 
+    // ── Employee acknowledges their own warning ──────────────────────────────
+    public function acknowledge(HrAlert $alert)
+    {
+        // Only the employee who owns this warning can acknowledge it
+        if ($alert->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Only sent warnings can be acknowledged
+        if ($alert->status !== 'sent') {
+            return back()->with('error', 'This warning cannot be acknowledged.');
+        }
+
+        $alert->update(['acknowledged_at' => now()]);
+
+        return back()->with('success', 'Warning acknowledged.');
+    }
+
     public function run()
     {
         $results = $this->service->runDailyCheck();
