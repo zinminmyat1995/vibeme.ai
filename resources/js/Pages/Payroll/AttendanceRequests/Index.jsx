@@ -149,6 +149,130 @@ function hToHM(h) {
     return `${hrs}h ${mins}m`;
 }
 
+// ── TimePicker (Overtime UI နဲ့ အတိုင်း) ────────────────────────
+function TimePicker({ value, onChange, theme, dark, error, disabled = false }) {
+    const hours   = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+    const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+    // NEW ✅
+    const parseVal = (v) => {
+        if (!v) return null;
+        const [hStr, mStr] = v.split(':');
+        const h24 = parseInt(hStr);
+        const p   = h24 >= 12 ? 'PM' : 'AM';
+        const h12 = h24 % 12 || 12;
+        return { h: String(h12).padStart(2, '0'), m: (mStr || '00').slice(0, 2), p };
+    };
+
+    const parsed = parseVal(value);
+    const h = parsed?.h ?? '--';
+    const m = parsed?.m ?? '--';
+    const p = parsed?.p ?? 'AM';
+
+
+    const emit = (nh, nm, np) => {
+        if (disabled) return;
+        // ✅ blank state မှာ -- ဆိုရင် default 8 သုံး
+        const safeH = nh === '--' ? '08' : nh;
+        const safeM = nm === '--' ? '00' : nm;
+        const safeP = np ?? 'AM';
+        let h24 = parseInt(safeH);
+        if (isNaN(h24)) return;
+        if (safeP === 'PM' && h24 !== 12) h24 += 12;
+        if (safeP === 'AM' && h24 === 12) h24 = 0;
+        onChange(`${String(h24).padStart(2, '0')}:${safeM}`);
+    };
+
+    const sel = {
+        height: 40, border: 'none', background: 'transparent',
+        color: disabled ? theme.textMute : theme.text,
+        fontSize: 14, fontWeight: 600,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        fontFamily: 'inherit', outline: 'none',
+        appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+        textAlign: 'center', padding: '0 4px',
+        scrollbarWidth: 'none', msOverflowStyle: 'none',
+    };
+
+    return (
+        <>
+            <style>{`
+                .tp-sel::-webkit-scrollbar { display: none; }
+                .tp-sel option {
+                    background: ${dark ? '#1e2d4a' : '#ffffff'} !important;
+                    color: ${dark ? '#f1f5f9' : '#0f172a'} !important;
+                }
+            `}</style>
+            <div style={{
+                display: 'inline-flex', alignItems: 'center',
+                border: `1.5px solid ${error ? theme.danger : theme.inputBorder}`,
+                borderRadius: 12, overflow: 'hidden',
+                background: disabled
+                    ? (dark ? 'rgba(255,255,255,0.03)' : '#f3f4f6')
+                    : (dark ? 'rgba(255,255,255,0.06)' : '#fff'),
+                height: 44, transition: 'border-color 0.15s',
+                opacity: disabled ? 0.5 : 1,
+                width: 'fit-content',
+            }}>
+                {/* Clock icon */}
+                <div style={{ paddingLeft: 10, paddingRight: 4, color: theme.textMute, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+
+                {/* Hour select */}
+                <select className="tp-sel" value={h} onChange={e => emit(e.target.value, m === '--' ? '00' : m, p)} style={{ ...sel, width: 36 }}>
+                    {!parsed && <option value="--">--</option>}
+                    {hours.map(hv => <option key={hv} value={hv}>{hv}</option>)}
+                </select>
+
+                <span style={{ color: theme.textMute, fontWeight: 800, fontSize: 15, userSelect: 'none' }}>:</span>
+
+                {/* Minute select */}
+                <select className="tp-sel" value={m} onChange={e => emit(h === '--' ? '08' : h, e.target.value, p)} style={{ ...sel, width: 36 }}>
+                    {!parsed && <option value="--">--</option>}
+                    {minutes.map(mv => <option key={mv} value={mv}>{mv}</option>)}
+                </select>
+
+                {/* Divider */}
+                <div style={{ width: 1, height: 24, background: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', margin: '0 4px', flexShrink: 0 }} />
+
+                {/* AM/PM toggle buttons */}
+                {['AM', 'PM'].map(period => (
+                    <button key={period} type="button"
+                        onClick={() => {
+                            if (disabled) return;
+                            if (!parsed) {
+                                const defaultH24 = period === 'PM' ? 20 : 8;
+                                onChange(`${String(defaultH24).padStart(2, '0')}:00`);
+                                return;
+                            }
+                            emit(h, m, period);
+                        }}
+                        style={{
+                            width: 36, height: '100%', border: 'none',
+                            background: p === period
+                                ? (dark ? 'rgba(124,58,237,0.35)' : '#ede9fe')
+                                : 'transparent',
+                            color: p === period ? theme.primary : theme.textMute,
+                            fontSize: 11, fontWeight: 800,
+                            cursor: disabled ? 'not-allowed' : 'pointer',
+                            fontFamily: 'inherit', transition: 'all .15s',
+                            borderLeft: period === 'PM'
+                                ? `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`
+                                : 'none',
+                            flexShrink: 0,
+                        }}
+                    >
+                        {period}
+                    </button>
+                ))}
+            </div>
+        </>
+    );
+}
+
 function PremiumDropdown({ options, value, onChange, placeholder = 'Select...', theme, dark, disabled = false, width = 'auto' }) {
     const [open, setOpen] = useState(false);
     const [pos, setPos]   = useState({ top: 0, left: 0, width: 0 });
@@ -297,8 +421,18 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
         }
 
         if (form.request_type === 'both') {
-            if (!form.check_in_time) e.check_in_time = 'Check In is required';
+            if (!form.check_in_time)  e.check_in_time  = 'Check In is required';
             if (!form.check_out_time) e.check_out_time = 'Check Out is required';
+
+            // ✅ ဒီ block တိုးထည့်ပါ
+            if (form.check_in_time && form.check_out_time) {
+                const inMins  = timeToMinutes(form.check_in_time);
+                const outMins = timeToMinutes(form.check_out_time);
+                // ✅ NaN check ထည့်
+                if (!isNaN(inMins) && !isNaN(outMins) && outMins <= inMins) {
+                    e.check_out_time = 'Check Out must be later than Check In';
+                }
+            }
         }
 
         if (!form.note) e.note = 'Reason is required';
@@ -448,22 +582,18 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                            <label style={lbl}>
+                           <label style={lbl}>
                                 Requested Check In
                                 {form.request_type !== 'check_out_only' && <span style={{ color: theme.danger }}> *</span>}
                             </label>
-                            <input
-                                type="time"
+                            <TimePicker
                                 value={form.check_in_time}
+                                onChange={v => set('check_in_time', v)}
+                                theme={theme}
+                                dark={dark}
+                                error={errors.check_in_time}
                                 disabled={form.request_type === 'check_out_only'}
-                                onChange={e => set('check_in_time', e.target.value)}
-                                style={{
-                                    ...inp(errors.check_in_time),
-                                    opacity: form.request_type === 'check_out_only' ? 0.5 : 1,
-                                    cursor: form.request_type === 'check_out_only' ? 'not-allowed' : 'default',
-                                }}
                             />
-
                             {errors.check_in_time && (
                                 <span style={{ fontSize: 11, color: theme.danger, fontWeight: 600 }}>
                                     {errors.check_in_time}
@@ -476,18 +606,14 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
                                 Requested Check Out
                                 {form.request_type !== 'check_in_only' && <span style={{ color: theme.danger }}> *</span>}
                             </label>
-                            <input
-                                type="time"
+                            <TimePicker
                                 value={form.check_out_time}
+                                onChange={v => set('check_out_time', v)}
+                                theme={theme}
+                                dark={dark}
+                                error={errors.check_out_time}
                                 disabled={form.request_type === 'check_in_only'}
-                                onChange={e => set('check_out_time', e.target.value)}
-                                style={{
-                                    ...inp(errors.check_out_time),
-                                    opacity: form.request_type === 'check_in_only' ? 0.5 : 1,
-                                    cursor: form.request_type === 'check_in_only' ? 'not-allowed' : 'default',
-                                }}
                             />
-
                             {errors.check_out_time && (
                                 <span style={{ fontSize: 11, color: theme.danger, fontWeight: 600 }}>
                                     {errors.check_out_time}

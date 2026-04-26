@@ -101,6 +101,14 @@ Route::middleware(['auth'])->prefix('hr-chatbot')->name('hr-chatbot.')->group(fu
 });
  
 
+Route::middleware(['auth', 'role:admin,hr,management'])->prefix('hr-alerts')->name('hr-alerts.')->group(function () {
+    Route::get   ('/',                [App\Http\Controllers\HrAlertController::class, 'index'])   ->name('index');
+    Route::patch ('/{alert}/send',    [App\Http\Controllers\HrAlertController::class, 'send'])    ->name('send');
+    Route::patch ('/{alert}/dismiss', [App\Http\Controllers\HrAlertController::class, 'dismiss']) ->name('dismiss');
+    Route::post  ('/run',             [App\Http\Controllers\HrAlertController::class, 'run'])     ->name('run');
+});
+
+
 
 
 Route::middleware(['auth', 'role:admin,hr,management'])

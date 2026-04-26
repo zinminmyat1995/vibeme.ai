@@ -18,7 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-
+use App\Models\HrAlert;
 class DashboardController extends Controller
 {
     // ─────────────────────────────────────────────────────────────────────────
@@ -572,6 +572,17 @@ class DashboardController extends Controller
             'myStats'          => $myStats,
             'todayStatus'      => $todayStatus,
             'weeklyAttendance' => $weeklyAttend,
+            'myWarnings' => \App\Models\HrAlert::where('user_id', Auth::id())
+                            ->where('status', 'sent')
+                            ->orderByDesc('created_at')
+                            ->get(['id','type','trigger_count','letter_draft','alert_month','alert_year'])
+                            ->map(fn($w) => [
+                                'id'            => $w->id,
+                                'type'          => $w->type,
+                                'trigger_count' => $w->trigger_count,
+                                'letter_draft'  => $w->letter_draft,
+                                'month_label'   => \Carbon\Carbon::create($w->alert_year, $w->alert_month)->format('F Y'),
+                            ])->toArray(),
         ]);
     }
 

@@ -1147,7 +1147,7 @@ function TimePicker({ value, onChange, theme, dark, error }) {
     const minutes = Array.from({length:60}, (_,i) => String(i).padStart(2,'0'));
 
     const parseVal = (v) => {
-        if (!v) return { h:'08', m:'00', p:'AM' };
+        if (!v) return null;  // ✅ blank → null
         const [hStr, mStr] = v.split(':');
         const h24 = parseInt(hStr);
         const p   = h24 >= 12 ? 'PM' : 'AM';
@@ -1155,13 +1155,19 @@ function TimePicker({ value, onChange, theme, dark, error }) {
         return { h: String(h12).padStart(2,'0'), m: (mStr||'00').slice(0,2), p };
     };
 
-    const { h, m, p } = parseVal(value);
+    const parsed = parseVal(value);
+    const h = parsed?.h ?? '--';
+    const m = parsed?.m ?? '--';
+    const p = parsed?.p ?? 'AM';
 
     const emit = (nh, nm, np) => {
-        let h24 = parseInt(nh);
+        const safeH = nh === '--' ? '08' : nh;
+        const safeM = nm === '--' ? '00' : nm;
+        let h24 = parseInt(safeH);
+        if (isNaN(h24)) return;
         if (np === 'PM' && h24 !== 12) h24 += 12;
         if (np === 'AM' && h24 === 12) h24 = 0;
-        onChange(`${String(h24).padStart(2,'0')}:${nm}`);
+        onChange(`${String(h24).padStart(2,'0')}:${safeM}`);
     };
 
     const sel = {
@@ -1189,38 +1195,52 @@ function TimePicker({ value, onChange, theme, dark, error }) {
             background: dark ? 'rgba(255,255,255,0.06)' : '#fff',
             height: 44, transition: 'border-color 0.15s',
         }}>
-            {/* Clock icon */}
             <div style={{ paddingLeft:10, paddingRight:4, color:theme.textMute, display:'flex', alignItems:'center' }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
             </div>
 
-            {/* Hour select */}
-            <select className="tp-sel" value={h} onChange={e=>emit(e.target.value,m,p)} style={{...sel,width:42}}>
+            <select className="tp-sel" value={h}
+                onChange={e => emit(e.target.value, m === '--' ? '00' : m, p)}
+                style={{...sel, width:42}}>
+                {!parsed && <option value="--">--</option>}
                 {hours.map(hv=><option key={hv} value={hv}>{hv}</option>)}
             </select>
 
             <span style={{color:theme.textMute,fontWeight:800,fontSize:15,userSelect:'none'}}>:</span>
 
-            {/* Minute select */}
-            <select className="tp-sel" value={m} onChange={e=>emit(h,e.target.value,p)} style={{...sel,width:42}}>
+            <select className="tp-sel" value={m}
+                onChange={e => emit(h === '--' ? '08' : h, e.target.value, p)}
+                style={{...sel, width:42}}>
+                {!parsed && <option value="--">--</option>}
                 {minutes.map(mv=><option key={mv} value={mv}>{mv}</option>)}
             </select>
 
-            {/* Divider */}
             <div style={{width:1,height:24,background:dark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.08)',margin:'0 4px'}}/>
 
-            {/* AM/PM toggle buttons */}
             {['AM','PM'].map(period => (
-                <button key={period} type="button" onClick={()=>emit(h,m,period)} style={{
-                    width:36, height:'100%', border:'none',
-                    background: p===period ? (dark?'rgba(124,58,237,0.35)':'#ede9fe') : 'transparent',
-                    color: p===period ? theme.primary : theme.textMute,
-                    fontSize:11, fontWeight:800, cursor:'pointer',
-                    fontFamily:'inherit', transition:'all .15s',
-                    borderLeft: period==='PM' ? `1px solid ${dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)'}` : 'none',
-                }}>{period}</button>
+                <button key={period} type="button"
+                    onClick={() => {
+                        if (!parsed) {
+                            // ✅ blank state မှာ click ရင် default set
+                            const defaultH24 = period === 'PM' ? 20 : 8;
+                            onChange(`${String(defaultH24).padStart(2,'0')}:00`);
+                            return;
+                        }
+                        emit(h, m, period);
+                    }}
+                    style={{
+                        width:36, height:'100%', border:'none',
+                        background: parsed && p === period
+                            ? (dark?'rgba(124,58,237,0.35)':'#ede9fe')
+                            : 'transparent',
+                        color: parsed && p === period ? theme.primary : theme.textMute,
+                        fontSize:11, fontWeight:800, cursor:'pointer',
+                        fontFamily:'inherit', transition:'all .15s',
+                        borderLeft: period==='PM' ? `1px solid ${dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)'}` : 'none',
+                    }}
+                >{period}</button>
             ))}
         </div>
         </>

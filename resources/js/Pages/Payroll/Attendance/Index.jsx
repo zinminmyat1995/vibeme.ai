@@ -454,6 +454,7 @@ export default function AttendanceIndex({
                 .att-nav-btn:hover { background: rgba(99,102,241,0.12) !important; color: #6366f1 !important; }
                 .stat-card:hover { transform: translateY(-2px); }
                 .att-emp-row:hover { background: rgba(99,102,241,0.06) !important; }
+                .att-modal-body::-webkit-scrollbar { display: none; }
             `}</style>
 
             <div className="att-wrap" style={{ display:'flex', flexDirection:'column', gap:16, background: t.bg, minHeight:'100%' }}>
@@ -1080,6 +1081,123 @@ function StatusPill({ status, dark }) {
     );
 }
 
+
+function TimePicker({ value, onChange, theme, dark, error, disabled = false }) {
+    const hours   = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+    const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+    const parseVal = (v) => {
+        if (!v) return null;
+        const [hStr, mStr] = v.split(':');
+        const h24 = parseInt(hStr);
+        if (isNaN(h24)) return null;
+        const p   = h24 >= 12 ? 'PM' : 'AM';
+        const h12 = h24 % 12 || 12;
+        return { h: String(h12).padStart(2, '0'), m: (mStr || '00').slice(0, 2), p };
+    };
+
+    const parsed = parseVal(value);
+    const h = parsed?.h ?? '--';
+    const m = parsed?.m ?? '--';
+    const p = parsed?.p ?? 'AM';
+
+    const emit = (nh, nm, np) => {
+        if (disabled) return;
+        const safeH = nh === '--' ? '08' : nh;
+        const safeM = nm === '--' ? '00' : nm;
+        let h24 = parseInt(safeH);
+        if (isNaN(h24)) return;
+        if (np === 'PM' && h24 !== 12) h24 += 12;
+        if (np === 'AM' && h24 === 12) h24 = 0;
+        onChange(`${String(h24).padStart(2, '0')}:${safeM}`);
+    };
+
+    const sel = {
+        height: 40, border: 'none', background: 'transparent',
+        color: disabled ? theme.textMute : theme.text,
+        fontSize: 14, fontWeight: 600,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        fontFamily: 'inherit', outline: 'none',
+        appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+        textAlign: 'center', padding: '0 4px',
+        scrollbarWidth: 'none', msOverflowStyle: 'none',
+    };
+
+    return (
+        <>
+            <style>{`
+                .tp-att-sel::-webkit-scrollbar { display: none; }
+                .tp-att-sel option {
+                    background: ${dark ? '#1e2d4a' : '#ffffff'} !important;
+                    color: ${dark ? '#f1f5f9' : '#0f172a'} !important;
+                }
+            `}</style>
+            <div style={{
+                display: 'inline-flex', alignItems: 'center',
+                border: `1.5px solid ${error ? '#ef4444' : theme.inputBorder}`,
+                borderRadius: 12, overflow: 'hidden',
+                background: disabled
+                    ? (dark ? 'rgba(255,255,255,0.03)' : '#f3f4f6')
+                    : (dark ? 'rgba(255,255,255,0.06)' : '#fff'),
+                height: 44, transition: 'border-color 0.15s',
+                opacity: disabled ? 0.5 : 1,
+                width: 'fit-content',
+            }}>
+                <div style={{ paddingLeft: 10, paddingRight: 4, color: theme.textMute, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+
+                <select className="tp-att-sel" value={h} disabled={disabled}
+                    onChange={e => emit(e.target.value, m === '--' ? '00' : m, p)}
+                    style={{ ...sel, width: 36 }}>
+                    {!parsed && <option value="--">--</option>}
+                    {hours.map(hv => <option key={hv} value={hv}>{hv}</option>)}
+                </select>
+
+                <span style={{ color: theme.textMute, fontWeight: 800, fontSize: 15, userSelect: 'none' }}>:</span>
+
+                <select className="tp-att-sel" value={m} disabled={disabled}
+                    onChange={e => emit(h === '--' ? '08' : h, e.target.value, p)}
+                    style={{ ...sel, width: 36 }}>
+                    {!parsed && <option value="--">--</option>}
+                    {minutes.map(mv => <option key={mv} value={mv}>{mv}</option>)}
+                </select>
+
+                <div style={{ width: 1, height: 24, background: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', margin: '0 4px', flexShrink: 0 }} />
+
+                {['AM', 'PM'].map(period => (
+                    <button key={period} type="button"
+                        onClick={() => {
+                            if (disabled) return;
+                            if (!parsed) {
+                                onChange(`${period === 'PM' ? '20' : '08'}:00`);
+                                return;
+                            }
+                            emit(h, m, period);
+                        }}
+                        style={{
+                            width: 36, height: '100%', border: 'none',
+                            background: parsed && p === period
+                                ? (dark ? 'rgba(99,102,241,0.35)' : '#ede9fe')
+                                : 'transparent',
+                            color: parsed && p === period ? theme.inputFocus : theme.textMute,
+                            fontSize: 11, fontWeight: 800,
+                            cursor: disabled ? 'not-allowed' : 'pointer',
+                            fontFamily: 'inherit', transition: 'all .15s',
+                            borderLeft: period === 'PM'
+                                ? `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`
+                                : 'none',
+                            flexShrink: 0,
+                        }}
+                    >{period}</button>
+                ))}
+            </div>
+        </>
+    );
+}
+
 // ── Attendance Modal ──────────────────────────────────────────
 function AttendanceModal({ data, employees, onClose, onSave, saving, countryConfig, leaveInfo, dark, t }) {
     const WORK_START  = countryConfig?.work_start || countryConfig?.standard_start_time || '08:00';
@@ -1214,6 +1332,8 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                 <div style={{
                     padding: '20px 24px', overflowY: 'auto', flex: 1,
                     display: 'flex', flexDirection: 'column', gap: 16,
+                    scrollbarWidth: 'none',        // ✅ Firefox
+                    msOverflowStyle: 'none', 
                 }}>
                     {/* Employee */}
                     <div>
@@ -1260,14 +1380,12 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                             <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
                                 Check In <span style={{ color:'#ef4444' }}>*</span>
                             </label>
-                            <input
-                                style={inputStyle(!!errors.check_in_time)}
-                                type="time"
-                                min={isAmHalf ? LUNCH_END : undefined}
+                            <TimePicker
                                 value={form.check_in_time}
-                                onChange={e => set('check_in_time', e.target.value)}
-                                onFocus={e => { e.target.style.borderColor = t.inputFocus; e.target.style.boxShadow = `0 0 0 3px ${t.inputFocus}22`; }}
-                                onBlur={e => { e.target.style.borderColor = errors.check_in_time ? '#ef4444' : t.inputBorder; e.target.style.boxShadow = 'none'; }}
+                                onChange={v => set('check_in_time', v)}
+                                theme={t}
+                                dark={dark}
+                                error={!!errors.check_in_time}
                             />
                             {errors.check_in_time && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.check_in_time}</span>}
                             {isAmHalf && !errors.check_in_time && <span style={{ fontSize:10, color:'#f59e0b', marginTop:3, display:'block' }}>⚠️ Must be {fmt12(LUNCH_END)} or later</span>}
@@ -1276,14 +1394,12 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                             <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
                                 Check Out <span style={{ color:'#ef4444' }}>*</span>
                             </label>
-                            <input
-                                style={inputStyle(!!errors.check_out_time)}
-                                type="time"
-                                max={isPmHalf ? LUNCH_START : undefined}
+                            <TimePicker
                                 value={form.check_out_time}
-                                onChange={e => set('check_out_time', e.target.value)}
-                                onFocus={e => { e.target.style.borderColor = t.inputFocus; e.target.style.boxShadow = `0 0 0 3px ${t.inputFocus}22`; }}
-                                onBlur={e => { e.target.style.borderColor = errors.check_out_time ? '#ef4444' : t.inputBorder; e.target.style.boxShadow = 'none'; }}
+                                onChange={v => set('check_out_time', v)}
+                                theme={t}
+                                dark={dark}
+                                error={!!errors.check_out_time}
                             />
                             {errors.check_out_time && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.check_out_time}</span>}
                             {isPmHalf && !errors.check_out_time && <span style={{ fontSize:10, color:'#f59e0b', marginTop:3, display:'block' }}>⚠️ Must be {fmt12(LUNCH_START)} or earlier</span>}

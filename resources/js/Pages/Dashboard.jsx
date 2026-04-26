@@ -301,29 +301,154 @@ function Sparkline({ data = [], color = '#2563eb', height = 40 }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ① Announcement Banner — shows below hero for ALL roles
 // ─────────────────────────────────────────────────────────────────────────────
-function AnnouncementBanner({ announcements = [], t }) {
-    const [idx, setIdx] = useState(0);
+function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload }) {
+    const [idx, setIdx]           = useState(0);
+    const [expanded, setExpanded] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
+    const canManage = ['admin', 'hr'].includes(String(roleName || '').toLowerCase());
+
+    // Reset expanded when switching announcements
+    const go = (newIdx) => { setIdx(newIdx); setExpanded(false); };
+
     if (!announcements.length) return null;
     const a = announcements[Math.min(idx, announcements.length - 1)];
+
+    const PREVIEW_LENGTH = 120;
+    const isLong = (a.content || '').length > PREVIEW_LENGTH;
+    const displayContent = expanded || !isLong
+        ? a.content
+        : a.content.slice(0, PREVIEW_LENGTH) + '…';
+
+    const handleDelete = async (id) => {
+        setDeletingId(id);
+        try {
+            const res = await fetch(`/dashboard/announcements/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' },
+            });
+            if (res.ok) {
+                toast('Announcement deleted.');
+                // Go to previous if last item deleted
+                if (idx >= announcements.length - 1) go(Math.max(0, idx - 1));
+                onReload();
+            } else {
+                toast('Failed to delete.', 'error');
+            }
+        } catch { toast('Network error.', 'error'); }
+        finally { setDeletingId(null); }
+    };
+
     return (
-        <div style={{ ...card(t, { padding: '14px 20px', marginBottom: 16, borderLeft: `4px solid ${t.amber}`, borderRadius: '0 20px 20px 0' }) }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: t.amberSoft, color: t.amber, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>📢</div>
+        <div style={{
+            ...card(t, { padding: 0, marginBottom: 16, overflow: 'hidden' }),
+            borderLeft: `3px solid ${t.amber}`,
+        }}>
+            {/* Top bar: icon + title + pagination + delete */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 18px' }}>
+                <div style={{
+                    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                    background: t.amberSoft, color: t.amber,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+                }}>📢</div>
+
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.amber }}>Announcement</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.amber }}>
+                            Announcement
+                        </span>
                         <span style={{ fontSize: 10, color: t.textMute }}>By {a.created_by}</span>
-                        {announcements.length > 1 && <span style={{ marginLeft: 'auto', fontSize: 10, color: t.textMute }}>{idx + 1} / {announcements.length}</span>}
+                        <span style={{ fontSize: 10, color: t.textMute }}>{a.start_at} → {a.end_at}</span>
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{a.title}</div>
-                    <div style={{ fontSize: 12, color: t.textSoft, marginTop: 3, lineHeight: 1.5 }}>{a.content}</div>
-                    <div style={{ fontSize: 10, color: t.textMute, marginTop: 4 }}>{a.start_at} → {a.end_at}</div>
                 </div>
-                {announcements.length > 1 && (
-                    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        <button onClick={() => setIdx(i => Math.max(0, i - 1))} disabled={idx === 0} style={{ padding: '4px 8px', borderRadius: 7, border: `1px solid ${t.border}`, background: t.surface2, color: t.textSoft, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', opacity: idx === 0 ? 0.4 : 1 }}>‹</button>
-                        <button onClick={() => setIdx(i => Math.min(announcements.length - 1, i + 1))} disabled={idx === announcements.length - 1} style={{ padding: '4px 8px', borderRadius: 7, border: `1px solid ${t.border}`, background: t.surface2, color: t.textSoft, cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', opacity: idx === announcements.length - 1 ? 0.4 : 1 }}>›</button>
-                    </div>
+
+                {/* Right: pagination + delete */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    {/* Pagination */}
+                    {announcements.length > 1 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <button
+                                onClick={() => go(Math.max(0, idx - 1))}
+                                disabled={idx === 0}
+                                style={{
+                                    width: 26, height: 26, borderRadius: 7,
+                                    border: `1px solid ${t.border}`, background: t.surface2,
+                                    color: t.textSoft, cursor: idx === 0 ? 'not-allowed' : 'pointer',
+                                    fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    opacity: idx === 0 ? 0.4 : 1, fontFamily: 'inherit',
+                                }}>‹</button>
+                            <span style={{
+                                fontSize: 11, fontWeight: 700, color: t.amber,
+                                background: t.amberSoft, borderRadius: 7,
+                                padding: '3px 9px', minWidth: 36, textAlign: 'center',
+                            }}>
+                                {idx + 1} / {announcements.length}
+                            </span>
+                            <button
+                                onClick={() => go(Math.min(announcements.length - 1, idx + 1))}
+                                disabled={idx === announcements.length - 1}
+                                style={{
+                                    width: 26, height: 26, borderRadius: 7,
+                                    border: `1px solid ${t.border}`, background: t.surface2,
+                                    color: t.textSoft, cursor: idx === announcements.length - 1 ? 'not-allowed' : 'pointer',
+                                    fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    opacity: idx === announcements.length - 1 ? 0.4 : 1, fontFamily: 'inherit',
+                                }}>›</button>
+                        </div>
+                    )}
+
+                    {/* Delete button — admin/hr only */}
+                    {canManage && (
+                        <button
+                            onClick={() => handleDelete(a.id)}
+                            disabled={deletingId === a.id}
+                            title="Delete announcement"
+                            style={{
+                                width: 28, height: 28, borderRadius: 8,
+                                border: `1px solid ${t.border}`,
+                                background: 'transparent', color: t.textMute,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: deletingId === a.id ? 'not-allowed' : 'pointer',
+                                fontSize: 13, transition: 'all 0.15s',
+                                opacity: deletingId === a.id ? 0.5 : 1,
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = t.redSoft; e.currentTarget.style.color = t.red; e.currentTarget.style.borderColor = t.red + '55'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = t.textMute; e.currentTarget.style.borderColor = t.border; }}
+                        >
+                            {deletingId === a.id
+                                ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: 'spin 0.7s linear infinite' }}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                                : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                            }
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: '0 18px 14px 18px', paddingLeft: 66 }}>
+                <div style={{ fontSize: 12, color: t.textSoft, lineHeight: 1.65 }}>{displayContent}</div>
+
+                {/* See more / See less */}
+                {isLong && (
+                    <button
+                        onClick={() => setExpanded(v => !v)}
+                        style={{
+                            marginTop: 8,
+                            display: 'inline-flex', alignItems: 'center', gap: 4,
+                            padding: '4px 10px', borderRadius: 99,
+                            border: `1px solid ${t.amber}55`,
+                            background: t.amberSoft, color: t.amber,
+                            fontSize: 11, fontWeight: 700,
+                            cursor: 'pointer', fontFamily: 'inherit',
+                            transition: 'all 0.15s',
+                        }}
+                    >
+                        {expanded ? 'See less' : 'See more'}
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                            style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
                 )}
             </div>
         </div>
@@ -1413,6 +1538,99 @@ function EmployeeView({ props, t }) {
     );
 }
 
+function WarningCard({ w, dark, t }) {
+    const [expanded, setExpanded] = useState(false);
+    const isAbsent = w.type === 'absent';
+    const color  = isAbsent ? (dark ? '#f87171' : '#dc2626') : (dark ? '#fbbf24' : '#d97706');
+    const soft   = isAbsent ? (dark ? 'rgba(239,68,68,0.10)' : '#fef2f2') : (dark ? 'rgba(251,191,36,0.10)' : '#fffbeb');
+    const border = isAbsent ? (dark ? 'rgba(239,68,68,0.25)' : '#fca5a5') : (dark ? 'rgba(251,191,36,0.25)' : '#fde68a');
+    const icon   = isAbsent ? '📅' : '⏰';
+
+    return (
+        <div style={{
+            background: soft,
+            border: `1px solid ${border}`,
+            borderRadius: 16,
+            marginBottom: 10,
+            overflow: 'hidden',
+            boxShadow: dark ? '0 2px 12px rgba(0,0,0,0.2)' : '0 1px 6px rgba(0,0,0,0.06)',
+        }}>
+            {/* Top accent bar */}
+            <div style={{ height: 3, background: `linear-gradient(90deg, ${color}, ${color}88)` }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px' }}>
+                {/* Icon box */}
+                <div style={{
+                    width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                    background: `${color}22`,
+                    border: `1px solid ${color}44`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 18,
+                }}>
+                    {icon}
+                </div>
+
+                {/* Text */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color }}>
+                            {isAbsent ? 'Absence Warning' : 'Late Arrival Warning'}
+                        </span>
+                        <span style={{
+                            fontSize: 10, fontWeight: 700,
+                            padding: '2px 8px', borderRadius: 99,
+                            background: `${color}22`, color,
+                        }}>
+                            {isAbsent ? `${w.trigger_count} days absent` : `${w.trigger_count}x late`}
+                        </span>
+                        <span style={{ fontSize: 10, color: t.textMute }}>{w.month_label}</span>
+                    </div>
+                    
+                </div>
+
+                {/* See more / See less button */}
+                <button
+                    onClick={() => setExpanded(v => !v)}
+                    style={{
+                        flexShrink: 0,
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        padding: '6px 12px', borderRadius: 99,
+                        border: `1px solid ${border}`,
+                        background: expanded ? `${color}18` : 'transparent',
+                        color, fontSize: 11, fontWeight: 700,
+                        cursor: 'pointer', fontFamily: 'inherit',
+                        transition: 'all 0.15s',
+                    }}
+                >
+                    {expanded ? 'See less' : 'See more'}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2.5"
+                        style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
+            </div>
+
+            {/* Expanded letter */}
+            {expanded && (
+                <div style={{
+                    borderTop: `1px solid ${border}`,
+                    padding: '16px 20px',
+                    background: dark ? `${color}08` : '#fff',
+                }}>
+                   
+                    <div style={{
+                        fontSize: 13, color: t.textSoft,
+                        lineHeight: 1.8, whiteSpace: 'pre-wrap',
+                      
+                    }}>
+                        {w.letter_draft}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ── MAIN EXPORT
@@ -1425,7 +1643,7 @@ export default function Dashboard(props) {
         leaveUsageChart = [], otByProjectChart = [], chronicallyLate = [],
         payrollTrend = [],
         myStats = {}, todayStatus = {}, upcomingHolidays = [],
-        weeklyAttendance = [], birthdaysThisWeek = [], onLeaveToday = [],
+        weeklyAttendance = [], birthdaysThisWeek = [], onLeaveToday = [],myWarnings = [],
     } = props;
 
     const dark = useReactiveTheme();
@@ -1500,8 +1718,19 @@ export default function Dashboard(props) {
                     </div>
                 </div>
 
+
+                {myWarnings.length > 0 && myWarnings.map(w => (
+                    <WarningCard key={w.id} w={w} dark={dark} t={t} />
+                ))}
+
                 {/* ① Announcement banner — ALL roles see this */}
-                <AnnouncementBanner announcements={announcements} t={t} />
+                <AnnouncementBanner
+                    announcements={announcements}
+                    t={t}
+                    dark={dark}
+                    roleName={roleName}
+                    onReload={onReload}
+                />
 
                 {/* Role-specific views */}
                 {roleIn(roleName, ['admin'])      && <AdminView      props={allProps} t={t} onReload={onReload} />}
