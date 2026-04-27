@@ -93,6 +93,28 @@ Route::middleware(['auth', 'role:hr,admin'])->group(function () {
 });
 
 
+
+// ── HR Survey Management (auth required) ──
+Route::middleware(['auth', 'role:admin,hr'])->prefix('hr/surveys')->name('surveys.')->group(function () {
+    Route::get    ('/',                [App\Http\Controllers\SurveyController::class, 'index'])          ->name('index');
+    Route::get    ('/create',          [App\Http\Controllers\SurveyController::class, 'create'])         ->name('create');
+    Route::post   ('/',                [App\Http\Controllers\SurveyController::class, 'store'])          ->name('store');
+    Route::get    ('/{survey}/edit',   [App\Http\Controllers\SurveyController::class, 'edit'])           ->name('edit');
+    Route::put    ('/{survey}',        [App\Http\Controllers\SurveyController::class, 'update'])         ->name('update');
+    Route::delete ('/{survey}',        [App\Http\Controllers\SurveyController::class, 'destroy'])        ->name('destroy');
+    Route::patch  ('/{survey}/toggle', [App\Http\Controllers\SurveyController::class, 'toggleStatus'])   ->name('toggle');
+    Route::get    ('/{survey}/results',[App\Http\Controllers\SurveyController::class, 'results'])        ->name('results');
+    Route::post   ('/{survey}/insight',[App\Http\Controllers\SurveyController::class, 'generateInsight'])->name('insight');
+    Route::get    ('/{survey}/export', [App\Http\Controllers\SurveyController::class, 'exportCsv'])      ->name('export');
+});
+ 
+// ── Public Survey (no auth required) ──────
+Route::get  ('/survey/{token}',        [App\Http\Controllers\SurveyController::class, 'publicShow'])   ->name('survey.public');
+Route::post ('/survey/{token}/submit', [App\Http\Controllers\SurveyController::class, 'publicSubmit']) ->name('survey.submit');
+
+
+
+
 Route::middleware(['auth'])->prefix('hr-chatbot')->name('hr-chatbot.')->group(function () {
     Route::get   ('messages',      [App\Http\Controllers\HrChatbotController::class, 'messages'])     ->name('messages');
     Route::post  ('ask',           [App\Http\Controllers\HrChatbotController::class, 'ask'])          ->name('ask');
@@ -101,7 +123,7 @@ Route::middleware(['auth'])->prefix('hr-chatbot')->name('hr-chatbot.')->group(fu
 });
  
 
-Route::middleware(['auth', 'role:admin,hr,management'])->prefix('hr-alerts')->name('hr-alerts.')->group(function () {
+Route::middleware(['auth', 'role:hr'])->prefix('hr-alerts')->name('hr-alerts.')->group(function () {
     Route::get   ('/',                [App\Http\Controllers\HrAlertController::class, 'index'])   ->name('index');
     Route::patch ('/{alert}/send',    [App\Http\Controllers\HrAlertController::class, 'send'])    ->name('send');
     Route::patch ('/{alert}/dismiss', [App\Http\Controllers\HrAlertController::class, 'dismiss']) ->name('dismiss');
