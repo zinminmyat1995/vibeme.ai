@@ -23,7 +23,7 @@ class LeaveRequestController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     //  INDEX
     // ─────────────────────────────────────────────────────────────────────────
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $user     = Auth::user();
         $roleName = $user->role?->name;
@@ -109,7 +109,7 @@ class LeaveRequestController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     //  STORE
     // ─────────────────────────────────────────────────────────────────────────
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request)
     {
         $user      = Auth::user();
         $userId    = $user->id;
@@ -356,7 +356,7 @@ class LeaveRequestController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     //  APPROVE
     // ─────────────────────────────────────────────────────────────────────────
-    public function approve(Request $request,int $id): \Illuminate\Http\RedirectResponse
+    public function approve(Request $request, int $id)
     {
         $leaveRequest = LeaveRequest::find($id);
 
@@ -460,7 +460,7 @@ class LeaveRequestController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     //  REJECT
     // ─────────────────────────────────────────────────────────────────────────
-    public function reject(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    public function reject(Request $request, int $id)
     {
         $leaveRequest = LeaveRequest::find($id);
 
@@ -551,11 +551,14 @@ class LeaveRequestController extends Controller
         );
     }
 
-public function destroy(int $id): \Illuminate\Http\RedirectResponse
+public function destroy(Request $request, int $id)
 {
     $leaveRequest = LeaveRequest::find($id);
 
     if (!$leaveRequest) {
+        if ($request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => 'Request no longer exists.'], 404);
+        }
         return back()->with('error', 'Request no longer exists.');
     }
 
@@ -564,10 +567,17 @@ public function destroy(int $id): \Illuminate\Http\RedirectResponse
     }
 
     if ($leaveRequest->status !== 'pending') {
+        if ($request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => 'Only pending requests can be deleted.'], 422);
+        }
         return back()->with('error', 'Only pending requests can be deleted.');
     }
 
     $leaveRequest->delete();
+
+    if ($request->expectsJson()) {
+        return response()->json(['success' => true, 'message' => 'Leave request deleted successfully.']);
+    }
 
     return back()->with('success', 'Leave request deleted successfully.');
 }
