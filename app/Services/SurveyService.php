@@ -143,12 +143,15 @@ class SurveyService
     // ═══════════════════════════════════════
     public function hasResponded(Survey $survey, ?int $userId, string $ip): bool
     {
-        if (!$survey->is_anonymous && $userId) {
+        if (!$survey->is_anonymous) {
+            // Named — user_id နဲ့ပဲ check လုပ်
+            if (!$userId) return false; // login မဝင်ရင် false (controller က redirect လုပ်ပြီး)
             return SurveyResponse::where('survey_id', $survey->id)
                 ->where('respondent_id', $userId)
                 ->exists();
         }
-        // Anonymous — check by IP
+
+        // Anonymous — IP နဲ့ check
         return SurveyResponse::where('survey_id', $survey->id)
             ->where('ip_address', $ip)
             ->exists();
@@ -265,22 +268,27 @@ class SurveyService
         $surveyData = implode("\n\n", $summaryLines);
 
         $prompt = <<<PROMPT
-You are an HR analyst. Analyze this employee survey results and provide actionable insights.
+        You are an HR analyst. Analyze this employee survey and give a brief, direct summary.
 
-Survey: {$survey->title}
-Total Responses: {$results['total_responses']}
+        Survey: {$survey->title}
+        Total Responses: {$results['total_responses']}
 
-Results:
-{$surveyData}
+        Results:
+        {$surveyData}
 
-Provide:
-1. Overall sentiment summary (1-2 sentences)
-2. Key findings (3-4 bullet points with specific data)
-3. Areas of concern (if any)
-4. Recommendations (2-3 actionable items)
+        Respond in exactly this format (plain text, no markdown, no asterisks):
 
-Be concise, data-driven, and professional. Plain text only, no markdown asterisks.
-PROMPT;
+        OVERALL
+        [1 sentence summary of overall sentiment]
+
+        KEY FINDINGS
+        [3 bullet points maximum, each under 15 words, data-driven]
+
+        ACTION NEEDED
+        [1-2 specific recommendations only]
+
+        Be concise. Skip obvious observations. Focus on what matters most.
+        PROMPT;
 
         try {
             $response = Http::withHeaders([

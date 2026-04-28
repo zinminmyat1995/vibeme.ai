@@ -416,7 +416,7 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                             </div>
 
                             {insight ? (
-                                <div style={{ padding:'20px 22px', borderRadius:14, background:dark?'rgba(124,58,237,0.08)':'#f3e8ff', border:`1px solid ${dark?'rgba(124,58,237,0.2)':'#ddd6fe'}` }}>
+                                <div style={{ padding:'20px 22px', borderRadius:14, background:dark?'rgba(124,58,237,0.08)':'rgb(244 244 244)' }}>
                                     <div style={{ fontSize:13, color:theme.textSoft, lineHeight:1.85, whiteSpace:'pre-wrap' }}>
                                         {insight}
                                     </div>

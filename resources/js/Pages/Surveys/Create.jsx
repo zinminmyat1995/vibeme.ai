@@ -479,17 +479,7 @@ console.log('editSurvey questions:', editSurvey?.questions);
                         </button>
                     </div>
 
-                    {/* Step indicators */}
-                    <div style={{ display:'flex', gap:0, marginTop:4, position:'relative' }}>
-                        {['Survey Info', 'Questions', 'Publish'].map((step, i) => (
-                            <div key={i} style={{
-                                padding:'10px 20px', fontSize:12, fontWeight:600,
-                                color: i === 0 ? '#fff' : 'rgba(255,255,255,0.45)',
-                                borderBottom: i === 0 ? '2.5px solid rgba(255,255,255,0.9)' : '2.5px solid transparent',
-                                cursor:'default',
-                            }}>{step}</div>
-                        ))}
-                    </div>
+                   
                 </div>
 
                 {/* ── Main content: 2-column ─────────────── */}
@@ -647,11 +637,7 @@ console.log('editSurvey questions:', editSurvey?.questions);
                                 }
                                 {saving ? 'Saving...' : 'Publish Survey'}
                             </button>
-                            <button onClick={()=>router.visit('/hr/surveys')} style={{
-                                width:'100%', padding:'9px', borderRadius:12, border:'none',
-                                background:'transparent', color:theme.textMute, fontSize:12,
-                                cursor:'pointer', fontFamily:'inherit',
-                            }}>Cancel</button>
+                          
                         </div>
                     </div>
                 </div>

@@ -225,17 +225,20 @@ public function results(Survey $survey)
         $user = Auth::user();
         $ip   = request()->ip();
 
-        // Block if closed / expired
         if ($survey->isClosed() || $survey->isExpired()) {
             return Inertia::render('Surveys/Closed', ['title' => $survey->title]);
         }
 
-        // Block if not active
         if (!$survey->isActive()) {
             abort(404);
         }
 
-        // Check already responded
+        // ← Named survey + not logged in → redirect to login
+        if (!$survey->is_anonymous && !$user) {
+            return redirect()->route('login')
+                ->with('message', 'Please login to complete this survey.');
+        }
+
         $alreadyResponded = $this->service->hasResponded($survey, $user?->id, $ip);
 
         return Inertia::render('Surveys/Public', [
