@@ -11,10 +11,6 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (!$request->user()) {
-            // ❌ ဒီလို မဟုတ်ဘဲ
-            // return redirect()->route('login');
-            
-            // ✅ API နဲ့ Web ခွဲပေး
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
@@ -23,8 +19,15 @@ class RoleMiddleware
 
         $userRole = $request->user()->role?->name;
 
-        if (!in_array($userRole, $roles)) {
-            // ✅ ဒါလည်း ခွဲပေး
+        // ✅ ဒါထည့် — pipe နဲ့ split လုပ်
+        $allowedRoles = [];
+        foreach ($roles as $role) {
+            foreach (explode('|', $role) as $r) {
+                $allowedRoles[] = trim($r);
+            }
+        }
+
+        if (!in_array($userRole, $allowedRoles)) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthorized.'], 403);
             }
