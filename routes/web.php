@@ -29,7 +29,7 @@ use App\Http\Controllers\Payroll\AttendanceRequestController;
 use App\Http\Controllers\Payroll\ExpenseRequestController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\HrChatbotController;
-
+use App\Http\Controllers\ResourceBookingController;
 
 
 // Home page (existing route ကို replace)
@@ -92,6 +92,30 @@ Route::middleware(['auth', 'role:hr,admin'])->group(function () {
 
 });
 
+
+// ── HR/Admin Only ──────────────────────────────────────────────────
+Route::middleware(['auth', 'role:hr,admin'])
+    ->prefix('bookings')->name('bookings.')
+    ->group(function () {
+        Route::post  ('/resources',            [ResourceBookingController::class, 'storeResource'])   ->name('resources.store');
+        Route::put   ('/resources/{resource}', [ResourceBookingController::class, 'updateResource'])  ->name('resources.update');
+        Route::delete('/resources/{resource}', [ResourceBookingController::class, 'destroyResource']) ->name('resources.destroy');
+        Route::patch ('/{booking}/approve',    [ResourceBookingController::class, 'approve'])         ->name('approve');
+        Route::patch ('/{booking}/reject',     [ResourceBookingController::class, 'reject'])          ->name('reject');
+        Route::patch ('/{booking}/returned',   [ResourceBookingController::class, 'markReturned'])    ->name('returned');
+    });
+ 
+// ── All Auth Users ─────────────────────────────────────────────────
+Route::middleware(['auth'])
+    ->prefix('bookings')->name('bookings.')
+    ->group(function () {
+        Route::get  ('/',                    [ResourceBookingController::class, 'index'])              ->name('index');
+        Route::get  ('/calendar',            [ResourceBookingController::class, 'calendarBookings'])   ->name('calendar');   // AJAX
+        Route::get  ('/available-resources', [ResourceBookingController::class, 'availableResources']) ->name('available');  // AJAX
+        Route::post ('/',                    [ResourceBookingController::class, 'store'])              ->name('store');
+        Route::patch('/{booking}/cancel',    [ResourceBookingController::class, 'cancel'])            ->name('cancel');
+    });
+ 
 
 
 // ── HR Survey Management (auth required) ──
