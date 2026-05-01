@@ -19,6 +19,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\HrAlert;
+use Illuminate\Support\Facades\Storage;
+
 class DashboardController extends Controller
 {
     // ─────────────────────────────────────────────────────────────────────────
@@ -78,13 +80,17 @@ class DashboardController extends Controller
             $annQuery->where(fn($q) => $q->whereNull('country')->orWhere('country', $country));
         }
         $announcements = $annQuery->orderByDesc('start_at')->get()->map(fn($a) => [
-            'id'         => $a->id,
-            'title'      => $a->title,
-            'content'    => $a->content,
-            'country'    => $a->country,
-            'start_at'   => $a->start_at?->format('d M Y'),
-            'end_at'     => $a->end_at?->format('d M Y'),
-            'created_by' => $a->creator?->name,
+            'id'                  => $a->id,
+            'title'               => $a->title,
+            'content'             => $a->content,
+            'country'             => $a->country,
+            'start_at'            => $a->start_at?->format('d M Y'),
+            'end_at'              => $a->end_at?->format('d M Y'),
+            'created_by'          => $a->creator?->name,
+            'file_path'           => $a->file_path ? asset('storage/' . $a->file_path) : null,
+            'file_name'           => $a->file_name,
+            'file_size_formatted' => $a->file_size_formatted,
+            'link_url'            => $a->link_url,
         ])->values();
 
         // ── Upcoming holidays ──────────────────────────────────────────────
@@ -601,16 +607,54 @@ class DashboardController extends Controller
             'content'  => 'required|string',
             'start_at' => 'required|date',
             'end_at'   => 'required|date|after:start_at',
+            'file'     => 'nullable|file|max:20480|mimes:pdf,docx,doc,xlsx,xls,png,jpg,jpeg,zip',
+            'link_url' => 'nullable|url|max:500',
         ]);
 
-        Announcement::create([
+        $filePath = $fileName = $fileSize = null;
+
+        if ($request->hasFile('file')) {
+            $file     = $request->file('file');
+            $fileName = $file->getClientOriginalName();
+            $fileSize = $file->getSize();
+            $slug     = \Str::slug(pathinfo($fileName, PATHINFO_FILENAME));
+            $ext      = $file->getClientOriginalExtension();
+            $filePath = $file->storeAs(
+                'announcements',
+                $slug . '-' . time() . '.' . $ext,
+                'public'
+            );
+        }
+
+        $announcement = Announcement::create([
             'created_by' => $user->id,
             'title'      => $validated['title'],
             'content'    => $validated['content'],
             'country'    => $role === 'hr' ? $user->country : null,
             'start_at'   => $validated['start_at'],
             'end_at'     => $validated['end_at'],
+            'file_path'  => $filePath,
+            'file_name'  => $fileName,
+            'file_size'  => $fileSize,
+            'link_url'   => $validated['link_url'] ?? null,
         ]);
+
+        // Notify users
+        $targetUsers = \App\Models\User::where('is_active', true)
+            ->when($role === 'hr', fn($q) => $q->where('country', $user->country))
+            ->where('id', '!=', $user->id)
+            ->get();
+
+        foreach ($targetUsers as $target) {
+            \App\Models\Notification::send(
+                userId: $target->id,
+                type:   'announcement',
+                title:  '📢 ' . $validated['title'],
+                body:   \Str::limit($validated['content'], 100),
+                url:    '/dashboard',
+                data:   ['announcement_id' => $announcement->id],
+            );
+        }
 
         return back()->with('success', 'Announcement created.');
     }
@@ -621,19 +665,19 @@ class DashboardController extends Controller
     public function deleteAnnouncement($id)
     {
         $announcement = Announcement::find($id);
-
-        if (!$announcement) {
-            return response()->json(['message' => 'Already deleted or not found.'], 404);
-        }
+        if (!$announcement) return response()->json(['message' => 'Not found.'], 404);
 
         $user = Auth::user();
         $role = strtolower($user->role?->name ?? 'employee');
         abort_unless(in_array($role, ['admin', 'hr'], true), 403);
-
         if ($role === 'hr' && $announcement->country !== $user->country) abort(403);
 
-        $announcement->delete();
+        // file ပါ storage ကနေ ဖျက်
+        if ($announcement->file_path) {
+            Storage::disk('public')->delete($announcement->file_path);
+        }
 
+        $announcement->delete();
         return response()->json(['message' => 'Announcement deleted.']);
     }
 }

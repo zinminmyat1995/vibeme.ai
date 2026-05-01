@@ -14,6 +14,10 @@ class Announcement extends Model
         'country',
         'start_at',
         'end_at',
+        'file_path',   // ← ထပ်ထည့်
+        'file_name',   // ← ထပ်ထည့်
+        'file_size',   // ← ထပ်ထည့်
+        'link_url',    // ← ထပ်ထည့်
     ];
 
     protected $casts = [

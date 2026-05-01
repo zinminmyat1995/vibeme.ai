@@ -1,5 +1,5 @@
 // resources/js/Pages/Dashboard.jsx
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback,useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
@@ -452,6 +452,36 @@ function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload })
                         </svg>
                     </button>
                 )}
+
+                {/* Attachments row */}
+                {(a.file_path || a.link_url) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 10 }}>
+                        {a.file_path && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span style={{ fontSize: 11, color: t.textMute, minWidth: 78 }}>📎 Attachment</span>
+                                <span style={{ fontSize: 11, color: t.textMute }}>›</span>
+                                <a href={a.file_path} download={a.file_name} target="_blank" rel="noreferrer"
+                                    style={{ fontSize: 12, fontWeight: 600, color: t.blue, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 260 }}
+                                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
+                                    {a.file_name || 'Download'} ↓
+                                </a>
+                            </div>
+                        )}
+                        {a.link_url && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span style={{ fontSize: 11, color: t.textMute, minWidth: 78 }}>🔗 Link</span>
+                                <span style={{ fontSize: 11, color: t.textMute }}>›</span>
+                                <a href={a.link_url} target="_blank" rel="noreferrer"
+                                    style={{ fontSize: 12, fontWeight: 600, color: t.violet, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 260 }}
+                                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
+                                    {a.link_url} ↗
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -459,10 +489,12 @@ function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload })
 
 // Announcement create modal
 function AnnouncementModal({ t, onClose, onCreated }) {
-    const [form, setForm] = useState({ title: '', content: '', start_at: '', end_at: '' });
+    const [form, setForm] = useState({ title: '', content: '', start_at: '', end_at: '', link_url: '' });
+    const [file, setFile] = useState(null);
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
-    const inp = key => ({ value: form[key], onChange: e => setForm(p => ({ ...p, [key]: e.target.value })), style: { width: '100%', padding: '9px 12px', borderRadius: 10, fontSize: 13, border: `1px solid ${errors[key] ? t.red + '66' : t.borderMid}`, background: t.surface2, color: t.text, fontFamily: 'inherit', outline: 'none' } });
+    const fileRef = useRef(null);
+
     const submit = async () => {
         const errs = {};
         if (!form.title.trim()) errs.title = 'Required';
@@ -470,34 +502,121 @@ function AnnouncementModal({ t, onClose, onCreated }) {
         if (!form.start_at) errs.start_at = 'Required';
         if (!form.end_at) errs.end_at = 'Required';
         if (Object.keys(errs).length) { setErrors(errs); return; }
+
         setSaving(true);
         try {
-            const res = await fetch('/dashboard/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' }, body: JSON.stringify(form) });
-            if (res.ok) { toast('Announcement published.'); onCreated(); }
-            else { const d = await res.json(); setErrors(d.errors || { general: 'Failed.' }); }
+            const fd = new FormData();
+            fd.append('title', form.title);
+            fd.append('content', form.content);
+            fd.append('start_at', form.start_at);
+            fd.append('end_at', form.end_at);
+            if (form.link_url) fd.append('link_url', form.link_url);
+            if (file) fd.append('file', file);
+
+            const res = await fetch('/dashboard/announcements', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf(), 'Accept': 'application/json' },
+                body: fd,
+            });
+            if (!res.ok) {
+                const d = await res.json().catch(() => {});
+                setErrors(d?.errors || { general: 'Failed.' });
+                return;
+            }
+            window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'Announcement published!', type: 'success' } }));
+            onCreated();
         } catch { setErrors({ general: 'Network error.' }); }
         finally { setSaving(false); }
     };
+
+    const inp = key => ({
+        value: form[key],
+        onChange: e => setForm(p => ({ ...p, [key]: e.target.value })),
+        style: { width: '100%', padding: '9px 12px', borderRadius: 10, fontSize: 13,
+            border: `1px solid ${errors[key] ? '#ef4444' : t.borderMid}`,
+            background: t.surface2, color: t.text, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }
+    });
+
+    const FILE_ICONS = { pdf: '📄', doc: '📝', docx: '📝', xlsx: '📊', xls: '📊', zip: '🗜️', png: '🖼️', jpg: '🖼️', jpeg: '🖼️' };
+    const fileExt = file ? file.name.split('.').pop().toLowerCase() : '';
+
     return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <div style={{ ...card(t, { padding: 24, width: '100%', maxWidth: 480 }) }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: t.text }}>New Announcement</div>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: t.textMute, cursor: 'pointer', fontSize: 18 }}>✕</button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.55)', backdropFilter: 'blur(4px)', zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ background: t.surface, borderRadius: 18, width: '100%', maxWidth: 460, boxShadow: '0 30px 90px rgba(0,0,0,0.22)', overflow: 'hidden' }}>
+                {/* Header */}
+                <div style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>📢 New Announcement</div>
+                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 28, height: 28, cursor: 'pointer', color: '#fff', fontSize: 16 }}>×</button>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <div><div style={{ fontSize: 11, fontWeight: 600, color: t.textMute, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Title</div><input {...inp('title')} />{errors.title && <div style={{ fontSize: 11, color: t.red, marginTop: 3 }}>{errors.title}</div>}</div>
-                    <div><div style={{ fontSize: 11, fontWeight: 600, color: t.textMute, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Content</div><textarea {...inp('content')} rows={3} style={{ ...inp('content').style, resize: 'vertical', minHeight: 72 }} onChange={e => setForm(p => ({ ...p, content: e.target.value }))} />{errors.content && <div style={{ fontSize: 11, color: t.red, marginTop: 3 }}>{errors.content}</div>}</div>
-                    <div style={col2}>
-                        {[['Start date', 'start_at'], ['End date', 'end_at']].map(([lbl, key]) => (
-                            <div key={key}><div style={{ fontSize: 11, fontWeight: 600, color: t.textMute, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{lbl}</div><input type="datetime-local" {...inp(key)} />{errors[key] && <div style={{ fontSize: 11, color: t.red, marginTop: 3 }}>{errors[key]}</div>}</div>
-                        ))}
+
+                <div style={{ padding: '18px 20px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {/* Title */}
+                    <div>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>TITLE</label>
+                        <input {...inp('title')} placeholder="Announcement title..." />
+                        {errors.title && <p style={{ fontSize: 11, color: '#ef4444', margin: '3px 0 0' }}>{errors.title}</p>}
                     </div>
-                    {errors.general && <div style={{ background: t.redSoft, borderRadius: 10, padding: '10px 14px', fontSize: 12, color: t.red }}>{errors.general}</div>}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 }}>
-                    <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.surface2, color: t.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
-                    <button onClick={submit} disabled={saving} style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: t.blue, color: '#fff', fontSize: 13, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: saving ? 0.7 : 1 }}>{saving ? 'Publishing…' : 'Publish'}</button>
+
+                    {/* Content */}
+                    <div>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>CONTENT</label>
+                        <textarea {...inp('content')} placeholder="Write your announcement..." rows={3} style={{ ...inp('content').style, resize: 'vertical', minHeight: 80 }} />
+                        {errors.content && <p style={{ fontSize: 11, color: '#ef4444', margin: '3px 0 0' }}>{errors.content}</p>}
+                    </div>
+
+                    {/* Dates */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <div>
+                            <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>START DATE</label>
+                            <input type="datetime-local" {...inp('start_at')} />
+                        </div>
+                        <div>
+                            <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>END DATE</label>
+                            <input type="datetime-local" {...inp('end_at')} />
+                        </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div style={{ borderTop: `1px dashed ${t.borderMid}`, paddingTop: 10 }}>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 8 }}>ATTACHMENTS (optional)</label>
+
+                        {/* File Upload */}
+                        <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg,.zip" style={{ display: 'none' }}
+                            onChange={e => setFile(e.target.files[0] || null)} />
+
+                        {file ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10, background: '#fef3c7', border: '1px solid #fbbf24' }}>
+                                <span style={{ fontSize: 20 }}>{FILE_ICONS[fileExt] || '📎'}</span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#92400e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
+                                    <div style={{ fontSize: 11, color: '#b45309' }}>{(file.size / 1024).toFixed(0)} KB</div>
+                                </div>
+                                <button onClick={() => { setFile(null); fileRef.current.value = ''; }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#b45309' }}>×</button>
+                            </div>
+                        ) : (
+                            <button onClick={() => fileRef.current.click()}
+                                style={{ width: '100%', padding: '10px', borderRadius: 10, border: `2px dashed ${t.borderMid}`, background: t.surface2, cursor: 'pointer', fontSize: 12, color: t.textSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                📎 Attach File (PDF, Word, Excel, Image, ZIP — max 20MB)
+                            </button>
+                        )}
+
+                        {/* Link URL */}
+                        <div style={{ marginTop: 8 }}>
+                            <input {...inp('link_url')} placeholder="🔗  Or paste a link (https://...)" />
+                        </div>
+                    </div>
+
+                    {errors.general && <p style={{ fontSize: 12, color: '#ef4444' }}>{errors.general}</p>}
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+                        <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: 10, border: `1px solid ${t.borderMid}`, background: 'none', cursor: 'pointer', fontSize: 13, color: t.textSoft }}>Cancel</button>
+                        <button onClick={submit} disabled={saving}
+                            style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : 'linear-gradient(135deg,#f59e0b,#d97706)', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, color: '#fff' }}>
+                            {saving ? 'Publishing...' : '📢 Publish'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
