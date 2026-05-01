@@ -915,7 +915,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
     const otherMember    = activeConv?.type === 'private' ? activeConv.members?.find(m => m.id !== authUser?.id) : null;
 
     return (
-        <AppLayout title="AI Chat">
+        <AppLayout title="AI Chat" hideWidget={true}>
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
                 .vibeme-chat * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -933,25 +933,32 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                 {/* ══ LEFT SIDEBAR ══ */}
                 <div style={{ width: 280, flexShrink: 0, background: t.sidebarBg, borderRight: `1px solid ${t.sidebarBorder}`, display: 'flex', flexDirection: 'column' }}>
                     <div style={{ padding: '16px 14px 12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: t.text }}>💬 AI Chat</h2>
-                            <button onClick={() => setShowNewConv(true)} title="New Conversation" style={{ width: 30, height: 30, borderRadius: 9, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, boxShadow: '0 3px 10px rgba(99,102,241,0.35)', transition: 'transform 0.15s' }}
+    
+                        {/* Search + New Conversation — same row */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <div style={{ position: 'relative', flex: 1 }}>
+                                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search conversations..." 
+                                    style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: 9, border: `1px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
+                                    onFocus={e => e.target.style.borderColor='#6366f1'} 
+                                    onBlur={e => e.target.style.borderColor=t.border} />
+                                <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: t.textMute }}>🔍</span>
+                            </div>
+
+                            <button onClick={() => setShowNewConv(true)} title="New Conversation" 
+                                style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0, boxShadow: '0 3px 10px rgba(99,102,241,0.35)', transition: 'transform 0.15s' }}
                                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
-                                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                            >✏️</button>
+                                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+                                ✏️
+                            </button>
                         </div>
 
-                        <div style={{ position: 'relative' }}>
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search conversations..." style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: 9, border: `1px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 12, outline: 'none' }}
-                                onFocus={e => e.target.style.borderColor='#6366f1'} onBlur={e => e.target.style.borderColor=t.border} />
-                            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: t.textMute }}>🔍</span>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                        {/* Tabs */}
+                        <div style={{ display: 'flex', gap: 6 }}>
                             {[['all','All'],['unread','Unread']].map(([k,l]) => (
                                 <button key={k} onClick={() => setTab(k)} style={{ padding: '4px 12px', borderRadius: 7, border: `1px solid ${tab===k ? 'rgba(99,102,241,0.3)' : t.border}`, background: tab===k ? 'rgba(99,102,241,0.08)' : 'transparent', color: tab===k ? '#6366f1' : t.textMute, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{l}</button>
                             ))}
                         </div>
+
                     </div>
 
                     <div style={{ flex: 1, overflowY: 'auto' }}>

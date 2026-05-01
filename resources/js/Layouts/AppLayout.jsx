@@ -307,7 +307,7 @@ function DefaultAvatar({ size = 40, color = '#9ca3af' }) {
     );
 }
 
-export default function AppLayout({ children, title = 'Dashboard' }) {
+export default function AppLayout({ children, title = 'Dashboard',hideWidget = false  }) {
     const { auth } = usePage().props;
     const currentUrl = usePage().url;
     const user = auth?.user;
@@ -438,7 +438,7 @@ export default function AppLayout({ children, title = 'Dashboard' }) {
 
             <GlobalToast />
 
-            <HrChatbotWidget user={user} darkMode={darkMode} />
+            {!hideWidget && <HrChatbotWidget user={user} darkMode={darkMode} />}
 
             {/* ── Sidebar ── */}
             <aside style={{
