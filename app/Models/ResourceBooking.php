@@ -46,6 +46,12 @@ class ResourceBooking extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    public function attendees(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(BookingAttendee::class, 'booking_id')
+                    ->with('user:id,name,avatar_url');
+    }
+
     // ── Status Helpers ─────────────────────
 
     public function isPending(): bool     { return $this->status === 'pending'; }

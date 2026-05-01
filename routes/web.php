@@ -114,6 +114,9 @@ Route::middleware(['auth'])
         Route::get  ('/available-resources', [ResourceBookingController::class, 'availableResources']) ->name('available');  // AJAX
         Route::post ('/',                    [ResourceBookingController::class, 'store'])              ->name('store');
         Route::patch('/{booking}/cancel',    [ResourceBookingController::class, 'cancel'])            ->name('cancel');
+        Route::get('/search-users',          [ResourceBookingController::class, 'searchUsers'])        ->name('search-users');
+        Route::get('/check-conflict',   [ResourceBookingController::class, 'checkConflict'])  ->name('check-conflict'); // ← ထည့်
+        Route::get('/{booking}/detail',      [ResourceBookingController::class, 'detail'])             ->name('detail');
     });
  
 

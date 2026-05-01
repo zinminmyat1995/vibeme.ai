@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use App\Models\BookingAttendee;
+use App\Models\Notification;
 
 class ResourceBookingController extends Controller
 {
@@ -23,7 +25,6 @@ class ResourceBookingController extends Controller
 
         $resources = BookableResource::with(['driver:id,name,avatar_url'])
             ->where('country_id', $countryId)
-            ->where('is_active', true)
             ->orderBy('type')->orderBy('name')
             ->get()->map(fn($r) => $this->formatResource($r));
 
@@ -37,7 +38,12 @@ class ResourceBookingController extends Controller
 
         $myBookings = ResourceBooking::with(['resource:id,name,type,location'])
             ->where('user_id', $user->id)
-            ->whereDate('booking_date', '>=', today())
+            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->orderBy('booking_date')->orderBy('start_time')
+            ->get()->map(fn($b) => $this->formatBooking($b));
+
+        $myInvitations = ResourceBooking::with(['resource:id,name,type,location', 'user:id,name,avatar_url'])
+            ->whereHas('attendees', fn($q) => $q->where('user_id', $user->id))
             ->whereNotIn('status', ['cancelled', 'rejected'])
             ->orderBy('booking_date')->orderBy('start_time')
             ->get()->map(fn($b) => $this->formatBooking($b));
@@ -65,6 +71,7 @@ class ResourceBookingController extends Controller
             'resources'       => $resources,
             'pendingBookings' => $pendingBookings,
             'myBookings'      => $myBookings,
+            'myInvitations'   => $myInvitations,
             'stats'           => $stats,
             'isHR'            => $isHR,
             'users'           => $users,
@@ -269,17 +276,21 @@ class ResourceBookingController extends Controller
             'end_time'      => 'nullable|date_format:H:i|after:start_time',
             'purpose'       => 'required|string|max:500',
             'is_open_ended' => 'boolean',
+            'attendee_ids'  => 'nullable|array',
+            'attendee_ids.*'=> 'exists:users,id',
         ]);
 
         $user        = Auth::user();
         $resource    = BookableResource::findOrFail($validated['resource_id']);
         $isOpenEnded = $resource->isCar() && ($validated['is_open_ended'] ?? false);
+        $attendeeIds = collect($validated['attendee_ids'] ?? [])
+                        ->filter(fn($id) => $id != $user->id)
+                        ->unique()
+                        ->values();
 
         // Car — open-ended active booking exists → waitlist
         if ($resource->isCar()) {
-
-            $requestedEnd = $validated['end_time'] ?? '23:59';
-
+            $requestedEnd      = $validated['end_time'] ?? '23:59';
             $openEndedConflict = ResourceBooking::where('resource_id', $resource->id)
                 ->whereDate('booking_date', $validated['booking_date'])
                 ->whereIn('status', ['approved', 'pending'])
@@ -288,18 +299,18 @@ class ResourceBookingController extends Controller
                 ->exists();
 
             if ($openEndedConflict) {
-                ResourceBooking::create([
+                $booking = ResourceBooking::create([
                     ...$validated,
                     'user_id'       => $user->id,
                     'is_open_ended' => $isOpenEnded,
                     'status'        => 'waitlisted',
                 ]);
-
+                $this->saveAttendees($booking, $attendeeIds->toArray());
                 return back()->with('success', 'Added to waitlist. Car is occupied during requested time.');
             }
         }
 
-        // Car with end_time — conflict check with existing bookings
+        // Car with end_time — conflict check
         if ($resource->isCar() && !$isOpenEnded && !empty($validated['end_time'])) {
             if ($resource->hasConflict($validated['booking_date'], $validated['start_time'], $validated['end_time'])) {
                 return back()->withErrors(['time' => 'This car is already booked during that time slot.']);
@@ -313,8 +324,8 @@ class ResourceBookingController extends Controller
             }
         }
 
-        // Auto-approve — no HR approval needed, booking is immediately confirmed
-        ResourceBooking::create([
+        // Create booking
+        $booking = ResourceBooking::create([
             ...$validated,
             'user_id'       => $user->id,
             'is_open_ended' => $isOpenEnded,
@@ -323,6 +334,10 @@ class ResourceBookingController extends Controller
             'approved_at'   => now(),
         ]);
 
+        // Save attendees + notify
+        $this->saveAttendees($booking, $attendeeIds->toArray());
+        $this->notifyAttendees($booking, $user->name, $attendeeIds->toArray());
+
         return back()->with('success', 'Booking confirmed for ' . $resource->name . '.');
     }
 
@@ -330,7 +345,31 @@ class ResourceBookingController extends Controller
     {
         abort_unless($booking->user_id === Auth::id(), 403);
         abort_unless($booking->isPending() || $booking->isApproved(), 422);
+
+        // attendees load ဦး
+        $booking->load(['attendees', 'resource:id,name,type']);
+
         $booking->update(['status' => 'cancelled']);
+
+        // Attendees တွေကို notify
+        $type      = $booking->resource->type === 'car' ? '🚗' : '🏢';
+        $name      = $booking->resource->name;
+        $date      = $booking->booking_date->format('d M Y');
+        $startTime = substr($booking->start_time, 0, 5);
+        $organizer = Auth::user()->name;
+
+        foreach ($booking->attendees as $attendee) {
+            if ($attendee->user_id === Auth::id()) continue;
+            Notification::send(
+                userId: $attendee->user_id,
+                type:   'booking_cancelled',
+                title:  '❌ Booking Cancelled',
+                body:   "{$organizer} cancelled the {$type} {$name} booking on {$date} at {$startTime}.",
+                url:    '/bookings',
+                data:   ['booking_id' => $booking->id],
+            );
+        }
+
         return back()->with('success', 'Booking cancelled.');
     }
 
@@ -398,6 +437,159 @@ class ResourceBookingController extends Controller
             'returned_at'   => $b->returned_at?->format('d M Y H:i'),
             'created_at'    => $b->created_at->format('d M Y H:i'),
         ];
+    }
+
+    // ── Attendees save ────────────────────────────────────────────────
+    private function saveAttendees(ResourceBooking $booking, array $attendeeIds): void
+    {
+        if (empty($attendeeIds)) return;
+
+        $rows = array_map(fn($uid) => [
+            'booking_id' => $booking->id,
+            'user_id'    => $uid,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ], $attendeeIds);
+
+        BookingAttendee::upsert($rows, ['booking_id', 'user_id']);
+    }
+
+    // ── Notify attendees ──────────────────────────────────────────────
+    private function notifyAttendees(ResourceBooking $booking, string $organizerName, array $attendeeIds): void
+    {
+        if (empty($attendeeIds)) return;
+
+        $type      = $booking->resource->type === 'car' ? '🚗' : '🏢';
+        $name      = $booking->resource->name;
+        $date      = $booking->booking_date->format('d M Y');
+        $startTime = substr($booking->start_time, 0, 5);
+        $endTime   = $booking->end_time ? substr($booking->end_time, 0, 5) : 'Open ended';
+
+        foreach ($attendeeIds as $userId) {
+            Notification::send(
+                userId: $userId,
+                type:   'booking_invited',
+                title:  '📅 Booking Invitation',
+                body:   "{$organizerName} included you in a {$type} {$name} booking on {$date} ({$startTime}–{$endTime}).",
+                url:    '/bookings',
+                data:   ['booking_id' => $booking->id],
+            );
+        }
+    }
+
+    // ── User search (country-scoped) ──────────────────────────────────
+    public function searchUsers(Request $request)
+    {
+        $request->validate(['q' => 'required|string|min:1|max:100']);
+
+        $users = User::where('country_id', Auth::user()->country_id)
+            ->where('is_active', true)
+            ->where('id', '!=', Auth::id())
+            ->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->q . '%')
+                ->orWhere('email', 'like', '%' . $request->q . '%');
+            })
+            ->select('id', 'name', 'avatar_url', 'email')
+            ->orderBy('name')
+            ->limit(10)
+            ->get();
+
+        return response()->json(['users' => $users]);
+    }
+
+    // ── Conflict check for attendee ───────────────────────────────
+    public function checkConflict(Request $request)
+    {
+        $request->validate([
+            'user_id'    => 'required|exists:users,id',
+            'date'       => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time'   => 'nullable|date_format:H:i',
+        ]);
+
+        $userId    = $request->user_id;
+        $date      = $request->date;
+        $startTime = $request->start_time;
+        $endTime   = $request->end_time ?? '23:59';
+
+        // Bookings ကိုယ်တိုင် organizer ဖြစ်တာ
+        $asOrganizer = ResourceBooking::with('resource:id,name,type')
+            ->where('user_id', $userId)
+            ->whereDate('booking_date', $date)
+            ->whereIn('status', ['approved', 'pending'])
+            ->where('start_time', '<', $endTime)
+            ->where(function ($q) use ($startTime) {
+                $q->whereNull('end_time')
+                ->orWhere('end_time', '>', $startTime);
+            })
+            ->get()
+            ->map(fn($b) => [
+                'type'          => $b->resource?->type,
+                'resource_name' => $b->resource?->name,
+                'start_time'    => substr($b->start_time, 0, 5),
+                'end_time'      => $b->end_time ? substr($b->end_time, 0, 5) : null,
+                'role'          => 'organizer',
+            ])
+            ->toArray();  // ← plain array ပြောင်း
+
+        // Bookings တခြားသူ invite လုပ်ထားတာ
+        $asAttendee = ResourceBooking::with('resource:id,name,type')
+            ->whereHas('attendees', fn($q) => $q->where('user_id', $userId))
+            ->whereDate('booking_date', $date)
+            ->whereIn('status', ['approved', 'pending'])
+            ->where('start_time', '<', $endTime)
+            ->where(function ($q) use ($startTime) {
+                $q->whereNull('end_time')
+                ->orWhere('end_time', '>', $startTime);
+            })
+            ->get()
+            ->map(fn($b) => [
+                'type'          => $b->resource?->type,
+                'resource_name' => $b->resource?->name,
+                'start_time'    => substr($b->start_time, 0, 5),
+                'end_time'      => $b->end_time ? substr($b->end_time, 0, 5) : null,
+                'role'          => 'attendee',
+            ])
+            ->toArray();  // ← plain array ပြောင်း
+
+        // plain array နှစ်ခု merge လုပ်
+        $conflicts = array_values(array_merge($asOrganizer, $asAttendee));
+
+        return response()->json([
+            'has_conflict' => count($conflicts) > 0,
+            'conflicts'    => $conflicts,
+        ]);
+    }
+
+    // ── Booking detail (for click modal) ─────────────────────────────
+    public function detail(ResourceBooking $booking)
+    {
+        // country scope check
+        abort_unless(
+            $booking->resource->country_id === Auth::user()->country_id,
+            403
+        );
+
+        $booking->load([
+            'resource:id,name,type,location,capacity,plate_number',
+            'user:id,name,avatar_url',
+            'attendees.user:id,name,avatar_url',
+        ]);
+
+        return response()->json([
+            'booking' => [
+                'id'           => $booking->id,
+                'date'         => $booking->booking_date->format('Y-m-d'),
+                'start_time'   => substr($booking->start_time, 0, 5),
+                'end_time'     => $booking->end_time ? substr($booking->end_time, 0, 5) : null,
+                'is_open_ended'=> $booking->is_open_ended,
+                'purpose'      => $booking->purpose,
+                'status'       => $booking->status,
+                'resource'     => $booking->resource,
+                'organizer'    => $booking->user,
+                'attendees'    => $booking->attendees->map(fn($a) => $a->user),
+            ],
+        ]);
     }
 
     private function authorizeHR(): void

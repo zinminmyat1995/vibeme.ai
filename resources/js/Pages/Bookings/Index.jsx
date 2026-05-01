@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
+import ReactDOM from "react-dom";
 
 // ─── Global toast helper ─────────────────────────────────────────
 const toast = (message, type = "success") =>
@@ -304,7 +305,7 @@ function Modal({ onClose, theme, title, subtitle, icon, grad, children, maxWidth
 //   │  Room 2  │                                    │
 //   └──────────┴────────────────────────────────────┘
 // ─────────────────────────────────────────────────────────────────
-function TimeCalendar({ bookings, resources, type, theme, dark }) {
+function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick }) {
     const typeColor  = type === "room" ? theme.roomColor : theme.carColor;
     const filtered   = resources.filter(r => r.type === type);
     const isEmpty    = filtered.length === 0;
@@ -324,7 +325,7 @@ function TimeCalendar({ bookings, resources, type, theme, dark }) {
 
     const pct = (min) => `${Math.max(0, Math.min(100, (min / TOTAL_MINS) * 100))}%`;
 
-    const TimelineCell = ({ rBk, rowIdx }) => (
+    const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => (
         <div style={{ flex: 1, minWidth: MIN_TL_W, position: "relative", height: ROW_H, overflow: "hidden", background: rowIdx % 2 === 0 ? "transparent" : theme.surfaceSoft }}>
             {timeMarks.map(h => h > 0 && (
                 <div key={h} style={{ position: "absolute", left: `${(h / 24) * 100}%`, top: 0, bottom: 0, width: 1, background: h % 6 === 0 ? theme.border : theme.calLine }} />
@@ -343,6 +344,7 @@ function TimeCalendar({ bookings, resources, type, theme, dark }) {
                 const color = isApp ? typeColor : theme.warning;
                 return (
                     <div key={b.id}
+                        onClick={() => onBookingClick && onBookingClick(b.id)}
                         title={[b.user?.name, `${b.start_time}${b.end_time ? `–${b.end_time}` : "→"}`, b.purpose && `Reason: ${b.purpose}`].filter(Boolean).join(" · ")}
                         style={{ position: "absolute", left, width, top: 5, bottom: 5, borderRadius: 7, background: isApp ? `${color}22` : `${color}0e`, border: `1.5px ${isApp ? "solid" : "dashed"} ${color}`, borderLeft: `3px solid ${color}`, padding: "3px 7px", overflow: "hidden", cursor: "default", minWidth: 4 }}>
                         <div style={{ fontSize: 10, fontWeight: 700, color, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.user?.name || "—"}</div>
@@ -392,7 +394,7 @@ function TimeCalendar({ bookings, resources, type, theme, dark }) {
                                 {type === "car" && [r.plate_number, r.driver?.name].filter(Boolean).join(" · ")}
                             </div>
                         </div>
-                        <TimelineCell rBk={rBk} rowIdx={idx} />
+                        <TimelineCell rBk={rBk} rowIdx={idx} onBookingClick={onBookingClick} />
                     </div>
                 ))}
             </div>
@@ -421,6 +423,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
     const [purpose, setPurpose]       = useState("");
     const [errors, setErrors]         = useState({});
     const [submitting, setSubmitting] = useState(false);
+    const [attendees, setAttendees]   = useState([]);
 
     const fetchResources = useCallback(async () => {
         setLoading(true);
@@ -444,9 +447,13 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
         if (Object.keys(e).length) { setErrors(e); return; }
         setSubmitting(true);
         router.post("/bookings", {
-            resource_id: selected.id, booking_date: date,
-            start_time: startTime, end_time: isOpenEnded ? null : endTime || null,
-            purpose, is_open_ended: isOpenEnded,
+            resource_id:  selected.id,
+            booking_date: date,
+            start_time:   startTime,
+            end_time:     isOpenEnded ? null : endTime || null,
+            purpose,
+            is_open_ended: isOpenEnded,
+            attendee_ids:  attendees.map(a => a.id),   // ← ဒါထည့်
         }, {
             preserveScroll: true,
             onSuccess: () => {
@@ -457,10 +464,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
             onError: errs => {
                 setSubmitting(false);
                 setErrors(errs);
-                if (errs.time) {
-                    // go back to step 1 to show error
-                    setStep(1);
-                }
+                if (errs.time) setStep(1);
                 toast(errs.time || "Failed to submit. Please try again.", "error");
             },
         });
@@ -610,7 +614,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                     )}
                     {errors.resource && <p style={{ color: theme.danger, fontSize: 11, marginBottom: 10 }}>{errors.resource}</p>}
                     <div style={{ display: "flex", gap: 10 }}>
-                        <button onClick={() => { setStep(1); setSelected(null); }} style={{ flex: 1, padding: "13px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
+                        <button onClick={() => { setStep(1); setSelected(null); setAttendees([]);}} style={{ flex: 1, padding: "13px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
                         <button onClick={() => selected && setStep(3)} disabled={!selected} style={{ flex: 2, padding: "13px", borderRadius: 12, border: "none", background: !selected ? theme.border : `linear-gradient(135deg,${typeColor},${typeColor}cc)`, color: !selected ? theme.textMute : "#fff", fontSize: 14, fontWeight: 700, cursor: !selected ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: !selected ? "none" : `0 4px 16px ${typeColor}40`, transition: "all .2s" }}>Continue — Add Details →</button>
                     </div>
                 </div>
@@ -632,6 +636,29 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                         </div>
                     </div>
 
+                    {/* ── Attendees ── */}
+                    <div>
+                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                            <span style={{ fontSize:12, fontWeight:700, color:theme.textSoft, textTransform:"uppercase", letterSpacing:".08em" }}>
+                                Participants
+                            </span>
+                            {attendees.length > 0 && (
+                                <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:10, background:typeColor+"22", color:typeColor }}>
+                                    {attendees.length}
+                                </span>
+                            )}
+                        </div>
+                        <AttendeePicker
+                            selected={attendees}
+                            onChange={setAttendees}
+                            theme={theme}
+                            dark={dark}
+                            date={date}
+                            startTime={startTime}
+                            endTime={endTime}
+                        />
+                    </div>
+
                     <div>
                         <Lbl theme={theme}>Purpose / Reason *</Lbl>
                         <Txt value={purpose} onChange={e => setPurpose(e.target.value)}
@@ -642,8 +669,9 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
 
                     {errors.time && <p style={{ color: theme.danger, fontSize: 12 }}>⚠️ {errors.time}</p>}
 
+                    
                     <div style={{ display: "flex", gap: 10 }}>
-                        <button onClick={() => setStep(2)} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
+                        <button onClick={() => { setStep(2); setAttendees([]); }} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
                         <button onClick={submit} disabled={submitting} style={{ flex: 2, padding: "12px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${typeColor},${typeColor}cc)`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 16px ${typeColor}40`, opacity: submitting ? 0.7 : 1, transition: "all .2s" }}>
                             {submitting ? "Confirming…" : selected?.is_open_ended_out ? "Join Waitlist" : "Confirm Booking"}
                         </button>
@@ -686,7 +714,6 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
             preserveScroll: true,
             onSuccess: () => {
                 setSubmitting(false);
-                toast(isEdit ? "Resource updated successfully." : `${form.type === "room" ? "Room" : "Car"} registered successfully.`);
                 onClose();
             },
             onError: errs => { setSubmitting(false); setErrors(errs); toast("Failed to save resource.", "error"); },
@@ -971,7 +998,7 @@ function DeleteConfirmModal({ booking, onClose, theme, dark }) {
 // ─────────────────────────────────────────────────────────────────
 // Resource Card (Manage tab)
 // ─────────────────────────────────────────────────────────────────
-function ResourceCard({ resource: r, onEdit, theme, dark }) {
+function ResourceCard({ resource: r, onEdit, onDelete, theme, dark }) {
     const isCar = r.type === "car";
     const color = isCar ? theme.carColor : theme.primary;
 
@@ -983,7 +1010,7 @@ function ResourceCard({ resource: r, onEdit, theme, dark }) {
     ) : null;
 
     return (
-        <div style={{ background: theme.surface, borderRadius: 16, border: `1px solid ${theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm, transition: "transform .15s, box-shadow .15s" }}
+        <div style={{ background: theme.surface, borderRadius: 16, border: `1px solid ${theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm, transition: "transform .15s, box-shadow .15s", position: "relative" }}
             onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = theme.shadow; }}
             onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = theme.shadowSm; }}>
             <div style={{ height: 3, background: `linear-gradient(90deg,${color},${color}88)` }} />
@@ -998,9 +1025,14 @@ function ResourceCard({ resource: r, onEdit, theme, dark }) {
                             )}
                         </div>
                     </div>
-                    <button onClick={() => onEdit(r)} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${theme.border}`, background: "transparent", color: theme.textMute, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, transition: "all .15s", flexShrink: 0 }}
-                        onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.color = color; }}
-                        onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textMute; }}>✏️</button>
+                    <div style={{ display:"flex", gap:6 }}>
+                        <button onClick={() => onEdit(r)} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${theme.border}`, background: "transparent", color: theme.textMute, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, transition: "all .15s", flexShrink: 0 }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.color = color; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textMute; }}>✏️</button>
+                        <button onClick={() => onDelete(r)} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${theme.border}`, background: "transparent", color: theme.textMute, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, transition: "all .15s", flexShrink: 0 }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = theme.danger; e.currentTarget.style.color = theme.danger; e.currentTarget.style.background = theme.dangerSoft; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textMute; e.currentTarget.style.background = "transparent"; }}>🗑️</button>
+                    </div>
                 </div>
 
                 <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 12 }}>
@@ -1011,10 +1043,18 @@ function ResourceCard({ resource: r, onEdit, theme, dark }) {
                     {r.rules && <InfoRow label="Rules" value={r.rules} />}
                 </div>
 
-                {(!r.is_active || r.is_open_ended_active) && (
-                    <div style={{ marginTop: 10, display: "flex", gap: 5, flexWrap: "wrap" }}>
-                        {!r.is_active && <span style={{ fontSize: 10, fontWeight: 700, color: theme.danger, background: theme.dangerSoft, padding: "2px 8px", borderRadius: 6 }}>Inactive</span>}
-                        {r.is_open_ended_active && <span style={{ fontSize: 10, fontWeight: 700, color: theme.warning, background: theme.warningSoft, padding: "2px 8px", borderRadius: 6 }}>⚠️ Currently Out</span>}
+                {r.is_open_ended_active && (
+                    <div style={{ marginTop: 10 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: theme.warning, background: theme.warningSoft, padding: "2px 8px", borderRadius: 6 }}>⚠️ Currently Out</span>
+                    </div>
+                )}
+                {!r.is_active && (
+                    <div style={{ position:"absolute", inset:0, background: dark ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.85)", borderRadius:16, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:8, zIndex:2 }}>
+                        <span style={{ fontSize:28 }}>🚫</span>
+                        <span style={{ fontSize:11, fontWeight:700, color:theme.textMute, letterSpacing:".05em" }}>INACTIVE</span>
+                        <button onClick={() => onEdit(r)} style={{ fontSize:11, fontWeight:700, padding:"4px 14px", borderRadius:8, border:`1px solid ${theme.border}`, background:theme.surface, color:theme.textSoft, cursor:"pointer", marginTop:4 }}>
+                            Reactivate ↗
+                        </button>
                     </div>
                 )}
             </div>
@@ -1023,9 +1063,389 @@ function ResourceCard({ resource: r, onEdit, theme, dark }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Booking Detail Modal
+// ─────────────────────────────────────────────────────────────────
+function BookingDetailModal({ bookingId, onClose, theme, dark }) {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(true);
+        fetch(`/bookings/${bookingId}/detail`)
+            .then(r => r.json())
+            .then(r => { setData(r.booking); setLoading(false); })
+            .catch(() => setLoading(false));
+    }, [bookingId]);
+
+    const isCar     = data?.resource?.type === 'car';
+    const typeColor = isCar ? theme.carColor : theme.primary;
+    const typeEmoji = isCar ? '🚗' : '🏢';
+
+    return (
+        <div style={{ position:'fixed', inset:0, zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+            <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(4px)' }}/>
+            <div style={{ position:'relative', width:'100%', maxWidth:480, background:theme.surface, borderRadius:24, boxShadow:theme.shadow, border:`1px solid ${theme.border}`, overflow:'hidden' }}>
+
+                {/* Header */}
+                <div style={{ background:`linear-gradient(135deg,${typeColor},${typeColor}cc)`, padding:'20px 24px', display:'flex', alignItems:'center', gap:12 }}>
+                    <div style={{ width:44, height:44, borderRadius:14, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>{typeEmoji}</div>
+                    <div style={{ flex:1 }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.7)', textTransform:'uppercase', letterSpacing:'.08em' }}>Booking Detail</div>
+                        <div style={{ fontSize:17, fontWeight:800, color:'#fff', marginTop:2 }}>{data?.resource?.name ?? '...'}</div>
+                    </div>
+                    <button onClick={onClose} style={{ width:32, height:32, borderRadius:10, border:'none', background:'rgba(255,255,255,0.2)', color:'#fff', cursor:'pointer', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+                </div>
+
+                {loading ? (
+                    <div style={{ padding:48, textAlign:'center', color:theme.textMute }}>Loading…</div>
+                ) : !data ? (
+                    <div style={{ padding:48, textAlign:'center', color:theme.textMute }}>Failed to load.</div>
+                ) : (
+                    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+
+                        {/* Info rows */}
+                        {[
+                            { label:'Date',    value: data.date },
+                            { label:'Time',    value: data.end_time ? `${data.start_time} – ${data.end_time}` : `${data.start_time} – Open ended` },
+                            { label:'Purpose', value: data.purpose },
+                            !isCar && data.resource?.location && { label:'Floor',    value: `Floor ${data.resource.location}` },
+                            !isCar && data.resource?.capacity  && { label:'Capacity', value: `${data.resource.capacity} seats` },
+                            isCar  && data.resource?.plate_number && { label:'Plate', value: data.resource.plate_number },
+                        ].filter(Boolean).map(row => (
+                            <div key={row.label} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+                                <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.07em', minWidth:70, paddingTop:2 }}>{row.label}</div>
+                                <div style={{ fontSize:14, fontWeight:600, color:theme.text, flex:1 }}>{row.value}</div>
+                            </div>
+                        ))}
+
+                        {/* Organizer */}
+                        <div style={{ borderTop:`1px solid ${theme.border}`, paddingTop:16 }}>
+                            <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>Organizer</div>
+                            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                                {data.organizer?.avatar_url
+                                    ? <img src={data.organizer.avatar_url} style={{ width:34, height:34, borderRadius:'50%', objectFit:'cover' }}/>
+                                    : <div style={{ width:34, height:34, borderRadius:'50%', background:typeColor, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:13, fontWeight:800 }}>{data.organizer?.name?.[0]}</div>
+                                }
+                                <span style={{ fontSize:14, fontWeight:700, color:theme.text }}>{data.organizer?.name}</span>
+                            </div>
+                        </div>
+
+                        {/* Attendees */}
+                        {data.attendees?.length > 0 && (
+                            <div>
+                                <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>
+                                    Attendees ({data.attendees.length})
+                                </div>
+                                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                                    {data.attendees.map(a => (
+                                        <div key={a.id} style={{ display:'flex', alignItems:'center', gap:10 }}>
+                                            <SmartAvatar name={a.name} url={a.avatar_url} size={30} theme={theme} />
+                                            <span style={{ fontSize:13, fontWeight:600, color:theme.text }}>{a.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function SmartAvatar({ name = "?", url, size = 30, theme }) {
+    const [err, setErr] = useState(false);
+    const bg = ["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4"][
+        (name?.charCodeAt(0) ?? 0) % 6
+    ];
+
+    // ← ဒါကို ထည့် — storage path fix
+    const src = url
+        ? (url.startsWith("http") || url.startsWith("/") || url.startsWith("data:")
+            ? url
+            : `/storage/${url}`)
+        : null;
+
+    if (src && !err) {
+        return (
+            <img
+                src={src}
+                alt={name}
+                onError={() => setErr(true)}
+                style={{ width:size, height:size, borderRadius:'50%', objectFit:'cover', flexShrink:0 }}
+            />
+        );
+    }
+    return (
+        <div style={{ width:size, height:size, borderRadius:'50%', background:bg, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:size * 0.36, fontWeight:800, flexShrink:0 }}>
+            {name?.[0]?.toUpperCase()}
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Attendee Picker (search + multi-select tags)
+// ─────────────────────────────────────────────────────────────────
+function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endTime }) {
+    const [query, setQuery]         = useState('');
+    const [results, setResults]     = useState([]);
+    const [searching, setSearching] = useState(false);
+    const [dropPos, setDropPos]     = useState(null);
+    const [checking, setChecking]   = useState(null); // user_id စစ်နေတာ
+    const debounceRef = useRef(null);
+    const inputRef    = useRef(null);
+
+    const search = (q) => {
+        if (!q.trim()) { setResults([]); setDropPos(null); return; }
+        setSearching(true);
+        clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            fetch(`/bookings/search-users?q=${encodeURIComponent(q)}`)
+                .then(r => r.json())
+                .then(r => {
+                    const filtered = r.users.filter(u => !selected.find(s => s.id === u.id));
+                    setResults(filtered);
+                    if (filtered.length > 0 && inputRef.current) {
+                        const rect = inputRef.current.getBoundingClientRect();
+                        setDropPos({
+                            top:   rect.bottom + window.scrollY + 4,
+                            left:  rect.left   + window.scrollX,
+                            width: rect.width,
+                        });
+                    }
+                    setSearching(false);
+                })
+                .catch(() => setSearching(false));
+        }, 300);
+    };
+
+    // User click လိုက်ရင် conflict check ဦးလုပ်
+    const handleAdd = async (user) => {
+        setChecking(user.id);
+        setResults([]);
+        setDropPos(null);
+        setQuery('');
+
+        try {
+            const params = new URLSearchParams({
+                user_id:    user.id,
+                date:       date       || '',
+                start_time: startTime  || '',
+                end_time:   endTime    || '',
+            });
+            const res  = await fetch(`/bookings/check-conflict?${params}`);
+            const data = await res.json();
+
+            const userWithConflict = {
+                ...user,
+                conflicts: data.has_conflict ? data.conflicts : [],
+            };
+            onChange([...selected, userWithConflict]);
+        } catch {
+            // API fail ရင် warning မပါဘဲ add
+            onChange([...selected, { ...user, conflicts: [] }]);
+        } finally {
+            setChecking(null);
+        }
+    };
+
+    const remove = (id) => onChange(selected.filter(s => s.id !== id));
+
+    useEffect(() => {
+        if (results.length === 0) return;
+        const update = () => {
+            if (inputRef.current) {
+                const rect = inputRef.current.getBoundingClientRect();
+                setDropPos({
+                    top:   rect.bottom + window.scrollY + 4,
+                    left:  rect.left   + window.scrollX,
+                    width: rect.width,
+                });
+            }
+        };
+        window.addEventListener('scroll', update, true);
+        window.addEventListener('resize', update);
+        return () => {
+            window.removeEventListener('scroll', update, true);
+            window.removeEventListener('resize', update);
+        };
+    }, [results.length]);
+
+    return (
+        <div>
+            {/* Selected tags — wrapping flex row */}
+            {selected.length > 0 && (
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
+                    {selected.map(u => {
+                        const hasConflict = u.conflicts?.length > 0;
+                        return (
+                            <div
+                                key={u.id}
+                                style={{ position:'relative' }}
+                                onMouseEnter={e => {
+                                    if (!hasConflict) return;
+                                    const tt = e.currentTarget.querySelector('.bk-conflict-tt');
+                                    if (tt) tt.style.display = 'block';
+                                }}
+                                onMouseLeave={e => {
+                                    const tt = e.currentTarget.querySelector('.bk-conflict-tt');
+                                    if (tt) tt.style.display = 'none';
+                                }}
+                            >
+                                {/* Tag */}
+                                <div style={{
+                                    display:'inline-flex', alignItems:'center', gap:6,
+                                    padding:'5px 10px 5px 6px', borderRadius:20,
+                                    background: hasConflict
+                                        ? (dark ? 'rgba(239,68,68,0.15)' : '#fef2f2')
+                                        : (dark ? 'rgba(99,102,241,0.18)' : '#ede9fe'),
+                                    border:`1.5px solid ${hasConflict ? theme.danger+'50' : theme.primary+'40'}`,
+                                    cursor: hasConflict ? 'default' : 'default',
+                                }}>
+                                    <div style={{
+                                        width:20, height:20, borderRadius:'50%',
+                                        background: hasConflict ? theme.danger : theme.primary,
+                                        display:'flex', alignItems:'center', justifyContent:'center',
+                                        color:'#fff', fontSize:9, fontWeight:800, flexShrink:0,
+                                    }}>
+                                        {u.name?.[0]}
+                                    </div>
+                                    <span style={{ fontSize:12, fontWeight:600, color: hasConflict ? theme.danger : theme.primary }}>
+                                        {u.name}
+                                    </span>
+                                    {hasConflict && (
+                                        <span style={{
+                                            fontSize:10, fontWeight:700,
+                                            color: dark ? '#fca5a5' : '#dc2626',
+                                            background: dark ? 'rgba(239,68,68,0.2)' : '#fee2e2',
+                                            padding:'1px 6px', borderRadius:6,
+                                        }}>
+                                            busy
+                                        </span>
+                                    )}
+                                    <button
+                                        onClick={() => remove(u.id)}
+                                        style={{
+                                            background:'none', border:'none', cursor:'pointer',
+                                            color: hasConflict ? theme.danger : theme.primary,
+                                            fontSize:13, padding:0, lineHeight:1,
+                                            display:'flex', alignItems:'center', opacity:0.5,
+                                        }}
+                                    >✕</button>
+                                </div>
+
+                                {/* Hover tooltip — conflict detail */}
+                                {hasConflict && (
+                                    <div className="bk-conflict-tt" style={{
+                                        display:      'none',
+                                        position:     'absolute',
+                                        bottom:       'calc(100% + 6px)',
+                                        left:         '50%',
+                                        transform:    'translateX(-50%)',
+                                        zIndex:       99999,
+                                        background:   dark ? '#1e2d4a' : '#1e293b',
+                                        color:        '#fff',
+                                        fontSize:     11,
+                                        fontWeight:   500,
+                                        borderRadius: 10,
+                                        padding:      '10px 14px',
+                                        minWidth:     200,
+                                        maxWidth:     260,
+                                        boxShadow:    '0 8px 24px rgba(0,0,0,0.35)',
+                                        pointerEvents:'none',
+                                        whiteSpace:   'normal',
+                                        lineHeight:   1.6,
+                                    }}>
+                                        {/* Arrow */}
+                                        <div style={{
+                                            position:'absolute', bottom:-5, left:'50%',
+                                            transform:'translateX(-50%)',
+                                            width:10, height:10,
+                                            background: dark ? '#1e2d4a' : '#1e293b',
+                                            clipPath:'polygon(0 0,100% 0,50% 100%)',
+                                        }}/>
+                                        <div style={{ fontWeight:700, marginBottom:6, color:'#fca5a5', fontSize:11 }}>
+                                            ⚠ Schedule Conflict
+                                        </div>
+                                        {u.conflicts.map((c, i) => (
+                                            <div key={i} style={{
+                                                display:'flex', alignItems:'center', gap:6,
+                                                padding:'3px 0',
+                                                borderTop: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                                            }}>
+                                                <span>{c.type === 'room' ? '🏢' : '🚗'}</span>
+                                                <span style={{ flex:1 }}>
+                                                    {c.resource_name}
+                                                    <span style={{ opacity:0.6, marginLeft:4 }}>
+                                                        {c.start_time}{c.end_time ? `–${c.end_time}` : '→'}
+                                                    </span>
+                                                </span>
+                                                <span style={{
+                                                    fontSize:9, fontWeight:700, padding:'1px 5px',
+                                                    borderRadius:4, background:'rgba(255,255,255,0.1)',
+                                                    color:'rgba(255,255,255,0.6)',
+                                                }}>
+                                                    {c.role}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* Checking spinner */}
+            {checking && (
+                <div style={{ fontSize:12, color:theme.textMute, marginBottom:8, display:'flex', alignItems:'center', gap:6 }}>
+                    <div style={{ width:10, height:10, border:`2px solid ${theme.primary}33`, borderTopColor:theme.primary, borderRadius:'50%', animation:'bk-spin 0.7s linear infinite' }}/>
+                    Checking schedule…
+                </div>
+            )}
+
+            {/* Search input */}
+            <div style={{ position:'relative' }}>
+                <input
+                    ref={inputRef}
+                    value={query}
+                    onChange={e => { setQuery(e.target.value); search(e.target.value); }}
+                    placeholder="Search by name or email…"
+                    style={{ width:'100%', padding:'9px 14px', borderRadius:10, border:`1px solid ${theme.border}`, background:theme.surfaceSoft, color:theme.text, fontSize:13, fontFamily:'inherit', outline:'none', boxSizing:'border-box' }}
+                />
+                {searching && (
+                    <div style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', fontSize:11, color:theme.textMute }}>…</div>
+                )}
+            </div>
+
+            {/* Dropdown portal */}
+            {results.length > 0 && dropPos && typeof document !== 'undefined' && ReactDOM.createPortal(
+                <div style={{ position:'fixed', top:dropPos.top, left:dropPos.left, width:dropPos.width, background:theme.surface, border:`1px solid ${theme.border}`, borderRadius:12, boxShadow:theme.shadow, zIndex:99999, overflow:'hidden', maxHeight:220, overflowY:'auto' }}>
+                    {results.map(u => (
+                        <div key={u.id} onClick={() => handleAdd(u)}
+                            style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer', transition:'background .12s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = theme.surfaceSoft}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <div style={{ width:28, height:28, borderRadius:'50%', background:theme.primary, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:11, fontWeight:800, flexShrink:0 }}>{u.name?.[0]}</div>
+                            <div>
+                                <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{u.name}</div>
+                                <div style={{ fontSize:11, color:theme.textMute }}>{u.email}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>,
+                document.body
+            )}
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────
 // Main Page
 // ─────────────────────────────────────────────────────────────────
-export default function BookingsIndex({ resources, pendingBookings, myBookings, stats, isHR, users }) {
+export default function BookingsIndex({ resources, pendingBookings, myBookings, myInvitations, stats, isHR, users }) {
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -1039,6 +1459,9 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
     const [resourceModal, setResourceModal] = useState(false);
     const [rejectModal, setRejectModal]   = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null); // booking to cancel
+    const [detailModal, setDetailModal]   = useState(null); // booking id
+    const [attendees, setAttendees]       = useState([]);   // AttendeePicker selected
+    const [deleteResourceConfirm, setDeleteResourceConfirm] = useState(null);
 
     const latestCalRequest = useRef(0);
 
@@ -1109,9 +1532,12 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
 
     const rooms = resources.filter(r => r.type === "room");
     const cars  = resources.filter(r => r.type === "car");
-    const filteredMyBookings = myBookings.filter(b => b.resource?.type === myType);
-    const myRoomCount = myBookings.filter(b => b.resource?.type === "room").length;
-    const myCarCount  = myBookings.filter(b => b.resource?.type === "car").length;
+    const filteredMyBookings = myBookings.filter(b =>
+        b.resource?.type === myType &&
+        b.booking_date === toISO(calDate)
+    );
+    const myRoomCount = myBookings.filter(b => b.resource?.type === "room" && b.booking_date === toISO(calDate)).length;
+    const myCarCount  = myBookings.filter(b => b.resource?.type === "car"  && b.booking_date === toISO(calDate)).length;
 
 
     const tabBtn = (t, label, active, badgeCount) => (
@@ -1134,6 +1560,7 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                 @keyframes bk-modal { from{opacity:0;transform:translateY(14px)scale(.97)} to{opacity:1;transform:none} }
                 @keyframes bk-drop  { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
                 @keyframes bk-fade  { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+                @keyframes bk-spin  { to { transform: rotate(360deg); } }
                 .bk-page { animation: bk-fade .3s ease; }
                 *::-webkit-scrollbar { display: none; }
             `}</style>
@@ -1174,7 +1601,8 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
                     <div style={{ display: "flex", gap: 4, background: theme.surface, padding: 5, borderRadius: 14, border: `1px solid ${theme.border}`, boxShadow: theme.shadowSm }}>
                         {tabBtn("calendar", "📅 Calendar", tab === "calendar", 0)}
-                        {tabBtn("mine", "📋 My Bookings", tab === "mine", 0)}
+                        {tabBtn("mine", "📋 My Bookings", tab === "mine", myRoomCount + myCarCount)}
+                        {tabBtn("invitations", "✉️ My Invitations", tab === "invitations", myInvitations.filter(b => b.booking_date === toISO(calDate)).length)}
                         {isHR && tabBtn("manage", "⚙️ Manage Resources", tab === "manage", 0)}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
@@ -1229,6 +1657,7 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                                         type={calType}
                                         theme={theme}
                                         dark={dark}
+                                        onBookingClick={(id) => setDetailModal(id)}
                                     />
                             }
                         </div>
@@ -1325,6 +1754,49 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                     </div>
                 )}
 
+                {/* ── My Invitations Tab ── */}
+                {tab === "invitations" && (() => {
+                    const filtered = myInvitations.filter(b => b.booking_date === toISO(calDate));
+                    return (
+                        <div style={{ background: theme.surface, borderRadius: 20, border: `1px solid ${theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm }}>
+                            {filtered.length === 0 ? (
+                                <div style={{ textAlign: "center", padding: "60px", color: theme.textMute, fontSize: 13 }}>
+                                    <div style={{ fontSize: 32, marginBottom: 12 }}>✉️</div>
+                                    <div style={{ fontWeight: 600 }}>No invitations on {toISO(calDate)}</div>
+                                    <div style={{ fontSize: 12, marginTop: 4 }}>Select a date from the calendar to view invitations.</div>
+                                </div>
+                            ) : filtered.map((b, i) => (
+                                <div
+                                    key={b.id}
+                                    onClick={() => setDetailModal(b.id)}
+                                    style={{
+                                        display: "flex", alignItems: "center", gap: 14,
+                                        padding: "14px 20px",
+                                        borderBottom: i < filtered.length - 1 ? `1px solid ${theme.border}` : "none",
+                                        cursor: "pointer", transition: "background .12s",
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = theme.surfaceSoft}
+                                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                                >
+                                    <div style={{ width: 42, height: 42, borderRadius: 13, background: b.resource?.type === "car" ? theme.carSoft : theme.roomSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
+                                        {b.resource?.type === "car" ? "🚗" : "🏢"}
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{b.resource?.name}</div>
+                                        <div style={{ fontSize: 12, color: theme.textMute, marginTop: 2 }}>
+                                            {b.booking_date} · {b.start_time}{b.end_time ? ` – ${b.end_time}` : " – Open ended"}
+                                        </div>
+                                    </div>
+                                    <div style={{ display:'flex', alignItems:'center', gap:7, flexShrink: 0 }}>
+                                        <SmartAvatar name={b.user?.name} url={b.user?.avatar_url} size={26} theme={theme} />
+                                        <span style={{ fontSize: 12, color: theme.textSoft, fontWeight: 600 }}>{b.user?.name}</span>
+                                    </div>
+                                    <div style={{ color: theme.textMute, fontSize: 14, flexShrink: 0 }}>›</div>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                })()}
                 {/* ── Manage Resources Tab (HR) ── */}
                 {tab === "manage" && isHR && (
                     <div>
@@ -1344,7 +1816,7 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                             {rooms.length === 0
                                 ? <div style={{ background: theme.surface, borderRadius: 14, border: `2px dashed ${theme.border}`, padding: "28px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>No meeting rooms yet — click <strong>+ Register Resource</strong> to add one</div>
                                 : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
-                                    {rooms.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} theme={theme} dark={dark} />)}
+                                    {rooms.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} />)}
                                 </div>
                             }
                         </div>
@@ -1359,7 +1831,7 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                             {cars.length === 0
                                 ? <div style={{ background: theme.surface, borderRadius: 14, border: `2px dashed ${theme.border}`, padding: "28px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>No cars yet — click <strong>+ Register Resource</strong> to add one</div>
                                 : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
-                                    {cars.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} theme={theme} dark={dark} />)}
+                                    {cars.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} />)}
                                 </div>
                             }
                         </div>
@@ -1379,6 +1851,51 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
             )}
             {deleteConfirm && (
                 <DeleteConfirmModal booking={deleteConfirm} onClose={() => setDeleteConfirm(null)} theme={theme} dark={dark} />
+            )}
+            {/* ── Booking Detail Modal ── */}
+            {detailModal && (
+                <BookingDetailModal
+                    bookingId={detailModal}
+                    onClose={() => setDetailModal(null)}
+                    theme={theme}
+                    dark={dark}
+                />
+            )}
+
+            {deleteResourceConfirm && (
+                <div style={{ position:"fixed", inset:0, zIndex:9500, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}
+                    onClick={() => setDeleteResourceConfirm(null)}>
+                    <div style={{ position:"absolute", inset:0, background:theme.overlay, backdropFilter:"blur(4px)" }} />
+                    <div style={{ position:"relative", width:"100%", maxWidth:400, background:theme.surface, borderRadius:20, border:`1px solid ${theme.borderStrong}`, boxShadow:theme.shadow, overflow:"hidden" }} onClick={e => e.stopPropagation()}>
+                        <div style={{ background:"linear-gradient(135deg,#7f1d1d,#dc2626)", padding:"18px 22px 14px" }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                                <div style={{ width:38, height:38, borderRadius:11, background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>🗑️</div>
+                                <div>
+                                    <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", color:"rgba(255,255,255,0.55)" }}>Confirm Delete</div>
+                                    <div style={{ fontSize:16, fontWeight:800, color:"#fff" }}>Delete {deleteResourceConfirm.name}?</div>
+                                </div>
+                                <button onClick={() => setDeleteResourceConfirm(null)} style={{ marginLeft:"auto", width:28, height:28, borderRadius:8, border:"1px solid rgba(255,255,255,0.2)", background:"rgba(255,255,255,0.12)", color:"#fff", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
+                            </div>
+                        </div>
+                        <div style={{ padding:"20px 22px" }}>
+                            <p style={{ fontSize:13, color:theme.textSoft, marginBottom:18 }}>
+                                ⚠️ This will permanently delete <strong style={{ color:theme.text }}>{deleteResourceConfirm.name}</strong> and all its data. Consider making it <strong>Inactive</strong> instead to preserve booking history.
+                            </p>
+                            <div style={{ display:"flex", gap:10 }}>
+                                <button onClick={() => setDeleteResourceConfirm(null)} style={{ flex:1, padding:"11px", borderRadius:11, border:`1.5px solid ${theme.border}`, background:"transparent", color:theme.textSoft, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+                                <button onClick={() => {
+                                    router.delete(`/bookings/resources/${deleteResourceConfirm.id}`, {
+                                        preserveScroll: true,
+                                        onSuccess: () => { setDeleteResourceConfirm(null); },
+                                        onError: () => toast("Failed to delete.", "error"),
+                                    });
+                                }} style={{ flex:1, padding:"11px", borderRadius:11, border:"none", background:"#dc2626", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 14px rgba(239,68,68,0.3)" }}>
+                                    Delete Permanently
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </AppLayout>
     );
