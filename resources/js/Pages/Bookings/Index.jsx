@@ -103,7 +103,7 @@ function TimePicker({ value, onChange, theme, dark, error, disabled = false }) {
                 border: `1.5px solid ${error ? theme.danger : theme.inputBorder}`,
                 borderRadius: 12, overflow: "hidden",
                 background: disabled ? (dark ? "rgba(255,255,255,0.03)" : "#f3f4f6") : theme.inputBg,
-                height: 46, transition: "border-color .15s", opacity: disabled ? 0.5 : 1, 
+                height: 46, transition: "border-color .15s", opacity: disabled ? 0.5 : 1, width: "100%",
             }}>
                 <div style={{ paddingLeft: 12, paddingRight: 4, color: theme.textMute, display: "flex", alignItems: "center" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -195,7 +195,12 @@ const HOURS   = Array.from({ length: 24 }, (_, i) => i); // 00–23 full 24hr
 const HOUR_H  = 52; // px per hour
 const TOTAL_H = HOUR_H * 24;
 
-function toISO(d) { return d.toISOString().split("T")[0]; }
+function toISO(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 function fmtDate(d) { return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" }); }
 function timeToMin(t) { if (!t) return 0; const [h, m] = t.split(":").map(Number); return h * 60 + m; }
@@ -300,9 +305,15 @@ function Modal({ onClose, theme, title, subtitle, icon, grad, children, maxWidth
 //   └──────────┴────────────────────────────────────┘
 // ─────────────────────────────────────────────────────────────────
 function TimeCalendar({ bookings, resources, type, theme, dark }) {
-    const typeColor = type === "room" ? theme.roomColor : theme.carColor;
-    const filtered  = resources.filter(r => r.type === type);
-    const isEmpty   = filtered.length === 0;
+    const typeColor  = type === "room" ? theme.roomColor : theme.carColor;
+    const filtered   = resources.filter(r => r.type === type);
+    const isEmpty    = filtered.length === 0;
+    const TOTAL_MINS = 24 * 60;
+    const RES_W      = 140;
+    const ROW_H      = 68;
+    const HDR_H      = 40;
+    const MIN_TL_W   = 1080; // minimum timeline width (scroll appears below this)
+    const timeMarks  = Array.from({ length: 24 }, (_, i) => i);
 
     const byResource = useMemo(() => {
         const map = {};
@@ -311,139 +322,84 @@ function TimeCalendar({ bookings, resources, type, theme, dark }) {
         return Object.values(map);
     }, [bookings, filtered.map(r => r.id).join(","), type]);
 
-    const RES_W    = 140; // left resource name column width px
-    const ROW_H    = 68;  // height per resource row px
-    const HDR_H    = 40;  // time header row height px
-    const TOTAL_MINS = 24 * 60;
+    const pct = (min) => `${Math.max(0, Math.min(100, (min / TOTAL_MINS) * 100))}%`;
 
-    const minToPct = (min) => Math.min(100, Math.max(0, (min / TOTAL_MINS) * 100));
-
-    // Time marks every 1 hour: 0,1,2,...23
-    const timeMarks = Array.from({ length: 24 }, (_, i) => i);
+    const TimelineCell = ({ rBk, rowIdx }) => (
+        <div style={{ flex: 1, minWidth: MIN_TL_W, position: "relative", height: ROW_H, overflow: "hidden", background: rowIdx % 2 === 0 ? "transparent" : theme.surfaceSoft }}>
+            {timeMarks.map(h => h > 0 && (
+                <div key={h} style={{ position: "absolute", left: `${(h / 24) * 100}%`, top: 0, bottom: 0, width: 1, background: h % 6 === 0 ? theme.border : theme.calLine }} />
+            ))}
+            {rBk.length === 0 && (
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                    <span style={{ fontSize: 10, color: theme.textMute, opacity: 0.3 }}>Free</span>
+                </div>
+            )}
+            {rBk.map(b => {
+                const sMin  = timeToMin(b.start_time);
+                const eMin  = b.end_time ? timeToMin(b.end_time) : TOTAL_MINS;
+                const left  = pct(sMin);
+                const width = `${Math.max(0.5, (eMin - sMin) / TOTAL_MINS * 100)}%`;
+                const isApp = b.status === "approved";
+                const color = isApp ? typeColor : theme.warning;
+                return (
+                    <div key={b.id}
+                        title={[b.user?.name, `${b.start_time}${b.end_time ? `–${b.end_time}` : "→"}`, b.purpose && `Reason: ${b.purpose}`].filter(Boolean).join(" · ")}
+                        style={{ position: "absolute", left, width, top: 5, bottom: 5, borderRadius: 7, background: isApp ? `${color}22` : `${color}0e`, border: `1.5px ${isApp ? "solid" : "dashed"} ${color}`, borderLeft: `3px solid ${color}`, padding: "3px 7px", overflow: "hidden", cursor: "default", minWidth: 4 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.user?.name || "—"}</div>
+                        <div style={{ fontSize: 9, color: theme.textMute, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.start_time}{b.end_time ? `–${b.end_time}` : "→"}</div>
+                    </div>
+                );
+            })}
+        </div>
+    );
 
     return (
         <div style={{ border: `1px solid ${theme.border}`, borderRadius: 14, overflow: "hidden" }}>
-            {/* ── Top header row: corner + time axis ── */}
-            <div style={{ display: "flex", borderBottom: `2px solid ${theme.border}`, background: theme.surfaceSoft, position: "sticky", top: 0, zIndex: 10 }}>
-                {/* Corner */}
-                <div style={{ width: RES_W, flexShrink: 0, height: HDR_H, borderRight: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em" }}>
-                        {type === "room" ? "Rooms" : "Cars"}
-                    </span>
-                </div>
-                {/* Time axis */}
-                <div style={{ flex: 1, height: HDR_H, position: "relative", overflow: "hidden" }}>
-                    {timeMarks.map(h => (
-                        <div key={h} style={{
-                            position: "absolute",
-                            left: `${(h / 24) * 100}%`,
-                            top: 0, bottom: 0,
-                            display: "flex", alignItems: "flex-end", paddingBottom: 5,
-                        }}>
-                            <div style={{ width: 1, height: h % 6 === 0 ? "50%" : "30%", background: h % 6 === 0 ? theme.borderStrong : theme.border, position: "absolute", top: 0, left: 0 }} />
-                            <span style={{ fontSize: h % 6 === 0 ? 10 : 9, fontWeight: h % 6 === 0 ? 700 : 400, color: h % 6 === 0 ? theme.textSoft : theme.textMute, paddingLeft: 3, whiteSpace: "nowrap" }}>
-                                {String(h).padStart(2, "0")}:00
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* ── Resource rows ── */}
-            {isEmpty ? (
-                <div style={{ display: "flex" }}>
-                    <div style={{ width: RES_W, flexShrink: 0, borderRight: `1px solid ${theme.border}`, height: ROW_H * 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontSize: 11, color: theme.textMute }}>—</span>
+            <div style={{ overflowX: "auto", scrollbarWidth: "none" }}>
+                {/* Header */}
+                <div style={{ display: "flex", borderBottom: `2px solid ${theme.border}`, background: theme.surfaceSoft, position: "sticky", top: 0, zIndex: 10 }}>
+                    <div style={{ width: RES_W, flexShrink: 0, height: HDR_H, borderRight: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em" }}>{type === "room" ? "Rooms" : "Cars"}</span>
                     </div>
-                    <div style={{ flex: 1, position: "relative", height: ROW_H * 3, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 8 }}>
-                        <div style={{ fontSize: 32, opacity: 0.12 }}>{type === "room" ? "🏢" : "🚗"}</div>
-                        <div style={{ fontSize: 13, color: theme.textMute, fontWeight: 600 }}>No {type === "room" ? "meeting rooms" : "cars"} registered yet</div>
-                        <div style={{ fontSize: 11, color: theme.textMute, opacity: 0.6 }}>Go to Manage Resources to add one</div>
-                    </div>
-                </div>
-            ) : byResource.map(({ resource: r, bookings: rBk }, rowIdx) => (
-                <div key={r.id} style={{ display: "flex", borderBottom: rowIdx < byResource.length - 1 ? `1px solid ${theme.border}` : "none" }}>
-                    {/* Resource name cell — Floor label, no emoji */}
-                    <div style={{
-                        width: RES_W, flexShrink: 0, height: ROW_H,
-                        borderRight: `1px solid ${theme.border}`,
-                        padding: "10px 14px",
-                        display: "flex", flexDirection: "column", justifyContent: "center",
-                        background: type === "room" ? theme.roomSoft : theme.carSoft,
-                    }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: typeColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
-                        <div style={{ fontSize: 10, color: theme.textMute, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {type === "room" && r.location && `Floor ${r.location}`}
-                            {type === "room" && r.capacity && ` · ${r.capacity} seats`}
-                            {type === "car" && r.plate_number && r.plate_number}
-                            {type === "car" && r.driver?.name && ` · ${r.driver.name}`}
-                        </div>
-                    </div>
-
-                    {/* Timeline cell */}
-                    <div style={{ flex: 1, position: "relative", height: ROW_H, background: rowIdx % 2 === 0 ? "transparent" : theme.surfaceSoft, overflow: "hidden" }}>
-                        {/* Vertical grid lines — major every 6hr, minor every 1hr */}
+                    <div style={{ flex: 1, minWidth: MIN_TL_W, height: HDR_H, position: "relative" }}>
                         {timeMarks.map(h => (
-                            <div key={h} style={{
-                                position: "absolute", left: `${(h / 24) * 100}%`,
-                                top: 0, bottom: 0, width: 1,
-                                background: h % 6 === 0 ? theme.border : theme.calLine,
-                            }} />
-                        ))}
-
-                        {/* Free label */}
-                        {rBk.length === 0 && (
-                            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                                <span style={{ fontSize: 10, color: theme.textMute, opacity: 0.3 }}>Free</span>
+                            <div key={h} style={{ position: "absolute", left: `${(h / 24) * 100}%`, top: 0, bottom: 0, display: "flex", alignItems: "flex-end", paddingBottom: 5, paddingLeft: 3 }}>
+                                {h > 0 && <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 1, background: h % 6 === 0 ? theme.border : theme.calLine }} />}
+                                <span style={{ fontSize: h % 6 === 0 ? 10 : 9, fontWeight: h % 6 === 0 ? 700 : 400, color: h % 6 === 0 ? theme.textSoft : theme.textMute, whiteSpace: "nowrap" }}>
+                                    {String(h).padStart(2, "0")}:00
+                                </span>
                             </div>
-                        )}
-
-                        {/* Booking blocks */}
-                        {rBk.map(b => {
-                            const sMin  = timeToMin(b.start_time);
-                            const eMin  = b.end_time ? timeToMin(b.end_time) : TOTAL_MINS;
-                            const left  = minToPct(sMin);
-                            const width = Math.max(0.8, minToPct(eMin) - left);
-                            const isApp = b.status === "approved";
-                            const color = isApp ? typeColor : theme.warning;
-                            const tooltip = [b.user?.name, `${b.start_time}${b.end_time ? `–${b.end_time}` : "→"}`, b.purpose ? `Reason: ${b.purpose}` : ""].filter(Boolean).join(" · ");
-                            return (
-                                <div key={b.id}
-                                    title={tooltip}
-                                    style={{
-                                        position: "absolute",
-                                        left: `${left}%`, width: `${width}%`,
-                                        top: 5, bottom: 5,
-                                        borderRadius: 7,
-                                        background: isApp ? `${color}22` : `${color}0e`,
-                                        border: `1.5px ${isApp ? "solid" : "dashed"} ${color}`,
-                                        borderLeft: `3px solid ${color}`,
-                                        padding: "3px 7px", overflow: "hidden",
-                                        cursor: "default", minWidth: 4,
-                                    }}>
-                                    {/* Acc name first */}
-                                    <div style={{ fontSize: 10, fontWeight: 700, color, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 }}>
-                                        {b.user?.name || "—"}
-                                    </div>
-                                    {/* Time below */}
-                                    <div style={{ fontSize: 9, color: theme.textMute, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                        {b.start_time}{b.end_time ? `–${b.end_time}` : "→"}
-                                    </div>
-                                    {!isApp && (
-                                        <div style={{ display: "inline-flex", alignItems: "center", gap: 3, marginTop: 1, background: theme.warningSoft, borderRadius: 4, padding: "1px 5px" }}>
-                                            <span style={{ width: 4, height: 4, borderRadius: "50%", background: theme.warning, flexShrink: 0, display: "inline-block" }} />
-                                            <span style={{ fontSize: 8, fontWeight: 700, color: theme.warning }}>PENDING</span>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                        ))}
                     </div>
                 </div>
-            ))}
+
+                {/* Rows */}
+                {isEmpty ? (
+                    <div style={{ display: "flex" }}>
+                        <div style={{ width: RES_W, flexShrink: 0, borderRight: `1px solid ${theme.border}`, height: ROW_H * 3 }} />
+                        <div style={{ flex: 1, minWidth: MIN_TL_W, height: ROW_H * 3, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                            <div style={{ fontSize: 32, opacity: 0.12 }}>{type === "room" ? "🏢" : "🚗"}</div>
+                            <div style={{ fontSize: 13, color: theme.textMute, fontWeight: 600 }}>No {type === "room" ? "meeting rooms" : "cars"} registered yet</div>
+                            <div style={{ fontSize: 11, color: theme.textMute, opacity: 0.6 }}>Go to Manage Resources to add one</div>
+                        </div>
+                    </div>
+                ) : byResource.map(({ resource: r, bookings: rBk }, idx) => (
+                    <div key={r.id} style={{ display: "flex", borderBottom: idx < byResource.length - 1 ? `1px solid ${theme.border}` : "none" }}>
+                        <div style={{ width: RES_W, flexShrink: 0, height: ROW_H, borderRight: `1px solid ${theme.border}`, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", background: type === "room" ? theme.roomSoft : theme.carSoft }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: typeColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
+                            <div style={{ fontSize: 10, color: theme.textMute, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {type === "room" && [r.location && `Floor ${r.location}`, r.capacity && `${r.capacity} seats`].filter(Boolean).join(" · ")}
+                                {type === "car" && [r.plate_number, r.driver?.name].filter(Boolean).join(" · ")}
+                            </div>
+                        </div>
+                        <TimelineCell rBk={rBk} rowIdx={idx} />
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
+
 
 // ─────────────────────────────────────────────────────────────────
 // Booking Modal — 3 steps, premium UI, TimePicker
@@ -639,7 +595,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                                                     }
                                                 </div>
                                                 <div style={{ fontSize: 11, color: theme.textSoft, marginTop: 4, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                                                    {r.location && <span>Floor {r.location}</span>}
+                                                    {r.location && <span>📍 {r.location}</span>}
                                                     {r.capacity && <span>👥 {r.capacity} {isCar ? "passengers" : "seats"}</span>}
                                                     {isCar && r.driver && <span>🧑‍✈️ {r.driver.name}</span>}
                                                     {isCar && r.plate_number && <span style={{ fontFamily: "monospace" }}>{r.plate_number}</span>}
@@ -744,7 +700,10 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
         <Modal onClose={onClose} theme={theme}
             title={isEdit ? `Edit ${resource.type === "car" ? "Car" : "Room"}` : "Register New Resource"}
             subtitle="Resource Management" icon={form.type === "car" ? "🚗" : "🏢"}
-            grad="linear-gradient(135deg,#0f172a,#1e1b4b)">
+            grad={form.type === "car"
+                ? "linear-gradient(135deg,#92400e,#d97706)"
+                : "linear-gradient(135deg,#3730a3,#6366f1)"
+            }>
 
             {!isEdit && (
                 <div style={{ display: "flex", gap: 8, marginBottom: 22, padding: 4, background: theme.surfaceSoft, borderRadius: 14, border: `1px solid ${theme.border}` }}>
@@ -1075,34 +1034,73 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
     const [calBookings, setCalBookings]   = useState([]);
     const [calLoading, setCalLoading]     = useState(false);
     const [tab, setTab]                   = useState("calendar");
+    const [myType, setMyType]             = useState("room");
     const [bookingModal, setBookingModal] = useState(null);
     const [resourceModal, setResourceModal] = useState(false);
     const [rejectModal, setRejectModal]   = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null); // booking to cancel
 
-    const fetchCalRef = useRef(null);
-    const fetchCal = useCallback(async (type, date) => {
-        const t = type || calType;
-        const d = date || toISO(calDate);
+    const latestCalRequest = useRef(0);
+
+    const fetchCalDirect = useCallback(async (t, d) => {
+        const requestId = ++latestCalRequest.current;
+
         setCalLoading(true);
+        setCalBookings([]);
+
         try {
-            const r = await fetch(`/bookings/calendar?type=${t}&date=${d}`, { headers: { "X-Requested-With": "XMLHttpRequest" } });
-            const data = await r.json();
-            setCalBookings(data.bookings || []);
-        } catch {}
-        setCalLoading(false);
-    }, [calType, calDate]);
-    fetchCalRef.current = fetchCal;
+            const params = new URLSearchParams({
+                type: t,
+                date: d,
+                _: String(Date.now()),
+            });
 
-    useEffect(() => { if (tab === "calendar") fetchCal(); }, [calType, calDate, tab]);
+            const res = await fetch(`/bookings/calendar?${params.toString()}`, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Accept": "application/json",
+                    "Cache-Control": "no-cache",
+                },
+                cache: "no-store",
+            });
 
-    // After booking success → auto switch calendar to booked type+date + re-fetch
+            const data = await res.json();
+
+            // Latest request ပဲ UI ကို update လုပ်ခွင့်ရှိမယ်။
+            // April 30 request က May 1 request ထက်နောက်မှပြန်လာရင် ignore လုပ်မယ်။
+            if (requestId === latestCalRequest.current) {
+                setCalBookings(data.bookings || []);
+            }
+        } catch {
+            if (requestId === latestCalRequest.current) {
+                setCalBookings([]);
+            }
+        } finally {
+            if (requestId === latestCalRequest.current) {
+                setCalLoading(false);
+            }
+        }
+    }, []);
+
+    // Fetch when tab/type/date changes (normal navigation)
+    useEffect(() => {
+        if (tab === "calendar") {
+            fetchCalDirect(calType, toISO(calDate));
+        }
+    }, [calType, calDate, tab, fetchCalDirect]);
+
+    // After booking success:
+    // 1. Switch to correct calendar (type + date from the booking form)
+    // 2. Fetch with explicit args — no state dependency, always correct
     const handleBookingSuccess = useCallback(({ type: bType, date: bDate }) => {
+        const targetDate = bDate;
+
         setTab("calendar");
         setCalType(bType);
-        try { setCalDate(new Date(bDate + "T00:00:00")); } catch {}
-        setTimeout(() => fetchCalRef.current(bType, bDate), 300);
-    }, []);
+        setCalDate(new Date(`${targetDate}T00:00:00`));
+
+        fetchCalDirect(bType, targetDate);
+    }, [fetchCalDirect]);
 
     const markReturned = id => router.patch(`/bookings/${id}/returned`, {}, {
         preserveScroll: true,
@@ -1111,6 +1109,10 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
 
     const rooms = resources.filter(r => r.type === "room");
     const cars  = resources.filter(r => r.type === "car");
+    const filteredMyBookings = myBookings.filter(b => b.resource?.type === myType);
+    const myRoomCount = myBookings.filter(b => b.resource?.type === "room").length;
+    const myCarCount  = myBookings.filter(b => b.resource?.type === "car").length;
+
 
     const tabBtn = (t, label, active, badgeCount) => (
         <button onClick={() => setTab(t)} style={{
@@ -1154,7 +1156,6 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                         {isHR && stats && (
                             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                                 {[
-                                    { l: "Pending",  v: stats.pending_count, c: "#fbbf24" },
                                     { l: "Today",    v: stats.today_count,   c: "#34d399" },
                                     { l: "Rooms",    v: stats.room_count,    c: "#818cf8" },
                                     { l: "Cars",     v: stats.car_count,     c: "#fb923c" },
@@ -1190,9 +1191,9 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                 {tab === "calendar" && (
                     <div style={{ background: theme.surface, borderRadius: 20, border: `1px solid ${theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm }}>
                         {/* Calendar controls */}
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: `1px solid ${theme.border}`, flexWrap: "wrap", gap: 12 }}>
-                            {/* Room/Car switch */}
-                            <div style={{ display: "flex", gap: 4, background: theme.surfaceSoft, padding: 4, borderRadius: 12, border: `1px solid ${theme.border}` }}>
+                        <div style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${theme.border}`, gap: 12 }}>
+                            {/* Left: Room/Car switch */}
+                            <div style={{ display: "flex", gap: 4, background: theme.surfaceSoft, padding: 4, borderRadius: 12, border: `1px solid ${theme.border}`, flexShrink: 0 }}>
                                 {[{ v: "room", l: "🏢 Rooms", c: theme.primary }, { v: "car", l: "🚗 Cars", c: theme.carColor }].map(t => (
                                     <button key={t.v} onClick={() => setCalType(t.v)} style={{
                                         padding: "7px 18px", borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: "pointer",
@@ -1203,10 +1204,10 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                                 ))}
                             </div>
 
-                            {/* Date nav */}
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            {/* Center: Date nav */}
+                            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                                 <button onClick={() => setCalDate(d => addDays(d, -1))} style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.text, cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
-                                <div style={{ textAlign: "center", minWidth: 175 }}>
+                                <div style={{ textAlign: "center", minWidth: 200 }}>
                                     <div style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{fmtDate(calDate)}</div>
                                     {toISO(calDate) === toISO(new Date()) && <div style={{ fontSize: 10, color: theme.primary, fontWeight: 700, letterSpacing: ".05em" }}>TODAY</div>}
                                 </div>
@@ -1214,21 +1215,21 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                                 <button onClick={() => setCalDate(new Date())} style={{ padding: "7px 12px", borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Today</button>
                             </div>
 
-                            {/* Legend */}
-                            <div style={{ display: "flex", gap: 14, fontSize: 11, color: theme.textMute, alignItems: "center" }}>
-                                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                    <span style={{ width: 12, height: 3, borderRadius: 2, background: calType === "room" ? theme.primary : theme.carColor, display: "inline-block" }} /> Approved
-                                </span>
-                                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                    <span style={{ width: 12, height: 3, borderRadius: 2, borderTop: `2px dashed ${theme.warning}`, display: "inline-block" }} /> Pending
-                                </span>
-                            </div>
+                            {/* Right: spacer to balance left side */}
+                            <div style={{ flexShrink: 0, width: 160 }} />
                         </div>
 
                         <div style={{ padding: "16px 20px" }}>
                             {calLoading
                                 ? <div style={{ textAlign: "center", padding: "80px", color: theme.textMute, fontSize: 13 }}>⏳ Loading schedule…</div>
-                                : <TimeCalendar bookings={calBookings} resources={resources} type={calType} theme={theme} dark={dark} />
+                                :   <TimeCalendar
+                                        key={`${calType}-${toISO(calDate)}`}
+                                        bookings={calBookings}
+                                        resources={resources}
+                                        type={calType}
+                                        theme={theme}
+                                        dark={dark}
+                                    />
                             }
                         </div>
                     </div>
@@ -1252,14 +1253,74 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                 {/* ── My Bookings Tab ── */}
                 {tab === "mine" && (
                     <div style={{ background: theme.surface, borderRadius: 20, border: `1px solid ${theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm }}>
-                        {myBookings.length === 0 ? (
+
+                        <div style={{
+                            display: "flex",
+                            gap: 6,
+                            padding: "14px 16px",
+                            borderBottom: `1px solid ${theme.border}`,
+                            background: theme.surfaceSoft,
+                        }}>
+                            {[
+                                { v: "room", l: "🏢 My Room Booking", count: myRoomCount, c: theme.primary },
+                                { v: "car",  l: "🚗 My Car Booking",  count: myCarCount,  c: theme.carColor },
+                            ].map(t => (
+                                <button
+                                    key={t.v}
+                                    onClick={() => setMyType(t.v)}
+                                    style={{
+                                        padding: "8px 16px",
+                                        borderRadius: 10,
+                                        border: "none",
+                                        cursor: "pointer",
+                                        fontFamily: "inherit",
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        background: myType === t.v ? t.c : theme.surface,
+                                        color: myType === t.v ? "#fff" : theme.textSoft,
+                                        boxShadow: myType === t.v ? `0 2px 10px ${t.c}35` : "none",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 6,
+                                    }}
+                                >
+                                    {t.l}
+                                    <span style={{
+                                        fontSize: 10,
+                                        fontWeight: 800,
+                                        padding: "1px 7px",
+                                        borderRadius: 10,
+                                        background: myType === t.v ? "rgba(255,255,255,0.25)" : theme.surfaceSofter,
+                                        color: myType === t.v ? "#fff" : theme.textMute,
+                                    }}>
+                                        {t.count}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+
+                        {filteredMyBookings.length === 0 ? (
                             <div style={{ textAlign: "center", padding: "60px", color: theme.textMute, fontSize: 13 }}>
-                                <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
-                                <div style={{ fontWeight: 600 }}>No upcoming bookings</div>
-                                <div style={{ fontSize: 12, marginTop: 4 }}>Click "Book Room" or "Book Car" to get started.</div>
+                                <div style={{ fontSize: 32, marginBottom: 12 }}>{myType === "room" ? "🏢" : "🚗"}</div>
+                                <div style={{ fontWeight: 600 }}>
+                                    No upcoming {myType === "room" ? "room" : "car"} bookings
+                                </div>
+                                <div style={{ fontSize: 12, marginTop: 4 }}>
+                                    Click "{myType === "room" ? "Book Room" : "Book Car"}" to get started.
+                                </div>
                             </div>
-                        ) : myBookings.map((b, i) => (
-                            <BookingRow key={b.id} booking={b} isHR={false} theme={theme} dark={dark} onReject={() => {}} onMarkReturned={() => {}} onDelete={setDeleteConfirm} isLast={i === myBookings.length - 1} />
+                        ) : filteredMyBookings.map((b, i) => (
+                            <BookingRow
+                                key={b.id}
+                                booking={b}
+                                isHR={false}
+                                theme={theme}
+                                dark={dark}
+                                onReject={() => {}}
+                                onMarkReturned={() => {}}
+                                onDelete={setDeleteConfirm}
+                                isLast={i === filteredMyBookings.length - 1}
+                            />
                         ))}
                     </div>
                 )}

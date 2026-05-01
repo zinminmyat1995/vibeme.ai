@@ -43,10 +43,18 @@ class ResourceBookingController extends Controller
             ->get()->map(fn($b) => $this->formatBooking($b));
 
         $stats = $isHR ? [
-            'pending_count' => ResourceBooking::whereHas('resource', fn($q) => $q->where('country_id', $countryId))->where('status', 'pending')->count(),
             'today_count'   => ResourceBooking::whereHas('resource', fn($q) => $q->where('country_id', $countryId))->whereDate('booking_date', today())->where('status', 'approved')->count(),
-            'room_count'    => BookableResource::where('country_id', $countryId)->where('type', 'room')->where('is_active', true)->count(),
-            'car_count'     => BookableResource::where('country_id', $countryId)->where('type', 'car')->where('is_active', true)->count(),
+            'room_count' => ResourceBooking::whereHas('resource', fn($q) =>
+                            $q->where('country_id', $countryId)->where('type', 'room')
+                                )->whereDate('booking_date', today())
+                                ->where('status', 'approved')
+                                ->count(),
+
+            'car_count' => ResourceBooking::whereHas('resource', fn($q) =>
+                            $q->where('country_id', $countryId)->where('type', 'car')
+                                )->whereDate('booking_date', today())
+                                ->where('status', 'approved')
+                                ->count(),
         ] : null;
 
         $users = $isHR
@@ -128,9 +136,54 @@ class ResourceBookingController extends Controller
             $isOpenEndedOut = false;
 
             // Car — open-ended active?
-            if ($r->isCar() && $r->hasOpenEndedBooking()) {
-                $isAvailable    = false;
-                $isOpenEndedOut = true;
+            if ($r->isCar()) {
+                $requestedEnd = $request->end_time ?: '23:59';
+
+                $openEndedConflict = ResourceBooking::where('resource_id', $r->id)
+                    ->whereDate('booking_date', $request->date)
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->whereNull('end_time')
+                    ->where('start_time', '<', $requestedEnd)
+                    ->exists();
+
+                if ($openEndedConflict) {
+                    $isAvailable = false;
+                    $isOpenEndedOut = true;
+                } elseif (!$request->end_time) {
+                    $futureOrOverlapBooking = ResourceBooking::where('resource_id', $r->id)
+                        ->whereDate('booking_date', $request->date)
+                        ->whereIn('status', ['approved', 'pending'])
+                        ->where(function ($q) use ($request) {
+                            $q->whereNull('end_time')
+                            ->orWhere('end_time', '>', $request->start_time);
+                        })
+                        ->exists();
+
+                    if ($futureOrOverlapBooking) {
+                        $isAvailable = false;
+                    }
+                } else {
+                    $hasConflict = $r->hasConflict($request->date, $request->start_time, $request->end_time);
+
+                    if ($hasConflict) {
+                        $isAvailable = false;
+
+                        $lastConflict = ResourceBooking::where('resource_id', $r->id)
+                            ->whereDate('booking_date', $request->date)
+                            ->whereIn('status', ['approved', 'pending'])
+                            ->where('start_time', '<', $request->end_time)
+                            ->where(function ($q) use ($request) {
+                                $q->whereNull('end_time')
+                                ->orWhere('end_time', '>', $request->start_time);
+                            })
+                            ->orderByRaw('COALESCE(end_time, "23:59") desc')
+                            ->first();
+
+                        $availableFrom = $lastConflict && $lastConflict->end_time
+                            ? substr($lastConflict->end_time, 0, 5)
+                            : null;
+                    }
+                }
             } elseif ($request->end_time) {
                 $hasConflict = $r->hasConflict($request->date, $request->start_time, $request->end_time);
                 if ($hasConflict) {
@@ -223,14 +276,27 @@ class ResourceBookingController extends Controller
         $isOpenEnded = $resource->isCar() && ($validated['is_open_ended'] ?? false);
 
         // Car — open-ended active booking exists → waitlist
-        if ($resource->isCar() && $resource->hasOpenEndedBooking()) {
-            ResourceBooking::create([
-                ...$validated,
-                'user_id'       => $user->id,
-                'is_open_ended' => $isOpenEnded,
-                'status'        => 'waitlisted',
-            ]);
-            return back()->with('success', 'Added to waitlist. You will be notified when the car is available.');
+        if ($resource->isCar()) {
+
+            $requestedEnd = $validated['end_time'] ?? '23:59';
+
+            $openEndedConflict = ResourceBooking::where('resource_id', $resource->id)
+                ->whereDate('booking_date', $validated['booking_date'])
+                ->whereIn('status', ['approved', 'pending'])
+                ->whereNull('end_time')
+                ->where('start_time', '<', $requestedEnd)
+                ->exists();
+
+            if ($openEndedConflict) {
+                ResourceBooking::create([
+                    ...$validated,
+                    'user_id'       => $user->id,
+                    'is_open_ended' => $isOpenEnded,
+                    'status'        => 'waitlisted',
+                ]);
+
+                return back()->with('success', 'Added to waitlist. Car is occupied during requested time.');
+            }
         }
 
         // Car with end_time — conflict check with existing bookings
