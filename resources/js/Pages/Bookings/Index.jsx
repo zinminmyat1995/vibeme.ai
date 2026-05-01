@@ -465,7 +465,13 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                 setSubmitting(false);
                 setErrors(errs);
                 if (errs.time) setStep(1);
-                toast(errs.time || "Failed to submit. Please try again.", "error");
+                if (errs.resource_id) {
+                    setStep(2);
+                    setSelected(null);
+                    toast(errs.resource_id, "error");
+                } else {
+                    toast(errs.time || "Failed to submit. Please try again.", "error");
+                }
             },
         });
     };
@@ -575,6 +581,11 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                         {!isCar && capacity ? ` · 👥 ${capacity} attendees` : ""}
                     </div>
 
+                    {errors.resource_id && (
+                        <div style={{ padding:"10px 14px", borderRadius:10, background:theme.dangerSoft, border:`1px solid ${theme.danger}40`, fontSize:12, color:theme.danger, marginBottom:12 }}>
+                            ⚠️ {errors.resource_id}
+                        </div>
+                    )}
                     {loading ? (
                         <div style={{ textAlign: "center", padding: "48px", color: theme.textMute, fontSize: 13 }}>⏳ Checking availability…</div>
                     ) : (
@@ -599,7 +610,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                                                     }
                                                 </div>
                                                 <div style={{ fontSize: 11, color: theme.textSoft, marginTop: 4, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                                                    {r.location && <span>📍 {r.location}</span>}
+                                                    {r.location && <span>Floor {r.location}</span>}
                                                     {r.capacity && <span>👥 {r.capacity} {isCar ? "passengers" : "seats"}</span>}
                                                     {isCar && r.driver && <span>🧑‍✈️ {r.driver.name}</span>}
                                                     {isCar && r.plate_number && <span style={{ fontFamily: "monospace" }}>{r.plate_number}</span>}
@@ -995,6 +1006,31 @@ function DeleteConfirmModal({ booking, onClose, theme, dark }) {
     );
 }
 
+
+function ActionGlyph({ type, color }) {
+    if (type === 'edit') {
+        return (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+            </svg>
+        );
+    }
+
+    if (type === 'delete') {
+        return (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+        );
+    }
+
+    return null;
+}
 // ─────────────────────────────────────────────────────────────────
 // Resource Card (Manage tab)
 // ─────────────────────────────────────────────────────────────────
@@ -1028,10 +1064,10 @@ function ResourceCard({ resource: r, onEdit, onDelete, theme, dark }) {
                     <div style={{ display:"flex", gap:6 }}>
                         <button onClick={() => onEdit(r)} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${theme.border}`, background: "transparent", color: theme.textMute, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, transition: "all .15s", flexShrink: 0 }}
                             onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.color = color; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textMute; }}>✏️</button>
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textMute; }}><ActionGlyph type="edit" color={theme.textSoft} /></button>
                         <button onClick={() => onDelete(r)} style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${theme.border}`, background: "transparent", color: theme.textMute, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, transition: "all .15s", flexShrink: 0 }}
                             onMouseEnter={e => { e.currentTarget.style.borderColor = theme.danger; e.currentTarget.style.color = theme.danger; e.currentTarget.style.background = theme.dangerSoft; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textMute; e.currentTarget.style.background = "transparent"; }}>🗑️</button>
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textMute; e.currentTarget.style.background = "transparent"; }}><ActionGlyph type="delete" color={theme.danger} /></button>
                     </div>
                 </div>
 
@@ -1122,10 +1158,7 @@ function BookingDetailModal({ bookingId, onClose, theme, dark }) {
                         <div style={{ borderTop:`1px solid ${theme.border}`, paddingTop:16 }}>
                             <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>Organizer</div>
                             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                {data.organizer?.avatar_url
-                                    ? <img src={data.organizer.avatar_url} style={{ width:34, height:34, borderRadius:'50%', objectFit:'cover' }}/>
-                                    : <div style={{ width:34, height:34, borderRadius:'50%', background:typeColor, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:13, fontWeight:800 }}>{data.organizer?.name?.[0]}</div>
-                                }
+                                <SmartAvatar name={data.organizer?.name} url={data.organizer?.avatar_url} size={34} theme={theme} />
                                 <span style={{ fontSize:14, fontWeight:700, color:theme.text }}>{data.organizer?.name}</span>
                             </div>
                         </div>
@@ -1445,7 +1478,7 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
 // ─────────────────────────────────────────────────────────────────
 // Main Page
 // ─────────────────────────────────────────────────────────────────
-export default function BookingsIndex({ resources, pendingBookings, myBookings, myInvitations, stats, isHR, users }) {
+export default function BookingsIndex({ resources, allResources, pendingBookings, myBookings, myInvitations, stats, isHR, users }) {
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -1532,6 +1565,9 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
 
     const rooms = resources.filter(r => r.type === "room");
     const cars  = resources.filter(r => r.type === "car");
+    const allRooms = (allResources || []).filter(r => r.type === "room");
+    const allCars  = (allResources || []).filter(r => r.type === "car");
+    
     const filteredMyBookings = myBookings.filter(b =>
         b.resource?.type === myType &&
         b.booking_date === toISO(calDate)
@@ -1810,13 +1846,13 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                         <div style={{ marginBottom: 24 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                                 <div style={{ height: 1, flex: 1, background: theme.border }} />
-                                <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em", whiteSpace: "nowrap" }}>🏢 Meeting Rooms ({rooms.length})</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em", whiteSpace: "nowrap" }}>🏢 Meeting Rooms ({allRooms.length})</span>
                                 <div style={{ height: 1, flex: 1, background: theme.border }} />
                             </div>
-                            {rooms.length === 0
+                            {allRooms.length === 0
                                 ? <div style={{ background: theme.surface, borderRadius: 14, border: `2px dashed ${theme.border}`, padding: "28px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>No meeting rooms yet — click <strong>+ Register Resource</strong> to add one</div>
                                 : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
-                                    {rooms.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} />)}
+                                    {allRooms.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} />)}
                                 </div>
                             }
                         </div>
@@ -1825,13 +1861,13 @@ export default function BookingsIndex({ resources, pendingBookings, myBookings, 
                         <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                                 <div style={{ height: 1, flex: 1, background: theme.border }} />
-                                <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em", whiteSpace: "nowrap" }}>🚗 Company Cars ({cars.length})</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em", whiteSpace: "nowrap" }}>🚗 Company Cars ({allCars.length})</span>
                                 <div style={{ height: 1, flex: 1, background: theme.border }} />
                             </div>
-                            {cars.length === 0
+                            {allCars.length === 0
                                 ? <div style={{ background: theme.surface, borderRadius: 14, border: `2px dashed ${theme.border}`, padding: "28px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>No cars yet — click <strong>+ Register Resource</strong> to add one</div>
                                 : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
-                                    {cars.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} />)}
+                                    {allCars.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} />)}
                                 </div>
                             }
                         </div>

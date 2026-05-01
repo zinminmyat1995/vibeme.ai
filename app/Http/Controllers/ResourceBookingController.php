@@ -23,7 +23,15 @@ class ResourceBookingController extends Controller
         $countryId = $user->country_id;
         $isHR      = $user->hasAnyRole(['hr', 'admin']);
 
+        // Calendar + Booking modal — active only
         $resources = BookableResource::with(['driver:id,name,avatar_url'])
+            ->where('country_id', $countryId)
+            ->where('is_active', true)
+            ->orderBy('type')->orderBy('name')
+            ->get()->map(fn($r) => $this->formatResource($r));
+
+        // Manage tab — active + inactive အကုန်
+        $allResources = BookableResource::with(['driver:id,name,avatar_url'])
             ->where('country_id', $countryId)
             ->orderBy('type')->orderBy('name')
             ->get()->map(fn($r) => $this->formatResource($r));
@@ -69,6 +77,7 @@ class ResourceBookingController extends Controller
 
         return Inertia::render('Bookings/Index', [
             'resources'       => $resources,
+            'allResources'    => $allResources,
             'pendingBookings' => $pendingBookings,
             'myBookings'      => $myBookings,
             'myInvitations'   => $myInvitations,
@@ -283,6 +292,12 @@ class ResourceBookingController extends Controller
         $user        = Auth::user();
         $resource    = BookableResource::findOrFail($validated['resource_id']);
         $isOpenEnded = $resource->isCar() && ($validated['is_open_ended'] ?? false);
+        if (!$resource->is_active) {
+            return back()->withErrors([
+                'resource_id' => 'This resource is no longer available. It may have been deactivated.'
+            ]);
+        }
+
         $attendeeIds = collect($validated['attendee_ids'] ?? [])
                         ->filter(fn($id) => $id != $user->id)
                         ->unique()
