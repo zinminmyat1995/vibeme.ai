@@ -20,6 +20,12 @@ class ResourceBooking extends Model
         'reject_reason',
         'approved_by',
         'approved_at',
+        // ── အသစ် ──
+        'trip_type',
+        'pickup_location',
+        'driver_status',
+        'driver_note',
+        'has_return', 'return_time',
     ];
 
     protected $casts = [
@@ -28,6 +34,12 @@ class ResourceBooking extends Model
         'returned_at'   => 'datetime',
         'approved_at'   => 'datetime',
     ];
+
+    // relation ထပ်ထည့် (attendees() အောက်မှာ)
+    public function stops(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(BookingStop::class, 'booking_id')->orderBy('order');
+    }
 
     // ── Relations ──────────────────────────
 

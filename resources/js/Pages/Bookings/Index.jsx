@@ -325,7 +325,10 @@ function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick }
 
     const pct = (min) => `${Math.max(0, Math.min(100, (min / TOTAL_MINS) * 100))}%`;
 
-    const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => (
+const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => {
+    const [tooltip, setTooltip] = useState(null);
+
+    return (
         <div style={{ flex: 1, minWidth: MIN_TL_W, position: "relative", height: ROW_H, overflow: "hidden", background: rowIdx % 2 === 0 ? "transparent" : theme.surfaceSoft }}>
             {timeMarks.map(h => h > 0 && (
                 <div key={h} style={{ position: "absolute", left: `${(h / 24) * 100}%`, top: 0, bottom: 0, width: 1, background: h % 6 === 0 ? theme.border : theme.calLine }} />
@@ -345,15 +348,64 @@ function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick }
                 return (
                     <div key={b.id}
                         onClick={() => onBookingClick && onBookingClick(b.id)}
-                        title={[b.user?.name, `${b.start_time}${b.end_time ? `–${b.end_time}` : "→"}`, b.purpose && `Reason: ${b.purpose}`].filter(Boolean).join(" · ")}
-                        style={{ position: "absolute", left, width, top: 5, bottom: 5, borderRadius: 7, background: isApp ? `${color}22` : `${color}0e`, border: `1.5px ${isApp ? "solid" : "dashed"} ${color}`, borderLeft: `3px solid ${color}`, padding: "3px 7px", overflow: "hidden", cursor: "default", minWidth: 4 }}>
+                        onMouseEnter={e => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const tooltipW = 220;
+                            let left = rect.left + rect.width / 2 - tooltipW / 2;
+                            if (left < 8) left = 8;
+                            if (left + tooltipW > window.innerWidth - 8) left = window.innerWidth - tooltipW - 8;
+                            let top = rect.top - 8;
+                            // enough space above?
+                            if (top - 70 < 8) top = rect.bottom + 8;
+                            else top = rect.top - 70;
+                            setTooltip({ b, x: left, y: top });
+                        }}
+                        onMouseLeave={() => setTooltip(null)}
+                        style={{ position: "absolute", left, width, top: 5, bottom: 5, borderRadius: 7, background: isApp ? `${color}22` : `${color}0e`, border: `1.5px ${isApp ? "solid" : "dashed"} ${color}`, borderLeft: `3px solid ${color}`, padding: "3px 7px", overflow: "hidden", cursor: "pointer", minWidth: 4 }}>
                         <div style={{ fontSize: 10, fontWeight: 700, color, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.user?.name || "—"}</div>
                         <div style={{ fontSize: 9, color: theme.textMute, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.start_time}{b.end_time ? `–${b.end_time}` : "→"}</div>
                     </div>
                 );
             })}
+
+            {/* Custom Tooltip Portal */}
+            {tooltip && typeof document !== 'undefined' && ReactDOM.createPortal(
+                <div style={{
+                    position: 'fixed',
+                    top: tooltip.y,
+                    left: tooltip.x,
+                    zIndex: 99999,
+                    background: dark ? '#1e2d4a' : '#1e293b',
+                    color: '#fff',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    width: 220,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                    pointerEvents: 'none',
+                    lineHeight: 1.6,
+                }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, color: '#fff' }}>
+                        {tooltip.b.user?.name || '—'}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 6 }}>
+                        ⏰ {tooltip.b.start_time}{tooltip.b.end_time ? `–${tooltip.b.end_time}` : ' → open-ended'}
+                    </div>
+                    {tooltip.b.purpose && (
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 6 }}>
+                            📝 {tooltip.b.purpose}
+                        </div>
+                    )}
+                    <div style={{ fontSize: 10, marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 10, background: tooltip.b.status === 'approved' ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)', color: tooltip.b.status === 'approved' ? '#34d399' : '#fbbf24', fontWeight: 700 }}>
+                        {tooltip.b.status === 'approved' ? '✓ Approved' : '⏳ Pending'}
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
+};
 
     return (
         <div style={{ border: `1px solid ${theme.border}`, borderRadius: 14, overflow: "hidden" }}>
@@ -425,6 +477,11 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
     const [submitting, setSubmitting] = useState(false);
     const [attendees, setAttendees]   = useState([]);
 
+    const [tripType, setTripType]         = useState('one_way');
+    const [pickupLocation, setPickup]     = useState('');
+    const [stops, setStops]               = useState([{ location: '', arrival_time: '' }]);
+    const [returnTime, setReturnTime]     = useState('');
+
     const fetchResources = useCallback(async () => {
         setLoading(true);
         const p = new URLSearchParams({ type, date, start_time: startTime });
@@ -444,6 +501,28 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
         const e = {};
         if (!purpose.trim()) e.purpose = "Please describe the purpose";
         if (!selected) e.resource = "Please select a resource";
+
+        // Car trip validation
+        if (isCar) {
+            if (!pickupLocation.trim()) {
+                e.pickup_location = tripType === 'pickup'
+                    ? "Pickup point is required"
+                    : "Departure location is required";
+            }
+
+            if (tripType === 'one_way' || tripType === 'pickup') {
+                if (!stops[0]?.location?.trim()) {
+                    e.destination = "Destination is required";
+                }
+            }
+
+            if (tripType === 'multi_stop') {
+                const hasEmptyStop = stops.some(s => !s.location.trim());
+                if (hasEmptyStop) e.stops = "All stop locations are required";
+                if (stops.length === 0) e.stops = "At least one stop is required";
+            }
+        }
+
         if (Object.keys(e).length) { setErrors(e); return; }
         setSubmitting(true);
         router.post("/bookings", {
@@ -454,6 +533,11 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
             purpose,
             is_open_ended: isOpenEnded,
             attendee_ids:  attendees.map(a => a.id),   // ← ဒါထည့်
+            trip_type:       isCar ? tripType : null,
+            pickup_location: isCar ? pickupLocation : null,
+            stops:           isCar ? stops.filter(s => s.location.trim()) : [],
+            return_time:     isCar && returnTime && returnTime !== '__return__' ? returnTime : null,
+            has_return:      isCar && !!returnTime,
         }, {
             preserveScroll: true,
             onSuccess: () => {
@@ -646,7 +730,155 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                             </div>
                         </div>
                     </div>
+                    {/* ── Car Trip Details ── */}
+                    {isCar && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '16px', borderRadius: 14, border: `1px solid ${theme.warning}30` }}>
 
+                            {/* Trip Type */}
+                            <div>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: theme.textSoft, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Trip Type</div>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    {[
+                                        { value: 'one_way',   label: '→ One Way',     desc: 'A to B, no return' },
+                                        { value: 'multi_stop', label: '⤳ Multi Stop', desc: 'Multiple destinations' },
+                                        { value: 'pickup',    label: '📍 Pickup / Drop', desc: 'Driver picks up or drops off' },
+                                    ].map(opt => (
+                                        <button key={opt.value} type="button"
+                                            onClick={() => {
+                                                setTripType(opt.value);
+                                                setStops([{ location: '', arrival_time: '' }]);
+                                                setReturnTime('');
+                                                setErrors({});
+                                            }}
+                                            style={{
+                                                flex: 1, padding: '10px 8px', borderRadius: 10, textAlign: 'center',
+                                                cursor: 'pointer',
+                                                border: `1.5px solid ${tripType === opt.value ? theme.carColor : theme.border}`,
+                                                background: tripType === opt.value ? theme.carSoft : theme.surface,
+                                                transition: 'all 0.12s', fontFamily: 'inherit',
+                                            }}>
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: tripType === opt.value ? theme.carColor : theme.text }}>{opt.label}</div>
+                                            <div style={{ fontSize: 10, color: theme.textMute, marginTop: 2 }}>{opt.desc}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* ── One Way ── */}
+                            {tripType === 'one_way' && (
+                                <>
+                                    <div>
+                                        <Lbl theme={theme}>📍 Departure Location</Lbl>
+                                        <Inp value={pickupLocation}
+                                            onChange={e => { setPickup(e.target.value); setErrors(p => ({...p, pickup_location: ''})); }}
+                                            placeholder="e.g. Office Lobby, Building A" theme={theme} error={!!errors.pickup_location} />
+                                        {errors.pickup_location && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.pickup_location}</p>}
+                                    </div>
+                                    <div>
+                                        <Lbl theme={theme}>🏁 Destination</Lbl>
+                                        <Inp value={stops[0]?.location || ''}
+                                            onChange={e => { setStops([{ location: e.target.value, arrival_time: '' }]); setErrors(p => ({...p, destination: ''})); }}
+                                            placeholder="e.g. Airport, Hotel" theme={theme} error={!!errors.destination} />
+                                        {errors.destination && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.destination}</p>}
+                                    </div>
+                                </>
+                            )}
+
+                            {/* ── Multi Stop ── */}
+                            {tripType === 'multi_stop' && (
+                                <>
+                                    <div>
+                                        <Lbl theme={theme}>📍 Departure Location</Lbl>
+                                        <Inp value={pickupLocation}
+                                            onChange={e => { setPickup(e.target.value); setErrors(p => ({...p, pickup_location: ''})); }}
+                                            placeholder="e.g. Office Lobby" theme={theme} error={!!errors.pickup_location} />
+                                        {errors.pickup_location && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.pickup_location}</p>}
+                                    </div>
+
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                                            <Lbl theme={theme}>Stops</Lbl>
+                                            <button type="button"
+                                                onClick={() => setStops(p => [...p, { location: '', arrival_time: '' }])}
+                                                style={{ fontSize: 11, fontWeight: 700, color: theme.carColor, background: theme.carSoft, border: 'none', borderRadius: 8, padding: '4px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                                                + Add Stop
+                                            </button>
+                                        </div>
+                                        {stops.map((stop, i) => (
+                                            <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                                                <div style={{ width: 24, height: 24, borderRadius: '50%', background: theme.carSoft, color: theme.carColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+                                                <input value={stop.location}
+                                                    onChange={e => setStops(p => p.map((s, idx) => idx === i ? { ...s, location: e.target.value } : s))}
+                                                    placeholder={`Stop ${i + 1} location`}
+                                                    style={{ flex: 1, padding: '9px 12px', borderRadius: 10, border: `1px solid ${theme.inputBorder}`, background: theme.inputBg, color: theme.text, fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
+                                                {stops.length > 1 && (
+                                                    <button type="button"
+                                                        onClick={() => setStops(p => p.filter((_, idx) => idx !== i))}
+                                                        style={{ background: 'none', border: 'none', color: theme.danger, cursor: 'pointer', fontSize: 18, padding: '0 4px', lineHeight: 1 }}>×</button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        {errors.stops && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.stops}</p>}
+                                    </div>
+
+                                    {/* Return toggle */}
+                                    <div style={{ padding: '12px 14px', borderRadius: 12, background: theme.surface, border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                                        <div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>↩ Return to departure</div>
+                                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>Driver returns to starting point after last stop</div>
+                                        </div>
+                                        <Toggle value={!!returnTime} onChange={v => setReturnTime(v ? '__return__' : '')} color={theme.carColor} />
+                                    </div>
+
+                                    {/* Return time picker */}
+                                    {returnTime && (
+                                        <div>
+                                            <Lbl theme={theme}>🔄 Return Time (estimated)</Lbl>
+                                            <TimePicker value={returnTime === '__return__' ? '' : returnTime}
+                                                onChange={v => setReturnTime(v)} theme={theme} dark={dark} />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* ── Pickup / Drop ── */}
+                            {tripType === 'pickup' && (
+                                <>
+                                    <div>
+                                        <Lbl theme={theme}>📍 Pickup / Departure Point</Lbl>
+                                        <Inp value={pickupLocation}
+                                            onChange={e => { setPickup(e.target.value); setErrors(p => ({...p, pickup_location: ''})); }}
+                                            placeholder="e.g. Home address, Hotel lobby" theme={theme} error={!!errors.pickup_location} />
+                                        {errors.pickup_location && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.pickup_location}</p>}
+                                    </div>
+                                    <div>
+                                        <Lbl theme={theme}>🏁 Destination</Lbl>
+                                        <Inp value={stops[0]?.location || ''}
+                                            onChange={e => { setStops([{ location: e.target.value, arrival_time: '' }]); setErrors(p => ({...p, destination: ''})); }}
+                                            placeholder="e.g. Office, Airport, Client site" theme={theme} error={!!errors.destination} />
+                                        {errors.destination && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.destination}</p>}
+                                    </div>
+
+                                    {/* Wait & Return toggle */}
+                                    <div style={{ padding: '12px 14px', borderRadius: 12, background: theme.surface, border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                                        <div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>↩ Driver waits & returns</div>
+                                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>Driver stays at destination and brings you back</div>
+                                        </div>
+                                        <Toggle value={!!returnTime} onChange={v => setReturnTime(v ? '__return__' : '')} color={theme.carColor} />
+                                    </div>
+
+                                    {returnTime && (
+                                        <div>
+                                            <Lbl theme={theme}>🔄 Expected Return Time</Lbl>
+                                            <TimePicker value={returnTime === '__return__' ? '' : returnTime}
+                                                onChange={v => setReturnTime(v)} theme={theme} dark={dark} />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    )}
                     {/* ── Attendees ── */}
                     <div>
                         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
@@ -682,7 +914,14 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
 
                     
                     <div style={{ display: "flex", gap: 10 }}>
-                        <button onClick={() => { setStep(2); setAttendees([]); }} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
+                        <button onClick={() => { 
+                            setStep(2); 
+                            setAttendees([]); 
+                            setTripType('one_way');
+                            setPickup('');
+                            setStops([{ location: '', arrival_time: '' }]);
+                            setReturnTime('');
+                        }} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
                         <button onClick={submit} disabled={submitting} style={{ flex: 2, padding: "12px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${typeColor},${typeColor}cc)`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 16px ${typeColor}40`, opacity: submitting ? 0.7 : 1, transition: "all .2s" }}>
                             {submitting ? "Confirming…" : selected?.is_open_ended_out ? "Join Waitlist" : "Confirm Booking"}
                         </button>
@@ -1117,68 +1356,124 @@ function BookingDetailModal({ bookingId, onClose, theme, dark }) {
     const typeColor = isCar ? theme.carColor : theme.primary;
     const typeEmoji = isCar ? '🚗' : '🏢';
 
-    return (
-        <div style={{ position:'fixed', inset:0, zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
-            <div onClick={onClose} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(4px)' }}/>
-            <div style={{ position:'relative', width:'100%', maxWidth:480, background:theme.surface, borderRadius:24, boxShadow:theme.shadow, border:`1px solid ${theme.border}`, overflow:'hidden' }}>
+    const statusCfgLocal = {
+        pending:   { label: 'Pending',   color: theme.warning,  bg: theme.warningSoft },
+        approved:  { label: 'Approved',  color: theme.success,  bg: theme.successSoft },
+        rejected:  { label: 'Rejected',  color: theme.danger,   bg: theme.dangerSoft },
+        cancelled: { label: 'Cancelled', color: theme.textMute, bg: theme.surfaceSoft },
+        waitlisted:{ label: 'Waitlisted',color: '#a78bfa',      bg: 'rgba(167,139,250,0.12)' },
+        completed: { label: 'Completed', color: theme.success,  bg: theme.successSoft },
+    };
+    const sc = statusCfgLocal[data?.status] || { label: data?.status, color: theme.textMute, bg: theme.surfaceSoft };
 
-                {/* Header */}
-                <div style={{ background:`linear-gradient(135deg,${typeColor},${typeColor}cc)`, padding:'20px 24px', display:'flex', alignItems:'center', gap:12 }}>
-                    <div style={{ width:44, height:44, borderRadius:14, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>{typeEmoji}</div>
-                    <div style={{ flex:1 }}>
-                        <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.7)', textTransform:'uppercase', letterSpacing:'.08em' }}>Booking Detail</div>
-                        <div style={{ fontSize:17, fontWeight:800, color:'#fff', marginTop:2 }}>{data?.resource?.name ?? '...'}</div>
+    const tripTypeLabel = {
+        one_way:    '→ One Way',
+        multi_stop: '⤳ Multi Stop',
+        pickup:     '📍 Pickup / Drop',
+    };
+
+    const Row = ({ label, value, danger }) => value ? (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '7px 0', borderBottom: `1px solid ${theme.border}` }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.06em', minWidth: 72, paddingTop: 2, flexShrink: 0 }}>{label}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: danger ? theme.danger : theme.text, flex: 1, lineHeight: 1.5 }}>{value}</span>
+        </div>
+    ) : null;
+
+    return (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)' }} />
+            <div style={{ position: 'relative', width: '100%', maxWidth: 440, background: theme.surface, borderRadius: 22, boxShadow: theme.shadow, border: `1px solid ${theme.borderStrong}`, overflow: 'hidden' }}>
+
+                {/* ── Header ── */}
+                <div style={{ background: `linear-gradient(135deg,${typeColor},${typeColor}cc)`, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 13, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{typeEmoji}</div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '.1em' }}>Booking Detail</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginTop: 2 }}>{data?.resource?.name ?? '…'}</div>
                     </div>
-                    <button onClick={onClose} style={{ width:32, height:32, borderRadius:10, border:'none', background:'rgba(255,255,255,0.2)', color:'#fff', cursor:'pointer', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+                    {data && (
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: 'rgba(255,255,255,0.2)', color: '#fff' }}>
+                            {sc.label}
+                        </span>
+                    )}
+                    <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 9, border: 'none', background: 'rgba(255,255,255,0.2)', color: '#fff', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
                 </div>
 
                 {loading ? (
-                    <div style={{ padding:48, textAlign:'center', color:theme.textMute }}>Loading…</div>
+                    <div style={{ padding: 48, textAlign: 'center', color: theme.textMute, fontSize: 13 }}>Loading…</div>
                 ) : !data ? (
-                    <div style={{ padding:48, textAlign:'center', color:theme.textMute }}>Failed to load.</div>
+                    <div style={{ padding: 48, textAlign: 'center', color: theme.textMute, fontSize: 13 }}>Failed to load.</div>
                 ) : (
-                    <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+                    <div style={{ padding: '16px 20px 20px', display: 'flex', flexDirection: 'column', gap: 14, maxHeight: '72vh', overflowY: 'auto', scrollbarWidth: 'none' }}>
 
-                        {/* Info rows */}
-                        {[
-                            { label:'Date',    value: data.date },
-                            { label:'Time',    value: data.end_time ? `${data.start_time} – ${data.end_time}` : `${data.start_time} – Open ended` },
-                            { label:'Purpose', value: data.purpose },
-                            !isCar && data.resource?.location && { label:'Floor',    value: `Floor ${data.resource.location}` },
-                            !isCar && data.resource?.capacity  && { label:'Capacity', value: `${data.resource.capacity} seats` },
-                            isCar  && data.resource?.plate_number && { label:'Plate', value: data.resource.plate_number },
-                        ].filter(Boolean).map(row => (
-                            <div key={row.label} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
-                                <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.07em', minWidth:70, paddingTop:2 }}>{row.label}</div>
-                                <div style={{ fontSize:14, fontWeight:600, color:theme.text, flex:1 }}>{row.value}</div>
-                            </div>
-                        ))}
-
-                        {/* Organizer */}
-                        <div style={{ borderTop:`1px solid ${theme.border}`, paddingTop:16 }}>
-                            <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>Organizer</div>
-                            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                <SmartAvatar name={data.organizer?.name} url={data.organizer?.avatar_url} size={34} theme={theme} />
-                                <span style={{ fontSize:14, fontWeight:700, color:theme.text }}>{data.organizer?.name}</span>
-                            </div>
+                        {/* ── Booking Info ── */}
+                        <div style={{ background: theme.surfaceSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.border}` }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>📋 Booking Info</div>
+                            <Row label="Date"    value={data.date || data.booking_date} />
+                            <Row label="Time"    value={data.end_time ? `${data.start_time} – ${data.end_time}` : `${data.start_time} (open-ended)`} />
+                            <Row label="Purpose" value={data.purpose} />
+                            {data.reject_reason && <Row label="Reason" value={data.reject_reason} danger />}
                         </div>
 
-                        {/* Attendees */}
-                        {data.attendees?.length > 0 && (
-                            <div>
-                                <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>
-                                    Attendees ({data.attendees.length})
-                                </div>
-                                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                                    {data.attendees.map(a => (
-                                        <div key={a.id} style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                            <SmartAvatar name={a.name} url={a.avatar_url} size={30} theme={theme} />
-                                            <span style={{ fontSize:13, fontWeight:600, color:theme.text }}>{a.name}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                        {/* ── Trip Info (car only) ── */}
+                        {isCar && (data.trip_type || data.pickup_location || data.stops?.length > 0) && (
+                            <div style={{ background: theme.carSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.carColor}22` }}>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.carColor, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>🚗 Trip Info</div>
+                                {data.trip_type && <Row label="Type"   value={tripTypeLabel[data.trip_type] || data.trip_type} />}
+                                {data.pickup_location && <Row label="From"   value={data.pickup_location} />}
+                                {data.stops?.length > 0 && (
+                                    <Row label="Stops" value={data.stops.map((s, i) => `${i + 1}. ${s.location}`).join(' → ')} />
+                                )}
+                                {data.has_return && <Row label="Return" value={data.return_time || 'Yes (TBD)'} />}
                             </div>
                         )}
+
+                        {/* ── Car Info ── */}
+                        {isCar && (
+                            <div style={{ background: theme.surfaceSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.border}` }}>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>🔧 Car Info</div>
+                                {data.resource?.plate_number && <Row label="Plate"    value={data.resource.plate_number} />}
+                                {data.resource?.capacity     && <Row label="Capacity" value={`${data.resource.capacity} passengers`} />}
+                                {data.resource?.location     && <Row label="Parking"  value={data.resource.location} />}
+                            </div>
+                        )}
+
+                        {/* ── Room Info ── */}
+                        {!isCar && (data.resource?.location || data.resource?.capacity) && (
+                            <div style={{ background: theme.surfaceSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.border}` }}>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>🏢 Room Info</div>
+                                {data.resource?.location && <Row label="Floor"    value={`Floor ${data.resource.location}`} />}
+                                {data.resource?.capacity && <Row label="Capacity" value={`${data.resource.capacity} seats`} />}
+                            </div>
+                        )}
+
+                        {/* ── People ── */}
+                        <div style={{ background: theme.surfaceSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.border}` }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>👤 People</div>
+
+                            {/* Organizer */}
+                            <div style={{ fontSize: 11, color: theme.textMute, marginBottom: 6 }}>Organizer</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: data.attendees?.length > 0 ? 12 : 0 }}>
+                                <SmartAvatar name={data.organizer?.name} url={data.organizer?.avatar_url} size={28} theme={theme} />
+                                <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{data.organizer?.name}</span>
+                            </div>
+
+                            {/* Attendees */}
+                            {data.attendees?.length > 0 && (
+                                <>
+                                    <div style={{ fontSize: 11, color: theme.textMute, marginBottom: 6 }}>Participants ({data.attendees.length})</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                        {data.attendees.map(a => (
+                                            <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px 4px 5px', borderRadius: 20, background: theme.surface, border: `1px solid ${theme.border}` }}>
+                                                <SmartAvatar name={a.name} url={a.avatar_url} size={22} theme={theme} />
+                                                <span style={{ fontSize: 12, fontWeight: 600, color: theme.text }}>{a.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
                     </div>
                 )}
             </div>
@@ -1318,7 +1613,24 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                                 onMouseEnter={e => {
                                     if (!hasConflict) return;
                                     const tt = e.currentTarget.querySelector('.bk-conflict-tt');
-                                    if (tt) tt.style.display = 'block';
+                                    if (!tt) return;
+                                    
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const tooltipW = 240;
+                                    
+                                    // Left position — screen ထဲဝင်အောင်
+                                    let left = rect.left + rect.width / 2 - tooltipW / 2;
+                                    if (left < 8) left = 8;
+                                    if (left + tooltipW > window.innerWidth - 8) left = window.innerWidth - tooltipW - 8;
+                                    
+                                    // Top position — tag အပေါ်မှာပြ၊ နေရာမကျင်းရင် အောက်မှာပြ
+                                    const tooltipH = 100;
+                                    let top = rect.top - tooltipH - 8;
+                                    if (top < 8) top = rect.bottom + 8;
+                                    
+                                    tt.style.left = `${left}px`;
+                                    tt.style.top  = `${top}px`;
+                                    tt.style.display = 'block';
                                 }}
                                 onMouseLeave={e => {
                                     const tt = e.currentTarget.querySelector('.bk-conflict-tt');
@@ -1371,10 +1683,7 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                                 {hasConflict && (
                                     <div className="bk-conflict-tt" style={{
                                         display:      'none',
-                                        position:     'absolute',
-                                        bottom:       'calc(100% + 6px)',
-                                        left:         '50%',
-                                        transform:    'translateX(-50%)',
+                                        position:     'fixed',   // ← absolute မှ fixed ပြောင်း
                                         zIndex:       99999,
                                         background:   dark ? '#1e2d4a' : '#1e293b',
                                         color:        '#fff',

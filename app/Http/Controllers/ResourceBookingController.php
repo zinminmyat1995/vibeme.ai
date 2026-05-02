@@ -44,7 +44,7 @@ class ResourceBookingController extends Controller
         if (!$isHR) $pendingQuery->where('user_id', $user->id);
         $pendingBookings = $pendingQuery->get()->map(fn($b) => $this->formatBooking($b));
 
-        $myBookings = ResourceBooking::with(['resource:id,name,type,location'])
+        $myBookings = ResourceBooking::with(['resource:id,name,type,location','stops'])
             ->where('user_id', $user->id)
             ->whereNotIn('status', ['cancelled', 'rejected'])
             ->orderBy('booking_date')->orderBy('start_time')
@@ -279,19 +279,28 @@ class ResourceBookingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'resource_id'   => 'required|exists:bookable_resources,id',
-            'booking_date'  => 'required|date|after_or_equal:today',
-            'start_time'    => 'required|date_format:H:i',
-            'end_time'      => 'nullable|date_format:H:i|after:start_time',
-            'purpose'       => 'required|string|max:500',
-            'is_open_ended' => 'boolean',
-            'attendee_ids'  => 'nullable|array',
-            'attendee_ids.*'=> 'exists:users,id',
+            'resource_id'          => 'required|exists:bookable_resources,id',
+            'booking_date'         => 'required|date|after_or_equal:today',
+            'start_time'           => 'required|date_format:H:i',
+            'end_time'             => 'nullable|date_format:H:i|after:start_time',
+            'purpose'              => 'required|string|max:500',
+            'is_open_ended'        => 'boolean',
+            'attendee_ids'         => 'nullable|array',
+            'attendee_ids.*'       => 'exists:users,id',
+            // ── Car trip fields ──
+            'trip_type'            => 'nullable|string|in:one_way,multi_stop,pickup',
+            'pickup_location'      => 'nullable|string|max:500',
+            'has_return'           => 'nullable|boolean',
+            'return_time'          => 'nullable|date_format:H:i',
+            'stops'                => 'nullable|array',
+            'stops.*.location'     => 'required_with:stops|string|max:500',
+            'stops.*.arrival_time' => 'nullable|date_format:H:i',
         ]);
 
         $user        = Auth::user();
         $resource    = BookableResource::findOrFail($validated['resource_id']);
         $isOpenEnded = $resource->isCar() && ($validated['is_open_ended'] ?? false);
+
         if (!$resource->is_active) {
             return back()->withErrors([
                 'resource_id' => 'This resource is no longer available. It may have been deactivated.'
@@ -303,7 +312,7 @@ class ResourceBookingController extends Controller
                         ->unique()
                         ->values();
 
-        // Car — open-ended active booking exists → waitlist
+        // Car — open-ended active booking ရှိနေရင် waitlist ထည့်
         if ($resource->isCar()) {
             $requestedEnd      = $validated['end_time'] ?? '23:59';
             $openEndedConflict = ResourceBooking::where('resource_id', $resource->id)
@@ -315,41 +324,62 @@ class ResourceBookingController extends Controller
 
             if ($openEndedConflict) {
                 $booking = ResourceBooking::create([
-                    ...$validated,
-                    'user_id'       => $user->id,
-                    'is_open_ended' => $isOpenEnded,
-                    'status'        => 'waitlisted',
+                    'resource_id'     => $validated['resource_id'],
+                    'booking_date'    => $validated['booking_date'],
+                    'start_time'      => $validated['start_time'],
+                    'end_time'        => $validated['end_time'] ?? null,
+                    'purpose'         => $validated['purpose'],
+                    'user_id'         => $user->id,
+                    'is_open_ended'   => $isOpenEnded,
+                    'status'          => 'waitlisted',
+                    'trip_type'       => $validated['trip_type'] ?? null,
+                    'pickup_location' => $validated['pickup_location'] ?? null,
+                    'has_return'      => $validated['has_return'] ?? false,
+                    'return_time'     => $validated['return_time'] ?? null,
                 ]);
+                $this->saveStops($booking, $validated['stops'] ?? []);
                 $this->saveAttendees($booking, $attendeeIds->toArray());
                 return back()->with('success', 'Added to waitlist. Car is occupied during requested time.');
             }
         }
 
-        // Car with end_time — conflict check
+        // Car — time conflict check
         if ($resource->isCar() && !$isOpenEnded && !empty($validated['end_time'])) {
             if ($resource->hasConflict($validated['booking_date'], $validated['start_time'], $validated['end_time'])) {
                 return back()->withErrors(['time' => 'This car is already booked during that time slot.']);
             }
         }
 
-        // Room conflict check
+        // Room — conflict check
         if ($resource->isRoom() && !empty($validated['end_time'])) {
             if ($resource->hasConflict($validated['booking_date'], $validated['start_time'], $validated['end_time'])) {
                 return back()->withErrors(['time' => 'This room is already booked during that time slot.']);
             }
         }
 
-        // Create booking
+        // Booking create
         $booking = ResourceBooking::create([
-            ...$validated,
-            'user_id'       => $user->id,
-            'is_open_ended' => $isOpenEnded,
-            'status'        => 'approved',
-            'approved_by'   => $user->id,
-            'approved_at'   => now(),
+            'resource_id'     => $validated['resource_id'],
+            'booking_date'    => $validated['booking_date'],
+            'start_time'      => $validated['start_time'],
+            'end_time'        => $validated['end_time'] ?? null,
+            'purpose'         => $validated['purpose'],
+            'user_id'         => $user->id,
+            'is_open_ended'   => $isOpenEnded,
+            'status'          => 'approved',
+            'approved_by'     => $user->id,
+            'approved_at'     => now(),
+            // Car trip fields
+            'trip_type'       => $resource->isCar() ? ($validated['trip_type'] ?? null) : null,
+            'pickup_location' => $resource->isCar() ? ($validated['pickup_location'] ?? null) : null,
+            'has_return'      => $resource->isCar() ? ($validated['has_return'] ?? false) : false,
+            'return_time'     => $resource->isCar() ? ($validated['return_time'] ?? null) : null,
         ]);
 
-        // Save attendees + notify
+        // Stops save
+        $this->saveStops($booking, $validated['stops'] ?? []);
+
+        // Attendees save + notify
         $this->saveAttendees($booking, $attendeeIds->toArray());
         $this->notifyAttendees($booking, $user->name, $attendeeIds->toArray());
 
@@ -451,6 +481,15 @@ class ResourceBookingController extends Controller
             'reject_reason' => $b->reject_reason,
             'returned_at'   => $b->returned_at?->format('d M Y H:i'),
             'created_at'    => $b->created_at->format('d M Y H:i'),
+            'trip_type'       => $b->trip_type,
+            'pickup_location' => $b->pickup_location,
+            'driver_status'   => $b->driver_status,
+            'driver_note'     => $b->driver_note,
+            'stops'           => $b->stops->map(fn($s) => [
+                'order'        => $s->order,
+                'location'     => $s->location,
+                'arrival_time' => $s->arrival_time ? substr($s->arrival_time, 0, 5) : null,
+            ])->values(),
         ];
     }
 
@@ -467,6 +506,21 @@ class ResourceBookingController extends Controller
         ], $attendeeIds);
 
         BookingAttendee::upsert($rows, ['booking_id', 'user_id']);
+    }
+
+    private function saveStops(ResourceBooking $booking, array $stops): void
+    {
+        if (empty($stops)) return;
+
+        foreach ($stops as $i => $stop) {
+            if (!empty($stop['location'])) {
+                $booking->stops()->create([
+                    'order'        => $i + 1,
+                    'location'     => $stop['location'],
+                    'arrival_time' => $stop['arrival_time'] ?? null,
+                ]);
+            }
+        }
     }
 
     // ── Notify attendees ──────────────────────────────────────────────
@@ -579,7 +633,6 @@ class ResourceBookingController extends Controller
     // ── Booking detail (for click modal) ─────────────────────────────
     public function detail(ResourceBooking $booking)
     {
-        // country scope check
         abort_unless(
             $booking->resource->country_id === Auth::user()->country_id,
             403
@@ -589,20 +642,31 @@ class ResourceBookingController extends Controller
             'resource:id,name,type,location,capacity,plate_number',
             'user:id,name,avatar_url',
             'attendees.user:id,name,avatar_url',
+            'stops',
         ]);
 
         return response()->json([
             'booking' => [
-                'id'           => $booking->id,
-                'date'         => $booking->booking_date->format('Y-m-d'),
-                'start_time'   => substr($booking->start_time, 0, 5),
-                'end_time'     => $booking->end_time ? substr($booking->end_time, 0, 5) : null,
-                'is_open_ended'=> $booking->is_open_ended,
-                'purpose'      => $booking->purpose,
-                'status'       => $booking->status,
-                'resource'     => $booking->resource,
-                'organizer'    => $booking->user,
-                'attendees'    => $booking->attendees->map(fn($a) => $a->user),
+                'id'              => $booking->id,
+                'date'            => $booking->booking_date->format('d M Y'),
+                'booking_date'    => $booking->booking_date->format('Y-m-d'),
+                'start_time'      => substr($booking->start_time, 0, 5),
+                'end_time'        => $booking->end_time ? substr($booking->end_time, 0, 5) : null,
+                'is_open_ended'   => $booking->is_open_ended,
+                'purpose'         => $booking->purpose,
+                'status'          => $booking->status,
+                'reject_reason'   => $booking->reject_reason,
+                'trip_type'       => $booking->trip_type,
+                'pickup_location' => $booking->pickup_location,
+                'has_return'      => $booking->has_return,
+                'return_time'     => $booking->return_time ? substr($booking->return_time, 0, 5) : null,
+                'stops'           => $booking->stops->map(fn($s) => [
+                    'order'    => $s->order,
+                    'location' => $s->location,
+                ])->values(),
+                'resource'        => $booking->resource,
+                'organizer'       => $booking->user,
+                'attendees'       => $booking->attendees->map(fn($a) => $a->user)->filter()->values(),
             ],
         ]);
     }
