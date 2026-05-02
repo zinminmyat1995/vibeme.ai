@@ -26,6 +26,11 @@ class ResourceBooking extends Model
         'driver_status',
         'driver_note',
         'has_return', 'return_time',
+
+        'cancelled_by',
+        'cancelled_by_role',
+        'cancel_reason',
+        'cancelled_at',
     ];
 
     protected $casts = [
@@ -116,5 +121,16 @@ class ResourceBooking extends Model
     public function scopeForUser($query, int $userId)
     {
         return $query->where('user_id', $userId);
+    }
+
+    public function driverNotes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(BookingDriverNote::class, 'booking_id')
+                    ->orderBy('created_at');
+    }
+
+    public function canceller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 }

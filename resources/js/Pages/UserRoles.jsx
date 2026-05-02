@@ -1192,6 +1192,7 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
         hr: { bg: darkMode ? 'rgba(5,150,105,0.16)' : '#d1fae5', color: '#059669', line: 'People operations' },
         management: { bg: darkMode ? 'rgba(37,99,235,0.16)' : '#dbeafe', color: '#2563eb', line: 'Team leadership' },
         employee: { bg: darkMode ? 'rgba(217,119,6,0.16)' : '#fef3c7', color: '#d97706', line: 'Workspace members' },
+        driver:     { bg: darkMode ? 'rgba(234,88,12,0.16)'  : '#ffedd5', color: '#ea580c', line: 'Vehicle operator' }, // ← ထည့်
     };
 
     const totalActive = users.filter(u => u.is_active).length;

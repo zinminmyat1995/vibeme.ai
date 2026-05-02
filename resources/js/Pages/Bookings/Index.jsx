@@ -316,6 +316,53 @@ function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick }
     const MIN_TL_W   = 1080; // minimum timeline width (scroll appears below this)
     const timeMarks  = Array.from({ length: 24 }, (_, i) => i);
 
+    // ── Current time (nowMin) ──
+    const [nowMin, setNowMin] = useState(() => {
+        const n = new Date();
+        return n.getHours() * 60 + n.getMinutes();
+    });
+
+    useEffect(() => {
+        const tick = setInterval(() => {
+            const n = new Date();
+            setNowMin(n.getHours() * 60 + n.getMinutes());
+        }, 30000);
+        return () => clearInterval(tick);
+    }, []);
+
+    // ── Driver status real-time (Pusher) ──
+    const [driverStatuses, setDriverStatuses] = useState(() => {
+        const map = {};
+        bookings.forEach(b => {
+            if (b.driver_status && b.driver_status !== 'start') {
+                map[b.id] = b.driver_status;
+            }
+        });
+        return map;
+    });
+
+useEffect(() => {
+    if (typeof window === "undefined" || !window.Echo) return;
+
+    // window.__countryId ကိုပဲ တိုက်ရိုက်သုံး (Main page မှာ set ပြီးသား)
+    const countryId = window.__countryId;
+    if (!countryId) {
+        console.warn("countryId not found for Pusher");
+        return;
+    }
+
+    console.log("Listening on bookings." + countryId);
+    const channel = window.Echo.channel(`bookings.${countryId}`);
+    channel.listen(".booking.status.updated", (e) => {
+        console.log("Pusher event received:", e);
+        setDriverStatuses(prev => ({ ...prev, [e.booking_id]: e.driver_status }));
+    });
+
+    return () => window.Echo.leaveChannel(`bookings.${countryId}`);
+}, []);
+
+    const isToday = toISO(new Date()) === toISO(new Date()); // parent မှ pass လာမဲ့ date နဲ့ ညှိနိုင်
+
     const byResource = useMemo(() => {
         const map = {};
         filtered.forEach(r => { map[r.id] = { resource: r, bookings: [] }; });
@@ -324,6 +371,29 @@ function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick }
     }, [bookings, filtered.map(r => r.id).join(","), type]);
 
     const pct = (min) => `${Math.max(0, Math.min(100, (min / TOTAL_MINS) * 100))}%`;
+
+const driverStatusConfig = {
+    on_the_way: { icon: "🚗💨", label: "On The Way",  color: "#3b82f6" },
+    returned:   { icon: "↩️",   label: "Returning",   color: "#f59e0b" },
+};
+
+
+// bookings prop ပြောင်းရင် driverStatuses ကို sync လုပ်
+useEffect(() => {
+    setDriverStatuses(prev => {
+        const map = { ...prev };
+        bookings.forEach(b => {
+            // Pusher update မရှိသေးတဲ့ booking တွေကို backend data နဲ့ sync
+            if (b.driver_status && b.driver_status !== 'start') {
+                // Pusher က update လုပ်ပြီးသား booking မဟုတ်ရင်သာ override
+                if (!prev[b.id] || prev[b.id] === 'start') {
+                    map[b.id] = b.driver_status;
+                }
+            }
+        });
+        return map;
+    });
+}, [bookings]);
 
 const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => {
     const [tooltip, setTooltip] = useState(null);
@@ -344,51 +414,117 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => {
                 const left  = pct(sMin);
                 const width = `${Math.max(0.5, (eMin - sMin) / TOTAL_MINS * 100)}%`;
                 const isApp = b.status === "approved";
-                const color = isApp ? typeColor : theme.warning;
+
+                const dStatus = driverStatuses[b.id] || b.driver_status || "start";
+                const dCfg    = driverStatusConfig[dStatus];
+
+                const color = dStatus === "on_the_way" ? "#3b82f6"
+                            : dStatus === "returned"   ? "#f59e0b"
+                            : dStatus === "ended"      ? theme.success
+                            : isApp ? typeColor : theme.warning;
+
+                // ── Car icon position logic ──
+                const showCar = type === "car" && (dStatus === "on_the_way" || dStatus === "returned");
+                let carLeft = left; // default = booking start edge
+
+                if (showCar && nowMin >= sMin && nowMin <= eMin) {
+                    // current time က booking range ထဲ ဝင်နေရင် → current time position
+                    carLeft = pct(nowMin);
+                }
+                // nowMin < sMin → left edge (booking start) မှာပဲ နေ
+                // nowMin > eMin → showCar = false (ပျောက်)
+                const carVisible = showCar && nowMin <= eMin;
+
                 return (
-                    <div key={b.id}
-                        onClick={() => onBookingClick && onBookingClick(b.id)}
-                        onMouseEnter={e => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const tooltipW = 220;
-                            let left = rect.left + rect.width / 2 - tooltipW / 2;
-                            if (left < 8) left = 8;
-                            if (left + tooltipW > window.innerWidth - 8) left = window.innerWidth - tooltipW - 8;
-                            let top = rect.top - 8;
-                            // enough space above?
-                            if (top - 70 < 8) top = rect.bottom + 8;
-                            else top = rect.top - 70;
-                            setTooltip({ b, x: left, y: top });
-                        }}
-                        onMouseLeave={() => setTooltip(null)}
-                        style={{ position: "absolute", left, width, top: 5, bottom: 5, borderRadius: 7, background: isApp ? `${color}22` : `${color}0e`, border: `1.5px ${isApp ? "solid" : "dashed"} ${color}`, borderLeft: `3px solid ${color}`, padding: "3px 7px", overflow: "hidden", cursor: "pointer", minWidth: 4 }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, color, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.user?.name || "—"}</div>
-                        <div style={{ fontSize: 9, color: theme.textMute, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.start_time}{b.end_time ? `–${b.end_time}` : "→"}</div>
-                    </div>
+                    <>
+                        {/* Booking card */}
+                        <div key={b.id}
+                            onClick={() => onBookingClick && onBookingClick(b.id)}
+                            onMouseEnter={e => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const tooltipW = 220;
+                                let left = rect.left + rect.width / 2 - tooltipW / 2;
+                                if (left < 8) left = 8;
+                                if (left + tooltipW > window.innerWidth - 8) left = window.innerWidth - tooltipW - 8;
+                                let top = rect.top - 8;
+                                if (top - 70 < 8) top = rect.bottom + 8;
+                                else top = rect.top - 70;
+                                setTooltip({ b: { ...b, driver_status: dStatus }, x: left, y: top });
+                            }}
+                            onMouseLeave={() => setTooltip(null)}
+                            style={{
+                                position: "absolute", left, width, top: 5, bottom: 5,
+                                borderRadius: 7,
+                                background: `${color}22`,
+                                border: `1.5px ${isApp ? "solid" : "dashed"} ${color}`,
+                                borderLeft: `3px solid ${color}`,
+                                padding: "3px 7px", overflow: "hidden", cursor: "pointer", minWidth: 4,
+                                transition: "border-color 0.4s, background 0.4s",
+                            }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {b.user?.name || "—"}
+                            </div>
+                            <div style={{ fontSize: 9, color: theme.textMute, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {b.start_time}{b.end_time ? `–${b.end_time}` : "→"}
+                            </div>
+                        </div>
+
+                        {/* ── Car icon — booking row ထဲမှာ ── */}
+                        {carVisible && (
+                            <div style={{
+                                position: "absolute",
+                                left: carLeft,
+                                top: "50%",
+                                transform: "translate(-50%, -50%)",
+                                zIndex: 10,
+                                pointerEvents: "none",
+                                transition: "left 10s linear",
+                                animation: "car-bounce 1.5s ease-in-out infinite",
+                                filter: dStatus === "returned"
+                                    ? "drop-shadow(0 2px 8px rgba(245,158,11,0.6))"   // orange glow
+                                    : "drop-shadow(0 2px 8px rgba(239,68,68,0.6))",   // red glow
+                            }}>
+                                <svg width="32" height="20" viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    {/* Body — အနီ */}
+                                    <rect x="2" y="8" width="26" height="9" rx="2.5" fill="#ef4444"/>
+                                    {/* Cabin */}
+                                    <path d="M7 8 L11 2 L22 2 L26 8Z" fill="#f87171"/>
+                                    {/* Windows — ညာဘက်မှာ */}
+                                    <path d="M12 3 L11.5 7 L15.5 7 L15.5 3Z" fill="#bfdbfe" opacity="0.85"/>
+                                    <path d="M16.5 3 L16.5 7 L20.5 7 L21 3Z" fill="#bfdbfe" opacity="0.85"/>
+                                    {/* Wheels */}
+                                    <circle cx="8.5" cy="17" r="3" fill="#7f1d1d"/>
+                                    <circle cx="8.5" cy="17" r="1.4" fill="#fca5a5"/>
+                                    <circle cx="23" cy="17" r="3" fill="#7f1d1d"/>
+                                    <circle cx="23" cy="17" r="1.4" fill="#fca5a5"/>
+                                    {/* Headlight — ညာဘက် (အရှေ့) */}
+                                    <rect x="27" y="10" width="4" height="2.5" rx="1.2" fill="#fef08a"/>
+                                    <rect x="27" y="13" width="3" height="1.5" rx="0.8" fill="#fde68a" opacity="0.7"/>
+                                    {/* Tail light — ဘယ်ဘက် (နောက်) */}
+                                    <rect x="1" y="10" width="2" height="2.5" rx="1" fill="#dc2626"/>
+                                    {/* Speed lines — ဘယ်ဘက် (နောက်) */}
+                                    <line x1="0" y1="10" x2="-4" y2="10" stroke="#fca5a5" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+                                    <line x1="0" y1="13" x2="-5" y2="13" stroke="#fca5a5" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
+                                    <line x1="0" y1="7" x2="-3" y2="7" stroke="#fca5a5" strokeWidth="1" strokeLinecap="round" opacity="0.3"/>
+                                </svg>
+                            </div>
+                        )}
+                    </>
                 );
             })}
 
-            {/* Custom Tooltip Portal */}
+            {/* Tooltip */}
             {tooltip && typeof document !== 'undefined' && ReactDOM.createPortal(
                 <div style={{
-                    position: 'fixed',
-                    top: tooltip.y,
-                    left: tooltip.x,
+                    position: 'fixed', top: tooltip.y, left: tooltip.x,
                     zIndex: 99999,
                     background: dark ? '#1e2d4a' : '#1e293b',
-                    color: '#fff',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    borderRadius: 10,
-                    padding: '10px 14px',
-                    width: 220,
+                    color: '#fff', fontSize: 12, fontWeight: 500,
+                    borderRadius: 10, padding: '10px 14px', width: 220,
                     boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-                    pointerEvents: 'none',
-                    lineHeight: 1.6,
+                    pointerEvents: 'none', lineHeight: 1.6,
                 }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, color: '#fff' }}>
-                        {tooltip.b.user?.name || '—'}
-                    </div>
+                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{tooltip.b.user?.name || '—'}</div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 6 }}>
                         ⏰ {tooltip.b.start_time}{tooltip.b.end_time ? `–${tooltip.b.end_time}` : ' → open-ended'}
                     </div>
@@ -397,9 +533,17 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => {
                             📝 {tooltip.b.purpose}
                         </div>
                     )}
-                    <div style={{ fontSize: 10, marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 10, background: tooltip.b.status === 'approved' ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)', color: tooltip.b.status === 'approved' ? '#34d399' : '#fbbf24', fontWeight: 700 }}>
-                        {tooltip.b.status === 'approved' ? '✓ Approved' : '⏳ Pending'}
-                    </div>
+                    {/* Driver status badge */}
+                    {type === "car" && driverStatusConfig[tooltip.b.driver_status] && (
+                        <div style={{
+                            marginTop: 6, padding: "3px 8px", borderRadius: 8, display: "inline-flex",
+                            alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700,
+                            background: driverStatusConfig[tooltip.b.driver_status].color + "33",
+                            color: driverStatusConfig[tooltip.b.driver_status].color,
+                        }}>
+                            {driverStatusConfig[tooltip.b.driver_status].icon} {driverStatusConfig[tooltip.b.driver_status].label}
+                        </div>
+                    )}
                 </div>,
                 document.body
             )}
@@ -953,6 +1097,9 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
         if (!form.name.trim()) e.name = "Name is required";
         if (form.type === "car" && !form.plate_number.trim()) e.plate_number = "Plate number is required";
         if (form.type === "car" && !form.driver_id) e.driver_id = "Please assign a driver";
+        if (form.capacity !== "" && form.capacity !== null && Number(form.capacity) < 1) {
+            e.capacity = "Capacity must be at least 1";
+        }
         return e;
     };
 
@@ -1008,7 +1155,24 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
                     </div>
                     <div>
                         <Lbl theme={theme}>{form.type === "room" ? "Seat Capacity" : "Passenger Capacity"}</Lbl>
-                        <Inp type="number" value={form.capacity} onChange={e => set("capacity", e.target.value)} placeholder="e.g. 10" theme={theme} />
+                        <Inp
+                            type="number"
+                            value={form.capacity}
+                            onChange={e => {
+                                const val = e.target.value;
+                                // negative ထည့်လို့မရအောင်
+                                if (val === "" || Number(val) >= 1) set("capacity", val);
+                            }}
+                            placeholder="e.g. 10"
+                            min="1"
+                            theme={theme}
+                            error={errors.capacity}
+                        />
+                        {errors.capacity && (
+                            <p style={{ color: theme.danger, fontSize: 11, margin: "5px 0 0" }}>
+                                {errors.capacity}
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -1424,7 +1588,7 @@ function BookingDetailModal({ bookingId, onClose, theme, dark }) {
                                 {data.stops?.length > 0 && (
                                     <Row label="Stops" value={data.stops.map((s, i) => `${i + 1}. ${s.location}`).join(' → ')} />
                                 )}
-                                {data.has_return && <Row label="Return" value={data.return_time || 'Yes (TBD)'} />}
+                                {!!data.has_return && <Row label="Return" value={data.return_time || 'Yes (TBD)'} />}
                             </div>
                         )}
 
@@ -1790,6 +1954,11 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
 export default function BookingsIndex({ resources, allResources, pendingBookings, myBookings, myInvitations, stats, isHR, users }) {
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
+    const { auth } = usePage().props; 
+ 
+    if (auth?.user?.country_id) {
+        window.__countryId = auth.user.country_id;
+    }
 
     const [calType, setCalType]           = useState("room");
     const [calDate, setCalDate]           = useState(new Date());
@@ -1906,6 +2075,7 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                 @keyframes bk-drop  { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
                 @keyframes bk-fade  { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
                 @keyframes bk-spin  { to { transform: rotate(360deg); } }
+                @keyframes car-bounce { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-3px)} }
                 .bk-page { animation: bk-fade .3s ease; }
                 *::-webkit-scrollbar { display: none; }
             `}</style>

@@ -30,6 +30,7 @@ use App\Http\Controllers\Payroll\ExpenseRequestController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\HrChatbotController;
 use App\Http\Controllers\ResourceBookingController;
+use App\Http\Controllers\DriverScheduleController;
 
 
 // Home page (existing route ကို replace)
@@ -91,6 +92,18 @@ Route::middleware(['auth', 'role:hr,admin'])->group(function () {
         ->name('recruitment.application.delete');
 
 });
+
+
+// ── Driver Only ────────────────────────────────────────────────────
+Route::middleware(['auth', 'role:driver'])
+    ->prefix('driver')->name('driver.')
+    ->group(function () {
+        Route::get   ('/schedule',                        [DriverScheduleController::class, 'index'])        ->name('schedule');
+        Route::get   ('/schedule/bookings',               [DriverScheduleController::class, 'bookings'])     ->name('schedule.bookings');
+        Route::patch ('/schedule/{booking}/status',       [DriverScheduleController::class, 'updateStatus']) ->name('schedule.status');
+        Route::post  ('/schedule/{booking}/cancel',       [DriverScheduleController::class, 'cancel'])       ->name('schedule.cancel');
+        Route::post  ('/schedule/{booking}/note',         [DriverScheduleController::class, 'storeNote'])    ->name('schedule.note');
+    });
 
 
 // ── HR/Admin Only ──────────────────────────────────────────────────

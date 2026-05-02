@@ -9,6 +9,7 @@ const roleConfig = {
     hr:         { label: 'HR Manager',    color: '#059669', bg: '#d1fae5', dot: '#059669' },
     management: { label: 'Management',    color: '#2563eb', bg: '#dbeafe', dot: '#2563eb' },
     employee:   { label: 'Employee',      color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
+    driver:     { label: 'Driver', color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
 };
 
 const menuItems = [
@@ -24,7 +25,7 @@ const menuItems = [
                 ),
                 label: 'Dashboard',
                 route: '/dashboard',
-                roles: ['admin', 'hr', 'management', 'employee'],
+                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
             },
         ]
     },
@@ -82,6 +83,24 @@ const menuItems = [
                 roles: ['admin', 'hr', 'management', 'employee'],
             },
         ]
+    },
+    {
+        group: 'OPERATIONS',
+        items: [
+            {
+                icon: (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="1" y="3" width="15" height="13" rx="2"/>
+                        <path d="M16 8h4l3 5v3h-7V8z"/>
+                        <circle cx="5.5" cy="18.5" r="2.5"/>
+                        <circle cx="18.5" cy="18.5" r="2.5"/>
+                    </svg>
+                ),
+                label: 'Trip Schedule',
+                route: '/driver/schedule',
+                roles: ['driver'],
+            },
+        ],
     },
     {
         group: 'PEOPLE & HR',

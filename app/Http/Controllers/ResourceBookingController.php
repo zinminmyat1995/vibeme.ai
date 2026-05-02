@@ -108,7 +108,7 @@ class ResourceBookingController extends Controller
                 ->where('is_active', true)
             )
             ->whereDate('booking_date', $request->date)
-            ->whereIn('status', ['approved', 'pending'])
+            ->whereIn('status', ['approved', 'pending', 'completed']) 
             ->orderBy('start_time')
             ->get()
             ->map(fn($b) => $this->formatBooking($b));
@@ -382,7 +382,7 @@ class ResourceBookingController extends Controller
         // Attendees save + notify
         $this->saveAttendees($booking, $attendeeIds->toArray());
         $this->notifyAttendees($booking, $user->name, $attendeeIds->toArray());
-
+        $this->notifyDriver($booking, 'new');
         return back()->with('success', 'Booking confirmed for ' . $resource->name . '.');
     }
 
@@ -414,6 +414,7 @@ class ResourceBookingController extends Controller
                 data:   ['booking_id' => $booking->id],
             );
         }
+        $this->notifyDriver($booking, 'new');
 
         return back()->with('success', 'Booking cancelled.');
     }
@@ -674,5 +675,47 @@ class ResourceBookingController extends Controller
     private function authorizeHR(): void
     {
         abort_unless(Auth::user()->hasAnyRole(['hr', 'admin']), 403);
+    }
+
+    // ── Notify driver (car bookings only) ──────────────────────────────
+    private function notifyDriver(ResourceBooking $booking, string $event, string $organizerName = ''): void
+    {
+        // Car booking မဟုတ်ရင် skip
+        if (!$booking->resource || $booking->resource->type !== 'car') return;
+
+        // Driver assign မထားရင် skip
+        $driverId = $booking->resource->driver_id ?? null;
+        if (!$driverId) return;
+
+        // Organizer ကိုယ်တိုင် driver ဖြစ်ခဲ့ရင် skip (မဖြစ်နိုင်သော်လည်း safety check)
+        if ($driverId === $booking->user_id) return;
+
+        $carName   = $booking->resource->name;
+        $date      = $booking->booking_date->format('d M Y');
+        $startTime = substr($booking->start_time, 0, 5);
+        $endTime   = $booking->end_time ? substr($booking->end_time, 0, 5) : 'open-ended';
+        $organizer = $organizerName ?: $booking->user?->name ?? 'Someone';
+
+        if ($event === 'new') {
+            Notification::send(
+                userId: $driverId,
+                type:   'driver_new_booking',
+                title:  '🚗 New Trip Assigned',
+                body:   "{$organizer} booked {$carName} on {$date} at {$startTime}–{$endTime}.",
+                url:    '/driver/schedule',
+                data:   ['booking_id' => $booking->id],
+            );
+        }
+
+        if ($event === 'cancelled') {
+            Notification::send(
+                userId: $driverId,
+                type:   'driver_booking_cancelled',
+                title:  '❌ Trip Cancelled',
+                body:   "{$organizer} cancelled the {$carName} booking on {$date} at {$startTime}.",
+                url:    '/driver/schedule',
+                data:   ['booking_id' => $booking->id],
+            );
+        }
     }
 }
