@@ -1,205 +1,105 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Head, router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 
-// ─────────────────────────────────────────────────────────────────
-// Theme
-// ─────────────────────────────────────────────────────────────────
 function useReactiveTheme() {
-    const getDark = () => {
-        if (typeof window === "undefined") return false;
-        return document.documentElement.getAttribute("data-theme") === "dark"
-            || localStorage.getItem("vibeme-theme") === "dark";
-    };
+    const getDark = () => typeof window !== "undefined" && (
+        document.documentElement.getAttribute("data-theme") === "dark" ||
+        localStorage.getItem("vibeme-theme") === "dark"
+    );
     const [dark, setDark] = useState(getDark);
     useEffect(() => {
         const sync = () => setDark(getDark());
         window.addEventListener("vibeme-theme-change", sync);
         window.addEventListener("storage", sync);
-        return () => {
-            window.removeEventListener("vibeme-theme-change", sync);
-            window.removeEventListener("storage", sync);
-        };
+        return () => { window.removeEventListener("vibeme-theme-change", sync); window.removeEventListener("storage", sync); };
     }, []);
     return dark;
 }
 
 function getTheme(dark) {
     if (dark) return {
-        bg:           "#080e1a",
-        surface:      "rgba(15,26,50,0.95)",
-        surfaceSoft:  "rgba(255,255,255,0.04)",
-        surfaceSofter:"rgba(255,255,255,0.07)",
-        border:       "rgba(148,163,184,0.10)",
-        borderStrong: "rgba(148,163,184,0.18)",
-        text:         "#f1f5f9",
-        textSoft:     "#94a3b8",
-        textMute:     "#475569",
-        shadow:       "0 24px 64px rgba(0,0,0,0.48)",
-        shadowSm:     "0 4px 16px rgba(0,0,0,0.28)",
-        primary:      "#f59e0b",
-        primarySoft:  "rgba(245,158,11,0.15)",
-        success:      "#10b981",
-        successSoft:  "rgba(16,185,129,0.15)",
-        danger:       "#f87171",
-        dangerSoft:   "rgba(248,113,113,0.15)",
-        warning:      "#f59e0b",
-        warningSoft:  "rgba(245,158,11,0.12)",
-        blue:         "#60a5fa",
-        blueSoft:     "rgba(96,165,250,0.15)",
-        orange:       "#fb923c",
-        orangeSoft:   "rgba(251,146,60,0.15)",
-        inputBg:      "rgba(255,255,255,0.05)",
-        overlay:      "rgba(2,8,23,0.75)",
+        surface: "rgba(15,26,50,0.95)", surfaceSoft: "rgba(255,255,255,0.04)",
+        border: "rgba(148,163,184,0.10)", borderStrong: "rgba(148,163,184,0.18)",
+        text: "#f1f5f9", textSoft: "#94a3b8", textMute: "#475569",
+        shadow: "0 24px 64px rgba(0,0,0,0.48)", shadowSm: "0 4px 16px rgba(0,0,0,0.28)",
+        primary: "#f59e0b", primarySoft: "rgba(245,158,11,0.15)",
+        success: "#10b981", successSoft: "rgba(16,185,129,0.15)",
+        danger: "#f87171", dangerSoft: "rgba(248,113,113,0.15)",
+        inputBg: "rgba(255,255,255,0.05)", overlay: "rgba(2,8,23,0.80)",
     };
     return {
-        bg:           "#f0f4fa",
-        surface:      "#ffffff",
-        surfaceSoft:  "#f8fafc",
-        surfaceSofter:"#f1f5f9",
-        border:       "rgba(15,23,42,0.08)",
-        borderStrong: "rgba(15,23,42,0.14)",
-        text:         "#0f172a",
-        textSoft:     "#475569",
-        textMute:     "#94a3b8",
-        shadow:       "0 4px 24px rgba(15,23,42,0.08)",
-        shadowSm:     "0 2px 8px rgba(15,23,42,0.06)",
-        primary:      "#d97706",
-        primarySoft:  "rgba(217,119,6,0.10)",
-        success:      "#059669",
-        successSoft:  "rgba(5,150,105,0.10)",
-        danger:       "#dc2626",
-        dangerSoft:   "rgba(220,38,38,0.08)",
-        warning:      "#d97706",
-        warningSoft:  "rgba(217,119,6,0.08)",
-        blue:         "#2563eb",
-        blueSoft:     "rgba(37,99,235,0.08)",
-        orange:       "#ea580c",
-        orangeSoft:   "rgba(234,88,12,0.08)",
-        inputBg:      "#f8fafc",
-        overlay:      "rgba(15,23,42,0.40)",
+        surface: "#ffffff", surfaceSoft: "#f8fafc",
+        border: "#e2e8f0", borderStrong: "#cbd5e1",
+        text: "#0f172a", textSoft: "#475569", textMute: "#94a3b8",
+        shadow: "0 8px 32px rgba(15,23,42,0.10)", shadowSm: "0 2px 8px rgba(15,23,42,0.06)",
+        primary: "#d97706", primarySoft: "rgba(217,119,6,0.10)",
+        success: "#059669", successSoft: "rgba(5,150,105,0.10)",
+        danger: "#dc2626", dangerSoft: "rgba(220,38,38,0.08)",
+        inputBg: "#f8fafc", overlay: "rgba(15,23,42,0.45)",
     };
 }
 
-// driver_status config
-const STATUS_CONFIG = {
-    start:      { label: "Not Started",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)", icon: "🕐", dot: "#94a3b8" },
-    on_the_way: { label: "On The Way",   color: "#3b82f6", bg: "rgba(59,130,246,0.12)",  icon: "🚗", dot: "#3b82f6" },
-    returned:   { label: "Returning",    color: "#f59e0b", bg: "rgba(245,158,11,0.12)",  icon: "↩️", dot: "#f59e0b" },
-    ended:      { label: "Completed",    color: "#10b981", bg: "rgba(16,185,129,0.12)",  icon: "✅", dot: "#10b981" },
+const DS = {
+    start:      { label: "Not Started", color: "#94a3b8", bg: "rgba(148,163,184,0.10)" },
+    on_the_way: { label: "On The Way",  color: "#3b82f6", bg: "rgba(59,130,246,0.10)"  },
+    returned:   { label: "Returning",   color: "#f59e0b", bg: "rgba(245,158,11,0.10)"  },
+    ended:      { label: "Completed",   color: "#10b981", bg: "rgba(16,185,129,0.10)"  },
 };
-
-const TRIP_TYPE_LABEL = {
-    one_way:    "One Way →",
-    multi_stop: "Multi Stop ⤳",
-    pickup:     "Pickup / Drop 📍",
-    round_trip: "Round Trip ↩",
-    wait_return:"Wait & Return 🔄",
+const BS = {
+    approved:   { label: "Approved",   color: "#059669", bg: "rgba(5,150,105,0.09)"  },
+    waitlisted: { label: "Waitlisted", color: "#d97706", bg: "rgba(217,119,6,0.09)"  },
+    completed:  { label: "Completed",  color: "#6366f1", bg: "rgba(99,102,241,0.09)" },
+    cancelled:  { label: "Cancelled",  color: "#dc2626", bg: "rgba(220,38,38,0.09)"  },
 };
+const TRIP_LABEL = { one_way: "One Way", multi_stop: "Multi Stop", pickup: "Pickup / Drop", round_trip: "Round Trip", wait_return: "Wait & Return" };
+const toISO = d => { const dt = d instanceof Date ? d : new Date(d); return dt.toISOString().slice(0, 10); };
+const fmtDate = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+const fmtShort = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 
-const toISO = (d) => {
-    const dt = d instanceof Date ? d : new Date(d);
-    return dt.toISOString().slice(0, 10);
-};
-
-const fmtDate = (iso) => {
-    const d = new Date(iso + "T00:00:00");
-    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
-};
-
-// ─────────────────────────────────────────────────────────────────
-// Small UI Helpers
-// ─────────────────────────────────────────────────────────────────
-function Avatar({ name, avatarUrl, size = 32 }) {
+function Pill({ label, color, bg }) {
+    return <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:20, background:bg, fontSize:11, fontWeight:700, color, whiteSpace:"nowrap" }}><span style={{ width:5, height:5, borderRadius:"50%", background:color, flexShrink:0 }}/>{label}</span>;
+}
+function Spinner({ size=14, color="#fff" }) {
+    return <span style={{ width:size, height:size, border:`2px solid ${color}33`, borderTopColor:color, borderRadius:"50%", display:"inline-block", animation:"ds-spin .7s linear infinite", flexShrink:0 }}/>;
+}
+function Av({ name, url, size=30 }) {
     const [err, setErr] = useState(false);
-    const initials = (name || "?").split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
-    const colors = ["#7c3aed","#2563eb","#059669","#d97706","#dc2626","#0891b2"];
-    const color  = colors[(name || "").charCodeAt(0) % colors.length];
-    const src    = avatarUrl ? (avatarUrl.startsWith("http") ? avatarUrl : `/storage/${avatarUrl}`) : null;
-    if (src && !err) return <img src={src} onError={() => setErr(true)} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
-    return <div style={{ width: size, height: size, borderRadius: "50%", background: color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: size * 0.36, fontWeight: 800, flexShrink: 0 }}>{initials}</div>;
+    const ini = (name||"?").split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
+    const cols = ["#7c3aed","#2563eb","#059669","#d97706","#dc2626","#0891b2"];
+    const bg = cols[(name||"").charCodeAt(0)%cols.length];
+    const src = url ? (url.startsWith("http")?url:`/storage/${url}`) : null;
+    if (src && !err) return <img src={src} onError={()=>setErr(true)} style={{ width:size, height:size, borderRadius:"50%", objectFit:"cover", flexShrink:0 }}/>;
+    return <div style={{ width:size, height:size, borderRadius:"50%", background:bg, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:size*0.36, fontWeight:800, flexShrink:0 }}>{ini}</div>;
 }
 
-function StatusBadge({ status, theme }) {
-    const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.start;
-    return (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 20, background: cfg.bg, fontSize: 11, fontWeight: 700, color: cfg.color }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: cfg.dot, flexShrink: 0 }} />
-            {cfg.label}
-        </span>
-    );
-}
-
-function BookingStatusBadge({ status, theme }) {
-    const map = {
-        approved:   { label: "Approved",   color: "#059669", bg: "rgba(5,150,105,0.10)" },
-        waitlisted: { label: "Waitlisted", color: "#d97706", bg: "rgba(217,119,6,0.10)" },
-        completed:  { label: "Completed",  color: "#6366f1", bg: "rgba(99,102,241,0.10)" },
-        cancelled:  { label: "Cancelled",  color: "#dc2626", bg: "rgba(220,38,38,0.10)" },
-    };
-    const cfg = map[status] || map.approved;
-    return (
-        <span style={{ padding: "3px 9px", borderRadius: 20, background: cfg.bg, fontSize: 11, fontWeight: 700, color: cfg.color }}>
-            {cfg.label}
-        </span>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Cancel Modal
-// ─────────────────────────────────────────────────────────────────
-function CancelModal({ booking, onClose, theme, dark }) {
+// ── Modals ────────────────────────────────────────────────────────
+function CancelModal({ booking, onClose, theme }) {
     const [reason, setReason] = useState("");
-    const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState("");
-
+    const [saving, setSaving] = useState(false);
+    const [err, setErr] = useState("");
     const submit = () => {
-        if (!reason.trim()) { setError("Cancel reason is required."); return; }
-        setSubmitting(true);
+        if (!reason.trim()) { setErr("Reason is required."); return; }
+        setSaving(true);
         router.post(`/driver/schedule/${booking.id}/cancel`, { cancel_reason: reason }, {
             preserveScroll: true,
-            onSuccess: () => { setSubmitting(false); onClose(); },
-            onError: () => { setSubmitting(false); setError("Failed to cancel. Try again."); },
+            onSuccess: () => { setSaving(false); onClose(); },
+            onError:   () => { setSaving(false); setErr("Failed. Try again."); },
         });
     };
-
     return (
-        <div style={{ position: "fixed", inset: 0, background: theme.overlay, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-            onClick={onClose}>
-            <div onClick={e => e.stopPropagation()} style={{ background: theme.surface, borderRadius: 24, padding: 28, width: "100%", maxWidth: 420, boxShadow: theme.shadow, border: `1px solid ${theme.border}`, animation: "ds-modal .22s ease" }}>
-                {/* Header */}
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 14, background: theme.dangerSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>🚫</div>
-                    <div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: theme.text }}>Cancel Booking</div>
-                        <div style={{ fontSize: 12, color: theme.textMute, marginTop: 2 }}>Organizer & attendees will be notified</div>
-                    </div>
-                </div>
-
-                {/* Booking Info */}
-                <div style={{ padding: "10px 14px", borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, marginBottom: 16, fontSize: 13 }}>
-                    <div style={{ color: theme.textSoft }}>📅 {fmtDate(booking.booking_date)} · ⏰ {booking.start_time}{booking.end_time ? `–${booking.end_time}` : " (open-ended)"}</div>
-                    <div style={{ color: theme.textMute, fontSize: 12, marginTop: 4 }}>Organizer: <strong style={{ color: theme.textSoft }}>{booking.organizer?.name}</strong></div>
-                </div>
-
-                {/* Reason */}
-                <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontSize: 12, fontWeight: 700, color: theme.textSoft, display: "block", marginBottom: 6 }}>Cancel Reason *</label>
-                    <textarea
-                        value={reason}
-                        onChange={e => { setReason(e.target.value); setError(""); }}
-                        placeholder="e.g. Car breakdown, tire puncture, engine issue…"
-                        rows={3}
-                        style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: `1.5px solid ${error ? theme.danger : theme.border}`, background: theme.inputBg, color: theme.text, fontSize: 13, fontFamily: "inherit", resize: "none", outline: "none", boxSizing: "border-box" }}
-                    />
-                    {error && <p style={{ color: theme.danger, fontSize: 11, margin: "5px 0 0" }}>{error}</p>}
-                </div>
-
-                {/* Buttons */}
-                <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={onClose} style={{ flex: 1, padding: "11px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Back</button>
-                    <button onClick={submit} disabled={submitting} style={{ flex: 2, padding: "11px", borderRadius: 12, border: "none", background: theme.danger, color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: submitting ? 0.7 : 1 }}>
-                        {submitting ? "Cancelling…" : "Confirm Cancel"}
+        <div style={{ position:"fixed", inset:0, background:theme.overlay, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(4px)" }} onClick={onClose}>
+            <div onClick={e=>e.stopPropagation()} style={{ background:theme.surface, borderRadius:20, padding:"26px 24px", width:"100%", maxWidth:420, boxShadow:theme.shadow, border:`1px solid ${theme.border}`, animation:"ds-modal .2s ease" }}>
+                <div style={{ fontSize:15, fontWeight:800, color:theme.text, marginBottom:3 }}>Cancel Booking</div>
+                <div style={{ fontSize:12, color:theme.textMute, marginBottom:18 }}>{fmtShort(booking.booking_date)} · {booking.start_time}{booking.end_time?`–${booking.end_time}`:""} · {booking.organizer?.name}</div>
+                <label style={{ fontSize:12, fontWeight:600, color:theme.textSoft, display:"block", marginBottom:6 }}>Reason *</label>
+                <textarea value={reason} onChange={e=>{setReason(e.target.value);setErr("");}} placeholder="e.g. Car breakdown, engine issue…" rows={3} autoFocus
+                    style={{ width:"100%", padding:"10px 13px", borderRadius:12, border:`1.5px solid ${err?theme.danger:theme.border}`, background:theme.inputBg, color:theme.text, fontSize:13, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box" }}/>
+                {err && <p style={{ color:theme.danger, fontSize:11, margin:"5px 0 0" }}>{err}</p>}
+                <div style={{ display:"flex", gap:8, marginTop:18 }}>
+                    <button onClick={onClose} style={{ padding:"10px 20px", borderRadius:10, border:`1px solid ${theme.border}`, background:"transparent", color:theme.textSoft, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Back</button>
+                    <button onClick={submit} disabled={saving} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:theme.danger, color:"#fff", fontSize:13, fontWeight:700, cursor:saving?"not-allowed":"pointer", fontFamily:"inherit", opacity:saving?0.75:1, display:"flex", alignItems:"center", gap:7 }}>
+                        {saving&&<Spinner size={13}/>}{saving?"Cancelling…":"Confirm Cancel"}
                     </button>
                 </div>
             </div>
@@ -207,49 +107,30 @@ function CancelModal({ booking, onClose, theme, dark }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────
-// End Trip Note Modal
-// ─────────────────────────────────────────────────────────────────
-function EndTripNoteModal({ booking, onClose, theme }) {
+function NoteModal({ booking, onClose, theme }) {
     const [note, setNote] = useState("");
-    const [submitting, setSubmitting] = useState(false);
-
+    const [saving, setSaving] = useState(false);
     const skip = () => onClose();
-
     const submit = () => {
         if (!note.trim()) { skip(); return; }
-        setSubmitting(true);
-        window.apiFetch(`/driver/schedule/${booking.id}/note`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ note }),
-        }).then(() => { setSubmitting(false); onClose(); })
-          .catch(() => { setSubmitting(false); onClose(); });
+        setSaving(true);
+        window.apiFetch(`/driver/schedule/${booking.id}/note`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ note }) })
+            .then(()=>{ setSaving(false); onClose(); }).catch(()=>{ setSaving(false); onClose(); });
     };
-
     return (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-            onClick={skip}>
-            <div onClick={e => e.stopPropagation()} style={{ background: theme.surface, borderRadius: 24, padding: 28, width: "100%", maxWidth: 400, boxShadow: theme.shadow, border: `1px solid ${theme.border}`, animation: "ds-modal .22s ease" }}>
-                <div style={{ textAlign: "center", marginBottom: 20 }}>
-                    <div style={{ fontSize: 36, marginBottom: 8 }}>✅</div>
-                    <div style={{ fontSize: 17, fontWeight: 800, color: theme.text }}>Trip Completed!</div>
-                    <div style={{ fontSize: 12, color: theme.textMute, marginTop: 4 }}>Add a note for this trip (optional)</div>
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(4px)" }} onClick={skip}>
+            <div onClick={e=>e.stopPropagation()} style={{ background:theme.surface, borderRadius:20, padding:"26px 24px", width:"100%", maxWidth:400, boxShadow:theme.shadow, border:`1px solid ${theme.border}`, animation:"ds-modal .2s ease" }}>
+                <div style={{ textAlign:"center", marginBottom:18 }}>
+                    <div style={{ fontSize:36, marginBottom:8 }}>✅</div>
+                    <div style={{ fontSize:16, fontWeight:800, color:theme.text }}>Trip Completed!</div>
+                    <div style={{ fontSize:12, color:theme.textMute, marginTop:4 }}>Add a note (optional)</div>
                 </div>
-
-                <textarea
-                    value={note}
-                    onChange={e => setNote(e.target.value)}
-                    placeholder="e.g. Traffic delay on highway, passenger late 10 min, fuel refilled…"
-                    rows={3}
-                    autoFocus
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: theme.inputBg, color: theme.text, fontSize: 13, fontFamily: "inherit", resize: "none", outline: "none", boxSizing: "border-box", marginBottom: 16 }}
-                />
-
-                <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={skip} style={{ flex: 1, padding: "11px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Skip</button>
-                    <button onClick={submit} disabled={submitting} style={{ flex: 2, padding: "11px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,#059669,#10b981)`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                        {submitting ? "Saving…" : "Save Note"}
+                <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="e.g. Traffic delay, fuel refilled…" rows={3} autoFocus
+                    style={{ width:"100%", padding:"10px 13px", borderRadius:12, border:`1.5px solid ${theme.border}`, background:theme.inputBg, color:theme.text, fontSize:13, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:14 }}/>
+                <div style={{ display:"flex", gap:8 }}>
+                    <button onClick={skip} style={{ padding:"10px 20px", borderRadius:10, border:`1px solid ${theme.border}`, background:"transparent", color:theme.textSoft, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Skip</button>
+                    <button onClick={submit} disabled={saving} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#059669,#10b981)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:7 }}>
+                        {saving&&<Spinner size={13}/>}{saving?"Saving…":"Save Note"}
                     </button>
                 </div>
             </div>
@@ -257,174 +138,175 @@ function EndTripNoteModal({ booking, onClose, theme }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Booking Detail / Action Card
-// ─────────────────────────────────────────────────────────────────
+// ── Booking Card ──────────────────────────────────────────────────
 function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
-    const [expanded, setExpanded] = useState(false);
-    const [activeTab, setActiveTab] = useState("info");
-    const status = booking.driver_status || "start";
-    const cfg    = STATUS_CONFIG[status];
-    const isCancelled = booking.status === "cancelled";
-    const isCompleted = booking.status === "completed" || status === "ended";
+    const [open, setOpen] = useState(false);
+    const [tab, setTab] = useState("info");
+    const [actLoading, setActLoading] = useState(false);
 
-    // Next action button
-    const nextAction = !isCancelled && !isCompleted ? {
-        start:      { label: "🚀 Start Trip",      next: "on_the_way", color: "#3b82f6",  glow: "rgba(59,130,246,0.3)" },
-        on_the_way: { label: "↩️ Mark Returning",  next: "returned",   color: "#f59e0b",  glow: "rgba(245,158,11,0.3)" },
-        returned:   { label: "✅ End Trip",         next: "ended",      color: "#059669",  glow: "rgba(5,150,105,0.3)" },
-    }[status] : null;
+    const ds = booking.driver_status || "start";
+    const dCfg = DS[ds] || DS.start;
+    const bCfg = BS[booking.status] || BS.approved;
+    const cancelled = booking.status === "cancelled";
+    const completed = booking.status === "completed" || ds === "ended";
+
+    const nextAct = !cancelled && !completed ? {
+        start:      { label: "Start Trip",     next: "on_the_way", color: "#2563eb" },
+        on_the_way: { label: "Mark Returning", next: "returned",   color: "#d97706" },
+        returned:   { label: "End Trip",       next: "ended",      color: "#059669" },
+    }[ds] : null;
+
+    const doAction = () => {
+        if (!nextAct || actLoading) return;
+        setActLoading(true);
+        onStatusUpdate(booking, nextAct.next, () => setActLoading(false));
+    };
+
+    // Compact stop string: "1. Office → 2. Bank → 3. Hotel"
+    const stopLine = booking.stops?.length > 0
+        ? booking.stops.map((s,i) => `${i+1}. ${s.location}`).join("  →  ")
+        : null;
 
     return (
-        <div style={{ background: theme.surface, borderRadius: 20, border: `1px solid ${isCancelled ? theme.danger + "30" : theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm, transition: "all .2s" }}>
-            {/* Card Header */}
-            <div onClick={() => setExpanded(v => !v)} style={{ padding: "16px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 }}>
-                {/* Time Block */}
-                <div style={{ flexShrink: 0, textAlign: "center", padding: "8px 14px", borderRadius: 14, background: isCancelled ? theme.dangerSoft : theme.primarySoft, minWidth: 70 }}>
-                    <div style={{ fontSize: 16, fontWeight: 900, color: isCancelled ? theme.danger : theme.primary, lineHeight: 1 }}>{booking.start_time}</div>
-                    {booking.end_time && <div style={{ fontSize: 10, color: theme.textMute, marginTop: 3, fontWeight: 600 }}>{booking.end_time}</div>}
-                    {!booking.end_time && <div style={{ fontSize: 10, color: theme.textMute, marginTop: 3 }}>open</div>}
-                </div>
+        <div style={{ background:theme.surface, borderRadius:18, border:`1px solid ${cancelled?theme.danger+"25":theme.border}`, overflow:"hidden", transition:"box-shadow .2s" }}
+            onMouseEnter={e=>e.currentTarget.style.boxShadow=theme.shadowSm}
+            onMouseLeave={e=>e.currentTarget.style.boxShadow="none"}>
 
+            {/* ── Header row ── */}
+            <div onClick={()=>setOpen(v=>!v)} style={{ display:"flex", alignItems:"center", gap:14, padding:"15px 20px", cursor:"pointer" }}>
+                {/* Time pill */}
+                <div style={{ flexShrink:0, textAlign:"center", minWidth:56 }}>
+                    <div style={{ fontSize:16, fontWeight:900, color:cancelled?theme.danger:theme.primary, lineHeight:1 }}>{booking.start_time}</div>
+                    {booking.end_time && <div style={{ fontSize:10, color:theme.textMute, marginTop:2 }}>{booking.end_time}</div>}
+                </div>
                 {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-                        <BookingStatusBadge status={booking.status} theme={theme} />
-                        {!isCancelled && <StatusBadge status={status} theme={theme} />}
-                    </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{booking.purpose}</div>
-                    <div style={{ fontSize: 12, color: theme.textMute, marginTop: 2 }}>
-                        {booking.organizer?.name}
-                        {booking.attendees?.length > 0 && ` + ${booking.attendees.length} attendee${booking.attendees.length > 1 ? "s" : ""}`}
+                <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:theme.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:5 }}>{booking.purpose}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+                        <Pill label={bCfg.label} color={bCfg.color} bg={bCfg.bg}/>
+                        {!cancelled && <Pill label={dCfg.label} color={dCfg.color} bg={dCfg.bg}/>}
+                        <span style={{ fontSize:11, color:theme.textMute }}>{booking.organizer?.name}{booking.attendees?.length>0?` +${booking.attendees.length}`:""}</span>
                     </div>
                 </div>
-
-                {/* Expand arrow */}
-                <div style={{ fontSize: 12, color: theme.textMute, transform: expanded ? "rotate(180deg)" : "none", transition: "transform .2s" }}>▼</div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2.5" style={{ flexShrink:0, transition:"transform .2s", transform:open?"rotate(180deg)":"none" }}><polyline points="6 9 12 15 18 9"/></svg>
             </div>
 
-            {/* Expanded Content */}
-            {expanded && (
-                <div style={{ borderTop: `1px solid ${theme.border}` }}>
-                    {/* Tabs */}
-                    <div style={{ display: "flex", gap: 4, padding: "12px 16px 0" }}>
-                        {["info", "passengers", "notes"].map(t => (
-                            <button key={t} onClick={() => setActiveTab(t)} style={{
-                                padding: "6px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600,
-                                border: "none", cursor: "pointer", fontFamily: "inherit",
-                                background: activeTab === t ? theme.primary : "transparent",
-                                color: activeTab === t ? "#fff" : theme.textMute,
-                                transition: "all .15s",
-                            }}>
-                                {t === "info" ? "📋 Trip Info" : t === "passengers" ? `👥 Passengers (${(booking.attendees?.length || 0) + 1})` : `📝 Driver Notes (${booking.driver_notes?.length || 0})`}
-                            </button>
+            {/* ── Expanded ── */}
+            {open && (
+                <div style={{ borderTop:`1px solid ${theme.border}` }}>
+                    {/* Tab bar — underline style */}
+                    <div style={{ display:"flex", paddingTop:4 }}>
+                        {[
+                            { k:"info",       l:"Trip Info" },
+                            { k:"passengers", l:`Passengers (${(booking.attendees?.length||0)+1})` },
+                            { k:"notes",      l:`Notes (${booking.driver_notes?.length||0})` },
+                        ].map(t=>(
+                            <button key={t.k} onClick={()=>setTab(t.k)} style={{ padding:"10px 16px", fontSize:12, fontWeight:600, border:"none", cursor:"pointer", fontFamily:"inherit", background:"transparent", color:tab===t.k?theme.primary:theme.textMute, borderBottom:`2px solid ${tab===t.k?theme.primary:"transparent"}`, transition:"all .15s" }}>{t.l}</button>
                         ))}
                     </div>
 
-                    <div style={{ padding: "14px 20px 20px" }}>
-                        {/* Info Tab */}
-                        {activeTab === "info" && (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                                {/* Trip details */}
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div style={{ padding:"16px 20px" }}>
+
+                        {/* ── Info tab ── */}
+                        {tab==="info" && (
+                            <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+                                {/* Compact meta line */}
+                                <div style={{ display:"flex", flexWrap:"wrap", gap:"6px 20px", paddingBottom:10, marginBottom:10 }}>
                                     {booking.trip_type && (
-                                        <InfoRow label="Trip Type" value={TRIP_TYPE_LABEL[booking.trip_type] || booking.trip_type} theme={theme} />
+                                        <span style={{ fontSize:12, color:theme.textSoft }}>
+                                            <span style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginRight:5 }}>Type</span>
+                                            {TRIP_LABEL[booking.trip_type]||booking.trip_type}
+                                        </span>
                                     )}
                                     {booking.pickup_location && (
-                                        <InfoRow label="Pickup From" value={booking.pickup_location} theme={theme} />
+                                        <span style={{ fontSize:12, color:theme.textSoft }}>
+                                            <span style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginRight:5 }}>From</span>
+                                            {booking.pickup_location}
+                                        </span>
                                     )}
                                     {booking.return_time && (
-                                        <InfoRow label="Return Time" value={booking.return_time} theme={theme} />
+                                        <span style={{ fontSize:12, color:theme.textSoft }}>
+                                            <span style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginRight:5 }}>Return</span>
+                                            {booking.return_time}
+                                        </span>
                                     )}
                                 </div>
 
-                                {/* Stops */}
-                                {booking.stops?.length > 0 && (
-                                    <div style={{ padding: "12px 14px", borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 8 }}>Destinations</div>
-                                        {booking.stops.map((s, i) => (
-                                            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: i < booking.stops.length - 1 ? `1px solid ${theme.border}` : "none" }}>
-                                                <div style={{ width: 22, height: 22, borderRadius: "50%", background: theme.primarySoft, color: theme.primary, fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{s.order}</div>
-                                                <div style={{ flex: 1, fontSize: 13, color: theme.text }}>{s.location}</div>
-                                                {s.arrival_time && <div style={{ fontSize: 11, color: theme.textMute }}>{s.arrival_time}</div>}
-                                            </div>
-                                        ))}
+                                {/* Stops — compact single line with dots */}
+                                {stopLine && (
+                                    <div style={{ paddingBottom:10, marginBottom:10 }}>
+                                        <div style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginBottom:6 }}>Stops</div>
+                                        <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+                                            {booking.stops.map((s,i)=>(
+                                                <span key={i} style={{ display:"inline-flex", alignItems:"center", gap:5 }}>
+                                                    <span style={{ width:18, height:18, borderRadius:"50%", background:theme.primarySoft, color:theme.primary, fontSize:10, fontWeight:800, display:"inline-flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{s.order}</span>
+                                                    <span style={{ fontSize:13, color:theme.text, fontWeight:600 }}>{s.location}</span>
+                                                    {s.arrival_time && <span style={{ fontSize:11, color:theme.textMute }}>({s.arrival_time})</span>}
+                                                    {i<booking.stops.length-1 && <span style={{ color:theme.textMute, fontSize:14, fontWeight:300, marginLeft:2 }}>→</span>}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Cancel reason */}
-                                {isCancelled && booking.cancel_reason && (
-                                    <div style={{ padding: "10px 14px", borderRadius: 12, background: theme.dangerSoft, border: `1px solid ${theme.danger}30` }}>
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: theme.danger, marginBottom: 4 }}>CANCEL REASON</div>
-                                        <div style={{ fontSize: 13, color: theme.text }}>{booking.cancel_reason}</div>
-                                        {booking.cancelled_at && <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>{booking.cancelled_at}</div>}
+                                {cancelled && booking.cancel_reason && (
+                                    <div style={{ padding:"10px 0" }}>
+                                        <div style={{ fontSize:10, fontWeight:700, color:theme.danger, textTransform:"uppercase", letterSpacing:".06em", marginBottom:4 }}>Cancel Reason</div>
+                                        <div style={{ fontSize:13, color:theme.text }}>{booking.cancel_reason}</div>
+                                        {booking.cancelled_at && <div style={{ fontSize:11, color:theme.textMute, marginTop:3 }}>{booking.cancelled_at}</div>}
                                     </div>
+                                )}
+
+                                {/* No trip info at all */}
+                                {!booking.trip_type && !booking.pickup_location && !stopLine && !cancelled && (
+                                    <div style={{ fontSize:12, color:theme.textMute, padding:"8px 0" }}>No trip details added.</div>
                                 )}
                             </div>
                         )}
 
-                        {/* Passengers Tab */}
-                        {activeTab === "passengers" && (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                                {/* Organizer */}
-                                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 12, background: theme.primarySoft, border: `1px solid ${theme.primary}20` }}>
-                                    <Avatar name={booking.organizer?.name} avatarUrl={booking.organizer?.avatar_url} size={36} />
-                                    <div>
-                                        <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{booking.organizer?.name}</div>
-                                        <div style={{ fontSize: 11, color: theme.primary, fontWeight: 600 }}>Organizer</div>
-                                    </div>
-                                </div>
-                                {/* Attendees */}
-                                {booking.attendees?.map((a, i) => (
-                                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-                                        <Avatar name={a.name} avatarUrl={a.avatar_url} size={36} />
-                                        <div>
-                                            <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{a.name}</div>
-                                            <div style={{ fontSize: 11, color: theme.textMute }}>Passenger</div>
-                                        </div>
+                        {/* ── Passengers tab ── */}
+                        {tab==="passengers" && (
+                            <div>
+                                {[{ ...booking.organizer, role:"Organizer" }, ...(booking.attendees||[]).map(a=>({...a,role:"Passenger"}))].map((p,i,arr)=>(
+                                    <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 0", borderBottom:i<arr.length-1?`1px solid ${theme.border}`:"none" }}>
+                                        <Av name={p.name} url={p.avatar_url} size={30}/>
+                                        <span style={{ flex:1, fontSize:13, fontWeight:600, color:theme.text }}>{p.name}</span>
+                                        <span style={{ fontSize:11, fontWeight:600, color:i===0?theme.primary:theme.textMute }}>{p.role}</span>
                                     </div>
                                 ))}
                             </div>
                         )}
 
-                        {/* Driver Notes Tab */}
-                        {activeTab === "notes" && (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                                {booking.driver_notes?.length === 0 && (
-                                    <div style={{ textAlign: "center", padding: "32px", color: theme.textMute, fontSize: 13 }}>
-                                        <div style={{ fontSize: 28, marginBottom: 8 }}>📝</div>
-                                        <div>No driver notes yet.</div>
-                                        <div style={{ fontSize: 11, marginTop: 4 }}>Notes are added after trip ends.</div>
+                        {/* ── Notes tab ── */}
+                        {tab==="notes" && (
+                            <div>
+                                {(!booking.driver_notes||booking.driver_notes.length===0) ? (
+                                    <div style={{ textAlign:"center", padding:"24px 0", color:theme.textMute, fontSize:12 }}>
+                                        <div style={{ fontSize:22, marginBottom:8 }}>📝</div>Notes appear after trip ends.
                                     </div>
-                                )}
-                                {booking.driver_notes?.map((n, i) => (
-                                    <div key={i} style={{ display: "flex", gap: 12, padding: "12px 14px", borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-                                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: theme.primarySoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>📝</div>
-                                        <div>
-                                            <div style={{ fontSize: 13, color: theme.text, lineHeight: 1.5 }}>{n.note}</div>
-                                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>{n.created_at}</div>
-                                        </div>
+                                ) : booking.driver_notes.map((n,i,arr)=>(
+                                    <div key={i} style={{ padding:"10px 0", borderBottom:i<arr.length-1?`1px solid ${theme.border}`:"none" }}>
+                                        <div style={{ fontSize:13, color:theme.text, lineHeight:1.6 }}>{n.note}</div>
+                                        <div style={{ fontSize:11, color:theme.textMute, marginTop:3 }}>{n.created_at}</div>
                                     </div>
                                 ))}
                             </div>
                         )}
 
-                        {/* Action Buttons */}
-                        {!isCancelled && !isCompleted && (
-                            <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-                                <button onClick={() => onCancel(booking)} style={{ padding: "10px 16px", borderRadius: 12, border: `1.5px solid ${theme.danger}40`, background: "transparent", color: theme.danger, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
-                                    🚫 Cancel Trip
-                                </button>
-                                {nextAction && (
-                                    <button onClick={() => onStatusUpdate(booking, nextAction.next)} style={{ flex: 1, padding: "11px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${nextAction.color},${nextAction.color}cc)`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 16px ${nextAction.glow}` }}>
-                                        {nextAction.label}
+                        {/* ── Action buttons ── */}
+                        {!cancelled && !completed && (
+                            <div style={{ display:"flex", gap:8, marginTop:14 }}>
+                                <button onClick={()=>onCancel(booking)} style={{ padding:"9px 16px", borderRadius:10, border:`1px solid ${theme.danger}30`, background:"transparent", color:theme.danger, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Cancel Trip</button>
+                                {nextAct && (
+                                    <button onClick={doAction} disabled={actLoading} style={{ padding:"9px 20px", borderRadius:10, border:"none", background:nextAct.color, color:"#fff", fontSize:13, fontWeight:700, cursor:actLoading?"not-allowed":"pointer", fontFamily:"inherit", opacity:actLoading?0.75:1, display:"flex", alignItems:"center", gap:7, transition:"opacity .15s" }}>
+                                        {actLoading&&<Spinner size={13}/>}{nextAct.label}
                                     </button>
                                 )}
                             </div>
                         )}
-
-                        {isCompleted && (
-                            <div style={{ marginTop: 14, padding: "10px 16px", borderRadius: 12, background: theme.successSoft, border: `1px solid ${theme.success}30`, textAlign: "center", fontSize: 13, fontWeight: 600, color: theme.success }}>
+                        {completed && (
+                            <div style={{ marginTop:12, display:"flex", alignItems:"center", gap:6, fontSize:13, fontWeight:600, color:theme.success }}>
                                 ✅ Trip completed
                             </div>
                         )}
@@ -435,242 +317,138 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
     );
 }
 
-function InfoRow({ label, value, theme }) {
-    return (
-        <div style={{ padding: "8px 12px", borderRadius: 10, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 3 }}>{label}</div>
-            <div style={{ fontSize: 13, color: theme.text, fontWeight: 600 }}>{value || "—"}</div>
-        </div>
-    );
-}
-
-
-// ─────────────────────────────────────────────────────────────────
-// Main Page
-// ─────────────────────────────────────────────────────────────────
-export default function DriverSchedule({ car, bookings: initialBookings, date: initialDate }) {
-    const dark  = useReactiveTheme();
+// ── Main Page ─────────────────────────────────────────────────────
+export default function DriverSchedule({ car, bookings: initial, date: initDate }) {
+    const dark = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
-    const [date, setDate]         = useState(initialDate || toISO(new Date()));
-    const [bookings, setBookings] = useState(initialBookings || []);
+    const [date, setDate]         = useState(initDate || toISO(new Date()));
+    const [bookings, setBookings] = useState(initial || []);
     const [loading, setLoading]   = useState(false);
-    const [cancelModal, setCancelModal]     = useState(null);
-    const [endNoteModal, setEndNoteModal]   = useState(null);
+    const [cancelModal, setCancelModal] = useState(null);
+    const [noteModal, setNoteModal]     = useState(null);
 
-    // Fetch bookings when date changes
-    const fetchBookings = useCallback(async (d) => {
+    const fetchBookings = useCallback(async d => {
         setLoading(true);
-        try {
-            const res  = await window.apiFetch(`/driver/schedule/bookings?date=${d}`);
-            const data = await res.json();
-            setBookings(data.bookings || []);
-        } catch {}
+        try { const r = await window.apiFetch(`/driver/schedule/bookings?date=${d}`); const data = await r.json(); setBookings(data.bookings||[]); } catch {}
         setLoading(false);
     }, []);
 
-    const changeDate = (newDate) => {
-        setDate(newDate);
-        fetchBookings(newDate);
-    };
-
-    const prevDay = () => {
-        const d = new Date(date + "T00:00:00");
-        d.setDate(d.getDate() - 1);
-        changeDate(toISO(d));
-    };
-    const nextDay = () => {
-        const d = new Date(date + "T00:00:00");
-        d.setDate(d.getDate() + 1);
-        changeDate(toISO(d));
-    };
-    const goToday = () => changeDate(toISO(new Date()));
-
+    const changeDate = d => { setDate(d); fetchBookings(d); };
+    const prevDay = () => { const d = new Date(date+"T00:00:00"); d.setDate(d.getDate()-1); changeDate(toISO(d)); };
+    const nextDay = () => { const d = new Date(date+"T00:00:00"); d.setDate(d.getDate()+1); changeDate(toISO(d)); };
     const isToday = date === toISO(new Date());
 
-    // Status update
-    const handleStatusUpdate = (booking, newStatus) => {
-        if (newStatus === "ended") {
-            // Update first, then show note modal
-            window.apiFetch(`/driver/schedule/${booking.id}/status`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ driver_status: newStatus }),
-            }).then(() => {
-                setBookings(prev => prev.map(b => b.id === booking.id
-                    ? { ...b, driver_status: "ended", status: "completed" }
-                    : b
-                ));
-                setEndNoteModal(booking);
-            });
-        } else {
-            window.apiFetch(`/driver/schedule/${booking.id}/status`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ driver_status: newStatus }),
-            }).then(() => {
-                setBookings(prev => prev.map(b => b.id === booking.id
-                    ? { ...b, driver_status: newStatus }
-                    : b
-                ));
-            });
-        }
+    const handleStatus = (booking, newStatus, done) => {
+        window.apiFetch(`/driver/schedule/${booking.id}/status`, {
+            method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ driver_status: newStatus }),
+        }).then(() => {
+            if (newStatus === "ended") {
+                setBookings(prev => prev.map(b => b.id===booking.id ? {...b, driver_status:"ended", status:"completed"} : b));
+                setNoteModal(booking);
+            } else {
+                setBookings(prev => prev.map(b => b.id===booking.id ? {...b, driver_status:newStatus} : b));
+            }
+            done?.();
+        }).catch(() => done?.());
     };
 
-    // After note modal closes, refresh bookings
-    const handleNoteClose = () => {
-        setEndNoteModal(null);
-        fetchBookings(date);
-    };
+    const total = bookings.length;
+    const done  = bookings.filter(b => b.status==="completed").length;
+    const active = bookings.filter(b => b.driver_status==="on_the_way").length;
 
-    // Stats
-    const total     = bookings.length;
-    const completed = bookings.filter(b => b.status === "completed").length;
-    const active    = bookings.filter(b => b.driver_status === "on_the_way").length;
-    const pending   = bookings.filter(b => b.driver_status === "start" && b.status !== "cancelled").length;
+    if (!car) return (
+        <AppLayout title="Trip Schedule">
+            <Head title="Trip Schedule"/>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"60vh", textAlign:"center", padding:40 }}>
+                <div style={{ fontSize:52, marginBottom:16 }}>🚗</div>
+                <div style={{ fontSize:18, fontWeight:800, color:theme.text, marginBottom:8 }}>No Car Assigned</div>
+                <div style={{ fontSize:13, color:theme.textMute, maxWidth:300, lineHeight:1.7 }}>Contact HR to get a car assigned to you.</div>
+            </div>
+        </AppLayout>
+    );
 
-
-    if (!car) {
-        return (
-            <AppLayout title="Trip Schedule">
-                <Head title="Trip Schedule" />
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", textAlign: "center", padding: 40 }}>
-                    <div style={{ fontSize: 64, marginBottom: 20 }}>🚗</div>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: theme.text, marginBottom: 8 }}>No Car Assigned Yet</div>
-                    <div style={{ fontSize: 14, color: theme.textMute, maxWidth: 340, lineHeight: 1.6 }}>
-                        Your account hasn't been assigned to a vehicle yet.<br />
-                        Please contact HR to get a car assigned to you.
-                    </div>
-                </div>
-            </AppLayout>
-        );
-    }
-    
     return (
         <AppLayout title="Trip Schedule">
-            <Head title="Trip Schedule" />
+            <Head title="Trip Schedule"/>
             <style>{`
-                @keyframes ds-fade { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
-                @keyframes ds-modal { from{opacity:0;transform:translateY(14px)scale(.97)} to{opacity:1;transform:none} }
+                @keyframes ds-fade  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+                @keyframes ds-modal { from{opacity:0;transform:translateY(12px)scale(.98)} to{opacity:1;transform:none} }
+                @keyframes ds-spin  { to{transform:rotate(360deg)} }
                 .ds-page { animation: ds-fade .3s ease; }
-                *::-webkit-scrollbar { display: none; }
+                *::-webkit-scrollbar { display:none; }
             `}</style>
 
             <div className="ds-page" style={{ maxWidth: 680, margin: "0 auto", padding: "0 0 40px" }}>
 
-                {/* ── Hero Banner ── */}
+                {/* ── Hero ── */}
                 <div style={{
-                    background: dark
-                        ? "linear-gradient(135deg,#1a0a00,#2d1500,#1a0a00)"
-                        : "linear-gradient(135deg,#92400e,#d97706,#f59e0b)",
-                    borderRadius: 24, padding: "24px 28px", marginBottom: 24,
-                    boxShadow: "0 8px 32px rgba(217,119,6,0.25)",
-                    position: "relative", overflow: "hidden",
+                    background: dark ? "linear-gradient(135deg,#0a0f1e,#1a1040)" : "linear-gradient(135deg,#3730a3,#6366f1)",
+                    borderRadius:20, padding:"22px 28px", marginBottom:20, position:"relative", overflow:"hidden",
+                    boxShadow: "0 8px 32px rgba(99,102,241,0.20)",
                 }}>
-                    <div style={{ position: "absolute", top: -20, right: -20, fontSize: 100, opacity: 0.08 }}>🚗</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                        <div style={{ width: 52, height: 52, borderRadius: 16, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, backdropFilter: "blur(10px)" }}>🚗</div>
-                        <div>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 4 }}>Trip Schedule</div>
-                            <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.1 }}>{car?.name}</div>
-                            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 4 }}>
-                                🪪 {car?.plate_number}
-                                {car?.location && ` · 📍 ${car.location}`}
-                                {car?.capacity && ` · 👥 ${car.capacity} seats`}
+                    <div style={{ position:"absolute", top:-24, right:-24, fontSize:120, opacity:0.06, lineHeight:1, userSelect:"none" }}>🚗</div>
+                    <div style={{ position:"relative", display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
+                        <div style={{ width:48, height:48, borderRadius:14, background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>🚗</div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ fontSize:10, fontWeight:800, color:"rgba(255,255,255,0.6)", letterSpacing:"1.5px", textTransform:"uppercase", marginBottom:3 }}>Trip Schedule</div>
+                            <div style={{ fontSize:20, fontWeight:900, color:"#fff" }}>{car?.name}</div>
+                            <div style={{ fontSize:12, color:"rgba(255,255,255,0.65)", marginTop:3 }}>
+                                {[car?.plate_number, car?.location&&`📍 ${car.location}`, car?.capacity&&`👥 ${car.capacity} seats`].filter(Boolean).join("  ·  ")}
                             </div>
                         </div>
-
-                        {/* Stats */}
-                        <div style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
-                            {[
-                                { label: "Today", value: total, color: "#fff" },
-                                { label: "Active", value: active, color: "#fcd34d" },
-                                { label: "Done", value: completed, color: "#6ee7b7" },
-                            ].map(s => (
-                                <div key={s.label} style={{ textAlign: "center", padding: "8px 14px", borderRadius: 14, background: "rgba(255,255,255,0.12)", backdropFilter: "blur(10px)" }}>
-                                    <div style={{ fontSize: 20, fontWeight: 900, color: s.color }}>{s.value}</div>
-                                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{s.label}</div>
+                        <div style={{ display:"flex", gap:8 }}>
+                            {[{l:"Total",v:total,c:"#fff"},{l:"Active",v:active,c:"#a5b4fc"},{l:"Done",v:done,c:"#6ee7b7"}].map(s=>(
+                                <div key={s.l} style={{ textAlign:"center", padding:"8px 14px", borderRadius:12, background:"rgba(255,255,255,0.12)" }}>
+                                    <div style={{ fontSize:18, fontWeight:900, color:s.c, lineHeight:1 }}>{s.v}</div>
+                                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.55)", fontWeight:600, marginTop:2 }}>{s.l}</div>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                {/* ── Date Navigator ── */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, background: theme.surface, borderRadius: 18, padding: "10px 16px", border: `1px solid ${theme.border}`, boxShadow: theme.shadowSm }}>
-                    <button onClick={prevDay} style={{ width: 36, height: 36, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
-
-                    <div style={{ flex: 1, textAlign: "center" }}>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: theme.text }}>{fmtDate(date)}</div>
-                        {isToday && <div style={{ fontSize: 11, fontWeight: 700, color: theme.primary, letterSpacing: ".05em" }}>TODAY</div>}
+                {/* ── Date nav ── */}
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16, background:theme.surface, borderRadius:14, padding:"10px 14px", border:`1px solid ${theme.border}`, boxShadow:theme.shadowSm }}>
+                    <button onClick={prevDay} style={{ width:32, height:32, borderRadius:8, border:`1px solid ${theme.border}`, background:theme.surfaceSoft, color:theme.textSoft, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>‹</button>
+                    <div style={{ flex:1, textAlign:"center" }}>
+                        <div style={{ fontSize:14, fontWeight:700, color:theme.text }}>{fmtDate(date)}</div>
+                        {isToday && <div style={{ fontSize:10, fontWeight:700, color:theme.primary, letterSpacing:".05em" }}>TODAY</div>}
                     </div>
-
-                    <button onClick={nextDay} style={{ width: 36, height: 36, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
-
-                    <input type="date" value={date} onChange={e => changeDate(e.target.value)}
-                        style={{ padding: "7px 12px", borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.inputBg, color: theme.text, fontSize: 12, fontFamily: "inherit", cursor: "pointer", outline: "none" }} />
-
-                    {!isToday && (
-                        <button onClick={goToday} style={{ padding: "7px 14px", borderRadius: 10, border: `1px solid ${theme.primary}40`, background: theme.primarySoft, color: theme.primary, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Today</button>
-                    )}
+                    <button onClick={nextDay} style={{ width:32, height:32, borderRadius:8, border:`1px solid ${theme.border}`, background:theme.surfaceSoft, color:theme.textSoft, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>›</button>
+                    <input type="date" value={date} onChange={e=>changeDate(e.target.value)}
+                        style={{ padding:"6px 10px", borderRadius:8, border:`1px solid ${theme.border}`, background:theme.inputBg, color:theme.text, fontSize:12, fontFamily:"inherit", cursor:"pointer", outline:"none" }}/>
+                    {!isToday && <button onClick={()=>changeDate(toISO(new Date()))} style={{ padding:"6px 12px", borderRadius:8, border:`1px solid ${theme.primary}30`, background:theme.primarySoft, color:theme.primary, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Today</button>}
                 </div>
 
-                {/* ── Booking List ── */}
+                {/* ── Status legend ── */}
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:14 }}>
+                    {Object.entries(DS).map(([k,v])=><Pill key={k} label={v.label} color={v.color} bg={v.bg}/>)}
+                </div>
+
+                {/* ── List ── */}
                 {loading ? (
-                    <div style={{ textAlign: "center", padding: "60px", color: theme.textMute, fontSize: 13 }}>
-                        <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
+                    <div style={{ textAlign:"center", padding:"56px", color:theme.textMute, fontSize:13 }}>
+                        <div style={{ display:"flex", justifyContent:"center", marginBottom:12 }}><Spinner size={22} color={theme.primary}/></div>
                         Loading schedule…
                     </div>
                 ) : bookings.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: "60px", color: theme.textMute, fontSize: 13, background: theme.surface, borderRadius: 20, border: `1px solid ${theme.border}` }}>
-                        <div style={{ fontSize: 40, marginBottom: 12 }}>📭</div>
-                        <div style={{ fontWeight: 700, fontSize: 15, color: theme.textSoft }}>No bookings on {fmtDate(date)}</div>
-                        <div style={{ fontSize: 12, marginTop: 6 }}>You're free on this day.</div>
+                    <div style={{ textAlign:"center", padding:"52px 24px", color:theme.textMute, background:theme.surface, borderRadius:16, border:`1px solid ${theme.border}` }}>
+                        <div style={{ fontSize:36, marginBottom:10 }}>📭</div>
+                        <div style={{ fontWeight:700, fontSize:14, color:theme.textSoft, marginBottom:4 }}>No bookings on {fmtShort(date)}</div>
+                        <div style={{ fontSize:12 }}>You're free on this day.</div>
                     </div>
                 ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        {/* Status legend */}
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-                            {Object.entries(STATUS_CONFIG).map(([k, v]) => (
-                                <div key={k} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 20, background: v.bg, fontSize: 11, fontWeight: 600, color: v.color }}>
-                                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: v.dot }} />
-                                    {v.label}
-                                </div>
-                            ))}
-                        </div>
-
-                        {bookings.map(b => (
-                            <BookingCard
-                                key={b.id}
-                                booking={b}
-                                onStatusUpdate={handleStatusUpdate}
-                                onCancel={setCancelModal}
-                                theme={theme}
-                                dark={dark}
-                            />
+                    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                        {bookings.map(b=>(
+                            <BookingCard key={b.id} booking={b} onStatusUpdate={handleStatus} onCancel={setCancelModal} theme={theme} dark={dark}/>
                         ))}
                     </div>
                 )}
             </div>
 
-            {/* Cancel Modal */}
-            {cancelModal && (
-                <CancelModal
-                    booking={cancelModal}
-                    onClose={() => { setCancelModal(null); fetchBookings(date); }}
-                    theme={theme}
-                    dark={dark}
-                />
-            )}
-
-            {/* End Trip Note Modal */}
-            {endNoteModal && (
-                <EndTripNoteModal
-                    booking={endNoteModal}
-                    onClose={handleNoteClose}
-                    theme={theme}
-                />
-            )}
+            {cancelModal && <CancelModal booking={cancelModal} onClose={()=>{ setCancelModal(null); fetchBookings(date); }} theme={theme}/>}
+            {noteModal   && <NoteModal   booking={noteModal}   onClose={()=>{ setNoteModal(null);   fetchBookings(date); }} theme={theme}/>}
         </AppLayout>
     );
 }

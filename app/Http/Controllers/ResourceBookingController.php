@@ -46,7 +46,7 @@ class ResourceBookingController extends Controller
 
         $myBookings = ResourceBooking::with(['resource:id,name,type,location','stops'])
             ->where('user_id', $user->id)
-            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->whereNotIn('status', ['rejected'])
             ->orderBy('booking_date')->orderBy('start_time')
             ->get()->map(fn($b) => $this->formatBooking($b));
 
@@ -75,6 +75,35 @@ class ResourceBookingController extends Controller
             ? User::select('id', 'name')->where('country_id', $countryId)->where('is_active', true)->orderBy('name')->get()
             : collect();
 
+
+        // Driver notes — user ရဲ့ car bookings မှာ note ရှိတာတွေ
+        $driverNotes = ResourceBooking::with([
+            'resource:id,name,plate_number',
+            'driverNotes.driver:id,name,avatar_url',
+        ])
+        ->where('user_id', $user->id)
+        ->whereHas('driverNotes')
+        ->whereHas('resource', fn($q) => $q->where('type', 'car'))
+        ->orderBy('booking_date', 'desc')
+        ->get()
+        ->map(fn($b) => [
+            'booking_id'   => $b->id,
+            'booking_date' => $b->booking_date->format('Y-m-d'),  // ← toISO() နဲ့ match ဖို့
+            'start_time'   => substr($b->start_time, 0, 5),
+            'end_time'     => $b->end_time ? substr($b->end_time, 0, 5) : null,
+            'purpose'      => $b->purpose,
+            'car_name'     => $b->resource?->name,
+            'plate'        => $b->resource?->plate_number,
+            'notes'        => $b->driverNotes->map(fn($n) => [
+                'id'         => $n->id,
+                'note'       => $n->note,
+                'driver'     => $n->driver ? [
+                    'name'       => $n->driver->name,
+                    'avatar_url' => $n->driver->avatar_url,
+                ] : null,
+                'created_at' => $n->created_at->format('d M Y, H:i'),
+            ])->values(),
+        ]);
         return Inertia::render('Bookings/Index', [
             'resources'       => $resources,
             'allResources'    => $allResources,
@@ -84,6 +113,7 @@ class ResourceBookingController extends Controller
             'stats'           => $stats,
             'isHR'            => $isHR,
             'users'           => $users,
+            'driverNotes' => $driverNotes,
         ]);
     }
 
@@ -486,6 +516,7 @@ class ResourceBookingController extends Controller
             'pickup_location' => $b->pickup_location,
             'driver_status'   => $b->driver_status,
             'driver_note'     => $b->driver_note,
+            'cancel_reason' => $b->cancel_reason,
             'stops'           => $b->stops->map(fn($s) => [
                 'order'        => $s->order,
                 'location'     => $s->location,

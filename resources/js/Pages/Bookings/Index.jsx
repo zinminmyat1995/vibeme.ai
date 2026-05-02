@@ -425,15 +425,18 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => {
 
                 // ── Car icon position logic ──
                 const showCar = type === "car" && (dStatus === "on_the_way" || dStatus === "returned");
-                let carLeft = left; // default = booking start edge
+                let carLeft = left;
 
-                if (showCar && nowMin >= sMin && nowMin <= eMin) {
-                    // current time က booking range ထဲ ဝင်နေရင် → current time position
-                    carLeft = pct(nowMin);
+                if (showCar && nowMin >= sMin) {
+                    carLeft = pct(Math.min(nowMin, eMin)); // eMin ထက်မကျော်အောင်
                 }
-                // nowMin < sMin → left edge (booking start) မှာပဲ နေ
-                // nowMin > eMin → showCar = false (ပျောက်)
-                const carVisible = showCar && nowMin <= eMin;
+
+                // on_the_way ဆိုရင် end time ကျော်သွားရင်လည်း booking end မှာ ကပ်ပြနေ
+                const carVisible = showCar && (
+                    dStatus === "on_the_way"
+                        ? nowMin >= sMin  // start ကျော်ရင် အမြဲပြ (end ကျော်ရင် edge မှာပဲနေ)
+                        : nowMin <= eMin  // returned ဆိုရင် end မကျော်မချင်းပြ
+                );
 
                 return (
                     <>
@@ -1299,17 +1302,22 @@ function BookingRow({ booking: b, isHR, onReject, onMarkReturned, onDelete, them
                         <span>📅 {b.booking_date}</span>
                         <span>⏰ {b.start_time}{b.end_time ? `–${b.end_time}` : " (open-ended)"}</span>
                     </div>
-                    {/* Reason — Leave Request style */}
                     {b.purpose && (
-                        <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginTop: 2 }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".06em", marginTop: 1, flexShrink: 0 }}>Reason</span>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 2 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0 }}>Reason</span>
                             <span style={{ fontSize: 12, color: theme.textSoft }}>{b.purpose}</span>
                         </div>
                     )}
                     {b.reject_reason && (
-                        <div style={{ marginTop: 8, padding: "7px 10px", borderRadius: 8, background: theme.dangerSoft, fontSize: 12, color: theme.danger, display: "flex", gap: 6 }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0, marginTop: 1 }}>Rejected</span>
-                            <span>{b.reject_reason}</span>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.danger, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0 }}>Rejected</span>
+                            <span style={{ fontSize: 12, color: theme.textSoft }}>{b.reject_reason}</span>
+                        </div>
+                    )}
+                    {b.cancel_reason && (
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.warning, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0 }}>Cancel Note</span>
+                            <span style={{ fontSize: 12, color: theme.textSoft }}>{b.cancel_reason}</span>
                         </div>
                     )}
                 </div>
@@ -1951,7 +1959,7 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
 // ─────────────────────────────────────────────────────────────────
 // Main Page
 // ─────────────────────────────────────────────────────────────────
-export default function BookingsIndex({ resources, allResources, pendingBookings, myBookings, myInvitations, stats, isHR, users }) {
+export default function BookingsIndex({ resources, allResources, pendingBookings, myBookings, myInvitations, stats, isHR, users, driverNotes }) {
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
     const { auth } = usePage().props; 
@@ -2050,6 +2058,10 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
         b.resource?.type === myType &&
         b.booking_date === toISO(calDate)
     );
+
+    const filteredDriverNotes = (driverNotes || []).filter(
+        n => n.booking_date === toISO(calDate)
+    );
     const myRoomCount = myBookings.filter(b => b.resource?.type === "room" && b.booking_date === toISO(calDate)).length;
     const myCarCount  = myBookings.filter(b => b.resource?.type === "car"  && b.booking_date === toISO(calDate)).length;
 
@@ -2118,6 +2130,7 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                         {tabBtn("calendar", "📅 Calendar", tab === "calendar", 0)}
                         {tabBtn("mine", "📋 My Bookings", tab === "mine", myRoomCount + myCarCount)}
                         {tabBtn("invitations", "✉️ My Invitations", tab === "invitations", myInvitations.filter(b => b.booking_date === toISO(calDate)).length)}
+                        {tabBtn("drivernotes", "📝 Driver Notes", tab === "drivernotes", filteredDriverNotes.length)}
                         {isHR && tabBtn("manage", "⚙️ Manage Resources", tab === "manage", 0)}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
@@ -2312,6 +2325,56 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                         </div>
                     );
                 })()}
+                {/* ── Driver Notes Tab ── */}
+                {tab === "drivernotes" && (
+                    <div style={{ background: theme.surface, borderRadius: 20, border: `1px solid ${theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm }}>
+                        {filteredDriverNotes.length === 0 ? (
+                            <div style={{ textAlign: "center", padding: "60px", color: theme.textMute, fontSize: 13 }}>
+                                <div style={{ fontSize: 32, marginBottom: 12 }}>📝</div>
+                                <div style={{ fontWeight: 600 }}>No driver notes on {toISO(calDate)}</div>
+                                <div style={{ fontSize: 12, marginTop: 4 }}>Notes will appear here after your trips are completed.</div>
+                            </div>
+                        ) : driverNotes.map((b, bi) => (
+                            <div key={b.booking_id} style={{
+                                borderBottom: bi < driverNotes.length - 1 ? `1px solid ${theme.border}` : "none",
+                                padding: "16px 20px",
+                            }}>
+                                {/* Booking header */}
+                                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: 11, background: theme.carSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🚗</div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>
+                                            {b.car_name}
+                                            {b.plate && <span style={{ fontSize: 11, color: theme.textMute, fontWeight: 400, marginLeft: 6, fontFamily: "monospace" }}>{b.plate}</span>}
+                                        </div>
+                                        <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>
+                                            📅 {b.booking_date} · ⏰ {b.start_time}{b.end_time ? `–${b.end_time}` : ""}
+                                            {b.purpose && <span> · {b.purpose}</span>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Notes — activity log style */}
+                                <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingLeft: 10, borderLeft: `2px solid ${theme.border}` }}>
+                                    {b.notes.map((n, ni) => (
+                                        <div key={n.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                                            {/* Driver avatar */}
+                                            <SmartAvatar name={n.driver?.name ?? "?"} url={n.driver?.avatar_url} size={28} theme={theme} />
+                                            <div style={{ flex: 1, background: theme.surfaceSoft, borderRadius: 12, padding: "10px 14px"}}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                                                    <span style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{n.driver?.name ?? "Driver"}</span>
+                                                    <span style={{ fontSize: 10, color: theme.textMute }}>left a note</span>
+                                                    <span style={{ fontSize: 10, color: theme.textMute, marginLeft: "auto" }}>{n.created_at}</span>
+                                                </div>
+                                                <div style={{ fontSize: 13, color: theme.textSoft, lineHeight: 1.6 }}>{n.note}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
                 {/* ── Manage Resources Tab (HR) ── */}
                 {tab === "manage" && isHR && (
                     <div>
