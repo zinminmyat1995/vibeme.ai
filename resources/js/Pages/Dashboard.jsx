@@ -1847,7 +1847,7 @@ export default function Dashboard(props) {
 
     const isHrAdmin    = roleIn(roleName, ['admin', 'hr']);
     const isManagement = roleIn(roleName, ['management']);
-    const isEmployee   = roleIn(roleName, ['employee', 'member']);
+    const isEmployee   = roleIn(roleName, ['employee', 'member','driver']);
 
     const [, forceReload] = useState(0);
     const onReload = useCallback(() => {

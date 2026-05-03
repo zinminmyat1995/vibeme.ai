@@ -47,7 +47,7 @@ class LeaveRequestController extends Controller
             $query->where(function ($q) use ($user) {
                 $q->where('approver_id', $user->id)->orWhere('user_id', $user->id);
             });
-        } elseif (in_array($roleName, self::LOWER_ROLES)) {
+        } elseif (in_array($roleName, self::LOWER_ROLES) || $roleName === 'driver') {
             $query->where('user_id', $user->id);
         }
 
@@ -65,6 +65,15 @@ class LeaveRequestController extends Controller
                     ->whereHas('role', fn($q) => $q->where('name', 'management'))
                     ->get(),
         
+            
+            // Driver → ကိုယ့် country ထဲက hr role
+            $roleName === 'driver' =>
+                User::select('id', 'name', 'avatar_url', 'role_id')->with('role:id,name')
+                    ->where('is_active', 1)
+                    ->where('country_id', $user->country_id)
+                    ->whereHas('role', fn($q) => $q->where('name', 'hr'))
+                    ->get(),
+
             // Management → ကိုယ့် country ထဲက hr role
             $roleName === 'management' =>
                 User::select('id', 'name', 'avatar_url', 'role_id')->with('role:id,name')

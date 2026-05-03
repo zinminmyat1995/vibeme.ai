@@ -219,7 +219,7 @@ const menuItems = [
                 ),
                 label: 'Attendance',
                 route: '/payroll/attendance',
-                roles: ['admin', 'hr', 'management', 'employee'],
+                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
             },
             {
                 icon: (
@@ -231,7 +231,7 @@ const menuItems = [
                 ),
                 label: 'Check In/Out Request',
                 route: '/payroll/check-in-out-requests',
-                roles: ['admin', 'hr', 'management', 'employee'],
+                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
             },
             {
                 icon: (
@@ -241,7 +241,7 @@ const menuItems = [
                 ),
                 label: 'Leave Request',
                 route: '/payroll/leaves',
-                roles: ['admin', 'hr', 'management', 'employee'],
+                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
             },
             {
                 icon: (
@@ -251,7 +251,7 @@ const menuItems = [
                 ),
                 label: 'Overtime Request',
                 route: '/payroll/overtimes',
-                roles: ['admin', 'hr', 'management', 'employee'],
+                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
             },
             {
                 icon: (
@@ -266,7 +266,7 @@ const menuItems = [
                 ),
                 label: 'Expense Request',
                 route: '/payroll/expenses',
-                roles: ['admin', 'hr', 'management', 'employee'],
+                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
             },
             {
                 icon: (
@@ -299,7 +299,7 @@ const menuItems = [
                 ),
                 label: 'Payslip',
                 route: '/payroll/payslip',
-                roles: ['admin', 'hr', 'management', 'employee'],
+                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
             },
             {
                 icon: (

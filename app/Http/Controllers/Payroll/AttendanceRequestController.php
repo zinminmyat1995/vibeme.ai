@@ -54,7 +54,7 @@ class AttendanceRequestController extends Controller
         }
 
         $approvers = match (true) {
-            in_array($roleName, ['employee', 'management'], true) =>
+            in_array($roleName, ['employee', 'management', 'driver'], true) =>
                 User::select('id', 'name', 'avatar_url', 'role_id', 'country_id')
                     ->with('role:id,name')
                     ->where('is_active', 1)
@@ -297,7 +297,7 @@ public function reject(Request $request, int $id): RedirectResponse
         $roleName = $user->role?->name ?? 'employee';
 
         return match (true) {
-            in_array($roleName, ['employee', 'management'], true) =>
+            in_array($roleName, ['employee', 'management', 'driver'], true) =>
                 User::where('is_active', 1)
                     ->where('country_id', $user->country_id)
                     ->whereHas('role', fn ($q) => $q->where('name', 'hr'))
