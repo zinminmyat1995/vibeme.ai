@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import ReactDOM from "react-dom";
@@ -395,7 +395,7 @@ useEffect(() => {
     });
 }, [bookings]);
 
-const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => {
+const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
     const [tooltip, setTooltip] = useState(null);
 
     return (
@@ -434,14 +434,14 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => {
                 // on_the_way ဆိုရင် end time ကျော်သွားရင်လည်း booking end မှာ ကပ်ပြနေ
                 const carVisible = showCar && (
                     dStatus === "on_the_way"
-                        ? nowMin >= sMin  // start ကျော်ရင် အမြဲပြ (end ကျော်ရင် edge မှာပဲနေ)
+                        ? true  // on_the_way ဆိုရင် time မကြည့်ဘဲ အမြဲပြ
                         : nowMin <= eMin  // returned ဆိုရင် end မကျော်မချင်းပြ
                 );
 
                 return (
-                    <>
+                    <React.Fragment key={b.id}>
                         {/* Booking card */}
-                        <div key={b.id}
+                        <div
                             onClick={() => onBookingClick && onBookingClick(b.id)}
                             onMouseEnter={e => {
                                 const rect = e.currentTarget.getBoundingClientRect();
@@ -512,7 +512,7 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => {
                                 </svg>
                             </div>
                         )}
-                    </>
+                    </React.Fragment>
                 );
             })}
 
@@ -593,7 +593,7 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick }) => {
                                 {type === "car" && [r.plate_number, r.driver?.name].filter(Boolean).join(" · ")}
                             </div>
                         </div>
-                        <TimelineCell rBk={rBk} rowIdx={idx} onBookingClick={onBookingClick} />
+                        <TimelineCell rBk={rBk} rowIdx={idx} onBookingClick={onBookingClick} nowMin={nowMin} />
                     </div>
                 ))}
             </div>
@@ -2078,6 +2078,8 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
             {badgeCount > 0 && <span style={{ background: active ? "rgba(255,255,255,0.25)" : theme.danger, color: "#fff", fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 10 }}>{badgeCount}</span>}
         </button>
     );
+
+    
 
     return (
         <AppLayout title="Bookings">

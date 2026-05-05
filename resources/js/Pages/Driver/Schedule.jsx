@@ -53,7 +53,18 @@ const BS = {
     cancelled:  { label: "Cancelled",  color: "#dc2626", bg: "rgba(220,38,38,0.09)"  },
 };
 const TRIP_LABEL = { one_way: "One Way", multi_stop: "Multi Stop", pickup: "Pickup / Drop", round_trip: "Round Trip", wait_return: "Wait & Return" };
-const toISO = d => { const dt = d instanceof Date ? d : new Date(d); return dt.toISOString().slice(0, 10); };
+function toISO(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function addDays(d, n) {
+    const r = new Date(d);
+    r.setDate(r.getDate() + n);
+    return r;
+}
 const fmtDate = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
 const fmtShort = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 
@@ -150,7 +161,17 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
     const cancelled = booking.status === "cancelled";
     const completed = booking.status === "completed" || ds === "ended";
 
-    const nextAct = !cancelled && !completed ? {
+    const isExpiredNotStarted = (() => {
+        if (!booking.end_time) return false;
+        if (booking.driver_status !== "start") return false;
+
+        const now = new Date();
+        const end = new Date(`${booking.booking_date}T${booking.end_time}:00`);
+
+        return now > end;
+    })();
+
+    const nextAct = !cancelled && !completed && !isExpiredNotStarted ? {
         start:      { label: "Start Trip",     next: "on_the_way", color: "#2563eb" },
         on_the_way: { label: "Mark Returning", next: "returned",   color: "#d97706" },
         returned:   { label: "End Trip",       next: "ended",      color: "#059669" },
@@ -305,6 +326,21 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
                                 )}
                             </div>
                         )}
+
+                        {isExpiredNotStarted && (
+                            <div style={{
+                                marginTop: 14,
+                                padding: "10px 12px",
+                                borderRadius: 10,
+                                background: theme.dangerSoft,
+                                color: theme.danger,
+                                fontSize: 12,
+                                fontWeight: 700,
+                            }}>
+                                This trip time has already passed. You can no longer start this trip.
+                            </div>
+                        )}
+
                         {completed && (
                             <div style={{ marginTop:12, display:"flex", alignItems:"center", gap:6, fontSize:13, fontWeight:600, color:theme.success }}>
                                 ✅ Trip completed
@@ -335,8 +371,8 @@ export default function DriverSchedule({ car, bookings: initial, date: initDate 
     }, []);
 
     const changeDate = d => { setDate(d); fetchBookings(d); };
-    const prevDay = () => { const d = new Date(date+"T00:00:00"); d.setDate(d.getDate()-1); changeDate(toISO(d)); };
-    const nextDay = () => { const d = new Date(date+"T00:00:00"); d.setDate(d.getDate()+1); changeDate(toISO(d)); };
+    const prevDay = () => changeDate(toISO(addDays(new Date(`${date}T00:00:00`), -1)));
+    const nextDay = () => changeDate(toISO(addDays(new Date(`${date}T00:00:00`), 1)));
     const isToday = date === toISO(new Date());
 
     const handleStatus = (booking, newStatus, done) => {

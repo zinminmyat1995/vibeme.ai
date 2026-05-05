@@ -99,6 +99,16 @@ class DriverScheduleController extends Controller
 
         $newStatus = $request->driver_status;
 
+        if (
+            $newStatus === 'on_the_way' &&
+            $booking->end_time &&
+            now()->greaterThan($booking->booking_date->copy()->setTimeFromTimeString($booking->end_time))
+        ) {
+            return response()->json([
+                'message' => 'This trip time has already passed. You can no longer start this trip.',
+            ], 422);
+        }
+
         // Status flow validation — ကျော်လိုက်လို့မရ
         $current = $booking->driver_status;
         $allowed = match ($current) {
