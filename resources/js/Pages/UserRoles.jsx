@@ -1207,9 +1207,9 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
     ];
 
     const roleOptions = [
-        { value: '', label: 'Select role...', disabled: true },
+        { value: '', label: 'All Roles' },           // ← disabled မပါ၊ ပြန်ရွေးနိုင်
         ...roles.map(r => ({
-            value: String(r.id),
+            value: r.name,                            // ← id မဟုတ်ဘဲ name သိမ်း
             label: r.display_name,
         })),
     ];
@@ -1240,15 +1240,6 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                             title="Premium workspace overview"
                             desc="Same flow and same logic, upgraded with a cleaner, more professional interface."
                             theme={theme}
-                            action={
-                                <UIButton onClick={() => setShowCreate(true)} variant="primary" theme={theme}>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M12 5v14" />
-                                        <path d="M5 12h14" />
-                                    </svg>
-                                    Add New User
-                                </UIButton>
-                            }
                         />
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr repeat(4, 1fr)', gap: 14, marginTop: 22 }}>
@@ -1304,8 +1295,8 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                     <div
                         style={{
                             ...card(theme),
-                            flex: 1,
-                            minWidth: 270,
+                            flex: 1,           // ← flex:1 မဟုတ်တော့ဘဲ fixed width
+                            minWidth: 200,
                             display: 'flex',
                             alignItems: 'center',
                             gap: 10,
@@ -1376,6 +1367,14 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                         darkMode={darkMode}
                         minWidth={170}
                     />
+
+                    <UIButton onClick={() => setShowCreate(true)} variant="primary" theme={theme}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 5v14" />
+                            <path d="M5 12h14" />
+                        </svg>
+                        Add New User
+                    </UIButton>
                 </div>
 
                 <div style={{ ...card(theme), overflow: 'hidden' }}>
