@@ -62,6 +62,99 @@ class PayslipController extends Controller
         ]);
     }
 
+
+    public function mobilePayslips(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $user      = Auth::user();
+        $countryId = $user->countryRecord?->id;
+
+        $query = PayrollRecord::with(['user', 'payrollPeriod.country', 'bonuses'])
+            ->whereIn('status', ['confirmed', 'paid'])
+            ->whereHas('payrollPeriod', fn($q) => $q->where('country_id', $countryId))
+            ->where('user_id', $user->id);   // ← ကိုယ့် record ပဲ (role မကြည့်)
+
+        if ($request->filled('year'))      $query->where('year',  $request->year);
+        if ($request->filled('month'))     $query->where('month', $request->month);
+        if ($request->filled('period_id')) $query->where('payroll_period_id', $request->period_id);
+
+        $records = $query->orderByDesc('year')
+            ->orderByDesc('month')
+            ->orderBy('payroll_period_id')
+            ->get()
+            ->map(fn($r) => $this->formatPayslip($r));
+
+        return response()->json([
+            'payslips' => $records,
+        ]);
+    }
+
+
+    // ──────────────────────────────────────────────────────────────
+    // GET /api/v1/payroll/payslips/{id}/detail  ← Mobile detail
+    // ──────────────────────────────────────────────────────────────
+    public function mobileDetail(\Illuminate\Http\Request $request, int $id): \Illuminate\Http\JsonResponse
+    {
+        $user          = Auth::user();
+        $payrollRecord = PayrollRecord::with(['user', 'payrollPeriod.country', 'bonuses'])->find($id);
+
+        if (!$payrollRecord) {
+            return response()->json(['message' => 'Payslip not found.'], 404);
+        }
+
+        // ကိုယ့် record ကိုသာ ကြည့်ခွင့်ရ
+        if ((int) $payrollRecord->user_id !== (int) $user->id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        if (!in_array($payrollRecord->status, ['confirmed', 'paid'])) {
+            return response()->json(['message' => 'Payslip not yet confirmed.'], 403);
+        }
+
+        // PayrollRecordController::show() မှာ သုံးနေတဲ့ formatRecord method ကို
+        // PayslipController မှာ မရှိသောကြောင့် buildPayslipData ကိုသုံးမည်
+        $data = $this->buildPayslipData($payrollRecord);
+
+        return response()->json([
+            'id'                  => $payrollRecord->id,
+            'user_id'             => $payrollRecord->user_id,
+            'name'                => $payrollRecord->user?->name,
+            'position'            => $payrollRecord->user?->position,
+            'department'          => $payrollRecord->user?->department,
+            'currency'            => $data['currency'],
+            'period_start'        => $data['period_start'],
+            'period_end'          => $data['period_end'],
+            'year'                => $data['year'],
+            'month'               => $data['month'],
+            'period_number'       => $data['period_number'],
+            'status'              => $payrollRecord->status,
+
+            // Attendance
+            'working_days'        => $data['working_days'],
+            'present_days'        => $data['present_days'],
+            'absent_days'         => $data['absent_days'],
+            'late_minutes'        => $data['late_minutes'],
+            'leave_days_paid'     => $data['leave_days_paid'],
+            'leave_days_unpaid'   => $data['leave_days_unpaid'],
+            'overtime_hours'      => $data['overtime_hours'],
+
+            // Earnings
+            'base_salary'         => $data['base_salary'],
+            'total_allowances'    => $data['total_allowances'],
+            'overtime_amount'     => $data['overtime_amount'],
+            'bonus_amount'        => $data['bonus_amount'],
+            'expense_reimbursement' => $data['expense_reimbursement'],
+
+            // Deductions
+            'total_deductions'    => $data['total_deductions'],
+            'late_deduction'      => $data['late_deduction'],
+            'short_deduction'     => $data['short_deduction'],
+            'deduction_breakdown' => $data['deduction_breakdown'],
+
+            // Net
+            'net_salary'          => $data['net_salary'],
+        ]);
+    }
+
     // ──────────────────────────────────────────────────────────────
     // GET /payroll/payslip/records
     // ──────────────────────────────────────────────────────────────
@@ -512,7 +605,7 @@ class PayslipController extends Controller
     {
         $user = Auth::user();
         if (!$user->hasAnyRole(['hr', 'admin']) && $record->user_id !== $user->id) abort(403);
-        if ($record->status !== 'confirmed') abort(403, 'Payslip is not yet confirmed.');
+        if (!in_array($record->status, ['confirmed', 'paid'])) abort(403, 'Payslip is not yet confirmed.');
     }
 
     private function authorizeHR(): void

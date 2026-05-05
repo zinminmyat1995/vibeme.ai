@@ -26,7 +26,7 @@ class OvertimeRequestController extends Controller
     // ─────────────────────────────────────────────────────────
     //  INDEX
     // ─────────────────────────────────────────────────────────
-    public function index(Request $request): Response
+    public function index(Request $request): Response|\Illuminate\Http\JsonResponse
     {
         $user     = Auth::user();
         $roleName = $user->role?->name;
@@ -77,6 +77,14 @@ class OvertimeRequestController extends Controller
             default => collect(),
         };
 
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'requests'         => $query->paginate(20),
+                'overtimePolicies' => $overtimePolicies,
+                'employees'        => $employees,
+            ]);
+        }
         return Inertia::render('Payroll/Overtime/Index', [
             'requests'         => $query->paginate(20),
             'overtimePolicies' => $overtimePolicies,
@@ -90,7 +98,7 @@ class OvertimeRequestController extends Controller
     // ─────────────────────────────────────────────────────────
     //  STORE
     // ─────────────────────────────────────────────────────────
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $user      = Auth::user();
         $userId    = $user->id;
@@ -270,6 +278,10 @@ class OvertimeRequestController extends Controller
             );
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $msg]);
+        }
+
         return back()->with('success', $msg);
     }
 
@@ -277,15 +289,21 @@ class OvertimeRequestController extends Controller
     //  APPROVE
     // ─────────────────────────────────────────────────────────
 
-    public function approve(Request $request, int $id): \Illuminate\Http\RedirectResponse
+    public function approve(Request $request, int $id): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $overtimeRequest = OvertimeRequest::with('segments')->find($id);
 
         if (!$overtimeRequest) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Request no longer exists. It may have been deleted.'], 404);
+            }
             return back()->with('error', 'Request no longer exists. It may have been deleted.');
         }
 
         if ($overtimeRequest->status !== 'pending') {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This request is already processed.'], 422);
+            }
             return back()->with('error', 'This request is already processed.');
         }
 
@@ -358,21 +376,31 @@ class OvertimeRequestController extends Controller
             url:    '/payroll/overtimes',
         );
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Overtime request approved.']);
+        }
+
         return back()->with('success', 'Overtime request approved.');
     }
 
     // ─────────────────────────────────────────────────────────
     //  REJECT
     // ─────────────────────────────────────────────────────────
-    public function reject(int $id): \Illuminate\Http\RedirectResponse
+    public function reject(Request $request, int $id): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $overtimeRequest = OvertimeRequest::find($id);
 
         if (!$overtimeRequest) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Request no longer exists. It may have been deleted.'], 404);
+            }
             return back()->with('error', 'Request no longer exists. It may have been deleted.');
         }
 
         if ($overtimeRequest->status !== 'pending') {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This request is already processed.'], 422);
+            }
             return back()->with('error', 'This request is already processed.');
         }
 
@@ -390,30 +418,43 @@ class OvertimeRequestController extends Controller
             url:    '/payroll/overtimes',
         );
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Overtime request rejected.']);
+        }
         return back()->with('success', 'Overtime request rejected.');
     }
     
-public function destroy(int $id): \Illuminate\Http\RedirectResponse
-{
-    $overtimeRequest = OvertimeRequest::find($id);
 
-    if (!$overtimeRequest) {
-        return back()->with('error', 'Request no longer exists.');
+    public function destroy(Request $request, int $id): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        $overtimeRequest = OvertimeRequest::find($id);
+
+        if (!$overtimeRequest) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Request no longer exists.'], 404);
+            }
+            return back()->with('error', 'Request no longer exists.');
+        }
+
+        if ((int) $overtimeRequest->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if ($overtimeRequest->status !== 'pending') {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only pending requests can be deleted.'], 422);
+            }
+            return back()->with('error', 'Only pending requests can be deleted.');
+        }
+
+        $overtimeRequest->segments()->delete();
+        $overtimeRequest->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Overtime request deleted successfully.']);
+        }
+
+        return back()->with('success', 'Overtime request deleted successfully.');
     }
-
-    if ((int) $overtimeRequest->user_id !== (int) Auth::id()) {
-        abort(403);
-    }
-
-    if ($overtimeRequest->status !== 'pending') {
-        return back()->with('error', 'Only pending requests can be deleted.');
-    }
-
-    // segments ပါ cascade delete ဖြစ်ဖို့ (DB cascade မရှိရင် manual)
-    $overtimeRequest->segments()->delete();
-    $overtimeRequest->delete();
-
-    return back()->with('success', 'Overtime request deleted successfully.');
-}
 
 }

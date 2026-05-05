@@ -593,6 +593,246 @@ class DashboardController extends Controller
         ]);
     }
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // GET /api/v1/dashboard  ← Mobile: ဘယ် role မဆို employee view ပဲ
+    // ──────────────────────────────────────────────────────────────────────────
+    public function mobileDashboard(): \Illuminate\Http\JsonResponse
+    {
+        $user      = Auth::user();
+        $country   = $user->country;
+        $countryId = $user->country_id ?? $user->countryRecord?->id;
+        $tz        = $this->timezone($country ?? '');
+        $today     = Carbon::now($tz)->toDateString();
+
+        // ── Today attendance status ─────────────────────────────────────────
+        $todayAtt    = \App\Models\AttendanceRecord::where('user_id', $user->id)
+            ->where('date', $today)->first();
+        $todayStatus = [
+            'checked_in' => (bool) $todayAtt,
+            'check_in'   => $todayAtt?->check_in_time  ? substr($todayAtt->check_in_time,  0, 5) : null,
+            'check_out'  => $todayAtt?->check_out_time ? substr($todayAtt->check_out_time, 0, 5) : null,
+            'work_hours' => $todayAtt ? round((float) $todayAtt->work_hours_actual, 1) : 0,
+            'status'     => $todayAtt?->status ?? null,
+        ];
+
+        // ── Weekly attendance (7 days) ──────────────────────────────────────
+        $weeklyAttendance = collect(range(6, 0))->map(function ($offset) use ($user, $tz) {
+            $date   = Carbon::now($tz)->subDays($offset)->toDateString();
+            $record = \App\Models\AttendanceRecord::where('user_id', $user->id)->where('date', $date)->first();
+            return [
+                'date'   => $date,
+                'label'  => Carbon::parse($date)->format('D'),
+                'value'  => $record ? round((float) ($record->work_hours_actual ?? 0), 1) : 0,
+                'status' => $record?->status ?? null,
+                'absent' => !$record,
+            ];
+        })->values();
+
+        // ── Monthly stats ───────────────────────────────────────────────────
+        $presentDays = \App\Models\AttendanceRecord::where('user_id', $user->id)
+            ->whereYear('date', Carbon::now($tz)->year)
+            ->whereMonth('date', Carbon::now($tz)->month)
+            ->whereIn('status', ['present', 'late'])->count();
+
+        $absentDays = \App\Models\AttendanceRecord::where('user_id', $user->id)
+            ->whereYear('date', Carbon::now($tz)->year)
+            ->whereMonth('date', Carbon::now($tz)->month)
+            ->where('status', 'absent')->count();
+
+        $pendingLeaves = \App\Models\LeaveRequest::where('user_id', $user->id)
+            ->where('status', 'pending')->count();
+
+        $otHoursPersonal = (float) \App\Models\OvertimeRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->whereYear('start_date', Carbon::now($tz)->year)
+            ->whereMonth('start_date', Carbon::now($tz)->month)
+            ->sum('hours_approved');
+
+        // Late stats (this month)
+        $lateRow = \App\Models\AttendanceRecord::selectRaw('COUNT(*) as late_count, AVG(late_minutes) as avg_late_minutes')
+            ->where('user_id', $user->id)->where('status', 'late')
+            ->whereYear('date', Carbon::now($tz)->year)
+            ->whereMonth('date', Carbon::now($tz)->month)
+            ->first();
+
+        // ── Latest payslip ──────────────────────────────────────────────────
+        $latestPayroll = \App\Models\PayrollRecord::where('user_id', $user->id)
+            ->whereIn('status', ['confirmed', 'paid'])
+            ->orderByDesc('year')->orderByDesc('month')
+            ->first();
+
+        // ── Leave balances ──────────────────────────────────────────────────
+        $leaveBalances = \App\Models\LeaveBalance::where('user_id', $user->id)
+            ->where('year', Carbon::now($tz)->year)->get()
+            ->map(fn($lb) => [
+                'type'           => ucfirst($lb->leave_type),
+                'remaining'      => (float) $lb->remaining_days,
+                'entitled'       => (float) $lb->entitled_days,
+                'used'           => (float) $lb->used_days,
+            ])->values()->toArray();
+
+        // ── My pending requests (all 4 types) ──────────────────────────────
+        $myPendingLeave = \App\Models\LeaveRequest::where('user_id', $user->id)
+            ->where('status', 'pending')->latest()->limit(5)->get()
+            ->map(fn($l) => [
+                'id'           => $l->id,
+                'type'         => 'leave',
+                'leave_type'   => $l->leave_type,
+                'start_date'   => $l->start_date?->toDateString(),
+                'end_date'     => $l->end_date?->toDateString(),
+                'total_days'   => (float) $l->total_days,
+                'note'         => $l->note,
+                'submitted_at' => $l->created_at?->format('d M Y'),
+            ])->toArray();
+
+        $myPendingOt = \App\Models\OvertimeRequest::where('user_id', $user->id)
+            ->where('status', 'pending')->latest()->limit(5)->get()
+            ->map(fn($ot) => [
+                'id'              => $ot->id,
+                'type'            => 'ot',
+                'start_date'      => is_string($ot->start_date) ? $ot->start_date : $ot->start_date?->toDateString(),
+                'end_date'        => is_string($ot->end_date)   ? $ot->end_date   : $ot->end_date?->toDateString(),
+                'start_time'      => $ot->start_time ? substr($ot->start_time, 0, 5) : null,
+                'end_time'        => $ot->end_time   ? substr($ot->end_time,   0, 5) : null,
+                'hours_requested' => $ot->hours_requested,
+                'reason'          => $ot->reason,
+                'submitted_at'    => $ot->created_at?->format('d M Y'),
+            ])->toArray();
+
+        $myPendingAttendance = \App\Models\AttendanceRequest::where('user_id', $user->id)
+            ->where('status', 'pending')->latest()->limit(5)->get()
+            ->map(fn($ar) => [
+                'id'                      => $ar->id,
+                'type'                    => 'attendance',
+                'date'                    => is_string($ar->date) ? $ar->date : $ar->date?->toDateString(),
+                'requested_check_in_time' => $ar->requested_check_in_time  ? substr($ar->requested_check_in_time,  0, 5) : null,
+                'requested_check_out_time'=> $ar->requested_check_out_time ? substr($ar->requested_check_out_time, 0, 5) : null,
+                'note'                    => $ar->note,
+                'submitted_at'            => $ar->created_at?->format('d M Y'),
+            ])->toArray();
+
+        $myPendingExpense = \App\Models\ExpenseRequest::where('user_id', $user->id)
+            ->where('status', 'pending')->latest()->limit(5)->get()
+            ->map(fn($ex) => [
+                'id'           => $ex->id,
+                'type'         => 'expense',
+                'title'        => $ex->title,
+                'amount'       => (float) $ex->amount,
+                'currency'     => $ex->currency ?? 'USD',
+                'category'     => $ex->category,
+                'expense_date' => is_string($ex->expense_date) ? $ex->expense_date : $ex->expense_date?->toDateString(),
+                'submitted_at' => $ex->created_at?->format('d M Y'),
+            ])->toArray();
+
+        // ── Upcoming holidays ───────────────────────────────────────────────
+        $upcomingHolidays = [];
+        if ($countryId) {
+            $upcomingHolidays = \App\Models\PublicHoliday::where('country_id', $countryId)
+                ->whereDate('date', '>=', $today)
+                ->orderBy('date')->limit(5)->get()
+                ->map(fn($h) => [
+                    'name'      => $h->name,
+                    'date'      => Carbon::parse($h->date)->format('d M Y'),
+                    'days_left' => (int) Carbon::now($tz)->diffInDays(Carbon::parse($h->date), false),
+                ])->toArray();
+        }
+
+        // ── Announcements ───────────────────────────────────────────────────
+        $nowStr = Carbon::now($tz)->toDateTimeString();
+        $announcements = \App\Models\Announcement::with('creator:id,name')
+            ->where(fn($q) => $q->whereNull('start_at')->orWhere('start_at', '<=', $nowStr))
+            ->where(fn($q) => $q->whereNull('end_at')->orWhere('end_at', '>=', $nowStr))
+            ->where(fn($q) => $q->whereNull('country')->orWhere('country', $country))
+            ->orderByDesc('start_at')
+            ->get()
+            ->map(fn($a) => [
+                'id'         => $a->id,
+                'title'      => $a->title,
+                'content'    => $a->content,
+                'start_at'   => $a->start_at?->format('d M Y'),
+                'end_at'     => $a->end_at?->format('d M Y'),
+                'created_by' => $a->creator?->name,
+                'file_path'  => $a->file_path ? asset('storage/' . $a->file_path) : null,
+                'file_name'  => $a->file_name,
+                'link_url'   => $a->link_url,
+            ])->values()->toArray();
+
+        // ── HR Warnings (unacknowledged) ────────────────────────────────────
+        $myWarnings = \App\Models\HrAlert::where('user_id', $user->id)
+            ->where('status', 'sent')
+            ->whereNull('acknowledged_at')
+            ->orderByDesc('created_at')
+            ->get(['id', 'type', 'trigger_count', 'letter_draft', 'alert_month', 'alert_year'])
+            ->map(fn($w) => [
+                'id'            => $w->id,
+                'type'          => $w->type,
+                'trigger_count' => $w->trigger_count,
+                'letter_draft'  => $w->letter_draft,
+                'month_label'   => Carbon::create($w->alert_year, $w->alert_month)->format('F Y'),
+            ])->toArray();
+
+        return response()->json([
+            // Personal stats
+            'my_stats' => [
+                'present_days'      => $presentDays,
+                'absent_days'       => $absentDays,
+                'pending_leaves'    => $pendingLeaves,
+                'ot_hours_month'    => round($otHoursPersonal, 1),
+                'late_count'        => $lateRow?->late_count ?? 0,
+                'avg_late_minutes'  => (int) round($lateRow?->avg_late_minutes ?? 0),
+                'net_salary'        => $latestPayroll ? (float) $latestPayroll->net_salary : null,
+                'base_salary'       => $latestPayroll ? (float) $latestPayroll->base_salary : null,
+                'overtime_amount'   => $latestPayroll ? (float) $latestPayroll->overtime_amount : null,
+                'total_allowances'  => $latestPayroll ? (float) $latestPayroll->total_allowances : null,
+                'total_deductions'  => $latestPayroll ? (float) $latestPayroll->total_deductions : null,
+                'payslip_status'    => $latestPayroll?->status,
+                'payslip_period'    => $latestPayroll ? Carbon::create($latestPayroll->year, $latestPayroll->month)->format('M Y') : null,
+                'leave_balances'    => $leaveBalances,
+            ],
+
+            // Today
+            'today_status' => $todayStatus,
+
+            // Weekly chart
+            'weekly_attendance' => $weeklyAttendance,
+
+            // Pending requests (4 types)
+            'my_pending' => [
+                'leave'      => $myPendingLeave,
+                'ot'         => $myPendingOt,
+                'attendance' => $myPendingAttendance,
+                'expense'    => $myPendingExpense,
+            ],
+
+            // Upcoming holidays
+            'upcoming_holidays' => $upcomingHolidays,
+
+            // Announcements
+            'announcements' => $announcements,
+
+            // Warnings
+            'my_warnings' => $myWarnings,
+        ]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // PATCH /api/v1/hr-alerts/{id}/acknowledge  ← Mobile: warning mark as read
+    // ──────────────────────────────────────────────────────────────────────────
+    public function acknowledgeWarning(int $id): \Illuminate\Http\JsonResponse
+    {
+        $alert = \App\Models\HrAlert::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$alert) {
+            return response()->json(['message' => 'Alert not found.'], 404);
+        }
+
+        $alert->update(['acknowledged_at' => now()]);
+
+        return response()->json(['message' => 'Alert acknowledged.']);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Store announcement
     // ─────────────────────────────────────────────────────────────────────────

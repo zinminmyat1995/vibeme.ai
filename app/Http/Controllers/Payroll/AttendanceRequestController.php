@@ -24,7 +24,7 @@ class AttendanceRequestController extends Controller
     private const LOWER_ROLES = ['employee', 'member'];
     private const MANAGE_ROLES = ['management', 'hr', 'admin'];
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|\Illuminate\Http\JsonResponse
     {
         $user     = Auth::user();
         $roleName = $user->role?->name ?? 'employee';
@@ -88,6 +88,15 @@ class AttendanceRequestController extends Controller
             'lunch_end'           => $salaryRule?->lunch_end ? substr($salaryRule->lunch_end, 0, 5) : '13:00',
         ];
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'requests'      => $query->paginate(20)->withQueryString(),
+                'approvers'     => $approvers,
+                'countryConfig' => $countryConfig,
+            ]);
+        }
+
+
         return Inertia::render('Payroll/AttendanceRequests/Index', [
             'requests'      => $query->paginate(20)->withQueryString(),
             'approvers'     => $approvers,
@@ -98,7 +107,7 @@ class AttendanceRequestController extends Controller
         ]);
     }
 
-public function store(Request $request): RedirectResponse
+public function store(Request $request): RedirectResponse|\Illuminate\Http\JsonResponse
 {
     $user     = Auth::user();
     $roleName = $user->role?->name ?? 'employee';
@@ -177,6 +186,9 @@ public function store(Request $request): RedirectResponse
 
     if ($roleName === 'admin') {
         $this->syncToAttendanceRecords($attendanceRequest, $shortHours);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Check In/Out request submitted and auto-approved.']);
+        }
         return back()->with('success', 'Check In/Out request submitted and auto-approved.');
     }
 
@@ -189,14 +201,21 @@ public function store(Request $request): RedirectResponse
         checkOut: $request->check_out_time
     );
 
+    if ($request->expectsJson()) {
+        return response()->json(['success' => true, 'message' => 'Check In/Out request submitted successfully.']);
+    }
+
     return back()->with('success', 'Check In/Out request submitted successfully.');
 }
 
-    public function approve(int $id): RedirectResponse
+    public function approve(Request $request, int $id): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $attendanceRequest = AttendanceRequest::find($id);
 
         if (!$attendanceRequest) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Request no longer exists. It may have been deleted by the requester.'], 404);
+            }
             return back()->with('error', 'Request no longer exists. It may have been deleted by the requester.');
         }
 
@@ -208,6 +227,9 @@ public function store(Request $request): RedirectResponse
         }
 
         if ($attendanceRequest->status !== 'pending') {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This request is already processed.'], 422);
+            }
             return back()->with('error', 'This request is already processed.');
         }
 
@@ -248,14 +270,21 @@ public function store(Request $request): RedirectResponse
             url:    '/payroll/check-in-out-requests',
         );
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Check In/Out request approved.']);
+        }
+
         return back()->with('success', 'Check In/Out request approved.');
     }
 
-public function reject(Request $request, int $id): RedirectResponse
+public function reject(Request $request, int $id): RedirectResponse|\Illuminate\Http\JsonResponse
 {
     $attendanceRequest = AttendanceRequest::find($id);
 
     if (!$attendanceRequest) {
+        if ($request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => 'Request no longer exists. It may have been deleted by the requester.'], 404);
+        }
         return back()->with('error', 'Request no longer exists. It may have been deleted by the requester.');
     }
 
@@ -267,6 +296,9 @@ public function reject(Request $request, int $id): RedirectResponse
     }
 
     if ($attendanceRequest->status !== 'pending') {
+        if ($request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => 'This request is already processed.'], 422);
+        }
         return back()->with('error', 'This request is already processed.');
     }
 
@@ -288,7 +320,9 @@ public function reject(Request $request, int $id): RedirectResponse
         url:    '/payroll/check-in-out-requests',
     );
 
-
+    if ($request->expectsJson()) {
+        return response()->json(['success' => true, 'message' => 'Check In/Out request rejected.']);
+    }
     return back()->with('success', 'Check In/Out request rejected.');
 }
 
@@ -586,7 +620,7 @@ private function validateAttendanceRequestFlow(int $userId, string $dateStr, str
     }
 }
 
-public function destroy(AttendanceRequest $attendanceRequest): RedirectResponse
+public function destroy(Request $request, AttendanceRequest $attendanceRequest): RedirectResponse|\Illuminate\Http\JsonResponse
 {
     $user = Auth::user();
 
@@ -597,10 +631,17 @@ public function destroy(AttendanceRequest $attendanceRequest): RedirectResponse
 
     // pending ဖြစ်မှသာ ဖျက်ခွင့်ရှိတယ်
     if ($attendanceRequest->status !== 'pending') {
+        if ($request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => 'Only pending requests can be deleted.'], 422);
+        }
         return back()->with('error', 'Only pending requests can be deleted.');
     }
 
     $attendanceRequest->delete();
+
+    if ($request->expectsJson()) {
+        return response()->json(['success' => true, 'message' => 'Request deleted successfully.']);
+    }
 
     return back()->with('success', 'Request deleted successfully.');
 }

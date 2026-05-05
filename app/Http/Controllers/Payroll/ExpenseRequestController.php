@@ -100,6 +100,19 @@ class ExpenseRequestController extends Controller
             'total_amount' => $unreimbursed,   // all-time outstanding
         ];
 
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'requests'      => $query->paginate(20),
+                'approvers'     => $approvers->values(),
+                'stats'         => $stats,
+                'pendingCount'  => $pendingCount,
+                'canViewAll'    => $canViewAll,
+                'categories'    => ExpenseRequest::CATEGORIES,
+                'userRole'      => $roleName,
+            ]);
+        }
+
         return Inertia::render('Payroll/ExpenseRequest/Index', [
             'requests'      => $query->paginate(20),
             'approvers'     => $approvers->values(),
@@ -233,11 +246,19 @@ class ExpenseRequestController extends Controller
         $expense = ExpenseRequest::with('user')->find($id);
 
         if (!$expense) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Request no longer exists.'], 404);
+            }
             return back()->with('error', 'Request no longer exists.');
         }
+
         if ($expense->status !== 'pending') {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This request is already processed.'], 422);
+            }
             return back()->with('error', 'This request is already processed.');
         }
+
 
         $user     = Auth::user();
         $roleName = $user->role?->name;
@@ -267,6 +288,10 @@ class ExpenseRequestController extends Controller
             data:   ['expense_id' => $expense->id]
         );
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Expense request approved.']);
+        }
+
         return back()->with('success', 'Expense request approved.');
     }
 
@@ -278,12 +303,18 @@ class ExpenseRequestController extends Controller
         $expense = ExpenseRequest::with('user')->find($id);
 
         if (!$expense) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Request no longer exists.'], 404);
+            }
             return back()->with('error', 'Request no longer exists.');
         }
+
         if ($expense->status !== 'pending') {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This request is already processed.'], 422);
+            }
             return back()->with('error', 'This request is already processed.');
         }
-
         $validated = $request->validate([
             'rejection_reason' => 'required|string|max:500',
         ], [
@@ -306,23 +337,35 @@ class ExpenseRequestController extends Controller
             data:   ['expense_id' => $expense->id]
         );
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Expense request rejected.']);
+        }
+
         return back()->with('success', 'Expense request rejected.');
     }
 
     // ─────────────────────────────────────────────────────────
     //  DESTROY
     // ─────────────────────────────────────────────────────────
-    public function destroy(int $id)
+    public function destroy(Request $request, int $id)
     {
         $expense = ExpenseRequest::find($id);
 
         if (!$expense) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Request no longer exists.'], 404);
+            }
             return back()->with('error', 'Request no longer exists.');
         }
+
         if ((int) $expense->user_id !== (int) Auth::id()) {
             abort(403);
         }
+
         if ($expense->status !== 'pending') {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only pending requests can be deleted.'], 422);
+            }
             return back()->with('error', 'Only pending requests can be deleted.');
         }
 
@@ -335,6 +378,10 @@ class ExpenseRequestController extends Controller
         }
 
         $expense->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Expense request deleted.']);
+        }
         return back()->with('success', 'Expense request deleted.');
     }
 

@@ -40,6 +40,30 @@ class DriverScheduleController extends Controller
             ->where('is_active', true)
             ->first();
 
+        if ($request->expectsJson()) {
+            if (!$car) {
+                return response()->json([
+                    'car'      => null,
+                    'bookings' => [],
+                    'date'     => today()->toDateString(),
+                ]);
+            }
+            $date     = $request->query('date', today()->toDateString());
+            $bookings = $this->getBookingsForDate($car->id, $date);
+            return response()->json([
+                'car' => [
+                    'id'           => $car->id,
+                    'name'         => $car->name,
+                    'plate_number' => $car->plate_number,
+                    'location'     => $car->location,
+                    'capacity'     => $car->capacity,
+                ],
+                'bookings' => $bookings,
+                'date'     => $date,
+            ]);
+        }
+
+
         // Car မ assign ရသေးရင် → friendly page ပြ၊ abort မလုပ်
         if (!$car) {
             return Inertia::render('Driver/Schedule', [
@@ -192,6 +216,10 @@ class DriverScheduleController extends Controller
 
         // Notify organizer + attendees
         $this->notifyCancelled($booking, $request->cancel_reason);
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Booking cancelled.']);
+        }
 
         return back()->with('success', 'Booking cancelled.');
     }
