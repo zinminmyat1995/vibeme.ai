@@ -319,7 +319,7 @@ export default function SmartMail({
     const [showSettings, setShowSettings] = useState(false);
 
     const [syncPage, setSyncPage]     = useState(1);
-    const [hasMore, setHasMore]       = useState(true);
+    const [hasMore, setHasMore] = useState(inbox.length >= 10);
     const [inboxMails, setInboxMails] = useState(inbox);
     const [sentMails, setSentMails]   = useState(sent);
     const [totalMails, setTotalMails] = useState(0);
@@ -342,10 +342,11 @@ export default function SmartMail({
         return () => window.Echo.leave(`user.${window.userId}`);
     }, [needsSetup]);
 
-    const handleSync = async (page = 1) => {
+    // Sync ခလုတ် = page 1 (latest) ဆွဲ၊ အသစ်တွေ ထိပ်မှာ ထည့်
+    const handleSync = async () => {
         setSyncing(true);
         try {
-            const res = await fetch(`/smart-mail/sync?page=${page}`, {
+            const res = await fetch('/smart-mail/sync?page=1', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -355,21 +356,54 @@ export default function SmartMail({
             const data = await res.json();
             if (data.success) {
                 setInboxMails(prev => {
-                    const existingIds = new Set(prev.map(m => m.mail_uid));
-                    const newMails = data.mails.filter(m => !existingIds.has(m.mail_uid));
-                    const updated = prev.map(m => {
-                        const fresh = data.mails.find(f => f.mail_uid === m.mail_uid);
-                        return fresh ? { ...fresh, is_read: m.is_read } : m;
-                    });
-                    const merged = [...newMails, ...updated].sort(
+                    const existingUids = new Set(prev.map(m => m.mail_uid));
+                    const existingIds  = new Set(prev.map(m => m.id));
+                    const brandNew = data.mails.filter(m => 
+                        !existingUids.has(m.mail_uid) && !existingIds.has(m.id)
+                    );
+                    const merged = [...brandNew, ...prev].sort(
                         (a, b) => new Date(b.mail_date) - new Date(a.mail_date)
                     );
                     setUnreadMails(merged.filter(m => !m.is_read).length);
                     return merged;
                 });
                 if (data.has_more !== undefined) setHasMore(data.has_more);
-                if (data.total)                  setTotalMails(data.total);
-                if (data.next_page)              setSyncPage(data.next_page);
+                if (data.total) setTotalMails(data.total);
+                setSyncPage(2); // Load More ကအတွက် page 2 ကနေ စတင်
+            }
+        } finally {
+            setSyncing(false);
+        }
+    };
+
+    // Load More = older batch ဆွဲ၊ list အောက်မှာ append
+    const handleLoadMore = async () => {
+        setSyncing(true);
+        try {
+            const res = await fetch(`/smart-mail/sync?page=${syncPage}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setInboxMails(prev => {
+                    const existingUids = new Set(prev.map(m => m.mail_uid));
+                    const existingIds  = new Set(prev.map(m => m.id));
+                    const olderMails = data.mails.filter(m =>
+                        !existingUids.has(m.mail_uid) && !existingIds.has(m.id)
+                    );
+                    const merged = [...prev, ...olderMails].sort(
+                        (a, b) => new Date(b.mail_date) - new Date(a.mail_date)
+                    );
+                    setUnreadMails(merged.filter(m => !m.is_read).length);
+                    return merged;
+                });
+                if (data.has_more !== undefined) setHasMore(data.has_more);
+                if (data.total) setTotalMails(data.total);
+                if (data.next_page) setSyncPage(data.next_page);
             }
         } finally {
             setSyncing(false);
@@ -546,8 +580,8 @@ export default function SmartMail({
                         starredCount={starredCount}
                         mailSetting={mailSetting}
                         onCompose={handleCompose}
-                        onSync={() => handleSync(1)}
-                        onLoadMore={() => handleSync(syncPage)}
+                        onSync={handleSync}
+                        onLoadMore={handleLoadMore}
                         hasMore={hasMore}
                         syncing={syncing}
                         theme={theme}

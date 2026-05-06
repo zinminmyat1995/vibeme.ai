@@ -43,7 +43,7 @@ class SmartMailController extends Controller
             ->whereNull('deleted_at')
             ->with('attachments')
             ->orderByDesc('mail_date')
-            ->limit(100)
+            ->limit(10)
             ->get()
             ->map(fn($m) => $this->formatMail($m));
 

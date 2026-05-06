@@ -460,8 +460,9 @@ class ImapService
             rsort($allUids); // newest first
 
             $perPage  = 10;
-            $hasMore  = count($allUids) > $page * $perPage;
+            // အသစ်
             $pageUids = array_slice($allUids, ($page - 1) * $perPage, $perPage);
+            $hasMore  = count($pageUids) >= $perPage;
 
             \Log::info('Processing UIDs', ['page' => $page, 'uids' => $pageUids]);
 
