@@ -319,6 +319,9 @@ class LeaveRequestController extends Controller
             $absentMsg = "{$absentDays} day(s) as Absent";
             $msg       = implode(', ', array_filter([$paidMsg, $absentMsg]));
 
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => "Leave submitted: {$msg}."]);
+            }
             return redirect()->back()->with('success', "Leave submitted: {$msg}.");
         }
 
