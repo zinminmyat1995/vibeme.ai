@@ -102,16 +102,17 @@ class ImapService
 
     // ── IMAP Commands ─────────────────────────────────────────────────
 
-    private function selectInbox(): int
-    {
-        $resp = $this->cmd('SELECT INBOX');
-        foreach ($resp as $line) {
-            if (preg_match('/^\* (\d+) EXISTS/i', $line, $m)) {
-                return (int) $m[1];
-            }
+private function selectInbox(): int
+{
+    $resp = $this->cmd('SELECT INBOX');
+    \Log::info('SELECT INBOX response', ['lines' => $resp]); // ← ဒါထည့်
+    foreach ($resp as $line) {
+        if (preg_match('/^\* (\d+) EXISTS/i', $line, $m)) {
+            return (int) $m[1];
         }
-        return 0;
     }
+    return 0;
+}
 
     private function searchAllUids(): array
     {
