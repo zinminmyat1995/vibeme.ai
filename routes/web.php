@@ -31,6 +31,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\HrChatbotController;
 use App\Http\Controllers\ResourceBookingController;
 use App\Http\Controllers\DriverScheduleController;
+use App\Http\Controllers\ProfileController;
 
 
 // Home page (existing route ကို replace)
@@ -223,6 +224,10 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Dashboard Routes (middleware protected)
 Route::middleware(['auth'])->group(function () {
+
+    // Profile
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/announcements', [DashboardController::class, 'storeAnnouncement']);
     Route::delete('/dashboard/announcements/{announcement}', [DashboardController::class, 'deleteAnnouncement']);   

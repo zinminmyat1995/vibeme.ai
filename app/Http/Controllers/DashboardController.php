@@ -124,6 +124,7 @@ class DashboardController extends Controller
                 'name'       => $u->name,
                 'department' => $u->department,
                 'date'       => Carbon::parse($u->date_of_birth)->format('d M'),
+                'avatar_url' => $u->avatar_url,
             ])->values();
 
         // ── ⑧ On leave today — properly filtered (start_date <= today <= end_date) ─

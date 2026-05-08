@@ -622,31 +622,27 @@ function ExpenseRow({ req, dark, theme, canViewAll, userId, onApprove, onReject,
  
                 {/* ── Rejection reason ── */}
                 {req.status === 'rejected' && req.rejection_reason && (
-                    <div style={{
-                        marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 8,
-                        padding: '8px 12px', borderRadius: 10,
-                        background: dark ? 'rgba(239,68,68,0.08)' : '#fff5f5',
-                        border: `1px solid ${dark ? 'rgba(239,68,68,0.2)' : '#fecaca'}`,
-                        borderLeft: `3px solid #ef4444`,
-                    }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0, marginTop: 1 }}>Rejected</span>
-                        <span style={{ fontSize: 12, color: dark ? '#fca5a5' : '#dc2626', lineHeight: 1.5 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5, marginTop: 7 }}>
+                        <span style={{
+                            fontSize: 9, fontWeight: 800,
+                            textTransform: 'uppercase', letterSpacing: '0.5px',
+                            marginRight: 5, color: theme.danger,
+                        }}>Rejected</span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft }}>
                             {req.rejection_reason}
                         </span>
                     </div>
                 )}
- 
+
                 {/* ── Approver note ── */}
                 {req.status === 'approved' && req.hr_note && (
-                    <div style={{
-                        marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 8,
-                        padding: '8px 12px', borderRadius: 10,
-                        background: dark ? 'rgba(16,185,129,0.08)' : '#f0fdf4',
-                        border: `1px solid ${dark ? 'rgba(16,185,129,0.2)' : '#86efac'}`,
-                        borderLeft: `3px solid #059669`,
-                    }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0, marginTop: 1 }}>Note</span>
-                        <span style={{ fontSize: 12, color: dark ? '#6ee7b7' : '#15803d', lineHeight: 1.5 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5, marginTop: 7 }}>
+                        <span style={{
+                            fontSize: 9, fontWeight: 800,
+                            textTransform: 'uppercase', letterSpacing: '0.5px',
+                            marginRight: 5, color: theme.success,
+                        }}>Note</span>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft }}>
                             {req.hr_note}
                         </span>
                     </div>

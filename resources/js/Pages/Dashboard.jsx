@@ -190,11 +190,21 @@ function DonutChart({ data = [], size = 130, t }) {
     );
 }
 
-function PersonRow({ name, meta, badge, badgeColor, badgeSoft, avatarBg, avatarColor, last, t }) {
+function PersonRow({ name, meta, badge, badgeColor, badgeSoft, avatarBg, avatarColor, avatarUrl, last, t }) {
     const initials = name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
+    const [imgErr, setImgErr] = useState(false);
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: last ? 'none' : `1px solid ${t.border}` }}>
-            <div style={{ width: 30, height: 30, borderRadius: '50%', background: avatarBg, color: avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{initials}</div>
+            {avatarUrl && !imgErr ? (
+                <img
+                    src={`/storage/${avatarUrl}`}
+                    alt={name}
+                    onError={() => setImgErr(true)}
+                    style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: `1px solid ${t.border}` }}
+                />
+            ) : (
+                <div style={{ width: 30, height: 30, borderRadius: '50%', background: avatarBg, color: avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{initials}</div>
+            )}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: t.text }}>{name}</div>
                 <div style={{ fontSize: 10, color: t.textMute }}>{meta}</div>
@@ -229,7 +239,9 @@ function HolidayList({ items = [], t }) {
                 <div style={{ fontSize: 12, fontWeight: 600, color: t.text }}>{h.name}</div>
                 <div style={{ fontSize: 10, color: t.textMute }}>{h.date}</div>
             </div>
-            <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 99, background: t.tealSoft, color: t.teal }}>{h.days_left}d</span>
+            <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 99, background: t.tealSoft, color: t.teal }}>
+                {h.days_left === 0 || h.days_left === '0' ? 'Today' : `${h.days_left}d`}
+            </span>
         </div>
     ));
 }
@@ -1468,7 +1480,7 @@ function SharedApproverSections({ props, t, onReload, isHrOnly }) {
             {/* ⑧ On leave today (date-filtered on backend) + Birthdays + Holidays */}
             <div style={col3}>
                 <Panel title="🎂 Birthdays this week" t={t}>
-                    {birthdaysThisWeek.slice(0,4).map((b,i) => <PersonRow key={i} name={b.name} meta={`${b.department} · ${b.date}`} avatarBg={t.pinkSoft} avatarColor={t.pink} last={i===birthdaysThisWeek.length-1} t={t} />)}
+                    {birthdaysThisWeek.slice(0,4).map((b,i) => <PersonRow key={i} name={b.name} meta={`${b.department} · ${b.date}`} avatarBg={t.pinkSoft} avatarColor={t.pink} avatarUrl={b.avatar_url} last={i===birthdaysThisWeek.length-1} t={t} />)}
                     {!birthdaysThisWeek.length && (
                         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:'18px 0' }}>
                             <div style={{ fontSize:28 }}>🎂</div>
@@ -1652,7 +1664,7 @@ function EmployeeView({ props, t }) {
 
             {birthdaysThisWeek.length > 0 && (
                 <Panel title="🎂 Birthdays this week" t={t}>
-                    {birthdaysThisWeek.slice(0, 4).map((b, i) => <PersonRow key={i} name={b.name} meta={`${b.department} · ${b.date}`} avatarBg={t.pinkSoft} avatarColor={t.pink} last={i === birthdaysThisWeek.length - 1} t={t} />)}
+                    {birthdaysThisWeek.slice(0, 4).map((b, i) => <PersonRow key={i} name={b.name} meta={`${b.department} · ${b.date}`} avatarBg={t.pinkSoft} avatarColor={t.pink} avatarUrl={b.avatar_url} last={i === birthdaysThisWeek.length - 1} t={t} />)}
                 </Panel>
             )}
         </div>

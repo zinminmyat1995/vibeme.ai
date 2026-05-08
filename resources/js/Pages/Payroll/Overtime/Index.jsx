@@ -557,33 +557,40 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
  
                 {/* ── Date + time chip row ── */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 9, flexWrap: 'wrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                        <span style={{ ...chipLabel, color: theme.textMute }}>Date</span>
-                        <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.start_date)}</span>
-                    </span>
- 
-                    {isMultiDay && (
+                    {isMultiDay ? (
+                        /* Multi-day: StartDate (StartTime) → EndDate (EndTime) */
                         <>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                                stroke={theme.textMute} strokeWidth="2.5" strokeLinecap="round">
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                                <polyline points="12 5 19 12 12 19"/>
-                            </svg>
-                            <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                                <span style={{ ...chipLabel, color: theme.textMute }}>To</span>
+                            <span style={{ ...chipLabel, color: theme.textMute }}>DATE</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.start_date)}</span>
+                                <span style={{ fontSize: 11, color: theme.primary, fontWeight: 700 }}>({to12h(req.start_time)})</span>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                    stroke={theme.textMute} strokeWidth="2.5" strokeLinecap="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                    <polyline points="12 5 19 12 12 19"/>
+                                </svg>
                                 <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.end_date)}</span>
+                                <span style={{ fontSize: 11, color: theme.primary, fontWeight: 700 }}>({to12h(req.end_time)})</span>
+                            </span>
+                        </>
+                    ) : (
+                        /* Single day: DATE ... · TIME ... */
+                        <>
+                            <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                                <span style={{ ...chipLabel, color: theme.textMute }}>Date</span>
+                                <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.start_date)}</span>
+                            </span>
+
+                            <span style={{ color: theme.border, fontSize: 12 }}>·</span>
+
+                            <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                                <span style={{ ...chipLabel, color: theme.textMute }}>Time</span>
+                                <span style={{ ...chipValue, color: theme.primary }}>
+                                    {to12h(req.start_time)} — {to12h(req.end_time)}
+                                </span>
                             </span>
                         </>
                     )}
- 
-                    <span style={{ color: theme.border, fontSize: 12 }}>·</span>
- 
-                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                        <span style={{ ...chipLabel, color: theme.textMute }}>Time</span>
-                        <span style={{ ...chipValue, color: theme.primary }}>
-                            {to12h(req.start_time)} — {to12h(req.end_time)}
-                        </span>
-                    </span>
                 </div>
  
                 {/* ── Segments row ── */}
