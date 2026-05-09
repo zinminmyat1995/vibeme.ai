@@ -533,6 +533,20 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                     </div>
                 </div>
  
+                {req.project && (
+                    <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:2, marginBottom:8, paddingBottom:8, borderBottom:`1px dashed ${dark ? 'rgba(148,163,184,0.15)' : '#e2e8f0'}` }}>
+                        <span style={{
+                            fontSize:11, fontWeight:700, color: dark ? '#818cf8' : '#6366f1',
+                            textTransform:'uppercase', letterSpacing:'0.06em',
+                        }}>Project</span>
+                        <span style={{
+                            fontSize:13, fontWeight:800, color: dark ? '#a5b4fc' : '#4338ca',
+                        }}>
+                            {req.project.name}
+                        </span>
+                    </div>
+                )}
+
                 {/* ── Employee row (approver/all view) ── */}
                 {!isMine && req.user && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
@@ -697,7 +711,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
 // ─────────────────────────────────────────────────────────────
 //  MAIN PAGE
 // ─────────────────────────────────────────────────────────────
-export default function OvertimeIndex({ requests, overtimePolicies, employees, filters, selectedMonth, selectedYear }) {
+export default function OvertimeIndex({ requests, overtimePolicies, employees, filters, selectedMonth, selectedYear, userAssignments = [] }) {
     const { auth } = usePage().props;
     const user       = auth?.user;
     const roleName   = user?.role?.name || 'employee';
@@ -863,7 +877,7 @@ const handleReject = req => {
                 </div>
             </div>
 
-            {showModal    && <OTRequestModal employees={employees} roleName={roleName} dark={dark} theme={theme} onClose={() => setShowModal(false)} onSuccess={() => setShowModal(false)}/>}
+            {showModal    && <OTRequestModal employees={employees} roleName={roleName} dark={dark} theme={theme} userAssignments={userAssignments} onClose={() => setShowModal(false)} onSuccess={() => setShowModal(false)}/>}
             {confirmModal && <ConfirmModal   type={confirmModal.type} req={confirmModal.req} loading={actionLoading} dark={dark} theme={theme} onCancel={() => setConfirmModal(null)} onApprove={segs => handleApprove(confirmModal.req, segs)} onReject={() => handleReject(confirmModal.req)} onDelete={() => handleDelete(confirmModal.req)}/>}
         </AppLayout>
     );
@@ -872,9 +886,9 @@ const handleReject = req => {
 // ─────────────────────────────────────────────────────────────
 //  OT REQUEST MODAL
 // ─────────────────────────────────────────────────────────────
-function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess }) {
+function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess, userAssignments = [] }) {
     const isAdmin = roleName === 'admin';
-    const [form,   setForm]   = useState({ start_date:'', start_time:'', end_date:'', end_time:'', reason:'', approver_id: employees[0]?.id || '' });
+    const [form,   setForm]   = useState({ start_date:'', start_time:'', end_date:'', end_time:'', reason:'', approver_id: employees[0]?.id || '',project_id: '' });
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
 
@@ -908,6 +922,11 @@ const validate = () => {
     if(!form.end_time)   e.end_time='End time is required.';
     if(!form.reason.trim()) e.reason='Reason is required.';
     if(!isAdmin && !form.approver_id) e.approver_id='Please select an approver.';
+
+    // Assignment ရှိပေမဲ့ project မရွေးရင် error
+    if (userAssignments.length > 0 && !form.project_id) {
+        e.project_id = 'Please select a project for this OT.';
+    }
 
     // ── datetime comparison ──
     if(form.start_date && form.start_time && form.end_date && form.end_time) {
@@ -982,6 +1001,42 @@ const validate = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* Project Selector */}
+                    <div>
+                        <label style={lbl}>
+                            Project
+                            
+                        </label>
+
+                        {userAssignments.length === 0 ? (
+                            <div style={{
+                                padding:'10px 14px', borderRadius:10, fontSize:12,
+                                color:theme.textMute,
+                                background: dark ? theme.inputBg : '#f8fafc',
+                                border:`1px solid ${theme.inputBorder}`,
+                            }}>
+                                No active projects assigned to you
+                            </div>
+                        ) : (
+                            <PremiumDropdown
+                                options={[
+                                    { value:'', label:'— Please select a project —' },
+                                    ...userAssignments.map(a => ({
+                                        value: String(a.project_id),
+                                        label: `${a.project_name}`,
+                                    })),
+                                ]}
+                                value={form.project_id}
+                                onChange={v => set('project_id', v)}
+                                placeholder="Select project..."
+                                theme={theme}
+                                dark={dark}
+                                width="100%"
+                            />
+                        )}
+                        {errors.project_id && <ErrMsg msg={errors.project_id} theme={theme} />}
+                    </div>
 
                     <div><label style={lbl}>Reason</label><textarea value={form.reason} onChange={e=>set('reason',e.target.value)} rows={3} placeholder="Describe the reason for overtime..." className="ot-hide" style={{...inp(errors.reason),resize:'none'}}/>{errors.reason&&<ErrMsg msg={errors.reason} theme={theme}/>}</div>
 

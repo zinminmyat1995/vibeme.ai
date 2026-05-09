@@ -175,6 +175,7 @@ Route::middleware(['auth', 'role:admin,management'])
         Route::prefix('assignments')->name('assignments.')->group(function () {
             Route::get   ('/',                       [ProjectAssignmentController::class, 'index'])      ->name('index');
             Route::post  ('/',                       [ProjectAssignmentController::class, 'store'])      ->name('store');
+            Route::post  ('/reorder',                [ProjectAssignmentController::class, 'reorder'])     ->name('reorder');  // ← ဒီနေရာ
             Route::put   ('/{projectAssignment}',    [ProjectAssignmentController::class, 'update'])     ->name('update');
             Route::delete('/{projectAssignment}',    [ProjectAssignmentController::class, 'destroy'])    ->name('destroy');
             Route::get   ('/availability',           [ProjectAssignmentController::class, 'availability'])->name('availability');

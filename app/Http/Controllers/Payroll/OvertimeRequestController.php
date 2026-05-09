@@ -38,6 +38,7 @@ class OvertimeRequestController extends Controller
             'approver:id,name',
             'approvedBy:id,name',
             'segments.overtimePolicy:id,title,rate_type,rate_value',
+            'project:id,name',
         ])->latest();
 
         // Filter by month/year using start_date
@@ -78,11 +79,23 @@ class OvertimeRequestController extends Controller
         };
 
 
+        $userAssignments = \App\Models\ProjectAssignment::where('user_id', $user->id)
+            ->whereIn('status', ['active', 'upcoming'])
+            ->where('end_date', '>=', now())
+            ->with('project:id,name')
+            ->orderBy('priority_order')
+            ->get()
+            ->map(fn($a) => [
+                'project_id'   => $a->project_id,
+                'project_name' => $a->project?->name,
+            ]);
+
         if ($request->expectsJson()) {
             return response()->json([
                 'requests'         => $query->paginate(20),
                 'overtimePolicies' => $overtimePolicies,
                 'employees'        => $employees,
+                'userAssignments'  => $userAssignments,
             ]);
         }
         return Inertia::render('Payroll/Overtime/Index', [
@@ -92,6 +105,7 @@ class OvertimeRequestController extends Controller
             'filters'          => $request->only(['status','month','year']),
             'selectedMonth'    => $month,
             'selectedYear'     => $year,
+            'userAssignments' => $userAssignments,
         ]);
     }
 
@@ -113,6 +127,7 @@ class OvertimeRequestController extends Controller
             'end_time'    => 'required|date_format:H:i',
             'reason'      => 'required|string|max:500',
             'approver_id' => 'nullable|exists:users,id',
+            'project_id' => 'nullable|exists:projects,id',
         ], [
             'end_date.after_or_equal' => 'End date must be on or after start date.',
         ]);
@@ -233,6 +248,7 @@ class OvertimeRequestController extends Controller
                 'status'          => $status,
                 'approved_by'     => $approvedBy,
                 'approved_at'     => $approvedAt,
+                'project_id' => $validated['project_id'] ?? null,
             ]);
 
             foreach ($segments as $seg) {

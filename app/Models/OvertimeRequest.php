@@ -21,6 +21,7 @@ class OvertimeRequest extends Model
         'status',
         'approved_by',
         'approved_at',
+        'project_id', 
     ];
 
     protected $casts = [
@@ -49,5 +50,11 @@ class OvertimeRequest extends Model
     public function segments(): HasMany
     {
         return $this->hasMany(OvertimeRequestSegment::class);
+    }
+
+
+    public function project(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Project::class);
     }
 }

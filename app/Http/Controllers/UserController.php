@@ -89,7 +89,7 @@ class UserController extends Controller
             'country'           => 'required|in:myanmar,vietnam,korea,cambodia,japan',
             'joined_date'       => 'nullable|date',
             'employment_type'   => 'nullable|in:probation,permanent,contract',
-            'contract_end_date' => 'nullable|required_if:employment_type,contract|date|after:today',
+            'contract_end_date' => 'exclude_unless:employment_type,contract|required|date|after:today',
         ], [
             'date_of_birth.required'      => 'Date of birth is required.',
             'date_of_birth.before'        => 'Date of birth must be before today.',
@@ -157,7 +157,7 @@ class UserController extends Controller
             'country'           => 'required|in:myanmar,vietnam,korea,cambodia,japan',
             'joined_date'       => 'nullable|date',
             'employment_type'   => 'nullable|in:probation,permanent,contract',
-            'contract_end_date' => 'nullable|required_if:employment_type,contract|date|after:today',
+            'contract_end_date' => 'exclude_unless:employment_type,contract|required|date|after:today',
         ], [
             'date_of_birth.required'        => 'Date of birth is required.',
             'date_of_birth.before'          => 'Date of birth must be before today.',

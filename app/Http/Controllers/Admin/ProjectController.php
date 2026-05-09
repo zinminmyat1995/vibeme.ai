@@ -64,7 +64,7 @@ class ProjectController extends Controller
         $project->load([
             'creator',
             'assignments'       => fn($q) => $q->where('status', '!=', 'removed')
-                                            ->orderBy('priority_order'),
+                                            ->orderBy('priority_order')->with('project:id,name'),
             'assignments.user',
             'assignments.assignedBy',
             'logs'              => fn($q) => $q->orderByDesc('created_at'),
@@ -74,7 +74,7 @@ class ProjectController extends Controller
 
         $authUser = Auth::user();
 
-        $availableUsers = User::whereHas('role', fn($q) => $q->where('name', 'employee'))
+        $availableUsers = User::whereHas('role', fn($q) => $q->whereIn('name', ['employee', 'management']))
             ->where('is_active', true)
             ->when(!$authUser->isAdmin(), fn($q) => $q->where('country', $authUser->country))
             ->with(['assignments' => fn($q) => $q

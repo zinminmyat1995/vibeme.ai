@@ -401,6 +401,25 @@ function MemberDetail({ user, onClose, theme, dark }) {
     const countryDisplay = user.country
         ? user.country.charAt(0).toUpperCase() + user.country.slice(1).toLowerCase() : "";
 
+    const handleReorder = (assignment, direction, allAssignments) => {
+        const sorted = [...allAssignments]
+            .sort((a, b) => (a.priority_order || 99) - (b.priority_order || 99));
+
+        const idx      = sorted.findIndex(a => a.id === assignment.id);
+        const swapIdx  = direction === "up" ? idx - 1 : idx + 1;
+
+        if (swapIdx < 0 || swapIdx >= sorted.length) return;
+
+        const swapWith = sorted[swapIdx];
+
+        router.post("/admin/assignments/reorder", {
+            assignments: [
+                { id: assignment.id, priority_order: swapIdx + 1 },
+                { id: swapWith.id,   priority_order: idx + 1     },
+            ]
+        }, { preserveScroll: true });
+    };
+
     return (
         <div style={{
             background: theme.surface, borderRadius: 16,
@@ -524,9 +543,9 @@ function MemberDetail({ user, onClose, theme, dark }) {
             </div>
 
             {/* Assignments */}
-            <div style={{ padding: "14px 20px" }}>
+            <div style={{ padding: "16px 20px" }}>
                 <div style={{ fontSize: 10, fontWeight: 800, color: theme.textMute,
-                    textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
+                    textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
                     Assignments · {user.assignments?.length || 0}
                 </div>
 
@@ -539,61 +558,100 @@ function MemberDetail({ user, onClose, theme, dark }) {
                     <div>
                         {user.assignments
                             .slice()
-                            .sort((a,b) => (a.priority_order||99) - (b.priority_order||99))
+                            .sort((a, b) => (a.priority_order || 99) - (b.priority_order || 99))
                             .map((a, i, arr) => {
-                                const s    = ST[a.status] || ST.active;
-                                const sd   = new Date(a.start_date).toLocaleDateString("en-GB", { day:"2-digit", month:"short" });
-                                const ed   = new Date(a.end_date).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"2-digit" });
-                                const COLORS = ["#6366f1","#10b981","#f59e0b","#ef4444","#3b82f6","#8b5cf6"];
+                                const s = ST[a.status] || ST.active;
+                                const sd = new Date(a.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+                                const ed = new Date(a.end_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
+                                const COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6"];
                                 const pColor = COLORS[i % COLORS.length];
                                 const isLast = i === arr.length - 1;
 
                                 return (
                                     <div key={a.id || i} style={{
-                                        display: "flex", alignItems: "center", gap: 12,
-                                        padding: "10px 0",
+                                        display: "flex", gap: 14,
+                                        paddingBottom: isLast ? 0 : 14,
+                                        marginBottom: isLast ? 0 : 14,
                                         borderBottom: isLast ? "none" : `1px solid ${theme.border}`,
                                     }}>
-                                        {/* Priority badge */}
-                                        <div style={{
-                                            width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                                            background: pColor + (dark ? "33" : "18"),
-                                            border: `1px solid ${pColor + (dark ? "55" : "33")}`,
-                                            display: "flex", alignItems: "center", justifyContent: "center",
-                                            fontSize: 10, fontWeight: 800, color: pColor,
-                                        }}>
-                                            {a.priority_order || i + 1}
-                                        </div>
-
-                                        {/* Project name */}
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontSize: 12, fontWeight: 700, color: theme.text,
-                                                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                {a.project?.name || "—"}
+                                        {/* Left: priority circle + line */}
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                                            <div style={{
+                                                width: 32, height: 32, borderRadius: "50%",
+                                                background: pColor + (dark ? "22" : "15"),
+                                                border: `2px solid ${pColor + (dark ? "55" : "44")}`,
+                                                display: "flex", alignItems: "center", justifyContent: "center",
+                                                fontSize: 12, fontWeight: 800, color: pColor,
+                                            }}>
+                                                {a.priority_order || i + 1}
                                             </div>
-                                            <div style={{ fontSize: 10, color: theme.textMute, marginTop: 1 }}>
-                                                {sd} → {ed}
+                                            {!isLast && (
+                                                <div style={{ width: 2, flex: 1, minHeight: 16,
+                                                    background: `linear-gradient(180deg, ${pColor}44, transparent)`,
+                                                    borderRadius: 99 }} />
+                                            )}
+                                        </div>
+
+                                        {/* Right: content */}
+                                        <div style={{ flex: 1, paddingTop: 4 }}>
+                                            {/* Project name */}
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                                                <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>
+                                                    {a.project?.name || "—"}
+                                                </span>
+                                                <span style={{
+                                                    fontSize: 10, fontWeight: 700, padding: "2px 8px",
+                                                    borderRadius: 99, whiteSpace: "nowrap",
+                                                    color: s.color,
+                                                    background: dark ? s.bgDark : s.bg,
+                                                    border: `1px solid ${dark ? s.color + "44" : s.border}`,
+                                                }}>
+                                                    {s.label}
+                                                </span>
+                                            </div>
+
+                                            {/* Info row — Leave Request style */}
+                                            <div style={{ display:"flex", alignItems:"center", gap:16, marginTop:5, flexWrap:"wrap" }}>
+                                                <span style={{ fontSize:11, color:theme.textMute }}>
+                                                    ⏱ <strong style={{ color:pColor }}>{a.hours_per_day}h</strong> per day
+                                                </span>
+                                                <span style={{ fontSize:11, color:theme.textMute }}>
+                                                    📅 {sd} → {ed}
+                                                </span>
                                             </div>
                                         </div>
 
-                                        {/* Hours/day */}
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: pColor,
-                                            background: pColor + (dark ? "22" : "12"),
-                                            padding: "2px 8px", borderRadius: 6, flexShrink: 0,
-                                            border: `1px solid ${pColor + "33"}` }}>
-                                            {a.hours_per_day}h/day
+                                        {/* Reorder buttons */}
+                                        <div style={{ display:"flex", flexDirection:"column", gap:3, flexShrink:0, paddingTop:4 }}>
+                                            <button
+                                                onClick={() => handleReorder(a, "up", arr)}
+                                                disabled={i === 0}
+                                                style={{
+                                                    width:24, height:24, borderRadius:6, border:`1px solid ${theme.border}`,
+                                                    background: i===0 ? "transparent" : (dark?"rgba(255,255,255,0.04)":"#f8fafc"),
+                                                    color: i===0 ? theme.border : theme.textMute,
+                                                    cursor: i===0 ? "not-allowed":"pointer",
+                                                    display:"flex", alignItems:"center", justifyContent:"center",
+                                                    fontSize:10, transition:"all 0.12s",
+                                                }}
+                                                onMouseEnter={e => { if(i>0) { e.currentTarget.style.background=theme.primarySoft; e.currentTarget.style.color=theme.primary; }}}
+                                                onMouseLeave={e => { if(i>0) { e.currentTarget.style.background=dark?"rgba(255,255,255,0.04)":"#f8fafc"; e.currentTarget.style.color=theme.textMute; }}}
+                                            >▲</button>
+                                            <button
+                                                onClick={() => handleReorder(a, "down", arr)}
+                                                disabled={i === arr.length - 1}
+                                                style={{
+                                                    width:24, height:24, borderRadius:6, border:`1px solid ${theme.border}`,
+                                                    background: i===arr.length-1 ? "transparent" : (dark?"rgba(255,255,255,0.04)":"#f8fafc"),
+                                                    color: i===arr.length-1 ? theme.border : theme.textMute,
+                                                    cursor: i===arr.length-1 ? "not-allowed":"pointer",
+                                                    display:"flex", alignItems:"center", justifyContent:"center",
+                                                    fontSize:10, transition:"all 0.12s",
+                                                }}
+                                                onMouseEnter={e => { if(i<arr.length-1) { e.currentTarget.style.background=theme.primarySoft; e.currentTarget.style.color=theme.primary; }}}
+                                                onMouseLeave={e => { if(i<arr.length-1) { e.currentTarget.style.background=dark?"rgba(255,255,255,0.04)":"#f8fafc"; e.currentTarget.style.color=theme.textMute; }}}
+                                            >▼</button>
                                         </div>
-
-                                        {/* Status */}
-                                        <span style={{
-                                            fontSize: 10, fontWeight: 700, padding: "2px 8px",
-                                            borderRadius: 99, whiteSpace: "nowrap", flexShrink: 0,
-                                            color: s.color,
-                                            background: dark ? s.bgDark : s.bg,
-                                            border: `1px solid ${dark ? s.color + "44" : s.border}`,
-                                        }}>
-                                            {s.label}
-                                        </span>
                                     </div>
                                 );
                             })}
@@ -615,6 +673,14 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
     const [selected, setSelected] = useState(null);
     const [search,   setSearch]   = useState("");
     const [wlFilter, setWlFilter] = useState("all");
+
+    // ← ဒါထည့်
+    useEffect(() => {
+        if (selected) {
+            const updated = users.find(u => u.id === selected.id);
+            if (updated) setSelected(updated);
+        }
+    }, [users]);
 
     const filtered = users.filter(u => {
         const used = u.used_hours_per_day ?? 0;
@@ -799,7 +865,11 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                         </div>
 
                         {/* Member detail */}
-                        {selected && <MemberDetail user={selected} onClose={() => setSelected(null)} theme={theme} dark={dark} />}
+                        {selected && (
+                            <div style={{ marginBottom: 80 }}>
+                                <MemberDetail user={selected} onClose={() => setSelected(null)} theme={theme} dark={dark} />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

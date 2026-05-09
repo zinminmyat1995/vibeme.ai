@@ -19,13 +19,14 @@ class ProjectAssignmentController extends Controller
     {
         $authUser = Auth::user();
 
-        $users = User::whereHas('role', fn($q) => $q->where('name', 'employee'))
+        $users = User::whereHas('role', fn($q) => $q->whereIn('name', ['employee', 'management']))
             ->where('is_active', true)
             ->when(!$authUser->isAdmin(), fn($q) => $q->where('country', $authUser->country))
             ->with(['assignments' => fn($q) => $q
                 ->where('status', '!=', 'removed')
                 ->where('end_date', '>=', now())
                 ->with('project')
+                ->orderBy('priority_order')  
             ])
             ->get()
             ->map(function ($user) {
@@ -278,5 +279,23 @@ class ProjectAssignmentController extends Controller
             $activeCount === 2 => 'moderate',
             default            => 'heavy',
         };
+    }
+
+    public function reorder(Request $request)
+    {
+        $validated = $request->validate([
+            'assignments'                => 'required|array',
+            'assignments.*.id'           => 'required|exists:project_assignments,id',
+            'assignments.*.priority_order' => 'required|integer|min:1',
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            foreach ($validated['assignments'] as $item) {
+                ProjectAssignment::where('id', $item['id'])
+                    ->update(['priority_order' => $item['priority_order']]);
+            }
+        });
+
+        return back()->with('success', 'Priority updated.');
     }
 }

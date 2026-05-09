@@ -776,10 +776,52 @@ function EditModal({ assignment, onClose, t, dark }) {
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <div>
                             <h2 style={{ fontSize:16, fontWeight:800, color:t.text, margin:0 }}>Edit Assignment</h2>
-                            <p style={{ fontSize:12, color:t.textMute, marginTop:3 }}>
-                                <span style={{ color:t.primary, fontWeight:600 }}>{assignment.user?.name}</span>
-                            </p>
+
+                            {/* Member · Project · Priority */}
+                            <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:6, flexWrap:"wrap" }}>
+
+                                {/* Member */}
+                                <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                                    <span style={{ fontSize:9, fontWeight:700, color:t.textMute,
+                                        textTransform:"uppercase", letterSpacing:"0.07em" }}>Member</span>
+                                    <span style={{ fontSize:12, fontWeight:700, color:t.primary }}>
+                                        {assignment.user?.name}
+                                    </span>
+                                </div>
+
+                                <span style={{ color:t.border, fontSize:14 }}>|</span>
+
+                                {/* Project */}
+                                {assignment.project?.name && (
+                                    <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                                        <span style={{ fontSize:9, fontWeight:700, color:t.textMute,
+                                            textTransform:"uppercase", letterSpacing:"0.07em" }}>Project</span>
+                                        <span style={{ fontSize:12, fontWeight:700, color:t.textSoft }}>
+                                            {assignment.project.name}
+                                        </span>
+                                    </div>
+                                )}
+
+                                <span style={{ color:t.border, fontSize:14 }}>|</span>
+
+                                {/* Priority */}
+                                {assignment.priority_order && (
+                                    <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                                        <span style={{ fontSize:9, fontWeight:700, color:t.textMute,
+                                            textTransform:"uppercase", letterSpacing:"0.07em" }}>Priority</span>
+                                        <div style={{
+                                            width:20, height:20, borderRadius:"50%",
+                                            background:"linear-gradient(135deg,#4f46e5,#3b82f6)",
+                                            display:"flex", alignItems:"center", justifyContent:"center",
+                                            fontSize:10, fontWeight:800, color:"#fff",
+                                        }}>
+                                            {assignment.priority_order}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
+
                         <button onClick={onClose} style={{ background:t.surfaceSoft, border:`1.5px solid ${t.border}`,
                             borderRadius:10, width:32, height:32, cursor:"pointer", color:t.textMute, fontSize:16,
                             display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>

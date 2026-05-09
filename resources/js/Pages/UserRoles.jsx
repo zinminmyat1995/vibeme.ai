@@ -941,7 +941,13 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
                     <PremiumSelect
                         options={employmentTypeOptions}
                         value={form.data.employment_type || 'probation'}
-                        onChange={(val) => form.setData('employment_type', val)}
+                        onChange={(val) => {
+                            form.setData(data => ({
+                                ...data,
+                                employment_type: val,
+                                contract_end_date: val === 'contract' ? data.contract_end_date : '',
+                            }));
+                        }}
                         placeholder="Select employment type..."
                         theme={theme}
                         darkMode={darkMode}
