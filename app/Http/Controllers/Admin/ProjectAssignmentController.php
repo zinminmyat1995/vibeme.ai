@@ -83,6 +83,7 @@ class ProjectAssignmentController extends Controller
             'end_date'      => 'required|date|after_or_equal:start_date',
             'hours_per_day' => 'integer|min:1|max:24',
             'notes'         => 'nullable|string',
+            'priority_order' => 'nullable|integer|min:1',
         ]);
 
         $authUser   = Auth::user();
@@ -137,6 +138,8 @@ class ProjectAssignmentController extends Controller
                 ...$validated,
                 'assigned_by'   => Auth::id(),
                 'hours_per_day' => $validated['hours_per_day'] ?? 8,
+                'priority_order' => $validated['priority_order']
+                        ?? ProjectAssignment::nextPriorityFor($validated['user_id']),
                 'status'        => $status,
             ]);
 
@@ -167,6 +170,23 @@ class ProjectAssignmentController extends Controller
         if (!$authUser->isAdmin() && $projectAssignment->user->country !== $authUser->country) {
             abort(403, 'You can only manage employees from your country.');
         }
+
+        // ── Capacity check ── ← ဒါထည့်
+        if (isset($validated['hours_per_day'])) {
+            $currentHours = ProjectAssignment::where('user_id', $projectAssignment->user_id)
+                ->whereIn('status', ['active', 'upcoming'])
+                ->where('id', '!=', $projectAssignment->id)  // ဒီ assignment ကိုယ်တိုင် exclude
+                ->sum('hours_per_day');
+
+            $newTotal = $currentHours + $validated['hours_per_day'];
+
+            if ($newTotal > 8) {
+                return back()->withErrors([
+                    'hours_per_day' => "Cannot update: total daily hours would be {$newTotal}h (max 8h). Other assignments use {$currentHours}h/day.",
+                ]);
+            }
+        }
+        // ── end capacity check ──
 
         if (!ProjectAssignment::isAvailable(
             $projectAssignment->user_id,

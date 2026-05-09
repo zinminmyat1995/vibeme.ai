@@ -299,6 +299,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
         end_date:      project.end_date?.slice(0,10)   || "",
         hours_per_day: null,
         notes:         "",
+        priority_order: null,  // ← ထည့်
     });
     const [errors, setErrors] = useState({});
     const [dropOpen, setDropOpen] = useState(false);
@@ -337,7 +338,9 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
         if (Object.keys(e).length) return setErrors(e);
         if (form.user_id && form.hours_per_day > availableHrs) return;
         setSub(true);
-        router.post("/admin/assignments", { ...form, project_id: project.id }, {
+        router.post("/admin/assignments", { ...form, project_id: project.id,     priority_order: form.priority_order
+                    || selectedUser?.next_priority
+                    || 1, }, {
             onSuccess: () => { setSub(false); onClose(); },
             onError:   () => { setSub(false); },
         });
@@ -543,7 +546,17 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                                 );
                             })}
                         </div>
-                        {errors.hours_per_day && <p style={{ fontSize:11, color:"#ef4444", marginTop:4 }}>{errors.hours_per_day}</p>}
+                        
+                        {errors.hours_per_day && (
+                            <div style={{
+                                marginTop: 8, padding: "8px 12px", borderRadius: 8,
+                                background: dark ? "rgba(239,68,68,0.14)" : "#fef2f2",
+                                border: `1px solid ${dark ? "#ef444444" : "#fca5a5"}`,
+                                fontSize: 11, color: dark ? "#f87171" : "#ef4444", fontWeight: 600,
+                            }}>
+                                ⚠ {errors.hours_per_day}
+                            </div>
+                        )}
                     </div>
 
                     {/* Notes */}
@@ -553,6 +566,140 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                             placeholder="Optional notes…" rows={2}
                             style={{ ...inp(t), resize:"vertical" }} />
                     </div>
+
+                    {/* ── Priority Section — member ရွေးပြီးမှ၊ existingAssign မဟုတ်မှ ပြမယ် ── */}
+                    {selectedUser && !existingAssign && (
+                        <div>
+                            <div style={{
+                                fontSize: 10, fontWeight: 800, color: t.textMute,
+                                textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8,
+                            }}>
+                                Priority Order
+                            </div>
+
+                            <div style={{
+                                border: `1px solid ${t.border}`,
+                                borderRadius: 10, overflow: "hidden",
+                            }}>
+                                {/* ရှိပြီးသား assignments မရှိရင် */}
+                                {(!selectedUser.current_assignments || selectedUser.current_assignments.length === 0) ? (
+                                    <div style={{
+                                        padding: "10px 14px", fontSize: 12, color: t.textMute,
+                                        background: dark ? "rgba(255,255,255,0.02)" : "#f8fafc",
+                                    }}>
+                                        No other assignments — this will be <strong style={{ color: t.primary }}>Priority 1</strong>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* ရှိပြီးသား assignments list */}
+                                        {selectedUser.current_assignments.map((a, i) => (
+                                            <div key={a.id} style={{
+                                                display: "flex", alignItems: "center", gap: 10,
+                                                padding: "10px 14px",
+                                                borderBottom: `1px solid ${t.border}`,
+                                                background: dark ? "rgba(255,255,255,0.02)" : "#f8fafc",
+                                            }}>
+                                                {/* Priority badge */}
+                                                <div style={{
+                                                    width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+                                                    background: dark ? "rgba(99,102,241,0.18)" : "#eef2ff",
+                                                    border: `1px solid ${dark ? "rgba(99,102,241,0.3)" : "#c7d2fe"}`,
+                                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                                    fontSize: 11, fontWeight: 800,
+                                                    color: dark ? "#818cf8" : "#4338ca",
+                                                }}>
+                                                    {a.priority_order || i + 1}
+                                                </div>
+
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{
+                                                        fontSize: 12, fontWeight: 600, color: t.text,
+                                                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                                                    }}>
+                                                        {a.project_name}
+                                                    </div>
+                                                    <div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>
+                                                        {a.hours_per_day}h/day
+                                                    </div>
+                                                </div>
+
+                                                <span style={{
+                                                    fontSize: 10, fontWeight: 700, padding: "2px 8px",
+                                                    borderRadius: 99, whiteSpace: "nowrap",
+                                                    color:      a.status === "active" ? "#059669" : "#4f46e5",
+                                                    background: a.status === "active"
+                                                        ? (dark ? "rgba(5,150,105,0.15)" : "#d1fae5")
+                                                        : (dark ? "rgba(79,70,229,0.15)" : "#e0e7ff"),
+                                                }}>
+                                                    {a.status === "active" ? "Active" : "Upcoming"}
+                                                </span>
+                                            </div>
+                                        ))}
+
+                                        {/* This project row — priority selector */}
+                                        <div style={{
+                                            display: "flex", alignItems: "center", gap: 10,
+                                            padding: "10px 14px",
+                                            background: dark ? "rgba(99,102,241,0.08)" : "#f5f7ff",
+                                            borderTop: `1px solid ${dark ? "rgba(99,102,241,0.2)" : "#c7d2fe"}`,
+                                        }}>
+                                            <div style={{
+                                                width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+                                                background: "linear-gradient(135deg,#4f46e5,#3b82f6)",
+                                                display: "flex", alignItems: "center", justifyContent: "center",
+                                                fontSize: 11, fontWeight: 800, color: "#fff",
+                                            }}>
+                                                {form.priority_order || selectedUser.next_priority || (selectedUser.current_assignments.length + 1)}
+                                            </div>
+
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{ fontSize: 12, fontWeight: 700, color: t.primary }}>
+                                                    {project.name} <span style={{ fontWeight: 400, color: t.textMute }}>(this project)</span>
+                                                </div>
+                                                <div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>
+                                                    {form.hours_per_day ? `${form.hours_per_day}h/day` : "Select hours above"}
+                                                </div>
+                                            </div>
+
+                                            {/* Priority number buttons */}
+                                            <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                                                {Array.from(
+                                                    { length: (selectedUser.current_assignments?.length || 0) + 1 },
+                                                    (_, i) => i + 1
+                                                ).map(n => {
+                                                    const isActive = (form.priority_order || selectedUser.next_priority) === n;
+                                                    return (
+                                                        <button
+                                                            key={n}
+                                                            onClick={() => set("priority_order", n)}
+                                                            style={{
+                                                                width: 28, height: 28, borderRadius: 7,
+                                                                border: `1.5px solid ${isActive
+                                                                    ? t.primary
+                                                                    : dark ? "rgba(148,163,184,0.2)" : "#e2e8f0"}`,
+                                                                background: isActive
+                                                                    ? "linear-gradient(135deg,#4f46e5,#3b82f6)"
+                                                                    : (dark ? "rgba(255,255,255,0.04)" : "#f8fafc"),
+                                                                color: isActive ? "#fff" : t.textSoft,
+                                                                fontSize: 11, fontWeight: 700, cursor: "pointer",
+                                                                transition: "all 0.15s", fontFamily: "inherit",
+                                                            }}
+                                                        >
+                                                            {n}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <p style={{ fontSize: 11, color: t.textMute, marginTop: 6, margin: "6px 0 0" }}>
+                                P1 = morning session. Higher priority = assigned time slot comes later in the day.
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ padding:"0 24px 22px", display:"flex", gap:10 }}>
@@ -593,14 +740,20 @@ function EditModal({ assignment, onClose, t, dark }) {
         notes:         assignment.notes  || "",
     });
     const [isSaving, setIsSaving] = useState(false);
+    const [errors, setErrors]     = useState({}); 
     const set = (k,v) => setForm(f => ({...f,[k]:v}));
 
     const submit = () => {
         if (isSaving) return;
         setIsSaving(true);
+        setErrors({});
         router.put(`/admin/assignments/${assignment.id}`, form, {
+            preserveScroll: true,
             onSuccess: () => { setIsSaving(false); onClose(); },
-            onError:   () => setIsSaving(false),
+            onError: (e) => {
+                setIsSaving(false);
+                setErrors(e);
+            },
         });
     };
 
@@ -651,18 +804,48 @@ function EditModal({ assignment, onClose, t, dark }) {
                             {[2,4,6,8].map(h => (
                                 <button key={h} onClick={() => set("hours_per_day",h)} style={{
                                     flex:1, padding:"9px 0", borderRadius:10, cursor:"pointer",
-                                    border:`1.5px solid ${form.hours_per_day===h ? t.hBtnSel.border : t.hBtnNorm.border}`,
+                                    border:`1.5px solid ${errors.hours_per_day ? "#ef4444" : form.hours_per_day===h ? t.hBtnSel.border : t.hBtnNorm.border}`,
                                     background: form.hours_per_day===h ? t.hBtnSel.bg : t.hBtnNorm.bg,
                                     color: form.hours_per_day===h ? t.hBtnSel.color : t.hBtnNorm.color,
                                     fontSize:13, fontWeight:700, transition:"all 0.15s", fontFamily:"inherit" }}>{h}h</button>
                             ))}
                         </div>
+
+                        {errors.hours_per_day && (
+                            <div style={{
+                                marginTop:8,
+                                padding:"10px 12px",
+                                borderRadius:10,
+                                background: dark ? "rgba(239,68,68,0.14)" : "#fee2e2",
+                                color:"#ef4444",
+                                fontSize:12,
+                                fontWeight:700,
+                                border:"1px solid rgba(239,68,68,0.35)",
+                            }}>
+                                {errors.hours_per_day}
+                            </div>
+                        )}
                     </div>
 
                     {/* Status — PremiumSelect */}
                     <div>
                         <FieldLabel t={t}>Status</FieldLabel>
                         <PremiumSelect options={statusOpts} value={form.status} onChange={v => set("status",v)} t={t} dark={dark} zIndex={300} />
+
+                        {errors.user_id && (
+                            <div style={{
+                                marginTop:8,
+                                padding:"10px 12px",
+                                borderRadius:10,
+                                background: dark ? "rgba(239,68,68,0.14)" : "#fee2e2",
+                                color:"#ef4444",
+                                fontSize:12,
+                                fontWeight:700,
+                                border:"1px solid rgba(239,68,68,0.35)",
+                            }}>
+                                {errors.user_id}
+                            </div>
+                        )}
                     </div>
 
                     {/* Notes */}
@@ -732,9 +915,21 @@ export default function ProjectShow({ project, availableUsers = [] }) {
     const [isRemoving,   setIsRemoving] = useState(false);
     const [activeTab,    setActiveTab]  = useState("members");
 
-    // Original logic — unchanged
     const assignments = project.assignments?.filter(a => a.status !== "removed") || [];
-    const logs        = project.logs || [];
+
+    const hasVisibleChanges = (log) => {
+        if (log.action !== "edited") return true;
+        if (!log.old_values || !log.new_values) return false;
+
+        return (
+            log.old_values.start_date !== log.new_values.start_date ||
+            log.old_values.end_date !== log.new_values.end_date ||
+            log.old_values.status !== log.new_values.status ||
+            Number(log.old_values.hours_per_day) !== Number(log.new_values.hours_per_day)
+        );
+    };
+
+    const logs = (project.logs || []).filter(hasVisibleChanges);
 
     const confirmRemove = () => {
         if (isRemoving) return;
@@ -759,6 +954,31 @@ export default function ProjectShow({ project, availableUsers = [] }) {
         { label:"Upcoming",      value:assignments.filter(a => a.status==="upcoming").length,      bg:t.stat3, color:t.stat3c, icon:"🕐" },
         { label:"Est. Hours",    value:`~${totalHours.toLocaleString()}h`,                         bg:t.stat4, color:t.stat4c, icon:"⏱" },
     ];
+
+    function ActionGlyph({ type, color }) {
+        if (type === 'edit') {
+            return (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                </svg>
+            );
+        }
+
+        if (type === 'delete') {
+            return (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+            );
+        }
+
+        return null;
+    }
 
     return (
         <AppLayout title="Project Assignments">
@@ -997,10 +1217,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
 
                                             {/* Hours/Day */}
                                             <td style={{ padding:"14px 16px" }}>
-                                                <div style={{ display:"inline-flex", alignItems:"baseline", gap:3,
-                                                    background: dark?"rgba(99,102,241,0.15)":"#eef2ff",
-                                                    border:`1px solid ${dark?"#6366f144":"#c7d2fe"}`,
-                                                    borderRadius:8, padding:"4px 10px" }}>
+                                                <div style={{ display:"inline-flex", alignItems:"baseline", gap:3, borderRadius:8, padding:"4px 10px" }}>
                                                     <span style={{ fontSize:17, fontWeight:800, color:t.primary }}>{a.hours_per_day}</span>
                                                     <span style={{ fontSize:11, color:t.textMute, fontWeight:600 }}>h/day</span>
                                                 </div>
@@ -1034,28 +1251,38 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                                             {/* Actions */}
                                             <td style={{ padding:"14px 16px" }}>
                                                 <div style={{ display:"flex", gap:7 }}>
-                                                    <button onClick={() => setEditTarget(a)} style={{
-                                                        display:"inline-flex", alignItems:"center", gap:5,
-                                                        padding:"6px 12px",
-                                                        background: dark?"rgba(16,185,129,0.14)":"#f0fdf4",
-                                                        border:`1.5px solid ${dark?"#10b98144":"#86efac"}`,
-                                                        borderRadius:9, color:dark?"#34d399":"#16a34a",
-                                                        fontSize:11, fontWeight:700, cursor:"pointer",
-                                                        transition:"all 0.15s", fontFamily:"inherit" }}
+                                                    <button onClick={() => setEditTarget(a)}  
+                                                        style={{
+                                                            width: 40,
+                                                            height: 40,
+                                                            borderRadius: 14,
+                                                            border: `1px solid ${t.border}`,
+                                                            background: t.panelSoft,
+                                                            color: t.textSoft,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
                                                         onMouseEnter={e => e.currentTarget.style.background=dark?"rgba(16,185,129,0.24)":"#dcfce7"}
                                                         onMouseLeave={e => e.currentTarget.style.background=dark?"rgba(16,185,129,0.14)":"#f0fdf4"}
-                                                    >✏️ Edit</button>
-                                                    <button onClick={() => setRemoveTgt(a)} style={{
-                                                        display:"inline-flex", alignItems:"center", gap:5,
-                                                        padding:"6px 12px",
-                                                        background: dark?"rgba(239,68,68,0.14)":"#fef2f2",
-                                                        border:`1.5px solid ${dark?"#ef444444":"#fca5a5"}`,
-                                                        borderRadius:9, color:dark?"#f87171":"#ef4444",
-                                                        fontSize:11, fontWeight:700, cursor:"pointer",
-                                                        transition:"all 0.15s", fontFamily:"inherit" }}
+                                                    ><ActionGlyph type="edit" color={t.textSoft} /></button>
+                                                    <button onClick={() => setRemoveTgt(a)} 
+                                                        style={{
+                                                            width: 40,
+                                                            height: 40,
+                                                            borderRadius: 14,
+                                                            border: `1px solid ${t.border}`,
+                                                            background: t.dangerSoft,
+                                                            color: t.danger,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
                                                         onMouseEnter={e => e.currentTarget.style.background=dark?"rgba(239,68,68,0.24)":"#fee2e2"}
                                                         onMouseLeave={e => e.currentTarget.style.background=dark?"rgba(239,68,68,0.14)":"#fef2f2"}
-                                                    >🗑 Remove</button>
+                                                    > <ActionGlyph type="delete" color={t.danger} /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -1109,39 +1336,46 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                                                 </div>
                                                 <div style={{ fontSize:11, color:t.textMute }}>{fmtDT(log.created_at)}</div>
 
-                                                {/* Diff view for edited */}
+                                                {/* Simple diff text for edited */}
                                                 {log.action === "edited" && log.old_values && log.new_values && (
-                                                    <div style={{ marginTop:9, padding:"9px 12px",
-                                                        background:t.surfaceSoft, borderRadius:10,
-                                                        fontSize:11, color:t.textSoft,
-                                                        border:`1px solid ${t.border}` }}>
+                                                    <div style={{
+                                                        marginTop: 6,
+                                                        display: "flex",
+                                                        flexWrap: "wrap",
+                                                        gap: 10,
+                                                        fontSize: 11,
+                                                        color: t.textSoft,
+                                                    }}>
                                                         {log.old_values.start_date !== log.new_values.start_date && (
-                                                            <div style={{ marginBottom:3 }}>start:{" "}
-                                                                <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.start_date}</span>
+                                                            <span>
+                                                                start: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.start_date}</span>
                                                                 {" → "}
                                                                 <span style={{ color:"#16a34a", fontWeight:600 }}>{log.new_values.start_date}</span>
-                                                            </div>
+                                                            </span>
                                                         )}
+
                                                         {log.old_values.end_date !== log.new_values.end_date && (
-                                                            <div style={{ marginBottom:3 }}>end:{" "}
-                                                                <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.end_date}</span>
+                                                            <span>
+                                                                end: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.end_date}</span>
                                                                 {" → "}
                                                                 <span style={{ color:"#16a34a", fontWeight:600 }}>{log.new_values.end_date}</span>
-                                                            </div>
+                                                            </span>
                                                         )}
+
                                                         {log.old_values.status !== log.new_values.status && (
-                                                            <div style={{ marginBottom:3 }}>status:{" "}
-                                                                <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.status}</span>
+                                                            <span>
+                                                                status: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.status}</span>
                                                                 {" → "}
                                                                 <span style={{ color:"#16a34a", fontWeight:600 }}>{log.new_values.status}</span>
-                                                            </div>
+                                                            </span>
                                                         )}
-                                                        {log.old_values.hours_per_day !== log.new_values.hours_per_day && (
-                                                            <div>hours/day:{" "}
-                                                                <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.hours_per_day}h</span>
+
+                                                        {Number(log.old_values.hours_per_day) !== Number(log.new_values.hours_per_day) && (
+                                                            <span>
+                                                                hours/day: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.hours_per_day}h</span>
                                                                 {" → "}
                                                                 <span style={{ color:"#16a34a", fontWeight:600 }}>{log.new_values.hours_per_day}h</span>
-                                                            </div>
+                                                            </span>
                                                         )}
                                                     </div>
                                                 )}

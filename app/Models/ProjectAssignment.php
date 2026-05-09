@@ -14,6 +14,7 @@ class ProjectAssignment extends Model
         'start_date',
         'end_date',
         'hours_per_day',
+        'priority_order', // new — Leave impact calculation အတွက်
         'status',
         'notes',
     ];
@@ -22,7 +23,10 @@ class ProjectAssignment extends Model
         'start_date'     => 'date',
         'end_date'       => 'date',
         'hours_per_day'  => 'integer',
+        'priority_order' => 'integer',
     ];
+
+    // ── Relationships ──────────────────────────────────────────
 
     public function project(): BelongsTo
     {
@@ -39,7 +43,8 @@ class ProjectAssignment extends Model
         return $this->belongsTo(User::class, 'assigned_by');
     }
 
-    // Member က လက်ရှိ အားနေလားစစ်ဖို့
+    // ── Availability Check ─────────────────────────────────────
+
     public static function isAvailable(int $userId, string $startDate, string $endDate, ?int $excludeId = null): bool
     {
         $query = static::where('user_id', $userId)
@@ -57,7 +62,19 @@ class ProjectAssignment extends Model
             $query->where('id', '!=', $excludeId);
         }
 
-        // Multi-project allowed — just return overlap count for workload check
-        return $query->count() < 3; // max 3 projects တပြိုင်နက်
+        return $query->count() < 3;
+    }
+
+    // ── Priority Helper ────────────────────────────────────────
+
+    // User တစ်ယောက်ရဲ့ နောက်ဆုံး priority order ကြည့်ပြီး +1 return
+    // Assignment ချတဲ့အချိန် auto-suggest priority အတွက် သုံးမယ်
+    public static function nextPriorityFor(int $userId): int
+    {
+        $max = static::where('user_id', $userId)
+                     ->whereIn('status', ['active', 'upcoming'])
+                     ->max('priority_order');
+
+        return ($max ?? 0) + 1;
     }
 }

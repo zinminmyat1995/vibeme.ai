@@ -412,8 +412,8 @@ function MemberDetail({ user, onClose, theme, dark }) {
             {/* Header */}
             <div style={{
                 background: dark
-                    ? "linear-gradient(135deg, rgba(99,102,241,0.14) 0%, rgba(59,130,246,0.10) 100%)"
-                    : "linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%)",
+                    ? "linear-gradient(135deg, rgba(99,102,241,0.22) 0%, rgba(59,130,246,0.16) 100%)"
+                    : "linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%)",
                 padding: "18px 20px",
                 borderBottom: `1px solid ${theme.border}`,
                 position: "relative",
@@ -458,22 +458,61 @@ function MemberDetail({ user, onClose, theme, dark }) {
                     </div>
                 </div>
 
-                {/* Workload bar */}
                 {(() => {
                     const used = user.used_hours_per_day ?? 0;
                     const pct  = Math.min(100, Math.round(used / 8 * 100));
                     const bc   = pct === 0 ? "#22c55e" : pct <= 25 ? "#3b82f6" : pct <= 50 ? "#f59e0b" : pct <= 75 ? "#ef4444" : "#7c3aed";
+
+                    // Assignment segments for bar
+                    const segments = (user.assignments || [])
+                        .filter(a => ["active","upcoming"].includes(a.status))
+                        .sort((a,b) => (a.priority_order||99) - (b.priority_order||99));
+
+                    const COLORS = ["#6366f1","#10b981","#f59e0b","#ef4444","#3b82f6","#8b5cf6"];
+
                     return (
                         <div style={{ marginTop: 14 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                                 <span style={{ fontSize: 10, color: theme.textMute }}>Daily capacity ({used}h / 8h used)</span>
                                 <span style={{ fontSize: 10, fontWeight: 800, color: bc }}>{pct}%</span>
                             </div>
-                            <div style={{ height: 6, background: dark ? "rgba(255,255,255,0.08)" : "#e2e8f0", borderRadius: 99, overflow: "hidden" }}>
-                                <div style={{ width: `${pct}%`, height: "100%", borderRadius: 99,
-                                    background: `linear-gradient(90deg, ${bc}88, ${bc})`,
-                                    transition: "width 0.6s ease", boxShadow: `0 0 8px ${bc}66` }} />
+
+                            {/* Segmented bar */}
+                            <div style={{ height: 28, background: dark ? "rgba(255,255,255,0.06)" : "#e2e8f0", borderRadius: 8, overflow: "hidden", display: "flex" }}>
+                                {segments.map((a, i) => {
+                                    const segPct = Math.round((a.hours_per_day / 8) * 100);
+                                    const color  = COLORS[i % COLORS.length];
+                                    return (
+                                        <div key={a.id || i} style={{
+                                            width: `${segPct}%`, height: "100%",
+                                            background: color,
+                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                            overflow: "hidden", position: "relative",
+                                            borderRight: i < segments.length - 1 ? "1px solid rgba(255,255,255,0.3)" : "none",
+                                        }}>
+                                            {segPct >= 12 && (
+                                                <span style={{ fontSize: 9, fontWeight: 700, color: "#fff",
+                                                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                                                    padding: "0 4px", letterSpacing: "0.03em" }}>
+                                                    {a.project?.name || "—"}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                {/* Free space */}
+                                {used < 8 && (
+                                    <div style={{ flex: 1, height: "100%",
+                                        background: dark ? "rgba(255,255,255,0.04)" : "#f1f5f9",
+                                        display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                        <span style={{ fontSize: 9, color: theme.textMute, fontWeight: 600 }}>
+                                            {8 - used}h free
+                                        </span>
+                                    </div>
+                                )}
                             </div>
+
+                            {/* Hour markers */}
                             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
                                 {[0,2,4,6,8].map(h => (
                                     <span key={h} style={{ fontSize: 9, color: theme.textMute }}>{h}h</span>
@@ -485,55 +524,79 @@ function MemberDetail({ user, onClose, theme, dark }) {
             </div>
 
             {/* Assignments */}
-            <div style={{ padding: "16px 20px" }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: theme.textMute, textTransform: "uppercase",
-                    letterSpacing: "0.08em", marginBottom: 12 }}>
+            <div style={{ padding: "14px 20px" }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: theme.textMute,
+                    textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
                     Assignments · {user.assignments?.length || 0}
                 </div>
 
                 {!user.assignments?.length ? (
-                    <div style={{ textAlign: "center", padding: "28px 0", color: theme.textMute }}>
-                        <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
+                    <div style={{ textAlign: "center", padding: "20px 0", color: theme.textMute }}>
+                        <div style={{ fontSize: 28, marginBottom: 6 }}>📋</div>
                         <div style={{ fontSize: 12 }}>No assignments yet</div>
                     </div>
                 ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        {user.assignments.map((a, i) => {
-                            const s  = ST[a.status] || ST.active;
-                            const sd = new Date(a.start_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-                            const ed = new Date(a.end_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
-                            return (
-                                <div key={i} style={{
-                                    display: "flex", alignItems: "center", gap: 12,
-                                    padding: "10px 14px", borderRadius: 10,
-                                    background: dark ? "rgba(255,255,255,0.03)" : "#f8fafc",
-                                    border: `1px solid ${theme.border}`,
-                                    borderLeft: `3px solid ${s.color}`,
-                                    transition: "background 0.12s",
-                                }}
-                                    onMouseEnter={e => e.currentTarget.style.background = dark ? "rgba(255,255,255,0.06)" : "#f1f5f9"}
-                                    onMouseLeave={e => e.currentTarget.style.background = dark ? "rgba(255,255,255,0.03)" : "#f8fafc"}
-                                >
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: 12, fontWeight: 600, color: theme.text,
-                                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                            {a.project?.name}
+                    <div>
+                        {user.assignments
+                            .slice()
+                            .sort((a,b) => (a.priority_order||99) - (b.priority_order||99))
+                            .map((a, i, arr) => {
+                                const s    = ST[a.status] || ST.active;
+                                const sd   = new Date(a.start_date).toLocaleDateString("en-GB", { day:"2-digit", month:"short" });
+                                const ed   = new Date(a.end_date).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"2-digit" });
+                                const COLORS = ["#6366f1","#10b981","#f59e0b","#ef4444","#3b82f6","#8b5cf6"];
+                                const pColor = COLORS[i % COLORS.length];
+                                const isLast = i === arr.length - 1;
+
+                                return (
+                                    <div key={a.id || i} style={{
+                                        display: "flex", alignItems: "center", gap: 12,
+                                        padding: "10px 0",
+                                        borderBottom: isLast ? "none" : `1px solid ${theme.border}`,
+                                    }}>
+                                        {/* Priority badge */}
+                                        <div style={{
+                                            width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                                            background: pColor + (dark ? "33" : "18"),
+                                            border: `1px solid ${pColor + (dark ? "55" : "33")}`,
+                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                            fontSize: 10, fontWeight: 800, color: pColor,
+                                        }}>
+                                            {a.priority_order || i + 1}
                                         </div>
-                                        <div style={{ fontSize: 10, color: theme.textMute, marginTop: 2 }}>
-                                            {sd} → {ed}
+
+                                        {/* Project name */}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: theme.text,
+                                                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                {a.project?.name || "—"}
+                                            </div>
+                                            <div style={{ fontSize: 10, color: theme.textMute, marginTop: 1 }}>
+                                                {sd} → {ed}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                                        <span style={{ fontSize: 10, fontWeight: 600, color: theme.textSoft,
-                                            background: theme.surfaceSoft, padding: "2px 8px", borderRadius: 6,
-                                            border: `1px solid ${theme.border}` }}>
+
+                                        {/* Hours/day */}
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: pColor,
+                                            background: pColor + (dark ? "22" : "12"),
+                                            padding: "2px 8px", borderRadius: 6, flexShrink: 0,
+                                            border: `1px solid ${pColor + "33"}` }}>
                                             {a.hours_per_day}h/day
+                                        </div>
+
+                                        {/* Status */}
+                                        <span style={{
+                                            fontSize: 10, fontWeight: 700, padding: "2px 8px",
+                                            borderRadius: 99, whiteSpace: "nowrap", flexShrink: 0,
+                                            color: s.color,
+                                            background: dark ? s.bgDark : s.bg,
+                                            border: `1px solid ${dark ? s.color + "44" : s.border}`,
+                                        }}>
+                                            {s.label}
                                         </span>
-                                        <Pill label={s.label} color={s.color} bg={s.bg} bgDark={s.bgDark} border={s.border} dark={dark} />
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
                     </div>
                 )}
             </div>
@@ -541,158 +604,6 @@ function MemberDetail({ user, onClose, theme, dark }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// New Project Modal — premium
-// ─────────────────────────────────────────────────────────────────────────────
-function NewProjectModal({ onClose, theme, dark }) {
-    const [form, setForm]        = useState({ name: "", description: "", status: "upcoming", start_date: "", end_date: "" });
-    const [errors, setErrors]    = useState({});
-    const [isSubmitting, setSub] = useState(false);
-    const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-    const submit = () => {
-        const e = {};
-        if (!form.name)       e.name       = "Required";
-        if (!form.start_date) e.start_date = "Required";
-        if (!form.end_date)   e.end_date   = "Required";
-        if (form.start_date && form.end_date && form.end_date < form.start_date) e.end_date = "Must be after start";
-        if (Object.keys(e).length) return setErrors(e);
-        if (isSubmitting) return;
-        setSub(true);
-        router.post("/admin/projects", form, {
-            onSuccess: () => {
-                setSub(false);
-                onClose();
-               
-            },
-            onError: () => {
-                setSub(false);
-                window.dispatchEvent(new CustomEvent("global-toast", { detail: { message: "Failed to create project.", type: "error" } }));
-            },
-        });
-    };
-
-    const statusOptions = [
-        { value: "upcoming",  label: "Upcoming"  },
-        { value: "active",    label: "Active"    },
-        { value: "completed", label: "Completed" },
-        { value: "cancelled", label: "Cancelled" },
-    ];
-
-    const inp = (err) => ({
-        width: "100%", padding: "11px 13px", fontSize: 13, color: theme.text,
-        background: theme.inputBg, border: `1px solid ${err ? "#fca5a5" : theme.inputBorder}`,
-        borderRadius: 12, outline: "none", boxSizing: "border-box", transition: "all 0.15s",
-        fontFamily: "inherit",
-    });
-
-    return (
-        <div style={{ position: "fixed", inset: 0, background: theme.overlay,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 1000, backdropFilter: "blur(8px)", padding: 24 }}
-            onClick={onClose}>
-            <div onClick={e => e.stopPropagation()} style={{
-                background: theme.surface, borderRadius: 20, padding: 28,
-                width: "100%", maxWidth: 460, boxShadow: theme.shadow,
-                border: `1px solid ${theme.borderStrong}`,
-                backdropFilter: "blur(20px)",
-                animation: "modalIn 0.2s ease",
-            }}>
-                {/* Header */}
-                <div style={{ padding: "22px 24px 20px", margin: "-28px -28px 24px -28px",
-                    background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #3b82f6 100%)",
-                    borderRadius: "20px 20px 0 0",
-                    position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 40%)", pointerEvents: "none" }} />
-                    <div style={{ position: "relative", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <div>
-                            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 6 }}>Project Management</div>
-                            <h2 style={{ fontSize: 18, fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.02em" }}>New Project</h2>
-                        </div>
-                        <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.12)", color: "#fff", cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)", transition: "all 0.15s" }}
-                            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.22)"}
-                            onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}>×</button>
-                    </div>
-                </div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    {/* Project Name */}
-                    <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: theme.textSoft, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                            Project Name <span style={{ color: "#ef4444" }}>*</span>
-                        </label>
-                        <input value={form.name} onChange={e => set("name", e.target.value)}
-                            placeholder="e.g. CRM System v2" style={inp(errors.name)} />
-                        {errors.name && <p style={{ fontSize: 10, color: "#ef4444", marginTop: 4, fontWeight: 600 }}>{errors.name}</p>}
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: theme.textSoft, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Description</label>
-                        <textarea value={form.description} onChange={e => set("description", e.target.value)}
-                            placeholder="Brief description..." rows={2}
-                            style={{ ...inp(false), resize: "vertical", minHeight: 70 }} />
-                    </div>
-
-                    {/* Status — PremiumSelect */}
-                    <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: theme.textSoft, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Status</label>
-                        <PremiumSelect options={statusOptions} value={form.status} onChange={v => set("status", v)}
-                            theme={theme} dark={dark} width="100%" minWidth={0} zIndex={600} />
-                    </div>
-
-                    {/* Dates */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        {[["Start Date", "start_date"], ["End Date", "end_date"]].map(([lbl, key]) => (
-                            <div key={key}>
-                                <label style={{ fontSize: 11, fontWeight: 700, color: theme.textSoft, display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                                    {lbl} <span style={{ color: "#ef4444" }}>*</span>
-                                </label>
-                                <input type="date" value={form[key]} onChange={e => set(key, e.target.value)} style={inp(errors[key])} />
-                                {errors[key] && <p style={{ fontSize: 10, color: "#ef4444", marginTop: 4, fontWeight: 600 }}>{errors[key]}</p>}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-                    <button onClick={onClose} disabled={isSubmitting} style={{
-                        flex: 1, padding: "12px", background: theme.surfaceSoft,
-                        border: `1px solid ${theme.border}`, borderRadius: 12,
-                        color: theme.textSoft, fontSize: 13, fontWeight: 700,
-                        cursor: isSubmitting ? "not-allowed" : "pointer",
-                        fontFamily: "inherit", transition: "all 0.15s",
-                        opacity: isSubmitting ? 0.5 : 1,
-                    }}
-                        onMouseEnter={e => { if (!isSubmitting) e.currentTarget.style.background = theme.surfaceSofter; }}
-                        onMouseLeave={e => e.currentTarget.style.background = theme.surfaceSoft}>
-                        Cancel
-                    </button>
-                    <button onClick={submit} disabled={isSubmitting} style={{
-                        flex: 2, padding: "12px",
-                        background: isSubmitting ? "#a5b4fc" : "linear-gradient(135deg, #6366f1, #3b82f6)",
-                        border: "none", borderRadius: 12, color: "#fff",
-                        fontSize: 13, fontWeight: 800,
-                        cursor: isSubmitting ? "not-allowed" : "pointer",
-                        boxShadow: isSubmitting ? "none" : "0 6px 18px rgba(99,102,241,0.35)",
-                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                        opacity: isSubmitting ? 0.8 : 1, transition: "all 0.15s",
-                        fontFamily: "inherit",
-                    }}>
-                        {isSubmitting ? (
-                            <>
-                                <span style={{ display: "inline-block", width: 14, height: 14,
-                                    border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff",
-                                    borderRadius: "50%", animation: "adSpin 0.7s linear infinite" }} />
-                                Creating…
-                            </>
-                        ) : "Create Project"}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Page
@@ -704,7 +615,6 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
     const [selected, setSelected] = useState(null);
     const [search,   setSearch]   = useState("");
     const [wlFilter, setWlFilter] = useState("all");
-    const [showNew,  setShowNew]  = useState(false);
 
     const filtered = users.filter(u => {
         const used = u.used_hours_per_day ?? 0;
@@ -765,19 +675,7 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                         onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = theme.shadowSoft; }}>
                         📁 All Projects
                     </button>
-                    <button onClick={() => setShowNew(true)} style={{
-                        display: "inline-flex", alignItems: "center", gap: 7,
-                        padding: "9px 18px",
-                        background: "linear-gradient(135deg, #6366f1, #3b82f6)",
-                        border: "none", borderRadius: 12,
-                        color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer",
-                        boxShadow: "0 6px 18px rgba(99,102,241,0.35)",
-                        transition: "all 0.15s", fontFamily: "inherit",
-                    }}
-                        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 10px 28px rgba(99,102,241,0.45)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 6px 18px rgba(99,102,241,0.35)"; }}>
-                        + New Project
-                    </button>
+                   
                 </div>
 
                 {/* Stat cards */}
@@ -887,13 +785,7 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                                 <div style={{ textAlign: "center", padding: "32px 0", color: theme.textMute }}>
                                     <div style={{ fontSize: 36, marginBottom: 10 }}>📂</div>
                                     <div style={{ fontSize: 13, marginBottom: 16, fontWeight: 600, color: theme.textSoft }}>No active or upcoming projects</div>
-                                    <button onClick={() => setShowNew(true)} style={{
-                                        padding: "9px 18px",
-                                        background: "linear-gradient(135deg, #6366f1, #3b82f6)",
-                                        border: "none", borderRadius: 10, color: "#fff",
-                                        fontSize: 12, fontWeight: 700, cursor: "pointer",
-                                        boxShadow: "0 4px 14px rgba(99,102,241,0.3)", fontFamily: "inherit",
-                                    }}>+ Create Project</button>
+                                    
                                 </div>
                             ) : (
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
@@ -911,8 +803,6 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                     </div>
                 </div>
             </div>
-
-            {showNew && <NewProjectModal onClose={() => setShowNew(false)} theme={theme} dark={dark} />}
         </AppLayout>
     );
 }

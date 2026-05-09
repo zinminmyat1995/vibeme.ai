@@ -9,7 +9,7 @@ const roleConfig = {
     hr:         { label: 'HR Manager',    color: '#059669', bg: '#d1fae5', dot: '#059669' },
     management: { label: 'Management',    color: '#2563eb', bg: '#dbeafe', dot: '#2563eb' },
     employee:   { label: 'Employee',      color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
-    driver:     { label: 'Driver', color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
+    driver:     { label: 'Driver',        color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
 };
 
 const menuItems = [
@@ -51,7 +51,8 @@ const menuItems = [
                 ),
                 label: 'Requirement Analysis',
                 route: '/requirement-analysis',
-                roles: ['admin', 'hr', 'management'],
+                // management ဖြုတ် — client-facing work က HR/Admin ရဲ့ job
+                roles: ['admin', 'hr'],
             },
             {
                 icon: (
@@ -61,7 +62,22 @@ const menuItems = [
                 ),
                 label: 'Proposal Generator',
                 route: '/proposals',
-                roles: ['admin', 'hr', 'management'],
+                // management ဖြုတ် — proposal ရေးတာ HR/Admin ရဲ့ job
+                roles: ['admin', 'hr'],
+            },
+
+            {
+                icon: (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="7" width="20" height="14" rx="2"/>
+                        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                        <line x1="12" y1="12" x2="12" y2="16"/>
+                        <line x1="10" y1="14" x2="14" y2="14"/>
+                    </svg>
+                ),
+                label: 'Project Management',
+                route: '/hr/projects',
+                roles: ['admin', 'hr'],   // management မပါဘူး
             },
             {
                 icon: (
@@ -139,7 +155,6 @@ const menuItems = [
                 route: '/hr-alerts',
                 roles: ['hr'],
             },
-
             {
                 icon: (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -203,6 +218,7 @@ const menuItems = [
                 ),
                 label: 'Project Assignment',
                 route: '/admin/assignments',
+                // hr ထည့် — P&L report ကြည့်ဖို့ HR ကလည်း project list မြင်ရမယ်
                 roles: ['admin', 'management'],
             },
             {
@@ -337,7 +353,7 @@ function DefaultAvatar({ size = 40, color = '#9ca3af' }) {
     );
 }
 
-export default function AppLayout({ children, title = 'Dashboard',hideWidget = false  }) {
+export default function AppLayout({ children, title = 'Dashboard', hideWidget = false }) {
     const { auth } = usePage().props;
     const currentUrl = usePage().url;
     const user = auth?.user;
@@ -467,7 +483,6 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
             `}</style>
 
             <GlobalToast />
-
             {!hideWidget && <HrChatbotWidget user={user} darkMode={darkMode} />}
 
             {/* ── Sidebar ── */}
@@ -487,7 +502,7 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                 backdropFilter: 'blur(16px)',
             }}>
 
-                {/* ── Profile Card ── */}
+                {/* Profile Card */}
                 <div style={{ padding: collapsed ? '14px 10px 10px' : '14px 14px 10px', flexShrink: 0 }}>
                     <div style={{
                         position: 'relative',
@@ -499,7 +514,6 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                         padding: collapsed ? '14px 8px' : '14px 14px',
                         overflow: 'hidden',
                     }}>
-                        {/* Decorative blob */}
                         <div style={{
                             position: 'absolute', top: -16, right: -16,
                             width: 72, height: 72, borderRadius: '50%',
@@ -537,7 +551,6 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                             alignItems: 'center',
                             gap: collapsed ? 6 : 11,
                         }}>
-                            {/* Avatar with online dot */}
                             <div style={{ position: 'relative', flexShrink: 0 }}>
                                 <AvatarComp size={collapsed ? 42 : 48} borderRadius={collapsed ? 13 : 15} />
                                 <div style={{
@@ -551,7 +564,6 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
 
                             {!collapsed && (
                                 <div style={{ flex: 1, minWidth: 0, paddingRight: 20 }}>
-                                    {/* Name */}
                                     <div style={{
                                         fontSize: 14, fontWeight: 900,
                                         color: theme.textPrimary,
@@ -561,8 +573,6 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                                     }}>
                                         {user?.name || 'Unknown User'}
                                     </div>
-                                    
-                                    {/* Role badge */}
                                     <div style={{
                                         marginTop: 7,
                                         display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -589,10 +599,9 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                     </div>
                 </div>
 
-                {/* Divider */}
                 <div style={{ height: 1, background: theme.sidebarBorder, margin: collapsed ? '0 10px 6px' : '0 14px 6px', flexShrink: 0 }} />
 
-                {/* ── Nav ── */}
+                {/* Nav */}
                 <nav className="vibeme-nav-scroll" style={{
                     flex: 1,
                     padding: collapsed ? '4px 8px 10px' : '4px 10px 10px',
@@ -665,7 +674,7 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                     })}
                 </nav>
 
-                {/* ── Sign Out Footer ── */}
+                {/* Sign Out */}
                 <div style={{ padding: collapsed ? '6px 10px 14px' : '6px 12px 14px', flexShrink: 0 }}>
                     <div style={{ height: 1, background: theme.sidebarBorder, marginBottom: 8 }} />
                     <Link
@@ -708,7 +717,6 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                                 : '0 4px 14px rgba(239,68,68,0.08)';
                         }}
                     >
-                        {/* Icon */}
                         <div style={{
                             width: 30, height: 30, borderRadius: 10, flexShrink: 0,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -723,7 +731,6 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                                 <line x1="21" y1="12" x2="9" y2="12"/>
                             </svg>
                         </div>
-
                         {!collapsed && (
                             <div style={{ textAlign: 'left' }}>
                                 <div style={{ fontSize: 13, fontWeight: 800, color: theme.signOut, lineHeight: 1.25 }}>
@@ -738,13 +745,13 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                 </div>
             </aside>
 
-            {/* ── Main content ── */}
+            {/* Main content */}
             <div style={{
                 flex: 1, minWidth: 0,
                 display: 'flex', flexDirection: 'column',
                 background: theme.contentBg,
             }}>
-                {/* ── Header ── */}
+                {/* Header */}
                 <header style={{
                     position: 'sticky', top: 0, zIndex: 999,
                     height: 72,
@@ -755,22 +762,18 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                     borderBottom: `1px solid ${theme.headerBorder}`,
                     backdropFilter: 'blur(18px)',
                 }}>
-                    {/* Left: Logo + divider + page title */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                        {/* Logo */}
-                            <img
-                                src="/images/main-logo.svg"
-                                alt="VibeMe.AI"
-                                style={{ height: 45, width: 'auto', marginTop: "10px" }}
-                                onError={e => { e.target.style.display = 'none'; }}
-                            />
-                        {/* Divider */}
+                        <img
+                            src="/images/main-logo.svg"
+                            alt="VibeMe.AI"
+                            style={{ height: 45, width: 'auto', marginTop: '10px' }}
+                            onError={e => { e.target.style.display = 'none'; }}
+                        />
                         <div style={{
                             width: 1, height: 28,
                             background: darkMode ? 'rgba(148,163,184,0.18)' : 'rgba(15,23,42,0.10)',
                             flexShrink: 0,
                         }} />
-                        {/* Page title */}
                         <div>
                             <div style={{
                                 fontSize: 19, fontWeight: 900,
@@ -780,14 +783,11 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                             }}>
                                 {title}
                             </div>
-                            
                         </div>
                     </div>
 
-                    {/* Right: Notification + Dark mode toggle — unchanged */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <NotificationBell userId={user?.id} theme={theme} darkMode={darkMode} />
-
                         <button
                             type="button"
                             onClick={() => setDarkMode(!darkMode)}
@@ -826,7 +826,7 @@ export default function AppLayout({ children, title = 'Dashboard',hideWidget = f
                     </div>
                 </header>
 
-                {/* ── Page content ── */}
+                {/* Page content */}
                 <main style={{ flex: 1, padding: 28, background: 'transparent' }}>
                     {children}
                 </main>

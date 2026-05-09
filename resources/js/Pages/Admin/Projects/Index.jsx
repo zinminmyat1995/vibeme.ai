@@ -479,6 +479,31 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
     `;
 
+    function ActionGlyph({ type, color }) {
+        if (type === 'edit') {
+            return (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                </svg>
+            );
+        }
+
+        if (type === 'delete') {
+            return (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+            );
+        }
+
+        return null;
+    }
+
     return (
         <AppLayout title="Project Assignments">
             <Head title="Projects" />
@@ -486,70 +511,58 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
 
             <div style={{ minHeight:"100%", transition:"background 0.3s" }}>
 
-                {/* ── Back button ── */}
-                <div style={{ marginBottom:16, marginTop:"-8px" }}>
-                    <div onClick={() => router.visit("/admin/assignments")} title="Back to Assignments" style={{
-                        display:"inline-flex", alignItems:"center", justifyContent:"center",
-                        width:40, height:40, borderRadius:12, cursor:"pointer",
-                        color:t.textMute, transition:"all 0.15s", border:"1px solid transparent",
-                    }}
+                {/* ── Header row ── */}
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+
+                    {/* Back button — ဘယ်ဘက် */}
+                    <div onClick={() => router.visit("/admin/assignments")}
+                        title="Back to Assignments"
+                        style={{
+                            display:"inline-flex", alignItems:"center", justifyContent:"center",
+                            width:40, height:40, borderRadius:12, cursor:"pointer",
+                            color:t.textMute, transition:"all 0.15s",
+                            border:"1px solid transparent", flexShrink:0,
+                        }}
                         onMouseEnter={e => { e.currentTarget.style.background=t.primarySoft; e.currentTarget.style.color=t.primary; e.currentTarget.style.borderColor=t.borderStrong; }}
                         onMouseLeave={e => { e.currentTarget.style.background="transparent"; e.currentTarget.style.color=t.textMute; e.currentTarget.style.borderColor="transparent"; }}
                     >
                         <ChevronLeft size={26} strokeWidth={2.5} />
                     </div>
-                </div>
 
-                {/* ── Header row: stat cards + New Project ── */}
-                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20, flexWrap:"wrap" }}>
-                    {Object.entries(counts).map(([key, val], i) => {
-                        const s = ST[key];
-                        if (!s) return null;
-                        const isActive = statusFilter === key;
-                        return (
-                            <button key={key} onClick={() => handleStatus(isActive ? "all" : key)} style={{
-                                display:"flex", alignItems:"center", gap:10,
-                                padding:"10px 16px", minWidth:110,
-                                background: isActive ? (dark?s.bgDark:s.bg) : (dark?"rgba(255,255,255,0.04)":"#ffffff"),
-                                border:`1.5px solid ${isActive ? (dark?s.color+"66":s.border) : t.border}`,
-                                borderRadius:14, cursor:"pointer", transition:"all 0.15s",
-                                boxShadow: isActive ? `0 4px 14px ${s.color}22` : t.shadowSoft,
-                                animation:`fadeUp 0.3s ease ${i*0.05}s both`,
-                                fontFamily:"inherit",
-                            }}
-                                onMouseEnter={e => { if(!isActive){ e.currentTarget.style.borderColor=dark?s.color+"44":s.border; e.currentTarget.style.background=dark?s.bgDark:s.bg; }}}
-                                onMouseLeave={e => { if(!isActive){ e.currentTarget.style.borderColor=t.border; e.currentTarget.style.background=dark?"rgba(255,255,255,0.04)":"#ffffff"; }}}
-                            >
-                                <div style={{ width:34, height:34, borderRadius:9,
-                                    background: isActive ? s.color : (dark?s.bgDark:s.bg),
-                                    display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
-                                    border:`1px solid ${dark?s.color+"44":s.border}` }}>
-                                    <div style={{ width:8, height:8, borderRadius:"50%",
-                                        background: isActive ? "#fff" : s.color }} />
-                                </div>
-                                <div style={{ textAlign:"left" }}>
-                                    <div style={{ fontSize:20, fontWeight:800, color:isActive?s.color:t.text, lineHeight:1 }}>{val}</div>
-                                    <div style={{ fontSize:10, color:isActive?s.color:t.textMute, fontWeight:600, marginTop:2, textTransform:"uppercase", letterSpacing:"0.05em" }}>{s.label}</div>
-                                </div>
-                            </button>
-                        );
-                    })}
-
-                    <div style={{ marginLeft:"auto" }}>
-                        <button onClick={() => setEdit(false)} style={{
-                            display:"inline-flex", alignItems:"center", gap:7,
-                            padding:"10px 20px",
-                            background:"linear-gradient(135deg,#4f46e5,#3b82f6)",
-                            border:"none", borderRadius:12, color:"#fff",
-                            fontSize:13, fontWeight:700, cursor:"pointer",
-                            boxShadow:"0 4px 16px rgba(79,70,229,0.38)",
-                            transition:"all 0.15s", fontFamily:"inherit",
-                        }}
-                            onMouseEnter={e => { e.currentTarget.style.opacity="0.9"; e.currentTarget.style.transform="translateY(-1px)"; }}
-                            onMouseLeave={e => { e.currentTarget.style.opacity="1";   e.currentTarget.style.transform="translateY(0)"; }}
-                        >
-                            <span style={{ fontSize:16 }}>+</span> New Project
-                        </button>
+                    {/* Stat cards — ညာဘက် */}
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        {Object.entries(counts).map(([key, val], i) => {
+                            const s = ST[key];
+                            if (!s) return null;
+                            const isActive = statusFilter === key;
+                            return (
+                                <button key={key} onClick={() => handleStatus(isActive ? "all" : key)} style={{
+                                    display:"flex", alignItems:"center", gap:10,
+                                    padding:"10px 16px", minWidth:110,
+                                    background: isActive ? (dark?s.bgDark:s.bg) : (dark?"rgba(255,255,255,0.04)":"#ffffff"),
+                                    border:`1.5px solid ${isActive ? (dark?s.color+"66":s.border) : t.border}`,
+                                    borderRadius:14, cursor:"pointer", transition:"all 0.15s",
+                                    boxShadow: isActive ? `0 4px 14px ${s.color}22` : t.shadowSoft,
+                                    animation:`fadeUp 0.3s ease ${i*0.05}s both`,
+                                    fontFamily:"inherit",
+                                }}
+                                    onMouseEnter={e => { if(!isActive){ e.currentTarget.style.borderColor=dark?s.color+"44":s.border; e.currentTarget.style.background=dark?s.bgDark:s.bg; }}}
+                                    onMouseLeave={e => { if(!isActive){ e.currentTarget.style.borderColor=t.border; e.currentTarget.style.background=dark?"rgba(255,255,255,0.04)":"#ffffff"; }}}
+                                >
+                                    <div style={{ width:34, height:34, borderRadius:9,
+                                        background: isActive ? s.color : (dark?s.bgDark:s.bg),
+                                        display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
+                                        border:`1px solid ${dark?s.color+"44":s.border}` }}>
+                                        <div style={{ width:8, height:8, borderRadius:"50%",
+                                            background: isActive ? "#fff" : s.color }} />
+                                    </div>
+                                    <div style={{ textAlign:"left" }}>
+                                        <div style={{ fontSize:20, fontWeight:800, color:isActive?s.color:t.text, lineHeight:1 }}>{val}</div>
+                                        <div style={{ fontSize:10, color:isActive?s.color:t.textMute, fontWeight:600, marginTop:2, textTransform:"uppercase", letterSpacing:"0.05em" }}>{s.label}</div>
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -730,28 +743,38 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                                                         onMouseEnter={e => e.currentTarget.style.background=dark?"rgba(99,102,241,0.22)":"#ede9fe"}
                                                         onMouseLeave={e => e.currentTarget.style.background=dark?"rgba(99,102,241,0.12)":"#f5f3ff"}
                                                     >👁 View</button>
-                                                    <button onClick={() => setEdit(p)} style={{
-                                                        display:"inline-flex", alignItems:"center", gap:4,
-                                                        padding:"6px 12px",
-                                                        background: dark?"rgba(16,185,129,0.12)":"#f0fdf4",
-                                                        border:`1.5px solid ${dark?"#10b98144":"#86efac"}`,
-                                                        borderRadius:9, color:dark?"#34d399":"#16a34a",
-                                                        fontSize:11, fontWeight:700, cursor:"pointer", transition:"all 0.15s",
-                                                        fontFamily:"inherit" }}
+                                                    <button onClick={() => setEdit(p)} 
+                                                        style={{
+                                                            width: 40,
+                                                            height: 40,
+                                                            borderRadius: 14,
+                                                            border: `1px solid ${t.border}`,
+                                                            background: t.panelSoft,
+                                                            color: t.textSoft,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
                                                         onMouseEnter={e => e.currentTarget.style.background=dark?"rgba(16,185,129,0.22)":"#dcfce7"}
                                                         onMouseLeave={e => e.currentTarget.style.background=dark?"rgba(16,185,129,0.12)":"#f0fdf4"}
-                                                    >✏️ Edit</button>
-                                                    <button onClick={() => setDelete(p)} style={{
-                                                        display:"inline-flex", alignItems:"center", gap:4,
-                                                        padding:"6px 12px",
-                                                        background: dark?"rgba(239,68,68,0.12)":"#fef2f2",
-                                                        border:`1.5px solid ${dark?"#ef444444":"#fca5a5"}`,
-                                                        borderRadius:9, color:dark?"#f87171":"#ef4444",
-                                                        fontSize:11, fontWeight:700, cursor:"pointer", transition:"all 0.15s",
-                                                        fontFamily:"inherit" }}
+                                                    ><ActionGlyph type="edit" color={t.textSoft} /></button>
+                                                    <button onClick={() => setDelete(p)} 
+                                                        style={{
+                                                            width: 40,
+                                                            height: 40,
+                                                            borderRadius: 14,
+                                                            border: `1px solid ${t.border}`,
+                                                            background: t.dangerSoft,
+                                                            color: t.danger,
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                        }}
                                                         onMouseEnter={e => e.currentTarget.style.background=dark?"rgba(239,68,68,0.22)":"#fee2e2"}
                                                         onMouseLeave={e => e.currentTarget.style.background=dark?"rgba(239,68,68,0.12)":"#fef2f2"}
-                                                    >🗑 Delete</button>
+                                                    ><ActionGlyph type="delete" color={t.danger} /></button>
                                                 </div>
                                             </td>
                                         </tr>
