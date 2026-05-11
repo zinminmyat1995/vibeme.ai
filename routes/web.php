@@ -189,7 +189,7 @@ Route::middleware(['auth', 'role:admin,management'])
 
 // ── Employee — own assignments only ──────────────────────────────────────────
 
-Route::middleware(['auth', 'role:employee'])->group(function () {
+Route::middleware(['auth', 'role:employee,management'])->group(function () {
     Route::get('/my-assignments', [ProjectAssignmentController::class, 'myAssignments'])->name('my.assignments');
 });
 

@@ -251,16 +251,110 @@ class ProjectAssignmentController extends Controller
 
     public function myAssignments(): Response
     {
-        $assignments = ProjectAssignment::where('user_id', Auth::id())
-            ->where('status', '!=', 'removed')
-            ->with('project')
-            ->orderBy('start_date')
-            ->get();
+        $user     = Auth::user();
+        $roleName = $user->role?->name;
+        $isMgmt   = in_array($roleName, ['admin', 'management']);
 
-        return Inertia::render('Employee/MyAssignments', [
-            'assignments' => $assignments,
-        ]);
+        // ── Country config (work_start, lunch_start, lunch_end) ──────────────
+        $country    = $user->country_id
+            ? \App\Models\Country::find($user->country_id)
+            : null;
+        $salaryRule = $country
+            ? \App\Models\SalaryRule::where('country_id', $country->id)->first()
+            : null;
+
+        $countryConfig = [
+            'work_start'  => $salaryRule?->work_start  ? substr($salaryRule->work_start,  0, 5) : '08:00',
+            'lunch_start' => $salaryRule?->lunch_start ? substr($salaryRule->lunch_start, 0, 5) : '12:00',
+            'lunch_end'   => $salaryRule?->lunch_end   ? substr($salaryRule->lunch_end,   0, 5) : '13:00',
+        ];
+
+        if ($isMgmt) {
+            // Management/Admin — ကိုယ့် country ထဲက employees + management
+            $raw = ProjectAssignment::where('status', '!=', 'removed')
+                ->whereHas('user', function ($q) use ($user, $roleName) {
+                    $q->where('is_active', true)
+                      ->whereHas('role', fn($r) => $r->whereIn('name', ['employee', 'management']));
+                    if ($roleName !== 'admin') {
+                        $q->where('country_id', $user->country_id);
+                    }
+                })
+                ->with([
+                    'project:id,name,status,start_date,end_date',
+                    'user:id,name,avatar_url,position,department,country_id,role_id',
+                    'user.role:id,name',
+                ])
+                ->orderBy('priority_order')
+                ->orderBy('start_date')
+                ->get();
+
+            $grouped = $raw
+                ->groupBy('user_id')
+                ->map(function ($items) {
+                    $u = $items->first()->user;
+                    return [
+                        'user' => [
+                            'id'         => $u->id,
+                            'name'       => $u->name,
+                            'avatar_url' => $u->avatar_url,
+                            'position'   => $u->position,
+                            'department' => $u->department,
+                            'role'       => $u->role?->name,
+                        ],
+                        'assignments' => $items->map(fn($a) => [
+                            'id'             => $a->id,
+                            'project_id'     => $a->project_id,
+                            'project'        => $a->project ? ['id' => $a->project->id, 'name' => $a->project->name, 'status' => $a->project->status] : null,
+                            'start_date'     => $a->start_date,
+                            'end_date'       => $a->end_date,
+                            'hours_per_day'  => $a->hours_per_day,
+                            'status'         => $a->status,
+                            'priority_order' => $a->priority_order,
+                            'notes'          => $a->notes,
+                        ])->values(),
+                        'active_count'        => $items->where('status', 'active')->count(),
+                        'upcoming_count'      => $items->where('status', 'upcoming')->count(),
+                        'total_hours_per_day' => $items->whereIn('status', ['active', 'upcoming'])->sum('hours_per_day'),
+                    ];
+                })
+                ->values();
+
+            return Inertia::render('Admin/Employee/MyAssignments', [
+                'groupedUsers'  => $grouped,
+                'isManagement'  => true,
+                'authUserName'  => $user->name,
+                'countryConfig' => $countryConfig,   // ← time slot display အတွက်
+            ]);
+
+        } else {
+            // Employee
+            $assignments = ProjectAssignment::where('user_id', $user->id)
+                ->where('status', '!=', 'removed')
+                ->with('project:id,name,status,start_date,end_date')
+                ->orderBy('priority_order')
+                ->orderBy('start_date')
+                ->get()
+                ->map(fn($a) => [
+                    'id'             => $a->id,
+                    'project_id'     => $a->project_id,
+                    'project'        => $a->project ? ['id' => $a->project->id, 'name' => $a->project->name, 'status' => $a->project->status] : null,
+                    'start_date'     => $a->start_date,
+                    'end_date'       => $a->end_date,
+                    'hours_per_day'  => $a->hours_per_day,
+                    'status'         => $a->status,
+                    'priority_order' => $a->priority_order,
+                    'notes'          => $a->notes,
+                ]);
+
+            return Inertia::render('Admin/Employee/MyAssignments', [
+                'assignments'   => $assignments,
+                'isManagement'  => false,
+                'authUserName'  => $user->name,
+                'countryConfig' => $countryConfig,   // ← time slot display အတွက်
+            ]);
+        }
     }
+
 
     public function availability(): Response
     {

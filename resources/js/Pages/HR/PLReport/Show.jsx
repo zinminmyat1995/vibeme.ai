@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Head, router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid,
+    LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer,
 } from "recharts";
 
@@ -152,41 +152,131 @@ export default function PLReportShow({
             <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 80 }}>
 
                 {/* ── Header ── */}
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                    <button
-                        onClick={() => router.get("/hr/pl-report", {
-                            from_year:  filter.fromYear  ?? undefined,
-                            from_month: filter.fromMonth ?? undefined,
-                            to_year:    filter.toYear    ?? undefined,
-                            to_month:   filter.toMonth   ?? undefined,
-                        })}
-                        style={{
-                            display: "flex", alignItems: "center", gap: 5,
-                            padding: "7px 12px", borderRadius: 8,
-                            border: `0.5px solid ${t.borderMd}`,
-                            background: t.surface, color: t.textSoft,
-                            fontSize: 12, fontWeight: 500, cursor: "pointer", outline: "none",
-                        }}
-                    >
-                        ← Back
-                    </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+
+                    {/* Row 1 — Back button */}
                     <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <h1 style={{ fontSize: 18, fontWeight: 500, color: t.text, margin: 0 }}>
-                                {project.name}
-                            </h1>
-                            <span style={{
-                                fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 99,
-                                background: stSt.bg, color: stSt.color, textTransform: "uppercase",
+                        <button
+                            onClick={() => router.get("/hr/pl-report", {
+                                from_year:  filter?.fromYear,
+                                from_month: filter?.fromMonth,
+                                to_year:    filter?.toYear,
+                                to_month:   filter?.toMonth,
+                            })}
+                            style={{
+                                display: "inline-flex", alignItems: "center", gap: 4,
+                                border: "none", background: "transparent",
+                                color: t.textMute, fontSize: 12, fontWeight: 500,
+                                cursor: "pointer", outline: "none", padding: "2px 0",
+                                transition: "color 0.15s",
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.color = t.primary}
+                            onMouseLeave={e => e.currentTarget.style.color = t.textMute}
+                        >
+                            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                                <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Back
+                        </button>
+                    </div>
+
+                    {/* Row 2 — Project card */}
+                    <div style={{
+                        background: t.surface, border: `0.5px solid ${t.border}`,
+                        borderRadius: 12, padding: "16px 20px", boxShadow: t.shadow,
+                        display: "flex", alignItems: "center", gap: 16,
+                    }}>
+                        {/* Left accent bar */}
+                        <div style={{
+                            width: 4, height: 44, borderRadius: 99,
+                            background: stSt.color, flexShrink: 0,
+                        }} />
+
+                        {/* Project info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                                <h1 style={{ fontSize: 18, fontWeight: 500, color: t.text, margin: 0 }}>
+                                    {project.name}
+                                </h1>
+                                <span style={{
+                                    fontSize: 10, fontWeight: 600, padding: "2px 9px", borderRadius: 99,
+                                    background: stSt.bg, color: stSt.color,
+                                    textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0,
+                                }}>
+                                    {project.status}
+                                </span>
+                            </div>
+                            {/* Meta Info Pills — REPLACE ဒီ section တစ်ခုကိုပဲ */}
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                flexWrap: "wrap",
+                                marginTop: 6,
                             }}>
-                                {project.status}
-                            </span>
+                                {/* ── Date pill ── */}
+                                <div style={{
+                                    display: "flex", alignItems: "center", gap: 6,
+                                    padding: "5px 11px", borderRadius: 8,
+                                    background: dark ? "rgba(255,255,255,0.06)" : "#f1f5f9",
+                                    border: `1px solid ${dark ? "rgba(148,163,184,0.14)" : "rgba(15,23,42,0.10)"}`,
+                                }}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                        <path
+                                            d="M8 2V5M16 2V5M3 9H21M5 5H19C20.1046 5 21 5.89543 21 7V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V7C3 5.89543 3.89543 5 5 5Z"
+                                            stroke={t.textMute}
+                                            strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                    <span style={{ fontSize: 12, fontWeight: 500, color: t.textSoft }}>
+                                        {project.start_date} → {project.end_date ?? "Ongoing"}
+                                    </span>
+                                </div>
+
+                                {/* ── Contract pill ── */}
+                                <div style={{
+                                    display: "flex", alignItems: "center", gap: 6,
+                                    padding: "5px 11px", borderRadius: 8,
+                                    background: dark ? "rgba(99,102,241,0.12)" : "#eef2ff",
+                                    border: `1px solid ${dark ? "rgba(99,102,241,0.25)" : "#c7d2fe"}`,
+                                }}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                        <path
+                                            d="M12 1V23M17 5H9.5C8.11929 5 7 6.11929 7 7.5C7 8.88071 8.11929 10 9.5 10H14.5C15.8807 10 17 11.1193 17 12.5C17 13.8807 15.8807 15 14.5 15H7M12 15V19"
+                                            stroke={dark ? "#818cf8" : "#4f46e5"}
+                                            strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                    <span style={{ fontSize: 12, color: dark ? "#a5b4fc" : "#4338ca" }}>Contract:</span>
+                                    <strong style={{ fontSize: 12, fontWeight: 700, color: dark ? "#e0e7ff" : "#1e1b4b" }}>
+                                        {fmt(project.contract_value, cur)}
+                                    </strong>
+                                </div>
+
+                                {/* ── Confirmed months pill ── */}
+                                <div style={{
+                                    display: "flex", alignItems: "center", gap: 7,
+                                    padding: "5px 11px", borderRadius: 8,
+                                    background: dark ? "rgba(16,185,129,0.12)" : "#ecfdf5",
+                                    border: `1px solid ${dark ? "rgba(16,185,129,0.25)" : "#a7f3d0"}`,
+                                }}>
+                                    <div style={{
+                                        minWidth: 18, height: 18, borderRadius: "50%",
+                                        background: dark ? "#059669" : "#10b981",
+                                        color: "#fff",
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        fontSize: 10, fontWeight: 800,
+                                    }}>
+                                        {months.length}
+                                    </div>
+                                    <span style={{ fontSize: 12, fontWeight: 500, color: dark ? "#6ee7b7" : "#065f46" }}>
+                                        Confirmed month{months.length !== 1 ? "s" : ""}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div style={{ fontSize: 11, color: t.textMute, marginTop: 3 }}>
-                            {project.start_date} → {project.end_date ?? "Ongoing"} ·
-                            Contract: {fmt(project.contract_value, cur)} ·
-                            {months.length} confirmed month{months.length !== 1 ? "s" : ""}
-                        </div>
+
+                        
                     </div>
                 </div>
 
@@ -328,10 +418,23 @@ export default function PLReportShow({
                                     ))}
                                 </div>
 
-                                {trendData.length < 2 ? (
+                                {trendData.length === 0 ? (
                                     <div style={{ height: 180, display: "flex", alignItems: "center", justifyContent: "center", color: t.textMute, fontSize: 12 }}>
-                                        Need 2+ months of data to show trend
+                                        No data available
                                     </div>
+                                ) : trendData.length === 1 ? (
+                                    <ResponsiveContainer width="100%" height={190}>
+                                        <BarChart data={trendData} barCategoryGap="40%"
+                                            margin={{ top: 4, right: 10, left: 0, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
+                                            <XAxis dataKey="label" tick={{ fontSize: 10, fill: t.textMute }} axisLine={false} tickLine={false} />
+                                            <YAxis tick={{ fontSize: 10, fill: t.textMute }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
+                                            <Tooltip content={<ChartTip currency={cur} />} cursor={{ fill: "rgba(148,163,184,0.06)" }} />
+                                            <Bar dataKey="Revenue" fill="#AFA9EC" radius={[4,4,0,0]} maxBarSize={52} />
+                                            <Bar dataKey="Cost"    fill="#EF9F27" radius={[4,4,0,0]} maxBarSize={52} />
+                                            <Bar dataKey="Profit"  fill="#1D9E75" radius={[4,4,0,0]} maxBarSize={52} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
                                 ) : (
                                     <ResponsiveContainer width="100%" height={190}>
                                         <LineChart data={trendData} margin={{ top: 4, right: 10, left: 0, bottom: 0 }}>
@@ -476,9 +579,7 @@ export default function PLReportShow({
                                             <span style={{ color: t.textMute }}>
                                                 Total cost — {selMonth.label}
                                             </span>
-                                            <span style={{ fontWeight: 500, color: t.text }}>
-                                                {fmt(selMonth.total_cost, cur)}
-                                            </span>
+                                        
                                         </div>
                                     </>
                                 )}

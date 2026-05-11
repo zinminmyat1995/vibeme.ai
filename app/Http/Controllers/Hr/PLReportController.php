@@ -255,9 +255,9 @@ class PLReportController extends Controller
         $workHoursDay = (float)($salaryRule?->working_hours_per_day ?? 8);
 
         $trendStart = Carbon::parse($project->start_date)->startOfMonth();
-        $trendEnd   = ($project->end_date
+        $trendEnd = $project->end_date
             ? Carbon::parse($project->end_date)->endOfMonth()
-            : now()->endOfMonth())->min(now()->endOfMonth());
+            : now()->endOfMonth();
 
         $confirmedMonths = PayrollRecord::whereIn('status', ['confirmed', 'approved', 'paid'])
             ->whereHas('payrollPeriod', fn($q) => $q->where('country_id', $countryId))

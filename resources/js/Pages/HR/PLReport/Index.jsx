@@ -487,10 +487,22 @@ export default function PLReportIndex({
                                 { color:"#534AB7", label:"Gross profit", line:true },
                                 { color:"#EF9F27", label:"Gross margin %", line:true },
                             ]} />
-                            {trendData.length < 2 ? (
+                            {trendData.length === 0 ? (
                                 <div style={{ height:180, display:"flex", alignItems:"center", justifyContent:"center", color:t.textMute, fontSize:12 }}>
-                                    Need 2+ months of data to show trend
+                                    No data available
                                 </div>
+                            ) : trendData.length === 1 ? (
+                                <ResponsiveContainer width="100%" height={180}>
+                                    <ComposedChart data={trendData} style={{ outline:"none", userSelect:"none" }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
+                                        <XAxis dataKey="label" tick={{ fontSize:10, fill:t.textMute }} axisLine={false} tickLine={false} />
+                                        <YAxis yAxisId="left" tick={{ fontSize:10, fill:t.textMute }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
+                                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize:10, fill:"#EF9F27" }} axisLine={false} tickLine={false} tickFormatter={v => v+"%"} />
+                                        <Tooltip content={<ChartTip />} cursor={{ fill:"rgba(148,163,184,0.06)" }} />
+                                        <Bar yAxisId="left" dataKey="Gross profit" fill="#AFA9EC" radius={[4,4,0,0]} maxBarSize={60} />
+                                        <Bar yAxisId="right" dataKey="Margin %"    fill="#EF9F27" radius={[4,4,0,0]} maxBarSize={60} />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
                             ) : (
                                 <ResponsiveContainer width="100%" height={180}>
                                     <ComposedChart data={trendData} style={{ outline:"none", userSelect:"none" }}>
