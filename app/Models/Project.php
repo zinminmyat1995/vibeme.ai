@@ -17,6 +17,7 @@ class Project extends Model
         'created_by',
         // P&L fields (new)
         'client_id',
+        'client_name',
         'contract_value',
         'currency',
         'est_team_size',

@@ -173,7 +173,16 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
                     animation: 'prDropIn 0.15s ease',
                     backdropFilter: dark ? 'blur(20px)' : 'none',
                 }}>
-                    <div style={{ maxHeight: 260, overflowY: 'auto', padding: '4px' }}>
+                    <div
+                        className="pr-select-menu-scroll"
+                        style={{
+                            maxHeight: 260,
+                            overflowY: 'auto',
+                            padding: '4px',
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                        }}
+                    >
                         {options.map(opt => {
                             const isSel = String(opt.value) === String(value);
                             return (
@@ -1246,6 +1255,9 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                 .sd-hide-scroll::-webkit-scrollbar { display:none; }
                 .ex-hide::-webkit-scrollbar { display:none; }
                 .ex-hide { scrollbar-width:none; -ms-overflow-style:none; }
+                .pr-select-menu-scroll::-webkit-scrollbar {
+                    display: none;
+                }
             `}</style>
 
 

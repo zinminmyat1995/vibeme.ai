@@ -159,7 +159,16 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
                     animation: 'beDropIn 0.15s ease',
                     backdropFilter: dark ? 'blur(20px)' : 'none',
                 }}>
-                    <div style={{ maxHeight: 260, overflowY: 'auto', padding: '4px' }}>
+                    <div
+                        className="be-select-menu-scroll"
+                        style={{
+                            maxHeight: 260,
+                            overflowY: 'auto',
+                            padding: '4px',
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                        }}
+                    >
                         {options.map(opt => {
                             const isSel = String(opt.value) === String(value);
                             return (
@@ -360,6 +369,8 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                 @keyframes beFadeUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
                 .be-row:hover td { background: ${dark ? 'rgba(139,92,246,0.05)' : '#faf5ff'} !important; }
                 .be-icon-btn:hover { opacity: 0.8; transform: translateY(-1px); }
+                .be-select-menu-scroll::-webkit-scrollbar { display: none; }
+                .be-select-menu-scroll { scrollbar-width: none; -ms-overflow-style: none; }
             `}</style>
 
             <div style={{ animation: 'beFadeUp 0.25s ease' }}>

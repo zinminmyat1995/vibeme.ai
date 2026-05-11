@@ -154,6 +154,10 @@ Route::middleware(['auth', 'role:admin,hr'])
         Route::post   ('projects',           [App\Http\Controllers\HR\HRProjectController::class, 'store']) ->name('projects.store');
         Route::put    ('projects/{project}', [App\Http\Controllers\HR\HRProjectController::class, 'update'])->name('projects.update');
         Route::delete ('projects/{project}', [App\Http\Controllers\HR\HRProjectController::class, 'destroy'])->name('projects.destroy');
+
+        // P&L Report
+        Route::get('pl-report',           [\App\Http\Controllers\HR\PLReportController::class, 'index'])->name('pl-report.index');
+        Route::get('pl-report/{project}', [\App\Http\Controllers\HR\PLReportController::class, 'show']) ->name('pl-report.show');
 });
 
 

@@ -340,52 +340,199 @@ function MemberRow({ user, selected, onClick, theme, dark }) {
 function ProjectCard({ project, theme, dark }) {
     const st      = ST[project.status] || ST.active;
     const members = (project.assignments || []).filter(a => a.status !== "removed");
+    const estSize = project.est_team_size || 0;
+    const open    = Math.max(0, estSize - members.length);
+    const isFull  = estSize > 0 && members.length >= estSize;
     const days    = project.end_date
-        ? Math.ceil((new Date(project.end_date) - new Date()) / 864e5) : null;
+        ? Math.max(0, Math.ceil((new Date(project.end_date) - new Date()) / 864e5))
+        : null;
+
+    // Avatar fallback initials
+    const initials = name => (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+
+    // Avatar colors cycle
+    const avatarColors = [
+        { bg: "#EEEDFE", color: "#534AB7" },
+        { bg: "#E6F1FB", color: "#0C447C" },
+        { bg: "#E1F5EE", color: "#0F6E56" },
+        { bg: "#FAEEDA", color: "#854F0B" },
+    ];
+
+    // Show max 4 avatars + open dots, max 6 total
+    const maxShow  = 4;
+    const showMembers = members.slice(0, maxShow);
+    const extraCount  = members.length > maxShow ? members.length - maxShow : 0;
+    const openDots    = estSize > 0 ? Math.min(open, 6 - showMembers.length - (extraCount > 0 ? 1 : 0)) : 0;
 
     return (
-        <div onClick={() => router.visit(`/admin/projects/${project.id}`)} style={{ cursor: "pointer" }}>
-            <div style={{
-                background: theme.surface, borderRadius: 14, padding: "14px 16px",
-                border: `1px solid ${theme.border}`,
-                borderLeft: `3px solid ${st.color}`,
-                transition: "all 0.15s", boxShadow: theme.shadowSoft,
-                backdropFilter: "blur(10px)",
+        <div
+            onClick={() => router.visit(`/admin/projects/${project.id}`)}
+            style={{
+                background: dark ? theme.surface : "#fff",
+                border: dark
+                    ? `1px solid ${theme.borderStrong}`
+                    : "1px solid rgba(15,23,42,0.12)",
+                borderRadius: 14,
+                overflow: "hidden",
+                cursor: "pointer",
+                transition: "all 0.15s",
+                boxShadow: dark
+                    ? "0 2px 12px rgba(0,0,0,0.3)"
+                    : "0 1px 8px rgba(15,23,42,0.08), 0 0 0 0.5px rgba(15,23,42,0.06)",
             }}
-                onMouseEnter={e => { e.currentTarget.style.boxShadow = theme.shadow; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={e => { e.currentTarget.style.boxShadow = theme.shadowSoft; e.currentTarget.style.transform = "translateY(0)"; }}
-            >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 8 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: theme.text,
-                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 130, flex: 1 }}>
+            onMouseEnter={e => {
+                e.currentTarget.style.borderColor = dark ? "#6366f1" : "rgba(99,102,241,0.4)";
+                e.currentTarget.style.boxShadow = dark
+                    ? "0 4px 20px rgba(99,102,241,0.2)"
+                    : "0 4px 16px rgba(99,102,241,0.12), 0 0 0 1px rgba(99,102,241,0.2)";
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.borderColor = dark ? theme.borderStrong : "rgba(15,23,42,0.12)";
+                e.currentTarget.style.boxShadow = dark
+                    ? "0 2px 12px rgba(0,0,0,0.3)"
+                    : "0 1px 8px rgba(15,23,42,0.08), 0 0 0 0.5px rgba(15,23,42,0.06)";
+            }}
+        >
+            {/* Top accent bar */}
+            <div style={{ height: 3, background: st.color }} />
+
+            <div style={{ padding: "12px 14px 14px" }}>
+                {/* Header */}
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6, marginBottom: 2 }}>
+                    <div style={{
+                        fontSize: 13, fontWeight: 700, color: theme.text,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        flex: 1,
+                    }}>
                         {project.name}
+                    </div>
+                    <span style={{
+                        fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99,
+                        background: st.bg, color: st.color,
+                        flexShrink: 0, whiteSpace: "nowrap",
+                    }}>
+                        {st.label}
                     </span>
-                    <Pill label={st.label} color={st.color} bg={st.bg} bgDark={st.bgDark} border={st.border} dark={dark} />
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ display: "flex" }}>
-                        {members.slice(0, 4).map((m, i) => (
-                            <div key={i} style={{ marginLeft: i === 0 ? 0 : -7, zIndex: 10 - i }}>
-                                <Ava name={m.user?.name} url={m.user?.avatar_url} size={22} />
-                            </div>
-                        ))}
-                        {members.length > 4 && (
-                            <div style={{ marginLeft: -7, width: 22, height: 22, borderRadius: "50%",
-                                background: theme.surfaceSoft, border: `2px solid ${dark ? "#0d1526" : "#fff"}`,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 8, fontWeight: 700, color: theme.textMute }}>
-                                +{members.length - 4}
-                            </div>
+                {/* Description */}
+                <div style={{
+                    fontSize: 11, color: theme.textMute, marginBottom: 12,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    minHeight: 16,
+                }}>
+                    {project.description || "—"}
+                </div>
+
+                {/* Divider + Team section */}
+                <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 10 }}>
+
+                    {/* Team label + count */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                        <span style={{ fontSize: 10, color: theme.textMute, fontWeight: 600 }}>
+                            Team {estSize > 0 ? `${members.length} / ${estSize}` : `${members.length}`}
+                        </span>
+                        {estSize > 0 && !isFull && open > 0 && (
+                            <span style={{
+                                fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 99,
+                                background: dark ? "rgba(220,38,38,0.15)" : "#fef2f2",
+                                color: "#dc2626",
+                            }}>
+                                {open} open
+                            </span>
+                        )}
+                        {isFull && (
+                            <span style={{
+                                fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 99,
+                                background: dark ? "rgba(5,150,105,0.15)" : "#ecfdf5",
+                                color: theme.success,
+                            }}>
+                                Full ✓
+                            </span>
                         )}
                     </div>
-                    <span style={{ fontSize: 10, color: theme.textMute }}>{members.length} member{members.length !== 1 ? "s" : ""}</span>
-                    {days !== null && project.status === "active" && (
-                        <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700,
-                            color: days <= 7 ? "#ef4444" : theme.textMute }}>
-                            {days > 0 ? `${days}d left` : "Ended"}
-                        </span>
-                    )}
+
+                    {/* Avatars row */}
+                    <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+                        {showMembers.map((m, i) => {
+                            const ac = avatarColors[i % avatarColors.length];
+                            return m.user?.avatar_url ? (
+                                <img
+                                    key={m.id}
+                                    src={`/storage/${m.user.avatar_url}`}
+                                    alt={m.user.name}
+                                    title={m.user.name}
+                                    style={{
+                                        width: 26, height: 26, borderRadius: "50%",
+                                        objectFit: "cover",
+                                        border: `2px solid ${dark ? theme.bgSoft : "#fff"}`,
+                                        marginLeft: i > 0 ? -6 : 0,
+                                        position: "relative", zIndex: 10 - i,
+                                    }}
+                                />
+                            ) : (
+                                <div
+                                    key={m.id}
+                                    title={m.user?.name}
+                                    style={{
+                                        width: 26, height: 26, borderRadius: "50%",
+                                        background: ac.bg, color: ac.color,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        fontSize: 9, fontWeight: 700,
+                                        border: `2px solid ${dark ? theme.bgSoft : "#fff"}`,
+                                        marginLeft: i > 0 ? -6 : 0,
+                                        position: "relative", zIndex: 10 - i,
+                                    }}
+                                >
+                                    {initials(m.user?.name)}
+                                </div>
+                            );
+                        })}
+
+                        {/* +N badge */}
+                        {extraCount > 0 && (
+                            <div style={{
+                                width: 26, height: 26, borderRadius: "50%",
+                                background: dark ? "rgba(255,255,255,0.08)" : "#f1f5f9",
+                                color: theme.textSoft,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 9, fontWeight: 700,
+                                border: `2px solid ${dark ? theme.bgSoft : "#fff"}`,
+                                marginLeft: -6, zIndex: 1,
+                            }}>
+                                +{extraCount}
+                            </div>
+                        )}
+
+                        {/* Open slot dots */}
+                        {Array.from({ length: openDots }).map((_, i) => (
+                            <div
+                                key={`open-${i}`}
+                                title="Open slot"
+                                style={{
+                                    width: 24, height: 24, borderRadius: "50%",
+                                    border: `1.5px dashed ${theme.borderStrong}`,
+                                    background: "transparent",
+                                    marginLeft: (showMembers.length > 0 || i > 0) ? -6 : 0,
+                                    zIndex: 0,
+                                    flexShrink: 0,
+                                }}
+                            />
+                        ))}
+
+                        {/* No members */}
+                        {members.length === 0 && estSize === 0 && (
+                            <span style={{ fontSize: 11, color: theme.textMute }}>No members yet</span>
+                        )}
+                    </div>
+
+                    {/* Days left */}
+                    <div style={{ fontSize: 10, color: theme.textMute }}>
+                        <span style={{ marginRight: 4 }}>📅</span>
+                        {days !== null
+                            ? days === 0 ? "Due today" : `${days}d left`
+                            : "No end date"}
+                    </div>
                 </div>
             </div>
         </div>

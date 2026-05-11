@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AttendanceRecord;
 use App\Models\EmployeePayrollProfile;
 use App\Models\PayrollPeriod;
+use App\Models\PublicHoliday;
 use App\Models\SalaryRule;
 use App\Models\User;
 use Carbon\Carbon;
@@ -46,6 +47,9 @@ class AttendanceImportController extends Controller
             return response()->json(['message' => 'No active payroll profiles found.'], 422);
         }
 
+        // ── Load public holidays for this country + period range ──────────────
+        $holidays = $this->loadHolidays($countryId, $startDate, $endDate);
+
         $userIds  = $profiles->pluck('user_id')->toArray();
         $existing = AttendanceRecord::whereIn('user_id', $userIds)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -53,7 +57,7 @@ class AttendanceImportController extends Controller
             ->keyBy(fn($r) => $r->user_id . '_' . Carbon::parse($r->date)->format('Y-m-d'));
 
         $spreadsheet = $this->buildSpreadsheet(
-            $profiles, $year, $month, $periodNum, $startDate, $endDate, $existing
+            $profiles, $year, $month, $periodNum, $startDate, $endDate, $existing, $holidays
         );
 
         $filename = "attendance_{$year}_{$month}_P{$periodNum}.xlsx";
@@ -68,9 +72,69 @@ class AttendanceImportController extends Controller
         ])->deleteFileAfterSend(true);
     }
 
+    // ══════════════════════════════════════════════════════════════════════════
+    //  Load public holidays — keyed by 'Y-m-d' => 'Holiday Name'
+    //
+    //  is_recurring = true  → year ပြောင်းပြီး period ထဲမှာ ပါတဲ့ date တွက်မယ်
+    //  is_recurring = false → exact date ကိုဘဲ စစ်မယ်
+    // ══════════════════════════════════════════════════════════════════════════
+    private function loadHolidays(int $countryId, Carbon $startDate, Carbon $endDate): array
+    {
+        $holidays = PublicHoliday::where('country_id', $countryId)->get();
+
+        $result = []; // ['Y-m-d' => 'Holiday Name']
+
+        // Period ထဲမှာ ပါတဲ့ years (period က month ၂ ခု ဖြတ်ကျင်းနိုင်တယ်)
+        $years = array_unique([
+            (int) $startDate->format('Y'),
+            (int) $endDate->format('Y'),
+        ]);
+
+        foreach ($holidays as $holiday) {
+            $originalDate = Carbon::parse($holiday->date);
+
+            if ($holiday->is_recurring) {
+                // Recurring — period ထဲ ကျသော year(s) နဲ့ တွက်
+                foreach ($years as $y) {
+                    try {
+                        $candidate = Carbon::create(
+                            $y,
+                            $originalDate->month,
+                            $originalDate->day
+                        );
+                        if ($candidate->between($startDate->startOfDay(), $endDate->endOfDay())) {
+                            $dateKey = $candidate->format('Y-m-d');
+                            // Multiple holidays on same day — comma join
+                            if (isset($result[$dateKey])) {
+                                $result[$dateKey] .= ', ' . $holiday->name;
+                            } else {
+                                $result[$dateKey] = $holiday->name;
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        // Invalid date (e.g. Feb 30) — skip
+                    }
+                }
+            } else {
+                // One-time — exact date စစ်
+                if ($originalDate->between($startDate->startOfDay(), $endDate->endOfDay())) {
+                    $dateKey = $originalDate->format('Y-m-d');
+                    if (isset($result[$dateKey])) {
+                        $result[$dateKey] .= ', ' . $holiday->name;
+                    } else {
+                        $result[$dateKey] = $holiday->name;
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
     private function buildSpreadsheet(
         $profiles, int $year, int $month, int $periodNum,
-        Carbon $startDate, Carbon $endDate, $existing
+        Carbon $startDate, Carbon $endDate, $existing,
+        array $holidays = []  // ← NEW parameter
     ): Spreadsheet {
 
         $spreadsheet = new Spreadsheet();
@@ -89,6 +153,12 @@ class AttendanceImportController extends Controller
         $medium    = ['borderStyle' => Border::BORDER_MEDIUM, 'color' => ['rgb' => 'A5B4FC']];
         $allThin   = ['borders' => ['allBorders' => $thin]];
 
+        // Holiday border style — slightly thicker amber border
+        $holidayBorder = ['borders' => ['allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+            'color'       => ['rgb' => 'F59E0B'],
+        ]]];
+
         foreach ($profiles as $idx => $profile) {
             $name = $profile->user?->name ?? "Employee #{$profile->user_id}";
             $ws   = $spreadsheet->createSheet($idx);
@@ -97,6 +167,7 @@ class AttendanceImportController extends Controller
             $ws->getTabColor()->setRGB($tabColors[$idx % count($tabColors)]);
             $ws->freezePane('A7');
 
+            // ── Row 1: Title ──────────────────────────────────────────────────
             $ws->mergeCells('A1:E1');
             $ws->setCellValue('A1', 'ATTENDANCE RECORD  -  ' . strtoupper($name));
             $ws->getStyle('A1')->applyFromArray([
@@ -106,6 +177,7 @@ class AttendanceImportController extends Controller
             ]);
             $ws->getRowDimension(1)->setRowHeight(32);
 
+            // ── Row 2: Period info ────────────────────────────────────────────
             $ws->mergeCells('D2:E2');
             foreach ([
                 'A2' => "Year: {$year}",
@@ -121,9 +193,10 @@ class AttendanceImportController extends Controller
                 ]);
             }
             $ws->getColumnDimension('D')->setWidth(16);
-            $ws->getColumnDimension('E')->setWidth(16);
+            $ws->getColumnDimension('E')->setWidth(20); // wider for holiday names
             $ws->getRowDimension(2)->setRowHeight(20);
 
+            // ── Row 3: Employee info ──────────────────────────────────────────
             $ws->mergeCells('A3:E3');
             $ws->setCellValue('A3', "Employee ID: {$profile->user_id}  |  {$name}");
             $ws->getStyle('A3')->applyFromArray([
@@ -133,11 +206,13 @@ class AttendanceImportController extends Controller
             ]);
             $ws->getRowDimension(3)->setRowHeight(16);
 
+            // ── Row 4: Spacer ─────────────────────────────────────────────────
             $ws->getStyle('A4:E4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8F9FF');
             $ws->getRowDimension(4)->setRowHeight(4);
 
+            // ── Row 5: Instruction (updated to mention holidays) ──────────────
             $ws->mergeCells('A5:E5');
-            $ws->setCellValue('A5', '  Select Check In / Check Out from dropdown OR type manually (HH:MM 24-hour). Weekends are shaded - leave blank if not working.');
+            $ws->setCellValue('A5', '  Select Check In / Check Out from dropdown OR type manually (HH:MM 24-hour). Weekends are shaded · Public Holidays are highlighted in gold — leave blank if not working.');
             $ws->getStyle('A5')->applyFromArray([
                 'font'      => ['italic' => true, 'color' => ['rgb' => '6B7280'], 'size' => 9, 'name' => 'Arial'],
                 'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => 'FFFBEB']],
@@ -145,12 +220,13 @@ class AttendanceImportController extends Controller
             ]);
             $ws->getRowDimension(5)->setRowHeight(20);
 
+            // ── Row 6: Column headers ─────────────────────────────────────────
             foreach ([
                 'A' => ['Date',      16, Alignment::HORIZONTAL_CENTER],
                 'B' => ['Day',       11, Alignment::HORIZONTAL_CENTER],
                 'C' => ['Check In',  14, Alignment::HORIZONTAL_CENTER],
                 'D' => ['Check Out', 14, Alignment::HORIZONTAL_CENTER],
-                'E' => ['Note',      18, Alignment::HORIZONTAL_LEFT],
+                'E' => ['Note',      20, Alignment::HORIZONTAL_LEFT],
             ] as $col => [$label, $width, $ha]) {
                 $ws->setCellValue("{$col}6", $label);
                 $ws->getStyle("{$col}6")->applyFromArray([
@@ -163,12 +239,15 @@ class AttendanceImportController extends Controller
             }
             $ws->getRowDimension(6)->setRowHeight(26);
 
+            // ── Dropdown validation (weekdays only) ───────────────────────────
             $ciSqref = [];
             $coSqref = [];
             $tmp = $startDate->copy();
             $r   = 7;
             while ($tmp <= $endDate) {
-                if (!$tmp->isWeekend()) {
+                $dateStr = $tmp->format('Y-m-d');
+                if (!$tmp->isWeekend() && !isset($holidays[$dateStr])) {
+                    // Normal weekday — add dropdown
                     $ciSqref[] = "C{$r}";
                     $coSqref[] = "D{$r}";
                 }
@@ -184,56 +263,131 @@ class AttendanceImportController extends Controller
                      ->setAllowBlank(true)->setShowDropDown(false)->setShowErrorMessage(false);
             }
 
+            // ── Data rows ─────────────────────────────────────────────────────
             $current = $startDate->copy();
             $row     = 7;
-            while ($current <= $endDate) {
-                $isWe    = $current->isWeekend();
-                $dayName = $current->format('l');
-                $dateStr = $current->format('Y-m-d');
-                $bgDate  = $isWe ? 'E5E7EB' : 'EDE9FE';
-                $bgCell  = $isWe ? 'F3F4F6' : ($row % 2 === 0 ? 'FAFAFA' : 'FFFFFF');
-                $fgDate  = $isWe ? '9CA3AF' : '4C1D95';
-                $fgCell  = $isWe ? '9CA3AF' : '111827';
 
+            while ($current <= $endDate) {
+                $isWe      = $current->isWeekend();
+                $dateStr   = $current->format('Y-m-d');
+                $isHoliday = isset($holidays[$dateStr]);
+                $dayName   = $current->format('l');
+
+                // Existing attendance record
                 $key    = $profile->user_id . '_' . $dateStr;
                 $rec    = $existing->get($key);
                 $exCi   = $rec ? substr($rec->check_in_time  ?? '', 0, 5) : '';
                 $exCo   = $rec ? substr($rec->check_out_time ?? '', 0, 5) : '';
                 $exNote = $rec ? ($rec->note ?? '') : '';
 
+                // ── Determine styling based on day type ───────────────────────
+                if ($isHoliday) {
+                    // 🟡 Public Holiday — gold/amber theme
+                    $bgDate = 'FEF3C7'; // amber-100
+                    $bgCell = 'FFFBEB'; // amber-50
+                    $bgCi   = 'FEF9C3'; // yellow-100
+                    $fgDate = '92400E'; // amber-800
+                    $fgCell = '78350F'; // amber-900
+                    $fgCi   = '92400E';
+                    $borderStyle = $holidayBorder;
+                } elseif ($isWe) {
+                    // ⬜ Weekend — gray theme
+                    $bgDate = 'E5E7EB';
+                    $bgCell = 'F3F4F6';
+                    $bgCi   = 'F3F4F6';
+                    $fgDate = '9CA3AF';
+                    $fgCell = '9CA3AF';
+                    $fgCi   = '9CA3AF';
+                    $borderStyle = $allThin;
+                } else {
+                    // 🟣 Normal weekday — purple/indigo theme
+                    $bgDate = 'EDE9FE';
+                    $bgCell = $row % 2 === 0 ? 'FAFAFA' : 'FFFFFF';
+                    $bgCi   = 'ECFDF5'; // green tint for CI/CO
+                    $fgDate = '4C1D95';
+                    $fgCell = '111827';
+                    $fgCi   = '111827';
+                    $borderStyle = $allThin;
+                }
+
+                // ── A: Date ───────────────────────────────────────────────────
                 $ws->setCellValue("A{$row}", $dateStr);
-                $ws->getStyle("A{$row}")->applyFromArray(array_merge($allThin, [
+                $ws->getStyle("A{$row}")->applyFromArray(array_merge($borderStyle, [
                     'font'      => ['bold' => !$isWe, 'color' => ['rgb' => $fgDate], 'size' => 10, 'name' => 'Arial'],
                     'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => $bgDate]],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
                 ]));
                 $ws->getStyle("A{$row}")->getNumberFormat()->setFormatCode('DD-MMM-YYYY');
 
-                $ws->setCellValue("B{$row}", $dayName);
-                $ws->getStyle("B{$row}")->applyFromArray(array_merge($allThin, [
-                    'font'      => ['bold' => $isWe, 'italic' => $isWe, 'color' => ['rgb' => $fgCell], 'size' => 9, 'name' => 'Arial'],
-                    'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => $bgCell]],
+                // ── B: Day name ───────────────────────────────────────────────
+                $dayLabel = $isHoliday ? $dayName : $dayName;
+                $ws->setCellValue("B{$row}", $dayLabel);
+                $ws->getStyle("B{$row}")->applyFromArray(array_merge($borderStyle, [
+                    'font'      => [
+                        'bold'   => $isHoliday || $isWe,
+                        'italic' => $isWe && !$isHoliday,
+                        'color'  => ['rgb' => $fgCell],
+                        'size'   => 9,
+                        'name'   => 'Arial',
+                    ],
+                    'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => $bgDate]],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
                 ]));
 
+                // ── C: Check In ───────────────────────────────────────────────
                 if ($exCi) $ws->setCellValue("C{$row}", $exCi);
-                $ws->getStyle("C{$row}")->applyFromArray(array_merge($allThin, [
-                    'font'      => ['bold' => (bool)$exCi, 'color' => ['rgb' => $exCi ? '059669' : $fgCell], 'size' => 10, 'name' => 'Arial'],
-                    'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => $isWe ? $bgCell : 'ECFDF5']],
+                $ws->getStyle("C{$row}")->applyFromArray(array_merge($borderStyle, [
+                    'font'      => [
+                        'bold'  => (bool)$exCi,
+                        'color' => ['rgb' => $exCi ? '059669' : ($isHoliday ? 'D97706' : $fgCi)],
+                        'size'  => 10,
+                        'name'  => 'Arial',
+                    ],
+                    'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => $isHoliday ? $bgCi : ($isWe ? $bgCell : $bgCi)]],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
                 ]));
 
+                // ── D: Check Out ──────────────────────────────────────────────
                 if ($exCo) $ws->setCellValue("D{$row}", $exCo);
-                $ws->getStyle("D{$row}")->applyFromArray(array_merge($allThin, [
-                    'font'      => ['bold' => (bool)$exCo, 'color' => ['rgb' => $exCo ? '059669' : $fgCell], 'size' => 10, 'name' => 'Arial'],
-                    'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => $isWe ? $bgCell : 'ECFDF5']],
+                $ws->getStyle("D{$row}")->applyFromArray(array_merge($borderStyle, [
+                    'font'      => [
+                        'bold'  => (bool)$exCo,
+                        'color' => ['rgb' => $exCo ? '059669' : ($isHoliday ? 'D97706' : $fgCi)],
+                        'size'  => 10,
+                        'name'  => 'Arial',
+                    ],
+                    'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => $isHoliday ? $bgCi : ($isWe ? $bgCell : $bgCi)]],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
                 ]));
 
-                if ($exNote) $ws->setCellValue("E{$row}", $exNote);
-                $ws->getStyle("E{$row}")->applyFromArray(array_merge($allThin, [
-                    'font'      => ['color' => ['rgb' => '6B7280'], 'size' => 9, 'name' => 'Arial'],
-                    'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => $bgCell]],
+                // ── E: Note — holiday name auto-fill ─────────────────────────
+                // Holiday name ကို note column မှာ pre-fill လုပ်မယ်
+                // Existing note ရှိနေရင် holiday name ကိုပဲ prefix လုပ်မယ်
+                $noteValue = '';
+                if ($isHoliday) {
+                    $holidayName = $holidays[$dateStr];
+                    if ($exNote) {
+                        // Existing note ရှိရင် → "Holiday Name · existing note"
+                        $noteValue = "🎌 {$holidayName} · {$exNote}";
+                    } else {
+                        $noteValue = "🎌 {$holidayName}";
+                    }
+                } elseif ($exNote) {
+                    $noteValue = $exNote;
+                }
+
+                if ($noteValue !== '') {
+                    $ws->setCellValue("E{$row}", $noteValue);
+                }
+
+                $ws->getStyle("E{$row}")->applyFromArray(array_merge($borderStyle, [
+                    'font'      => [
+                        'bold'   => $isHoliday,
+                        'color'  => ['rgb' => $isHoliday ? '92400E' : '6B7280'],
+                        'size'   => $isHoliday ? 10 : 9,
+                        'name'   => 'Arial',
+                    ],
+                    'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => $isHoliday ? 'FEF3C7' : $bgCell]],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
                 ]));
 
@@ -242,6 +396,7 @@ class AttendanceImportController extends Controller
                 $row++;
             }
 
+            // ── Footer: Total Filled ──────────────────────────────────────────
             $lastData = $row - 1;
             $ws->mergeCells("A{$row}:B{$row}");
             $ws->setCellValue("A{$row}", 'Total Filled');
@@ -259,11 +414,55 @@ class AttendanceImportController extends Controller
             ]);
             $ws->getStyle("E{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('4F46E5');
             $ws->getRowDimension($row)->setRowHeight(22);
+
+            // ── Holiday legend (below footer) ─────────────────────────────────
+            // Period ထဲမှာ holiday တွေရှိရင်ဘဲ legend ထည့်မယ်
+            $periodHolidays = $holidays; // already filtered to period range
+            if (!empty($periodHolidays)) {
+                $legendRow = $row + 2;
+
+                $ws->mergeCells("A{$legendRow}:E{$legendRow}");
+                $ws->setCellValue("A{$legendRow}", '  Public Holidays in this period:');
+                $ws->getStyle("A{$legendRow}")->applyFromArray([
+                    'font'      => ['bold' => true, 'color' => ['rgb' => '92400E'], 'size' => 9, 'name' => 'Arial'],
+                    'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => 'FEF3C7']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER],
+                    'borders'   => ['top' => ['borderStyle' => Border::BORDER_MEDIUM, 'color' => ['rgb' => 'F59E0B']]],
+                ]);
+                $ws->getRowDimension($legendRow)->setRowHeight(18);
+
+                foreach ($periodHolidays as $hDate => $hName) {
+                    $legendRow++;
+                    $ws->setCellValue("A{$legendRow}", Carbon::parse($hDate)->format('d M Y (l)'));
+                    $ws->setCellValue("C{$legendRow}", "🎌 {$hName}");
+                    $ws->mergeCells("C{$legendRow}:E{$legendRow}");
+
+                    $ws->getStyle("A{$legendRow}")->applyFromArray([
+                        'font'      => ['color' => ['rgb' => '92400E'], 'size' => 9, 'name' => 'Arial'],
+                        'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => 'FFFBEB']],
+                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                        'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FCD34D']]],
+                    ]);
+                    $ws->getStyle("B{$legendRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFFBEB');
+                    $ws->getStyle("C{$legendRow}")->applyFromArray([
+                        'font'      => ['bold' => true, 'color' => ['rgb' => '78350F'], 'size' => 9, 'name' => 'Arial'],
+                        'fill'      => ['fillType' => Fill::FILL_SOLID, 'color' => ['rgb' => 'FEF3C7']],
+                        'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER],
+                        'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FCD34D']]],
+                    ]);
+                    $ws->getRowDimension($legendRow)->setRowHeight(16);
+                }
+            }
         }
 
         $spreadsheet->setActiveSheetIndex(0);
         return $spreadsheet;
     }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // import(), periodInfo(), calcAttendance(), toMin(), getPeriodRange(),
+    // getPeriodCount() — မပြောင်းဘဲ အတိုင်းဘဲ ထားပါ
+    // ══════════════════════════════════════════════════════════════════════════
 
     public function import(Request $request)
     {
@@ -351,7 +550,11 @@ class AttendanceImportController extends Controller
 
                     if ($checkIn === '' && $checkOut === '') { $skipped++; continue; }
 
-                    $note = trim((string) ($ws->getCell([5, $row])->getValue() ?? ''));
+                    // Note column မှာ holiday prefix ရှိနိုင်တယ် — strip မယ်
+                    $rawNote = trim((string) ($ws->getCell([5, $row])->getValue() ?? ''));
+                    $note    = preg_replace('/^🎌[^·]*·\s*/', '', $rawNote);
+                    $note    = preg_replace('/^🎌.*$/', '', $note);
+                    $note    = trim($note);
 
                     [$wh, $late, $short, $status] = $this->calcAttendance(
                         $checkIn, $checkOut, $workStart, $workEnd, $lunchStart, $lunchEnd
@@ -461,12 +664,11 @@ class AttendanceImportController extends Controller
         $lsM  = $this->toMin($ls);
         $leM  = $this->toMin($le);
 
-        // ✅ Clamp to work window (same as AttendanceRequestController)
         $effIn  = max($inM, $wsM);
         $effOut = min($outM, $weM);
 
-        $wh   = 0;
-        $late = 0;
+        $wh    = 0;
+        $late  = 0;
         $short = 0;
 
         if ($effOut > $effIn) {
@@ -475,14 +677,11 @@ class AttendanceImportController extends Controller
             $wh           = round(max(0, $workMins) / 60, 2);
         }
 
-        // ✅ Late: only if check-in before lunch_end (same logic)
         if ($inM < $leM) {
             $late = max(0, $inM - $wsM);
         }
 
-        // ✅ Short hours
-        $short = round(max(0, ($weM - $outM) / 60), 2);
-
+        $short  = round(max(0, ($weM - $outM) / 60), 2);
         $status = $late > 0 ? 'late' : 'present';
 
         return [$wh, $late, $short, $status];
@@ -495,80 +694,41 @@ class AttendanceImportController extends Controller
         return (int) $h * 60 + (int) $m;
     }
 
-    /**
-     * getPeriodRange — exact logic as specified:
-     *
-     * request month M → base month = M - 1
-     *
-     * semi_monthly (P1.day=24, P2.day=9), request=April → base=March:
-     *   P1 start = base[P2.day + 1]  = Mar 10
-     *   P1 end   = base[P1.day]      = Mar 24
-     *   P2 start = base[P1.day + 1]  = Mar 25
-     *   P2 end   = request[P2.day]   = Apr 9
-     *
-     * ten_day (P1.day=X, P2.day=Y, P3.day=Z), request=April → base=March:
-     *   P1 start = base[P3.day + 1]
-     *   P1 end   = base[P1.day]
-     *   P2 start = base[P1.day + 1]
-     *   P2 end   = base[P2.day]
-     *   P3 start = base[P2.day + 1]
-     *   P3 end   = request[P3.day]
-     *
-     * monthly (P1.day=25), request=April → base=March:
-     *   P1 start = base[P1.day + 1]  = Mar 26
-     *   P1 end   = request[P1.day]   = Apr 25
-     */
     private function getPeriodRange(?SalaryRule $rule, int $year, int $month, int $pNum): array
     {
         $countryId   = $rule?->country_id;
         $cutoff      = $rule?->payroll_cutoff_day ?? 25;
         $periodCount = $this->getPeriodCount($rule);
 
-        // Load all period end-days keyed by period_number
         $periods = PayrollPeriod::where('country_id', $countryId)
             ->orderBy('period_number')
             ->get()
             ->keyBy('period_number');
 
-        // Get end-day for period N (fallback to cutoff)
         $dayOf = fn(int $n): int => (int) ($periods->get($n)?->day ?? $cutoff);
 
-        // base = request month - 1
-        $base        = Carbon::create($year, $month, 1)->subMonth();
-        $baseY       = $base->year;
-        $baseM       = $base->month;
-        $baseLast    = $base->daysInMonth;
-        $reqLast     = Carbon::create($year, $month, 1)->daysInMonth;
+        $base     = Carbon::create($year, $month, 1)->subMonth();
+        $baseY    = $base->year;
+        $baseM    = $base->month;
+        $baseLast = $base->daysInMonth;
+        $reqLast  = Carbon::create($year, $month, 1)->daysInMonth;
 
-        // Clamp day to month's last day, then return Carbon
-        $baseDate = fn(int $day): Carbon =>
-            Carbon::create($baseY, $baseM, min($day, $baseLast));
-        $reqDate  = fn(int $day): Carbon =>
-            Carbon::create($year, $month, min($day, $reqLast));
+        $baseDate = fn(int $day): Carbon => Carbon::create($baseY, $baseM, min($day, $baseLast));
+        $reqDate  = fn(int $day): Carbon => Carbon::create($year, $month, min($day, $reqLast));
 
         if ($periodCount === 1) {
-            // monthly: start = base[P1.day]+1, end = request[P1.day]
             $start = $baseDate($dayOf(1))->addDay()->startOfDay();
             $end   = $reqDate($dayOf(1))->endOfDay();
             return [$start, $end];
         }
 
-        // multi-period (2 or 3):
-        // - Last period (pNum == periodCount): end in request month
-        // - All other periods: start and end in base month
-        // - start of each period = previous period's end day + 1
-        // - start of P1 = last period's end day (in base) + 1
-
         if ($pNum === $periodCount) {
-            // Last period
             $start = $baseDate($dayOf($periodCount - 1))->addDay()->startOfDay();
             $end   = $reqDate($dayOf($periodCount))->endOfDay();
         } elseif ($pNum === 1) {
-            // First period: start after last period's day in base month
             $start = $baseDate($dayOf($periodCount))->addDay()->startOfDay();
             $end   = $baseDate($dayOf(1))->endOfDay();
         } else {
-            // Middle period(s): entirely within base month
             $start = $baseDate($dayOf($pNum - 1))->addDay()->startOfDay();
             $end   = $baseDate($dayOf($pNum))->endOfDay();
         }

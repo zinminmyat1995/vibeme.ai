@@ -67,7 +67,17 @@ class ProjectAssignmentController extends Controller
                 ->where('status', '!=', 'removed')
                 ->with('user:id,name,avatar_url')
             ])
-            ->get();
+            ->get()
+            ->map(fn($p) => [
+                'id'            => $p->id,
+                'name'          => $p->name,
+                'description'   => $p->description,
+                'status'        => $p->status,
+                'start_date'    => $p->start_date,
+                'end_date'      => $p->end_date,
+                'est_team_size' => $p->est_team_size,  // ← ဒါ ထည့်ရမယ်
+                'assignments'   => $p->assignments,
+            ]);
 
         return Inertia::render('Admin/Assignments/Index', [
             'users'    => $users,

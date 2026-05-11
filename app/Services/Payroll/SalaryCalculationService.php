@@ -222,10 +222,10 @@ class SalaryCalculationService
             [
                 'payroll_period_id' => $period->id,
                 'user_id'           => $profile->user_id,
+                'year'              => $year,
+                'month'             => $month,
             ],
             [
-                'year'                   => $year,
-                'month'                  => $month,
                 'base_salary'            => $basePay,
                 'total_allowances'       => $totalAllowances,
                 'total_deductions'       => $totalDeductionsStored,

@@ -36,6 +36,7 @@ class HRProjectController extends Controller
                 ] : null,
                 'created_by' => $p->creator?->name,
                 'created_at' => $p->created_at?->format('Y-m-d'),
+                'client_name' => $p->client_name, 
             ]);
 
         $currencies = \App\Models\PayrollCurrency::where('is_active', true)
