@@ -597,7 +597,16 @@ function ProjectRow({ project, dark, theme, isLast, onEdit, onDelete }) {
             </div>
 
             {/* Actions — User role form button style */}
-            <div style={{ marginLeft: "auto", display: "flex", gap: 6, flexShrink: 0 }}>
+            <div
+                style={{
+                    flex: "0 0 120px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 8,
+                    flexShrink: 0,
+                }}
+            >
                 <button
                     onClick={() => onEdit(project)}
                     style={{
@@ -605,7 +614,7 @@ function ProjectRow({ project, dark, theme, isLast, onEdit, onDelete }) {
                         height: 40,
                         borderRadius: 14,
                         border: `1px solid ${theme.border}`,
-                        background: theme.panelSoft,
+                        background: theme.surfaceSoft,
                         color: theme.textSoft,
                         cursor: 'pointer',
                         display: 'flex',
@@ -813,7 +822,7 @@ export default function HRProjectsIndex({ projects: raw = [], clients = [], curr
         { label: "Timeline",       w: "220px" },
         { label: "Team",           w: "180px",  align: "center" },
         { label: "Status",         w: "150px" },
-        { label: "",               ml: "auto" },
+        { label: "Actions",        w: "120px", align: "center" },
     ];
 
     return (
@@ -911,14 +920,14 @@ export default function HRProjectsIndex({ projects: raw = [], clients = [], curr
                     overflow: "hidden",
                 }}>
                 <div className="hrpj-table-scroll" style={{ overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
-                    <div style={{ minWidth: 1100 }}>
+                    <div style={{ minWidth: 1420 }}>
                         {/* Header row */}
                         <div style={{
                             display: "flex", alignItems: "center",
                             padding: "10px 20px", gap: 12,
                             borderBottom: `1px solid ${theme.border}`,
                             background: dark ? "rgba(255,255,255,0.02)" : "#f8fafc",
-                            minWidth: 1100, 
+                            minWidth: 1420, 
                         }}>
                             {COL_HEADS.map((h, i) => (
                                 <div key={i} style={{
