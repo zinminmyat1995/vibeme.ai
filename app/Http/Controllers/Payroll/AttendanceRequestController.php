@@ -89,8 +89,76 @@ class AttendanceRequestController extends Controller
         ];
 
         if ($request->expectsJson()) {
+
+            // ── Step 1: attendance_requests တွေ ယူ ──
+            $requestItems = $query->get();
+            $requestDates = $requestItems
+                ->where('status', 'approved')
+                ->pluck('date')
+                ->map(fn($d) => \Carbon\Carbon::parse($d)->format('Y-m-d'))
+                ->toArray();
+
+            // ── Step 2: AttendanceRecord တွေ ယူ (approved request ရှိပြီးသား date တွေ skip) ──
+            $directRecords = \App\Models\AttendanceRecord::where('user_id', $user->id)
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->whereNotIn('date', $requestDates)
+                ->orderBy('date', 'desc')
+                ->get()
+                ->map(fn($r) => [
+                    'id'                       => 'record_' . $r->id,
+                    'user_id'                  => $r->user_id,
+                    'approver_id'              => null,
+                    'approved_by'              => null,
+                    'date'                     => \Carbon\Carbon::parse($r->date)->format('Y-m-d'),
+                    'requested_check_in_time'  => $r->check_in_time  ? substr($r->check_in_time,  0, 5) : null,
+                    'requested_check_out_time' => $r->check_out_time ? substr($r->check_out_time, 0, 5) : null,
+                    'approved_check_in_time'   => $r->check_in_time  ? substr($r->check_in_time,  0, 5) : null,
+                    'approved_check_out_time'  => $r->check_out_time ? substr($r->check_out_time, 0, 5) : null,
+                    'requested_work_hours'     => $r->work_hours_actual,
+                    'approved_work_hours'      => $r->work_hours_actual,
+                    'requested_late_minutes'   => $r->late_minutes,
+                    'approved_late_minutes'    => $r->late_minutes,
+                    'approved_short_hours'     => $r->short_hours,
+                    'status'                   => 'approved',
+                    'note'                     => $r->note,
+                    'rejection_reason'         => null,
+                    'is_direct_entry'          => true, // ← web direct entry ဆိုတာ mobile ကို ပြောတဲ့ flag
+                    'user'                     => [
+                        'id'         => $user->id,
+                        'name'       => $user->name,
+                        'avatar_url' => $user->avatar_url,
+                        'position'   => $user->position,
+                        'department' => $user->department,
+                    ],
+                    'approver'   => null,
+                    'approvedBy' => null,
+                ]);
+
+            // ── Step 3: merge ပြီး date desc sort ──
+            $merged = $requestItems->toArray();
+            foreach ($directRecords as $dr) {
+                $merged[] = $dr;
+            }
+            usort($merged, fn($a, $b) => strcmp(
+                is_array($b) ? $b['date'] : $b->date,
+                is_array($a) ? $a['date'] : $a->date,
+            ));
+
+            // ── Step 4: paginate manually ──
+            $perPage     = 20;
+            $currentPage = $request->integer('page', 1);
+            $total       = count($merged);
+            $items       = array_slice($merged, ($currentPage - 1) * $perPage, $perPage);
+
             return response()->json([
-                'requests'      => $query->paginate(20)->withQueryString(),
+                'requests' => [
+                    'data'         => array_values($items),
+                    'current_page' => $currentPage,
+                    'last_page'    => (int) ceil($total / $perPage),
+                    'total'        => $total,
+                    'per_page'     => $perPage,
+                ],
                 'approvers'     => $approvers,
                 'countryConfig' => $countryConfig,
             ]);
