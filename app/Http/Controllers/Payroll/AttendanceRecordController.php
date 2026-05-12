@@ -190,6 +190,141 @@ class AttendanceRecordController extends Controller
         ]);
     }
 
+
+    public function mobileIndex(Request $request): JsonResponse
+{
+    $user     = Auth::user();
+    $roleName = $user->role?->name;
+    $month    = $request->integer('month', now()->month);
+    $year     = $request->integer('year',  now()->year);
+
+    // Role-based target user
+    $targetUserId = in_array($roleName, ['hr', 'admin'])
+        ? ($request->filled('employee_id') ? $request->employee_id : $user->id)
+        : $user->id;
+
+    // Attendance records
+    $records = AttendanceRecord::with('user')
+        ->whereMonth('date', $month)
+        ->whereYear('date', $year)
+        ->where('user_id', $targetUserId)
+        ->orderBy('date')
+        ->get();
+
+    // Employees list (HR = same country, Admin = all)
+    $employees = [];
+    if ($roleName === 'hr') {
+        $employees = User::select('id', 'name', 'avatar_url', 'department', 'position')
+            ->with('role:id,name')
+            ->where('is_active', 1)
+            ->where('country', $user->country)
+            ->orderBy('name')->get();
+    } elseif ($roleName === 'admin') {
+        $employees = User::select('id', 'name', 'avatar_url', 'department', 'position')
+            ->with('role:id,name')
+            ->where('is_active', 1)
+            ->orderBy('name')->get();
+    }
+
+    // Country config
+    $country    = Country::where('name', $user->country)->first();
+    $salaryRule = $country ? SalaryRule::where('country_id', $country->id)->first() : null;
+
+    $countryConfig = $country ? [
+        'work_hours_per_day'  => $country->work_hours_per_day  ?? 8,
+        'lunch_break_minutes' => $country->lunch_break_minutes ?? 60,
+        'work_start'          => $salaryRule?->work_start ? substr($salaryRule->work_start, 0, 5) : '08:00',
+        'work_end'            => $salaryRule?->work_end   ? substr($salaryRule->work_end,   0, 5) : '17:00',
+        'lunch_start'         => $salaryRule?->lunch_start ? substr($salaryRule->lunch_start, 0, 5) : '12:00',
+        'lunch_end'           => $salaryRule?->lunch_end   ? substr($salaryRule->lunch_end,   0, 5) : '13:00',
+    ] : [
+        'work_hours_per_day'  => 8,
+        'lunch_break_minutes' => 60,
+        'work_start'          => '08:00',
+        'work_end'            => '17:00',
+        'lunch_start'         => '12:00',
+        'lunch_end'           => '13:00',
+    ];
+
+    // Public holidays
+    $publicHolidays = $country ? PublicHoliday::where('country_id', $country->id)
+        ->whereMonth('date', $month)->whereYear('date', $year)
+        ->select('date', 'name')
+        ->get()
+        ->map(fn($h) => [
+            'date' => Carbon::parse($h->date)->format('Y-m-d'),
+            'name' => $h->name,
+        ]) : [];
+
+    // Overtime map
+    $overtimeRecords = OvertimeRequest::with(['segments.overtimePolicy'])
+        ->where('user_id', $targetUserId)
+        ->where('status', 'approved')
+        ->where(fn($q) => $q
+            ->whereMonth('start_date', $month)->whereYear('start_date', $year)
+            ->orWhereMonth('end_date', $month)->whereYear('end_date', $year)
+        )->get();
+
+    $overtimeMap = [];
+    foreach ($overtimeRecords as $r) {
+        foreach ($r->segments as $seg) {
+            $segDate = Carbon::parse($seg->segment_date ?? $r->start_date);
+            if ($segDate->month !== $month || $segDate->year !== $year) continue;
+            $dk = $segDate->format('Y-m-d');
+            if (!isset($overtimeMap[$dk])) {
+                $overtimeMap[$dk] = ['hours_approved' => 0, 'segments' => []];
+            }
+            $overtimeMap[$dk]['hours_approved'] += (float) $seg->hours_approved;
+            $overtimeMap[$dk]['segments'][] = [
+                'title'      => $seg->overtimePolicy?->title ?? 'OT',
+                'start_time' => $seg->start_time,
+                'end_time'   => $seg->end_time,
+                'hours'      => (float) $seg->hours_approved,
+            ];
+        }
+    }
+
+    // Leave map
+    $leaveRecords = LeaveRequest::where('user_id', $targetUserId)
+        ->where('status', 'approved')
+        ->where(fn($q) => $q
+            ->whereMonth('start_date', $month)->whereYear('start_date', $year)
+            ->orWhereMonth('end_date', $month)->whereYear('end_date', $year)
+        )->get();
+
+    $leaveDateMap = [];
+    foreach ($leaveRecords as $leave) {
+        $start     = Carbon::parse($leave->start_date);
+        $end       = Carbon::parse($leave->end_date);
+        $totalSpan = max(1, $start->diffInDays($end) + 1);
+        $dayValue  = round((float)$leave->total_days / $totalSpan, 4);
+        $current   = $start->copy();
+        while ($current <= $end) {
+            $dk = $current->format('Y-m-d');
+            $leaveDateMap[$dk][] = [
+                'type'       => $leave->leave_type,
+                'total_days' => $dayValue,
+                'is_half'    => $leave->total_days < 1,
+                'day_type'   => $leave->day_type,
+                'reason'     => $leave->note,
+            ];
+            $current->addDay();
+        }
+    }
+
+    return response()->json([
+        'records'       => $records,
+        'employees'     => $employees,
+        'selectedMonth' => $month,
+        'selectedYear'  => $year,
+        'selectedEmployee' => (string) $targetUserId,
+        'countryConfig' => $countryConfig,
+        'publicHolidays' => $publicHolidays,
+        'overtimeMap'   => $overtimeMap,
+        'leaveDateMap'  => $leaveDateMap,
+    ]);
+}
+
 public function store(StoreAttendanceRecordRequest $request): \Illuminate\Http\RedirectResponse
 {
     $dateStr  = \Carbon\Carbon::parse($request->date)->format('Y-m-d');

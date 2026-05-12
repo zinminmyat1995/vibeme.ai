@@ -148,6 +148,8 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
 
         Route::get('dashboard', [DashboardController::class, 'mobileDashboard']);
         Route::patch('hr-alerts/{id}/acknowledge', [DashboardController::class, 'acknowledgeWarning']);
+
+        Route::get('payroll/attendance', [AttendanceRecordController::class, 'mobileIndex']);
     });
 
     Route::middleware(['role:driver'])->group(function () {
