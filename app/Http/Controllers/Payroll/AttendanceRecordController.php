@@ -172,6 +172,27 @@ class AttendanceRecordController extends Controller
             }
         }
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'records'              => $query->orderBy('date')->get(),
+                'employees'            => $employees,
+                'selectedMonth'        => $month,
+                'selectedYear'         => $year,
+                'selectedEmployee'     => (string) $targetUserId,
+                'countryConfig'        => $countryConfig ?? (object)[
+                    'work_hours_per_day'   => 8,
+                    'lunch_break_minutes'  => 60,
+                    'standard_start_time'  => '08:00',
+                    'lunch_start'          => '12:00',
+                    'lunch_end'            => '13:00',
+                ],
+                'publicHolidays'       => $publicHolidays,
+                'publicHolidayDetails' => $publicHolidayDetails,
+                'overtimeMap'          => $overtimeMap,
+                'leaveDateMap'         => $leaveDateMap,
+            ]);
+        }
+
         return Inertia::render('Payroll/Attendance/Index', [
             'records'              => $query->orderBy('date')->get(),
             'employees'            => $employees,
