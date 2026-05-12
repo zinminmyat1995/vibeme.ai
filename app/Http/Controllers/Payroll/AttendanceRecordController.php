@@ -61,7 +61,7 @@ class AttendanceRecordController extends Controller
         }
 
         // ── Country config ──
-        $country    = Country::where('name', $user->country)->first();
+        $country = Country::find($user->country_id);
         $salaryRule = $country
             ? \App\Models\SalaryRule::where('country_id', $country->id)->first()
             : null;
