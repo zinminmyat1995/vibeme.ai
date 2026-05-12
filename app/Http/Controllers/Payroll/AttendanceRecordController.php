@@ -21,7 +21,7 @@ use App\Models\SalaryRule;
 class AttendanceRecordController extends Controller
 {
     // ── Web (Inertia) ──
-    public function index(Request $request): Response
+    public function index(Request $request): Response|JsonResponse
     {
         $user     = Auth::user();
         $roleName = $user->role?->name;
