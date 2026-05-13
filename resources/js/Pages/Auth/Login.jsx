@@ -218,7 +218,7 @@ export default function Login() {
 
                         {/* Logo — centered above heading */}
                         <div style={styles.logoArea}>
-                            <img src={LOGO} alt="VibeMe.AI" style={styles.logoImg} />
+                            <img src="/images/main-logo2.svg" alt="Vibe HR" style={styles.logoImg} />
                         </div>
 
                         <h2 style={styles.heading}>Welcome back</h2>
@@ -317,7 +317,7 @@ export default function Login() {
                             </button>
                         </form>
 
-                        <p style={styles.copyright}>© 2026 VibeMe.AI</p>
+                        <p style={styles.copyright}>© 2026 Vibe HR</p>
                     </div>
                 </div>
             </div>
@@ -451,8 +451,9 @@ const styles = {
         marginBottom: '5px',
     },
     logoImg: {
-        height: '80px', width: 'auto', objectFit: 'contain',
+        height: '130px', width: 'auto', objectFit: 'contain',
         display: 'block',
+        marginBottom: '-12px',
     },
     heading: {
         fontSize: '26px', fontWeight: '300', color: '#dde8f5',

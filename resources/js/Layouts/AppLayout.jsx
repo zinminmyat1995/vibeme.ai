@@ -773,6 +773,31 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                             </div>
                         )}
                     </Link>
+                    {!collapsed && (
+                        <div style={{
+                            marginTop: 8,
+                            textAlign: 'center',
+                            lineHeight: 1.7,
+                        }}>
+                            <div style={{
+                                fontSize: 9,
+                                color: darkMode ? '#94a3b8' : '#64748b',
+                                opacity: darkMode ? 0.7 : 0.6,
+                                letterSpacing: '0.05em',
+                            }}>
+                                Developed by{' '}
+                                <span style={{
+                                    fontWeight: 700,
+                                    color: darkMode ? '#93c5fd' : '#2563eb',
+                                    opacity: 1,
+                                }}>
+                                    Zin Min Myat
+                                </span>
+                                <br/>
+                                © 2026 Vibe HR
+                            </div>
+                        </div>
+                    )}
                 </div>
             </aside>
 
@@ -793,13 +818,30 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                     borderBottom: `1px solid ${theme.headerBorder}`,
                     backdropFilter: 'blur(18px)',
                 }}>
+
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                        <img
-                            src="/images/main-logo.svg"
-                            alt="VibeMe.AI"
-                            style={{ height: 45, width: 'auto', marginTop: '10px' }}
-                            onError={e => { e.target.style.display = 'none'; }}
-                        />
+                        <div style={{
+                            width: 40,        // fixed width — ဘယ်ညာ မကျယ်တော့ဘူး
+                            height: 40,       // fixed height
+                            flexShrink: 0,    // squeeze မဖြစ်တော့ဘူး
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <img
+                                src="/images/main-logo.svg"
+                                alt="VibeMe.AI"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain',
+                                    visibility: 'visible',  // hide မဖြစ်တော့ဘူး — space ကျန်နေမယ်
+                                }}
+                                onError={e => { e.target.style.visibility = 'hidden'; }}
+                                // display:none မဟုတ်တော့ visibility:hidden သုံး
+                                // space ကျန်တာကြောင့် title က ဘယ်မရောက်တော့ဘူး
+                            />
+                        </div>
                         <div style={{
                             width: 1, height: 28,
                             background: darkMode ? 'rgba(148,163,184,0.18)' : 'rgba(15,23,42,0.10)',

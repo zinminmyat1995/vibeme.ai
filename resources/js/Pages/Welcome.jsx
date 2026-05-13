@@ -551,7 +551,7 @@ footer {
         </section>
 
         <footer>
-            © {new Date().getFullYear()} Brycen Group · Powered by VibeMe.AI
+            © {new Date().getFullYear()} Brycen Group · Powered by Vibe HR
         </footer>
 
         {/* ── About Modal ── */}
