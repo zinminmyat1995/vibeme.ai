@@ -794,7 +794,7 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                                     Zin Min Myat
                                 </span>
                                 <br/>
-                                © 2026 Vibe HR
+                                © 2026 Smart HR
                             </div>
                         </div>
                     )}
@@ -830,7 +830,7 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                         }}>
                             <img
                                 src="/images/main-logo.svg"
-                                alt="VibeMe.AI"
+                                alt="Smart HR"
                                 style={{
                                     width: '100%',
                                     height: '100%',

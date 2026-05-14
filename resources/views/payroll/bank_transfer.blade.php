@@ -307,7 +307,7 @@ tbody td {
 
         <div>
             <div class="company-name">{{ $company_name }}</div>
-            <div class="company-sub">VibeMe.AI System</div>
+            <div class="company-sub">Smart HR System</div>
         </div>
     </div>
 
@@ -379,7 +379,7 @@ tbody td {
 
 {{-- ══ DOC FOOTER ══ --}}
 <div class="doc-footer">
-    Confidential &nbsp;&middot;&nbsp; {{ $company_name }} VibeMe.AI System &nbsp;&middot;&nbsp; {{ $generated_at }}
+    Confidential &nbsp;&middot;&nbsp; {{ $company_name }} Smart HR System &nbsp;&middot;&nbsp; {{ $generated_at }}
 </div>
 
 </body>

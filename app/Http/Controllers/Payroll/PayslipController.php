@@ -310,7 +310,7 @@ class PayslipController extends Controller
     {
         $first   = $records[0];
         $first->loadMissing(['user', 'payrollPeriod.country', 'bonuses']);
-        $company = config('app.name', 'VibeMe.AI');
+        $company = config('app.name', 'Smart HR');
         $srCurr = SalaryRule::where('country_id', $first->payrollPeriod?->country_id)->with('currency')->first();
         $curr   = $srCurr?->currency?->currency_code ?? $first->payrollPeriod?->country?->currency_code ?? '';
         $row     = 1;
@@ -756,7 +756,7 @@ class PayslipController extends Controller
             'late_minutes'        => $r->late_minutes_total,
             'bonuses'             => $r->bonuses ?? collect(),
             'is_last_period'      => $isLastP,
-            'company_name'        => config('app.name', 'VibeMe.AI'),
+            'company_name'        => config('app.name', 'Smart HR'),
         ];
     }
 

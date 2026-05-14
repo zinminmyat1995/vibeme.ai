@@ -218,7 +218,11 @@ export default function Login() {
 
                         {/* Logo — centered above heading */}
                         <div style={styles.logoArea}>
-                            <img src="/images/main-logo2.svg" alt="Vibe HR" style={styles.logoImg} />
+                            <img src="/images/main-logo2.svg" alt="Smart HR" style={styles.logoImg} />
+                            <div style={{ marginTop: '-4px', fontSize: '18px', fontWeight: '800', letterSpacing: '0.5px' }}>
+                                <span style={{ color: '#ffffff' }}>Smart</span>
+                                <span style={{ color: '#5b9bd5' }}> HR</span>
+                            </div>
                         </div>
 
                         <h2 style={styles.heading}>Welcome back</h2>
@@ -317,7 +321,7 @@ export default function Login() {
                             </button>
                         </form>
 
-                        <p style={styles.copyright}>© 2026 Vibe HR</p>
+                        <p style={styles.copyright}>© 2026 Smart HR</p>
                     </div>
                 </div>
             </div>
@@ -447,8 +451,8 @@ const styles = {
     },
     logoArea: {
         width: '100%',
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        marginBottom: '5px',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+        marginBottom: '10px',
     },
     logoImg: {
         height: '130px', width: 'auto', objectFit: 'contain',

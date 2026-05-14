@@ -101,7 +101,7 @@ export default function ResetPassword({ token, email }) {
                 <div style={S.rightPanel}>
                     <div style={S.formWrap}>
                         <div style={S.logoArea}>
-                            <img src={LOGO} alt="VibeMe.AI" style={S.logoImg} />
+                            <img src={LOGO} alt="Smart HR" style={S.logoImg} />
                         </div>
 
                         <div style={S.lockIconWrap}>
@@ -251,7 +251,7 @@ export default function ResetPassword({ token, email }) {
                         </form>
 
                         <a href="/login" style={S.backLink}>← Back to Sign In</a>
-                        <p style={S.copyright}>© 2026 VibeMe.AI</p>
+                        <p style={S.copyright}>© 2026 Smart HR</p>
                     </div>
                 </div>
             </div>

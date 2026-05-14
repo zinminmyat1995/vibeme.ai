@@ -285,7 +285,7 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                         {isEdit ? 'Update Mail Account' : 'Connect Your Email'}
                     </div>
                     <div style={{ fontSize: 12, color: theme.textMute, marginTop: 2 }}>
-                        Connect your email to send and receive mail directly from VibeMe.AI
+                        Connect your email to send and receive mail directly from Smart HR
                     </div>
                 </div>
             </div>

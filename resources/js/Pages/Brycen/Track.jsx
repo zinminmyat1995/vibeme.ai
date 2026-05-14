@@ -254,8 +254,8 @@ a { color: inherit; text-decoration: none; }
         {/* NAV */}
         <nav className="nav">
             <Link href="/" className="nav-logo">
-                <img src="/images/main-logo.svg" alt="VibeMe.AI"/>
-                <span className="nav-logo-name">VibeMe<span>.AI</span></span>
+                <img src="/images/main-logo.svg" alt="Smart HR"/>
+                <span className="nav-logo-name">Smart<span>HR</span></span>
             </Link>
             <div className="nav-r">
                 <Link href="/" className="nav-back">← Back to Jobs</Link>

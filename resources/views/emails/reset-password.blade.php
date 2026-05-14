@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Your Password — VibeMe.AI</title>
+    <title>Reset Your Password — Smart HR</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -136,10 +136,10 @@
         <div class="card">
             <div class="card-top">
                 <div class="card-top-logo">
-                    <img src="{{ $logoUrl }}" alt="VibeMe.AI" />
+                    <img src="{{ $logoUrl }}" alt="Smart HR" />
                 </div>
                 <h1>Reset Your Password</h1>
-                <p>We received a request to reset the password<br>for your VibeMe.AI account.</p>
+                <p>We received a request to reset the password<br>for your Smart HR account.</p>
             </div>
 
             <div class="card-body">
@@ -161,7 +161,7 @@
             </div>
         </div>
 
-        <div class="footer">© {{ date('Y') }} VibeMe.AI — All rights reserved</div>
+        <div class="footer">© {{ date('Y') }} Smart HR — All rights reserved</div>
     </div>
 </body>
 </html>

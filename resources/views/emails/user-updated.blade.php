@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Account Updated — VibeMe.AI</title>
+<title>Account Updated — Smart HR</title>
 </head>
 <body style="margin:0;padding:0;background:#f4f4f7;font-family:'Segoe UI',Arial,sans-serif;">
 
@@ -16,7 +16,7 @@
         <tr>
           <td style="background:linear-gradient(135deg,#0f766e 0%,#0891b2 100%);padding:40px 48px;text-align:center;">
             <div style="font-size:36px;margin-bottom:8px;">🤖</div>
-            <h1 style="color:#ffffff;font-size:26px;font-weight:800;margin:0;letter-spacing:-0.5px;">VibeMe.AI</h1>
+            <h1 style="color:#ffffff;font-size:26px;font-weight:800;margin:0;letter-spacing:-0.5px;">Smart HR</h1>
             <p style="color:rgba(255,255,255,0.75);font-size:13px;margin:6px 0 0;">HR Management Platform</p>
           </td>
         </tr>
@@ -38,7 +38,7 @@
               Hi <strong style="color:#111827;">{{ $user->name }}</strong>,
             </p>
             <p style="color:#6b7280;font-size:14px;line-height:1.7;margin:0 0 28px;">
-              Your account on <strong>VibeMe.AI</strong> has been updated. Here is a summary of your current profile information.
+              Your account on <strong>Smart HR</strong> has been updated. Here is a summary of your current profile information.
             </p>
 
             <!-- Profile Card -->
@@ -132,10 +132,10 @@
         <tr>
           <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 48px;text-align:center;">
             <p style="margin:0;font-size:12px;color:#9ca3af;">
-              This email was sent by <strong style="color:#0f766e;">VibeMe.AI</strong> HR Platform.<br/>
+              This email was sent by <strong style="color:#0f766e;">Smart HR</strong> HR Platform.<br/>
               If you did not expect this email, please contact your administrator.
             </p>
-            <p style="margin:12px 0 0;font-size:11px;color:#d1d5db;">© {{ date('Y') }} VibeMe.AI · All rights reserved.</p>
+            <p style="margin:12px 0 0;font-size:11px;color:#d1d5db;">© {{ date('Y') }} Smart HR · All rights reserved.</p>
           </td>
         </tr>
 

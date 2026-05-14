@@ -553,8 +553,8 @@ textarea.form-input { min-height: 96px; resize: vertical; }
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 <Link href="/" className="nav-back">←</Link>
                 <Link href="/" className="nav-logo">
-                    <img src="/images/main-logo.svg" alt="VibeMe.AI"/>
-                    <span className="nav-logo-name">VibeMe<span>.AI</span></span>
+                    <img src="/images/main-logo.svg" alt="Smart HR"/>
+                    <span className="nav-logo-name">Smart<span>HR</span></span>
                 </Link>
             </div>
             <div className="nav-r">

@@ -59,7 +59,7 @@ class ForgotPasswordController extends Controller
             'logoUrl'  => $logoUrl, 
         ], function ($message) use ($user) {
             $message->to($user->email)
-                    ->subject('VibeMe.AI — Reset Your Password');
+                    ->subject('Smart HR — Reset Your Password');
         });
 
         return back()->with('status', 'sent');

@@ -20,7 +20,7 @@ class UserCreatedMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: '🎉 Welcome to VibeMe.AI — Account Created');
+        return new Envelope(subject: '🎉 Welcome to Smart HR — Account Created');
     }
 
     public function content(): Content

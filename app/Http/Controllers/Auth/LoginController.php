@@ -27,7 +27,7 @@ class LoginController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Email သို့မဟုတ် Password မှားနေပါတယ်။',
+            'email' => 'Incorrect email or password.',
         ]);
     }
 

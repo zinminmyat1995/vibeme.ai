@@ -142,7 +142,7 @@ class BankExportController extends Controller
         $row++;
 
         // ── Subtitle (B2) ──
-        $ws->setCellValue("B{$row}", 'VibeMe.AI System');
+        $ws->setCellValue("B{$row}", 'Smart HR System');
         $ws->getStyle("B{$row}")->applyFromArray([
             'font' => ['size' => 8, 'color' => ['rgb' => $textMid], 'bold' => false],
         ]);
@@ -283,7 +283,7 @@ class BankExportController extends Controller
 
         // ── Footer note ──
         $ws->mergeCells("A{$row}:E{$row}");
-        $ws->setCellValue("A{$row}", 'Confidential  ·  ' . $companyName . ' VibeMe.AI System  ·  ' . now()->format('d M Y H:i'));
+        $ws->setCellValue("A{$row}", 'Confidential  ·  ' . $companyName . ' Smart HR System  ·  ' . now()->format('d M Y H:i'));
         $ws->getStyle("A{$row}")->applyFromArray([
             'font'      => ['size' => 7, 'italic' => true, 'color' => ['rgb' => $textMid]],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],

@@ -407,7 +407,7 @@ class SmartMailController extends Controller
         </head>
         <body>
             <div class="header">
-                <div class="header-brand">VibeMe.AI — Smart Mail</div>
+                <div class="header-brand">Smart HR — Smart Mail</div>
                 <div class="header-subject">{$subject}</div>
                 <div class="meta-row"><span class="meta-label">From</span>{$from}</div>
                 <div class="meta-row"><span class="meta-label">To</span>{$to}</div>
@@ -418,7 +418,7 @@ class SmartMailController extends Controller
                 <div class="body-content">{$body}</div>
             </div>
             <div class="footer">
-                VibeMe.AI Smart Mail &nbsp;·&nbsp; Downloaded on {$date}
+                Smart HR Smart Mail &nbsp;·&nbsp; Downloaded on {$date}
             </div>
         </body>
         </html>

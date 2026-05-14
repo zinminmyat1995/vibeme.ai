@@ -175,7 +175,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#1a1a1a; back
     <td style="width:4%;"></td>
     <td style="width:48%; vertical-align:top;">
         <div class="ic-dark">
-        <div style="font-size:13px; font-weight:bold; color:#c9a84c; margin-bottom:2px;">VibeMe.AI</div>
+        <div style="font-size:13px; font-weight:bold; color:#c9a84c; margin-bottom:2px;">Smart HR</div>
         <div style="font-size:7px; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Software Development</div>
         @foreach(array_slice($content['company_strengths']??[],0,4) as $s)
         <div style="font-size:9px; color:#888; margin-bottom:5px;">› {{ $s }}</div>
@@ -320,7 +320,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#1a1a1a; back
 
 {{-- CLOSING --}}
 <table class="clv" style="width:210mm; height:297mm;"><tr><td class="clv-td">
-    <div class="clv-mk">VibeMe.AI &nbsp;·&nbsp; Project Proposal</div>
+    <div class="clv-mk">Smart HR &nbsp;·&nbsp; Project Proposal</div>
     <div class="clv-ti">Ready to Build Something Great?</div>
     <div class="clv-su">Valid for {{ $content['validity_period']??'30 days' }} &nbsp;·&nbsp; {{ $client->email }}</div>
     <table class="clv-st"><tr>

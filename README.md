@@ -1,4 +1,4 @@
-# VibeMe AI - Production Deployment Guide
+# Smart HR - Production Deployment Guide
 
 ## Repository
 

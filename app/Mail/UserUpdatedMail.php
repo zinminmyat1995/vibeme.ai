@@ -17,7 +17,7 @@ class UserUpdatedMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: '✏️ VibeMe.AI — Your Account Has Been Updated');
+        return new Envelope(subject: '✏️ Smart HR — Your Account Has Been Updated');
     }
 
     public function content(): Content

@@ -149,7 +149,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#222; backgro
     <div class="c-accent"></div>
     <div class="c-inner">
         <table class="c-top"><tr>
-            <td><span class="c-brand">VibeMe<span class="c-dot"></span>AI</span></td>
+            <td><span class="c-brand">Smart<span class="c-dot"></span>HR</span></td>
             <td><span class="c-refno">{{ $content['proposal_number'] ?? '' }}</span></td>
         </tr></table>
         <div class="c-lbl">Project Proposal</div>
@@ -168,7 +168,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#222; backgro
 {{-- PAGE 2: OVERVIEW --}}
 <div class="pb nb" style="position:relative;">
 <div style="width:3px; background:#00b4a0; height:100%; position:absolute; left:0; top:0;"></div>
-<div class="phd"><table class="phdt"><tr><td class="phb">VibeMe.AI</td><td class="phi">{{ $content['proposal_number']??'' }} · Overview</td></tr></table></div>
+<div class="phd"><table class="phdt"><tr><td class="phb">Smart HR</td><td class="phi">{{ $content['proposal_number']??'' }} · Overview</td></tr></table></div>
 <div class="pbdy">
     <div class="sw-lbl">01 — Overview</div>
     <div class="sw-hd">Project Summary</div>
@@ -187,7 +187,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#222; backgro
     <td style="width:48%;">
         <div class="cby2">
             <div class="cbl">Prepared By</div>
-            <div style="font-size:13px; font-weight:bold; color:#222; margin-bottom:2px;">VibeMe.AI</div>
+            <div style="font-size:13px; font-weight:bold; color:#222; margin-bottom:2px;">Smart HR</div>
             <div style="font-size:7px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Software Development Co.</div>
             @foreach(array_slice($content['company_strengths']??[],0,3) as $s)
             <div style="font-size:9px; color:#666; margin-bottom:5px; border-left:2px solid #00b4a0; padding-left:7px;">{{ $s }}</div>
@@ -211,7 +211,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#222; backgro
 {{-- PAGE 3: SCOPE --}}
 <div class="pb nb" style="position:relative;">
 <div style="width:3px; background:#00b4a0; height:100%; position:absolute; left:0; top:0;"></div>
-<div class="phd"><table class="phdt"><tr><td class="phb">VibeMe.AI</td><td class="phi">{{ $content['proposal_number']??'' }} · Scope</td></tr></table></div>
+<div class="phd"><table class="phdt"><tr><td class="phb">Smart HR</td><td class="phi">{{ $content['proposal_number']??'' }} · Scope</td></tr></table></div>
 <div class="pbdy">
     <div class="sw-lbl">02 — Deliverables</div>
     <div class="sw-hd">Scope of Work</div>
@@ -233,7 +233,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#222; backgro
 {{-- PAGE 4: TIMELINE + INVESTMENT --}}
 <div class="pb nb" style="position:relative;">
 <div style="width:3px; background:#00b4a0; height:100%; position:absolute; left:0; top:0;"></div>
-<div class="phd"><table class="phdt"><tr><td class="phb">VibeMe.AI</td><td class="phi">{{ $content['proposal_number']??'' }} · Timeline &amp; Investment</td></tr></table></div>
+<div class="phd"><table class="phdt"><tr><td class="phb">Smart HR</td><td class="phi">{{ $content['proposal_number']??'' }} · Timeline &amp; Investment</td></tr></table></div>
 <div class="pbdy">
     <div class="sw-lbl">03 — Schedule</div>
     <div class="sw-hd">Project Timeline</div>
@@ -269,7 +269,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#222; backgro
 {{-- PAGE 5: TEAM + TERMS + STEPS --}}
 <div class="pb nb" style="position:relative;">
 <div style="width:3px; background:#00b4a0; height:100%; position:absolute; left:0; top:0;"></div>
-<div class="phd"><table class="phdt"><tr><td class="phb">VibeMe.AI</td><td class="phi">{{ $content['proposal_number']??'' }} · Team &amp; Terms</td></tr></table></div>
+<div class="phd"><table class="phdt"><tr><td class="phb">Smart HR</td><td class="phi">{{ $content['proposal_number']??'' }} · Team &amp; Terms</td></tr></table></div>
 <div class="pbdy">
     <div class="sw-lbl">05 — People</div>
     <div class="sw-hd">Project Team</div>
@@ -310,7 +310,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#222; backgro
     <div class="cl-acc"></div>
     <div class="cl-cr-tl"></div><div class="cl-cr-tr"></div>
     <div class="cl-cr-bl"></div><div class="cl-cr-br"></div>
-    <div class="cl-lbl">VibeMe.AI · Proposal</div>
+    <div class="cl-lbl">Smart HR · Proposal</div>
     <div class="cl-ti">Let's Get Started</div>
     <div class="cl-sub">Valid for {{ $content['validity_period']??'30 days' }}</div>
     <div class="cl-rule"></div>
@@ -319,7 +319,7 @@ body { font-family: DejaVu Sans, sans-serif; font-size:10px; color:#222; backgro
     <td><div class="clsn">{{ $i+1 }}</div><div class="clst">{{ Str::limit($step,22) }}</div></td>
     @endforeach
     </tr></table>
-    <div class="cl-brd">VibeMe.AI · Software Development</div>
+    <div class="cl-brd">Smart HR · Software Development</div>
 </td></tr></table>
 
 </body>

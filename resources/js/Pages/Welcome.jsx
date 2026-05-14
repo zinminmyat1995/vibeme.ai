@@ -507,7 +507,7 @@ footer {
         <nav className="nav">
             <Link href="/" className="nav-logo">
                 <img src="/images/main-logo.svg" alt="Brycen"/>
-                <span className="nav-logo-name">VibeMe<span>.AI</span></span>
+                <span className="nav-logo-name">Smart<span>HR</span></span>
             </Link>
             <div className="nav-r">
                 <button className="nav-about" onClick={() => setAboutOpen(true)}>
@@ -551,7 +551,7 @@ footer {
         </section>
 
         <footer>
-            © {new Date().getFullYear()} Brycen Group · Powered by Vibe HR
+            © {new Date().getFullYear()} Brycen Group · Powered by Smart HR
         </footer>
 
         {/* ── About Modal ── */}

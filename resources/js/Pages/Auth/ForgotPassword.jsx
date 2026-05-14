@@ -77,7 +77,7 @@ export default function ForgotPassword({ status }) {
 
                         {/* Logo */}
                         <div style={S.logoArea}>
-                            <img src={LOGO} alt="VibeMe.AI" style={S.logoImg} />
+                            <img src={LOGO} alt="Smart HR" style={S.logoImg} />
                         </div>
 
                         {sent ? (
@@ -96,7 +96,7 @@ export default function ForgotPassword({ status }) {
                                 </p>
                                 <div style={S.successSteps}>
                                     {[
-                                        { n: '1', t: 'Open the email from VibeMe.AI' },
+                                        { n: '1', t: 'Open the email from Smart HR' },
                                         { n: '2', t: 'Click the "Reset Password" button' },
                                         { n: '3', t: 'Create your new password' },
                                     ].map(step => (
@@ -170,7 +170,7 @@ export default function ForgotPassword({ status }) {
                             </>
                         )}
 
-                        <p style={S.copyright}>© 2026 VibeMe.AI</p>
+                        <p style={S.copyright}>© 2026 Smart HR</p>
                     </div>
                 </div>
             </div>
