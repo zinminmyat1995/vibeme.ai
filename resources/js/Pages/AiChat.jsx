@@ -150,7 +150,33 @@ const FLAG_SVGS = {
     my: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 30" style={{width:22,height:15,borderRadius:2,display:'block'}}><rect width="45" height="10" fill="#FECB00"/><rect y="10" width="45" height="10" fill="#34B233"/><rect y="20" width="45" height="10" fill="#EA2839"/><polygon points="22.5,3 25.9,13 15.5,6.9 29.5,6.9 19.1,13" fill="#fff"/></svg>,
     km: <svg width="20" height="14" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style={{borderRadius:2,display:'block'}}><rect width="900" height="600" fill="#032EA1"/><rect width="900" height="300" y="150" fill="#E00025"/><g fill="white"><rect x="375" y="215" width="150" height="170"/><rect x="363" y="195" width="40" height="25"/><rect x="430" y="175" width="40" height="45"/><rect x="497" y="195" width="40" height="25"/><rect x="330" y="235" width="48" height="150"/><rect x="522" y="235" width="48" height="150"/></g></svg>,
     vi: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" style={{width:22,height:15,borderRadius:2,display:'block'}}><rect width="30" height="20" fill="#DA251D"/><polygon points="15,4 16.8,9.5 22.5,9.5 17.9,12.9 19.6,18.4 15,15 10.4,18.4 12.1,12.9 7.5,9.5 13.2,9.5" fill="#FFFF00"/></svg>,
-    ko: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" style={{width:22,height:15,borderRadius:2,display:'block'}}><rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="5" fill="#CD2E3A"/><path d="M12.5,7.5 Q15,10 17.5,12.5" stroke="#003478" strokeWidth="1.5" fill="none"/><path d="M12.5,12.5 Q15,10 17.5,7.5" stroke="#CD2E3A" strokeWidth="1.5" fill="none"/></svg>,
+    ko: <svg width="20" height="14" viewBox="0 0 30 20" aria-hidden="true">
+            <rect width="30" height="20" fill="#fff"/>
+            {/* Trigrams - top left */}
+            <line x1="2" y1="3" x2="7" y2="3" stroke="#000" strokeWidth="1.2"/>
+            <line x1="2" y1="4.8" x2="7" y2="4.8" stroke="#000" strokeWidth="1.2"/>
+            <line x1="2" y1="6.6" x2="4" y2="6.6" stroke="#000" strokeWidth="1.2"/>
+            <line x1="5" y1="6.6" x2="7" y2="6.6" stroke="#000" strokeWidth="1.2"/>
+            {/* Trigrams - top right */}
+            <line x1="23" y1="3" x2="28" y2="3" stroke="#000" strokeWidth="1.2"/>
+            <line x1="23" y1="4.8" x2="25" y2="4.8" stroke="#000" strokeWidth="1.2"/>
+            <line x1="26" y1="4.8" x2="28" y2="4.8" stroke="#000" strokeWidth="1.2"/>
+            <line x1="23" y1="6.6" x2="28" y2="6.6" stroke="#000" strokeWidth="1.2"/>
+            {/* Trigrams - bottom left */}
+            <line x1="2" y1="13.4" x2="4" y2="13.4" stroke="#000" strokeWidth="1.2"/>
+            <line x1="5" y1="13.4" x2="7" y2="13.4" stroke="#000" strokeWidth="1.2"/>
+            <line x1="2" y1="15.2" x2="4" y2="15.2" stroke="#000" strokeWidth="1.2"/>
+            <line x1="5" y1="15.2" x2="7" y2="15.2" stroke="#000" strokeWidth="1.2"/>
+            <line x1="2" y1="17" x2="4" y2="17" stroke="#000" strokeWidth="1.2"/>
+            <line x1="5" y1="17" x2="7" y2="17" stroke="#000" strokeWidth="1.2"/>
+            {/* Trigrams - bottom right */}
+            <line x1="23" y1="13.4" x2="28" y2="13.4" stroke="#000" strokeWidth="1.2"/>
+            <line x1="23" y1="15.2" x2="28" y2="15.2" stroke="#000" strokeWidth="1.2"/>
+            <line x1="23" y1="17" x2="28" y2="17" stroke="#000" strokeWidth="1.2"/>
+            {/* Taegeuk circle */}
+            <circle cx="15" cy="10" r="4" fill="#CD2E3A"/>
+            <path d="M15,6 A4,4 0 0,1 15,14 A2,2 0 0,1 15,10 A2,2 0 0,0 15,6" fill="#0047A0"/>
+        </svg>
 };
 const FLAGS = { en: '🇺🇸', ja: '🇯🇵', my: '🇲🇲', km: '🇰🇭', vi: '🇻🇳', ko: '🇰🇷' };
 const LANG_LABELS = { en: 'English', ja: 'Japanese', my: 'Burmese', km: 'Khmer', vi: 'Vietnamese', ko: 'Korean' };

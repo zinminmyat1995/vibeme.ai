@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import axios from 'axios';
+import { LanguageProvider } from '@/Contexts/LanguageContext';
 
 // ── Axios defaults ──────────────────────────────────────────────
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -51,6 +52,11 @@ createInertiaApp({
         ),
     setup({ el, App, props }) {
         window.userId = props.initialPage?.props?.userId;
-        createRoot(el).render(<App {...props} />);
+        createRoot(el).render(
+            <LanguageProvider>
+                <App {...props} />
+            </LanguageProvider>
+        );
     },
 });
+

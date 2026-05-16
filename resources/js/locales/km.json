@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "groups": {
+      "MAIN": "មេ",
+      "AI WORKSPACE": "កន្លែងធ្វើការ AI",
+      "OPERATIONS": "ប្រតិបត្តិការ",
+      "PEOPLE & HR": "ធនធានមនុស្ស",
+      "WORK MANAGEMENT": "ការគ្រប់គ្រងការងារ",
+      "PAYROLL": "ប្រាក់ខែ"
+    },
+    "items": {
+      "Dashboard": "ផ្ទាំងគ្រប់គ្រង",
+      "My Profile": "ប្រវត្តិរូបខ្ញុំ",
+      "Requirement Analysis": "វិភាគតម្រូវការ",
+      "Proposal Generator": "បង្កើតសំណើ",
+      "Project Management": "ការគ្រប់គ្រងគម្រោង",
+      "My Assignments": "ភារកិច្ចរបស់ខ្ញុំ",
+      "P&L Report": "របាយការណ៍ចំណេញ/ខាត",
+      "Document Translation": "បកប្រែឯកសារ",
+      "Smart Mail": "អ៊ីមែល",
+      "AI Chat": "ជជែក AI",
+      "Trip Schedule": "កាលវិភាគដំណើរ",
+      "Surveys": "ការស្ទង់មតិ",
+      "HR Alerts": "សញ្ញាព្រមាន HR",
+      "Performance Review": "វាយតម្លៃសមិទ្ធផល",
+      "Recruitment": "ជ្រើសរើសបុគ្គលិក",
+      "User & Roles": "អ្នកប្រើ និងតួនាទី",
+      "HR Policy": "គោលនយោបាយ HR",
+      "Project Assignment": "ចាត់តាំងគម្រោង",
+      "Bookings": "ការកក់",
+      "Attendance": "វត្តមាន",
+      "Check In/Out Request": "សំណើចូល/ចេញ",
+      "Leave Request": "សំណើច្បាប់",
+      "Overtime Request": "សំណើម៉ោងបន្ថែម",
+      "Expense Request": "សំណើការចំណាយ",
+      "Employee Salary": "ប្រាក់ខែបុគ្គលិក",
+      "Payroll": "ប្រាក់ខែ",
+      "Payslip": "រង្វាន់ប្រាក់ខែ",
+      "Bank Export": "នាំចេញទៅធនាគារ"
+    },
+    "signOut": "ចេញ",
+    "endSession": "បញ្ចប់វគ្គបច្ចុប្បន្ន"
+  },
+  "roles": {
+    "admin": "អ្នកគ្រប់គ្រង",
+    "hr": "អ្នកគ្រប់គ្រង HR",
+    "management": "ការគ្រប់គ្រង",
+    "employee": "បុគ្គលិក",
+    "driver": "អ្នកបើកបរ"
+  },
+  "lang": {
+    "label": "ភាសា",
+    "en": "English",
+    "my": "မြန်မာ",
+    "km": "ខ្មែរ",
+    "vi": "Tiếng Việt",
+    "ko": "한국어",
+    "ja": "日本語"
+  }
+}

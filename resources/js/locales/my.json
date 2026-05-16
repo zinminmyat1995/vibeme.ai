@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "groups": {
+      "MAIN": "အဓိက",
+      "AI WORKSPACE": "AI အလုပ်ခွင်",
+      "OPERATIONS": "လုပ်ငန်းဆောင်တာများ",
+      "PEOPLE & HR": "လူ့အရင်းအမြစ်",
+      "WORK MANAGEMENT": "အလုပ်စီမံခန့်ခွဲမှု",
+      "PAYROLL": "လစာစနစ်"
+    },
+    "items": {
+      "Dashboard": "ဒက်ရှ်ဘုတ်",
+      "My Profile": "ကျွန်ုပ်ပရိုဖိုင်",
+      "Requirement Analysis": "လိုအပ်ချက်ခွဲခြမ်းစိတ်ဖြာမှု",
+      "Proposal Generator": "အဆိုပြုစာဖန်တီးမှု",
+      "Project Management": "စီမံကိန်းစီမံခန့်ခွဲမှု",
+      "My Assignments": "ကျွန်ုပ်၏တာဝန်များ",
+      "P&L Report": "အမြတ်အရှုံးအစီရင်ခံစာ",
+      "Document Translation": "စာရွက်စာတမ်းဘာသာပြန်မှု",
+      "Smart Mail": "အီးမေးလ်",
+      "AI Chat": "AI စကားပြော",
+      "Trip Schedule": "ခရီးစဉ်အချိန်ဇယား",
+      "Surveys": "စစ်တမ်းများ",
+      "HR Alerts": "HR သတိပေးချက်များ",
+      "Performance Review": "စွမ်းဆောင်ရည်သုံးသပ်မှု",
+      "Recruitment": "ဝန်ထမ်းခေါ်ယူမှု",
+      "User & Roles": "သုံးစွဲသူနှင့်အခန်းကဏ္ဍများ",
+      "HR Policy": "လူ့အရင်းအမြစ်မူဝါဒ",
+      "Project Assignment": "စီမံကိန်းတာဝန်ချမှု",
+      "Bookings": "ကြိုတင်မှာကြားမှုများ",
+      "Attendance": "တက်ရောက်မှု",
+      "Check In/Out Request": "ဝင်/ထွက် တောင်းဆိုမှု",
+      "Leave Request": "ခွင့်တောင်းဆိုမှု",
+      "Overtime Request": "အချိန်ပိုတောင်းဆိုမှု",
+      "Expense Request": "စရိတ်တောင်းဆိုမှု",
+      "Employee Salary": "ဝန်ထမ်းလစာ",
+      "Payroll": "လစာစနစ်",
+      "Payslip": "လစာပြေစာ",
+      "Bank Export": "ဘဏ်ထုတ်ယူမှု"
+    },
+    "signOut": "ထွက်မည်",
+    "endSession": "လက်ရှိ session ပိတ်မည်"
+  },
+  "roles": {
+    "admin": "စီမံခန့်ခွဲသူ",
+    "hr": "HR မန်နေဂျာ",
+    "management": "စီမံခန့်ခွဲမှု",
+    "employee": "ဝန်ထမ်း",
+    "driver": "ယာဉ်မောင်း"
+  },
+  "lang": {
+    "label": "ဘာသာစကား",
+    "en": "English",
+    "my": "မြန်မာ",
+    "km": "ខ្មែរ",
+    "vi": "Tiếng Việt",
+    "ko": "한국어",
+    "ja": "日本語"
+  }
+}

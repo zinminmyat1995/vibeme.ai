@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "groups": {
+      "MAIN": "CHÍNH",
+      "AI WORKSPACE": "KHÔNG GIAN AI",
+      "OPERATIONS": "VẬN HÀNH",
+      "PEOPLE & HR": "NHÂN SỰ",
+      "WORK MANAGEMENT": "QUẢN LÝ CÔNG VIỆC",
+      "PAYROLL": "BẢNG LƯƠNG"
+    },
+    "items": {
+      "Dashboard": "Trang chủ",
+      "My Profile": "Hồ sơ của tôi",
+      "Requirement Analysis": "Phân tích yêu cầu",
+      "Proposal Generator": "Tạo đề xuất",
+      "Project Management": "Quản lý dự án",
+      "My Assignments": "Nhiệm vụ của tôi",
+      "P&L Report": "Báo cáo lãi/lỗ",
+      "Document Translation": "Dịch tài liệu",
+      "Smart Mail": "Email",
+      "AI Chat": "Trò chuyện AI",
+      "Trip Schedule": "Lịch chuyến đi",
+      "Surveys": "Khảo sát",
+      "HR Alerts": "Cảnh báo HR",
+      "Performance Review": "Đánh giá hiệu suất",
+      "Recruitment": "Tuyển dụng",
+      "User & Roles": "Người dùng & Vai trò",
+      "HR Policy": "Chính sách HR",
+      "Project Assignment": "Phân công dự án",
+      "Bookings": "Đặt chỗ",
+      "Attendance": "Chấm công",
+      "Check In/Out Request": "Yêu cầu vào/ra",
+      "Leave Request": "Yêu cầu nghỉ phép",
+      "Overtime Request": "Yêu cầu tăng ca",
+      "Expense Request": "Yêu cầu chi phí",
+      "Employee Salary": "Lương nhân viên",
+      "Payroll": "Bảng lương",
+      "Payslip": "Phiếu lương",
+      "Bank Export": "Xuất ngân hàng"
+    },
+    "signOut": "Đăng xuất",
+    "endSession": "Kết thúc phiên hiện tại"
+  },
+  "roles": {
+    "admin": "Quản trị viên",
+    "hr": "Quản lý HR",
+    "management": "Ban quản lý",
+    "employee": "Nhân viên",
+    "driver": "Tài xế"
+  },
+  "lang": {
+    "label": "Ngôn ngữ",
+    "en": "English",
+    "my": "မြန်မာ",
+    "km": "ខ្មែរ",
+    "vi": "Tiếng Việt",
+    "ko": "한국어",
+    "ja": "日本語"
+  }
+}

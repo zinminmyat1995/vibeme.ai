@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "groups": {
+      "MAIN": "MAIN",
+      "AI WORKSPACE": "AI WORKSPACE",
+      "OPERATIONS": "OPERATIONS",
+      "PEOPLE & HR": "PEOPLE & HR",
+      "WORK MANAGEMENT": "WORK MANAGEMENT",
+      "PAYROLL": "PAYROLL"
+    },
+    "items": {
+      "Dashboard": "Dashboard",
+      "My Profile": "My Profile",
+      "Requirement Analysis": "Requirement Analysis",
+      "Proposal Generator": "Proposal Generator",
+      "Project Management": "Project Management",
+      "My Assignments": "My Assignments",
+      "P&L Report": "P&L Report",
+      "Document Translation": "Document Translation",
+      "Smart Mail": "Smart Mail",
+      "AI Chat": "AI Chat",
+      "Trip Schedule": "Trip Schedule",
+      "Surveys": "Surveys",
+      "HR Alerts": "HR Alerts",
+      "Performance Review": "Performance Review",
+      "Recruitment": "Recruitment",
+      "User & Roles": "User & Roles",
+      "HR Policy": "HR Policy",
+      "Project Assignment": "Project Assignment",
+      "Bookings": "Bookings",
+      "Attendance": "Attendance",
+      "Check In/Out Request": "Check In/Out Request",
+      "Leave Request": "Leave Request",
+      "Overtime Request": "Overtime Request",
+      "Expense Request": "Expense Request",
+      "Employee Salary": "Employee Salary",
+      "Payroll": "Payroll",
+      "Payslip": "Payslip",
+      "Bank Export": "Bank Export"
+    },
+    "signOut": "Sign Out",
+    "endSession": "End current session"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "hr": "HR Manager",
+    "management": "Management",
+    "employee": "Employee",
+    "driver": "Driver"
+  },
+  "lang": {
+    "label": "Language",
+    "en": "English",
+    "my": "မြန်မာ",
+    "km": "ខ្មែរ",
+    "vi": "Tiếng Việt",
+    "ko": "한국어",
+    "ja": "日本語"
+  }
+}

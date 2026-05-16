@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "groups": {
+      "MAIN": "メイン",
+      "AI WORKSPACE": "AIワークスペース",
+      "OPERATIONS": "オペレーション",
+      "PEOPLE & HR": "人事管理",
+      "WORK MANAGEMENT": "業務管理",
+      "PAYROLL": "給与"
+    },
+    "items": {
+      "Dashboard": "ダッシュボード",
+      "My Profile": "マイプロフィール",
+      "Requirement Analysis": "要件分析",
+      "Proposal Generator": "提案書作成",
+      "Project Management": "プロジェクト管理",
+      "My Assignments": "マイタスク",
+      "P&L Report": "損益レポート",
+      "Document Translation": "文書翻訳",
+      "Smart Mail": "メール",
+      "AI Chat": "AIチャット",
+      "Trip Schedule": "運行スケジュール",
+      "Surveys": "アンケート",
+      "HR Alerts": "HRアラート",
+      "Performance Review": "パフォーマンス評価",
+      "Recruitment": "採用",
+      "User & Roles": "ユーザーと権限",
+      "HR Policy": "HR方針",
+      "Project Assignment": "プロジェクト割当",
+      "Bookings": "予約",
+      "Attendance": "出勤",
+      "Check In/Out Request": "出退勤申請",
+      "Leave Request": "休暇申請",
+      "Overtime Request": "残業申請",
+      "Expense Request": "経費申請",
+      "Employee Salary": "社員給与",
+      "Payroll": "給与処理",
+      "Payslip": "給与明細",
+      "Bank Export": "銀行エクスポート"
+    },
+    "signOut": "ログアウト",
+    "endSession": "現在のセッションを終了"
+  },
+  "roles": {
+    "admin": "管理者",
+    "hr": "HRマネージャー",
+    "management": "マネジメント",
+    "employee": "社員",
+    "driver": "ドライバー"
+  },
+  "lang": {
+    "label": "言語",
+    "en": "English",
+    "my": "မြန်မာ",
+    "km": "ខ្មែរ",
+    "vi": "Tiếng Việt",
+    "ko": "한국어",
+    "ja": "日本語"
+  }
+}

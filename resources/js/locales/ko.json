@@ -1,0 +1,60 @@
+{
+  "nav": {
+    "groups": {
+      "MAIN": "메인",
+      "AI WORKSPACE": "AI 작업공간",
+      "OPERATIONS": "운영",
+      "PEOPLE & HR": "인사관리",
+      "WORK MANAGEMENT": "업무관리",
+      "PAYROLL": "급여"
+    },
+    "items": {
+      "Dashboard": "대시보드",
+      "My Profile": "내 프로필",
+      "Requirement Analysis": "요구사항 분석",
+      "Proposal Generator": "제안서 생성",
+      "Project Management": "프로젝트 관리",
+      "My Assignments": "내 업무",
+      "P&L Report": "손익 보고서",
+      "Document Translation": "문서 번역",
+      "Smart Mail": "이메일",
+      "AI Chat": "AI 채팅",
+      "Trip Schedule": "운행 일정",
+      "Surveys": "설문조사",
+      "HR Alerts": "HR 알림",
+      "Performance Review": "성과 평가",
+      "Recruitment": "채용",
+      "User & Roles": "사용자 및 역할",
+      "HR Policy": "HR 정책",
+      "Project Assignment": "프로젝트 배정",
+      "Bookings": "예약",
+      "Attendance": "출근",
+      "Check In/Out Request": "출퇴근 요청",
+      "Leave Request": "휴가 신청",
+      "Overtime Request": "초과근무 신청",
+      "Expense Request": "비용 신청",
+      "Employee Salary": "직원 급여",
+      "Payroll": "급여 처리",
+      "Payslip": "급여명세서",
+      "Bank Export": "은행 내보내기"
+    },
+    "signOut": "로그아웃",
+    "endSession": "현재 세션 종료"
+  },
+  "roles": {
+    "admin": "관리자",
+    "hr": "HR 매니저",
+    "management": "경영진",
+    "employee": "직원",
+    "driver": "운전기사"
+  },
+  "lang": {
+    "label": "언어",
+    "en": "English",
+    "my": "မြန်မာ",
+    "km": "ខ្មែរ",
+    "vi": "Tiếng Việt",
+    "ko": "한국어",
+    "ja": "日本語"
+  }
+}

@@ -3,377 +3,15 @@ import { Link, usePage } from '@inertiajs/react';
 import GlobalToast from '@/Components/Toast';
 import NotificationBell from '@/Components/NotificationBell';
 import HrChatbotWidget from '@/Components/HrChatbotWidget';
+import { useTranslation, LanguageSwitcher } from '@/Contexts/LanguageContext';
 
 const roleConfig = {
-    admin:      { label: 'Administrator', color: '#7c3aed', bg: '#ede9fe', dot: '#7c3aed' },
-    hr:         { label: 'HR Manager',    color: '#059669', bg: '#d1fae5', dot: '#059669' },
-    management: { label: 'Management',    color: '#2563eb', bg: '#dbeafe', dot: '#2563eb' },
-    employee:   { label: 'Employee',      color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
-    driver:     { label: 'Driver',        color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
+    admin:      { color: '#7c3aed', bg: '#ede9fe', dot: '#7c3aed' },
+    hr:         { color: '#059669', bg: '#d1fae5', dot: '#059669' },
+    management: { color: '#2563eb', bg: '#dbeafe', dot: '#2563eb' },
+    employee:   { color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
+    driver:     { color: '#d97706', bg: '#fef3c7', dot: '#d97706' },
 };
-
-const menuItems = [
-    {
-        group: 'MAIN',
-        items: [
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-                    </svg>
-                ),
-                label: 'Dashboard',
-                route: '/dashboard',
-                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                ),
-                label: 'My Profile',
-                route: '/profile',
-                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
-            },
-        ]
-    },
-    {
-        group: 'AI WORKSPACE',
-        items: [
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-                    </svg>
-                ),
-                label: 'Requirement Analysis',
-                route: '/requirement-analysis',
-                // management ဖြုတ် — client-facing work က HR/Admin ရဲ့ job
-                roles: ['admin', 'hr'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-                    </svg>
-                ),
-                label: 'Proposal Generator',
-                route: '/proposals',
-                // management ဖြုတ် — proposal ရေးတာ HR/Admin ရဲ့ job
-                roles: ['admin', 'hr'],
-            },
-
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="7" width="20" height="14" rx="2"/>
-                        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                        <line x1="12" y1="12" x2="12" y2="16"/>
-                        <line x1="10" y1="14" x2="14" y2="14"/>
-                    </svg>
-                ),
-                label: 'Project Management',
-                route: '/hr/projects',
-                roles: ['admin', 'hr'],   // management မပါဘူး
-            },
-
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                        <line x1="8" y1="14" x2="8" y2="14"/>
-                        <line x1="12" y1="14" x2="12" y2="14"/>
-                        <line x1="8" y1="18" x2="8" y2="18"/>
-                    </svg>
-                ),
-                label: 'My Assignments',
-                route: '/my-assignments',
-                roles: ['management', 'employee'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="20" x2="18" y2="10"/>
-                        <line x1="12" y1="20" x2="12" y2="4"/>
-                        <line x1="6"  y1="20" x2="6"  y2="14"/>
-                        <path d="M2 20h20"/>
-                    </svg>
-                ),
-                label: 'P&L Report',
-                route: '/hr/pl-report',
-                roles: ['admin', 'hr'],
-            },
- 
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                    </svg>
-                ),
-                label: 'Document Translation',
-                route: '/document-translation',
-                roles: ['admin', 'hr', 'management', 'employee'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-                    </svg>
-                ),
-                label: 'Smart Mail',
-                route: '/smart-mail',
-                roles: ['admin', 'hr', 'management', 'employee'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                ),
-                label: 'AI Chat',
-                route: '/ai-chat',
-                roles: ['admin', 'hr', 'management', 'employee'],
-            },
-        ]
-    },
-    {
-        group: 'OPERATIONS',
-        items: [
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="1" y="3" width="15" height="13" rx="2"/>
-                        <path d="M16 8h4l3 5v3h-7V8z"/>
-                        <circle cx="5.5" cy="18.5" r="2.5"/>
-                        <circle cx="18.5" cy="18.5" r="2.5"/>
-                    </svg>
-                ),
-                label: 'Trip Schedule',
-                route: '/driver/schedule',
-                roles: ['driver'],
-            },
-        ],
-    },
-    {
-        group: 'PEOPLE & HR',
-        items: [
-            {
-                icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-                    <rect x="9" y="3" width="6" height="4" rx="1"/>
-                    <line x1="9" y1="12" x2="15" y2="12"/>
-                    <line x1="9" y1="16" x2="13" y2="16"/>
-                </svg>,
-                label: 'Surveys',
-                route: '/hr/surveys',
-                roles: ['admin', 'hr'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                        <line x1="12" y1="9" x2="12" y2="13"/>
-                        <line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                ),
-                label: 'HR Alerts',
-                route: '/hr-alerts',
-                roles: ['hr'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 11l3 3L22 4"/>
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                    </svg>
-                ),
-                label: 'Performance Review',
-                route: '/performance',
-                roles: ['admin', 'hr', 'management'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M16 20V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/>
-                        <path d="M8 6h4"/><path d="M8 10h4"/><path d="M8 14h3"/>
-                        <path d="M18 9v6"/><path d="M15 12h6"/>
-                    </svg>
-                ),
-                label: 'Recruitment',
-                route: '/recruitment',
-                roles: ['admin', 'hr'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                        <circle cx="18" cy="9" r="2.5"/>
-                        <path d="M18 6.5v5"/>
-                    </svg>
-                ),
-                label: 'User & Roles',
-                route: '/users',
-                roles: ['admin', 'hr'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-                    </svg>
-                ),
-                label: 'HR Policy',
-                route: '/payroll/hr-policy',
-                roles: ['hr'],
-            },
-        ]
-    },
-    {
-        group: 'WORK MANAGEMENT',
-        items: [
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                ),
-                label: 'Project Assignment',
-                route: '/admin/assignments',
-                // hr ထည့် — P&L report ကြည့်ဖို့ HR ကလည်း project list မြင်ရမယ်
-                roles: ['admin', 'management'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                        <path d="M8 2v4M16 2v4M3 10h18"/>
-                        <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
-                    </svg>
-                ),
-                label: 'Bookings',
-                route: '/bookings',
-                roles: ['admin', 'hr', 'management', 'employee'],
-            },
-        ]
-    },
-    {
-        group: 'PAYROLL',
-        items: [
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                ),
-                label: 'Attendance',
-                route: '/payroll/attendance',
-                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M8 7V3M16 7V3M4 11h16"/>
-                        <rect x="3" y="5" width="18" height="16" rx="2"/>
-                        <path d="M9 15l2 2 4-4"/>
-                    </svg>
-                ),
-                label: 'Check In/Out Request',
-                route: '/payroll/check-in-out-requests',
-                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-                    </svg>
-                ),
-                label: 'Leave Request',
-                route: '/payroll/leaves',
-                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                ),
-                label: 'Overtime Request',
-                route: '/payroll/overtimes',
-                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2"/>
-                        <line x1="8" y1="21" x2="16" y2="21"/>
-                        <line x1="12" y1="17" x2="12" y2="21"/>
-                        <path d="M7 8h4M7 12h2"/>
-                        <circle cx="17" cy="9" r="2"/>
-                        <path d="M15 14s0-2 2-2 2 2 2 2"/>
-                    </svg>
-                ),
-                label: 'Expense Request',
-                route: '/payroll/expenses',
-                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="8" r="4"/>
-                        <path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-                        <line x1="17" y1="11" x2="22" y2="11"/>
-                        <line x1="19.5" y1="8.5" x2="19.5" y2="13.5"/>
-                    </svg>
-                ),
-                label: 'Employee Salary',
-                route: '/payroll/employee-salary',
-                roles: ['hr'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                    </svg>
-                ),
-                label: 'Payroll',
-                route: '/payroll/records',
-                roles: ['hr'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-                    </svg>
-                ),
-                label: 'Payslip',
-                route: '/payroll/payslip',
-                roles: ['admin', 'hr', 'management', 'employee', 'driver'],
-            },
-            {
-                icon: (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                ),
-                label: 'Bank Export',
-                route: '/payroll/export',
-                roles: ['hr'],
-            },
-        ]
-    }
-];
 
 function DefaultAvatar({ size = 40, color = '#9ca3af' }) {
     return (
@@ -390,6 +28,7 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
     const user = auth?.user;
     const roleName = user?.role?.name || 'employee';
     const role = roleConfig[roleName] || roleConfig.employee;
+    const { t } = useTranslation();
 
     const [collapsed, setCollapsed] = useState(false);
     const [darkMode, setDarkMode] = useState(() => {
@@ -444,6 +83,369 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
         if (itemRoute === '/dashboard') return currentUrl === '/dashboard';
         return currentUrl.startsWith(itemRoute);
     };
+
+    // ── menuItems — t() နဲ့ ဆောက် — lang ပြောင်းတိုင်း re-compute ──────────
+    const menuItems = useMemo(() => [
+        {
+            group: t('nav.groups.MAIN'),
+            items: [
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Dashboard'),
+                    route: '/dashboard',
+                    roles: ['admin', 'hr', 'management', 'employee', 'driver'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.My Profile'),
+                    route: '/profile',
+                    roles: ['admin', 'hr', 'management', 'employee', 'driver'],
+                },
+            ]
+        },
+
+        {
+            group: t('nav.groups.PAYROLL'),
+            items: [
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Attendance'),
+                    route: '/payroll/attendance',
+                    roles: ['admin', 'hr', 'management', 'employee', 'driver'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M8 7V3M16 7V3M4 11h16"/>
+                            <rect x="3" y="5" width="18" height="16" rx="2"/>
+                            <path d="M9 15l2 2 4-4"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Check In/Out Request'),
+                    route: '/payroll/check-in-out-requests',
+                    roles: ['admin', 'hr', 'management', 'employee', 'driver'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Leave Request'),
+                    route: '/payroll/leaves',
+                    roles: ['admin', 'hr', 'management', 'employee', 'driver'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Overtime Request'),
+                    route: '/payroll/overtimes',
+                    roles: ['admin', 'hr', 'management', 'employee', 'driver'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                            <path d="M7 8h4M7 12h2"/>
+                            <circle cx="17" cy="9" r="2"/>
+                            <path d="M15 14s0-2 2-2 2 2 2 2"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Expense Request'),
+                    route: '/payroll/expenses',
+                    roles: ['admin', 'hr', 'management', 'employee', 'driver'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="8" r="4"/>
+                            <path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                            <line x1="17" y1="11" x2="22" y2="11"/>
+                            <line x1="19.5" y1="8.5" x2="19.5" y2="13.5"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Employee Salary'),
+                    route: '/payroll/employee-salary',
+                    roles: ['hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Payroll'),
+                    route: '/payroll/records',
+                    roles: ['hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Payslip'),
+                    route: '/payroll/payslip',
+                    roles: ['admin', 'hr', 'management', 'employee', 'driver'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Bank Export'),
+                    route: '/payroll/export',
+                    roles: ['hr'],
+                },
+            ]
+        },
+
+        {
+            group: t('nav.groups.WORK MANAGEMENT'),
+            items: [
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Project Assignment'),
+                    route: '/admin/assignments',
+                    roles: ['admin', 'management'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <path d="M8 2v4M16 2v4M3 10h18"/>
+                            <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Bookings'),
+                    route: '/bookings',
+                    roles: ['admin', 'hr', 'management', 'employee'],
+                },
+            ]
+        },
+        {
+            group: t('nav.groups.PEOPLE & HR'),
+            items: [
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                            <rect x="9" y="3" width="6" height="4" rx="1"/>
+                            <line x1="9" y1="12" x2="15" y2="12"/>
+                            <line x1="9" y1="16" x2="13" y2="16"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Surveys'),
+                    route: '/hr/surveys',
+                    roles: ['admin', 'hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.HR Alerts'),
+                    route: '/hr-alerts',
+                    roles: ['hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 11l3 3L22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Performance Review'),
+                    route: '/performance',
+                    roles: ['admin', 'hr', 'management'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16 20V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2Z"/>
+                            <path d="M8 6h4"/><path d="M8 10h4"/><path d="M8 14h3"/>
+                            <path d="M18 9v6"/><path d="M15 12h6"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Recruitment'),
+                    route: '/recruitment',
+                    roles: ['admin', 'hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                            <circle cx="18" cy="9" r="2.5"/>
+                            <path d="M18 6.5v5"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.User & Roles'),
+                    route: '/users',
+                    roles: ['admin', 'hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.HR Policy'),
+                    route: '/payroll/hr-policy',
+                    roles: ['hr'],
+                },
+            ]
+        },
+        {
+            group: t('nav.groups.OPERATIONS'),
+            items: [
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="1" y="3" width="15" height="13" rx="2"/>
+                            <path d="M16 8h4l3 5v3h-7V8z"/>
+                            <circle cx="5.5" cy="18.5" r="2.5"/>
+                            <circle cx="18.5" cy="18.5" r="2.5"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Trip Schedule'),
+                    route: '/driver/schedule',
+                    roles: ['driver'],
+                },
+            ],
+        },
+        {
+            group: t('nav.groups.AI WORKSPACE'),
+            items: [
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Requirement Analysis'),
+                    route: '/requirement-analysis',
+                    roles: ['admin', 'hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Proposal Generator'),
+                    route: '/proposals',
+                    roles: ['admin', 'hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="7" width="20" height="14" rx="2"/>
+                            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                            <line x1="12" y1="12" x2="12" y2="16"/>
+                            <line x1="10" y1="14" x2="14" y2="14"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Project Management'),
+                    route: '/hr/projects',
+                    roles: ['admin', 'hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                            <line x1="8" y1="14" x2="8" y2="14"/>
+                            <line x1="12" y1="14" x2="12" y2="14"/>
+                            <line x1="8" y1="18" x2="8" y2="18"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.My Assignments'),
+                    route: '/my-assignments',
+                    roles: ['management', 'employee'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"/>
+                            <line x1="12" y1="20" x2="12" y2="4"/>
+                            <line x1="6"  y1="20" x2="6"  y2="14"/>
+                            <path d="M2 20h20"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.P&L Report'),
+                    route: '/hr/pl-report',
+                    roles: ['admin', 'hr'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Document Translation'),
+                    route: '/document-translation',
+                    roles: ['admin', 'hr', 'management', 'employee'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.Smart Mail'),
+                    route: '/smart-mail',
+                    roles: ['admin', 'hr', 'management', 'employee'],
+                },
+                {
+                    icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    ),
+                    label: t('nav.items.AI Chat'),
+                    route: '/ai-chat',
+                    roles: ['admin', 'hr', 'management', 'employee'],
+                },
+            ]
+        },
+
+    ], [t]);
 
     const theme = useMemo(() => {
         if (darkMode) {
@@ -558,7 +560,6 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                             filter: 'blur(14px)', pointerEvents: 'none',
                         }} />
 
-                        {/* Collapse toggle */}
                         <button onClick={() => setCollapsed(!collapsed)} style={{
                             position: 'absolute', top: 10, right: 10, zIndex: 2,
                             width: 24, height: 24, borderRadius: 99,
@@ -574,7 +575,6 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                             {collapsed ? '›' : '‹'}
                         </button>
 
-                        {/* Avatar + Info */}
                         <div style={{
                             position: 'relative', zIndex: 1,
                             display: 'flex',
@@ -622,7 +622,9 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                                             fontSize: 10, fontWeight: 800,
                                             color: darkMode ? '#bfdbfe' : role.color,
                                             letterSpacing: '0.55px', textTransform: 'uppercase',
-                                        }}>{role.label}</span>
+                                        }}>
+                                            {t(`roles.${roleName}`)}
+                                        </span>
                                     </div>
                                 </div>
                             )}
@@ -654,7 +656,7 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                                     {visibleItems.map(item => {
                                         const active = isActive(item.route);
                                         return (
-                                            <Link key={item.label} href={item.route}
+                                            <Link key={item.route} href={item.route}
                                                 title={collapsed ? item.label : ''}
                                                 style={{
                                                     position: 'relative',
@@ -765,20 +767,16 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                         {!collapsed && (
                             <div style={{ textAlign: 'left' }}>
                                 <div style={{ fontSize: 13, fontWeight: 800, color: theme.signOut, lineHeight: 1.25 }}>
-                                    Sign Out
+                                    {t('nav.signOut')}
                                 </div>
                                 <div style={{ fontSize: 10.5, color: theme.textMuted, marginTop: 2 }}>
-                                    End current session
+                                    {t('nav.endSession')}
                                 </div>
                             </div>
                         )}
                     </Link>
                     {!collapsed && (
-                        <div style={{
-                            marginTop: 8,
-                            textAlign: 'center',
-                            lineHeight: 1.7,
-                        }}>
+                        <div style={{ marginTop: 8, textAlign: 'center', lineHeight: 1.7 }}>
                             <div style={{
                                 fontSize: 9,
                                 color: darkMode ? '#94a3b8' : '#64748b',
@@ -786,11 +784,7 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                                 letterSpacing: '0.05em',
                             }}>
                                 Developed by{' '}
-                                <span style={{
-                                    fontWeight: 700,
-                                    color: darkMode ? '#93c5fd' : '#2563eb',
-                                    opacity: 1,
-                                }}>
+                                <span style={{ fontWeight: 700, color: darkMode ? '#93c5fd' : '#2563eb', opacity: 1 }}>
                                     Zin Min Myat
                                 </span>
                                 <br/>
@@ -818,28 +812,13 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                     borderBottom: `1px solid ${theme.headerBorder}`,
                     backdropFilter: 'blur(18px)',
                 }}>
-
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                        <div style={{
-                            width: 40,        // fixed width — ဘယ်ညာ မကျယ်တော့ဘူး
-                            height: 40,       // fixed height
-                            flexShrink: 0,    // squeeze မဖြစ်တော့ဘူး
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}>
+                        <div style={{ width: 40, height: 40, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <img
                                 src="/images/main-logo.svg"
                                 alt="Smart HR"
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'contain',
-                                    visibility: 'visible',  // hide မဖြစ်တော့ဘူး — space ကျန်နေမယ်
-                                }}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain', visibility: 'visible' }}
                                 onError={e => { e.target.style.visibility = 'hidden'; }}
-                                // display:none မဟုတ်တော့ visibility:hidden သုံး
-                                // space ကျန်တာကြောင့် title က ဘယ်မရောက်တော့ဘူး
                             />
                         </div>
                         <div style={{
@@ -847,19 +826,18 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                             background: darkMode ? 'rgba(148,163,184,0.18)' : 'rgba(15,23,42,0.10)',
                             flexShrink: 0,
                         }} />
-                        <div>
-                            <div style={{
-                                fontSize: 19, fontWeight: 900,
-                                letterSpacing: '-0.4px',
-                                color: theme.textPrimary,
-                                lineHeight: 1.2,
-                            }}>
-                                {title}
-                            </div>
+                        <div style={{
+                            fontSize: 19, fontWeight: 900,
+                            letterSpacing: '-0.4px',
+                            color: theme.textPrimary,
+                            lineHeight: 1.2,
+                        }}>
+                            {title}
                         </div>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <LanguageSwitcher darkMode={darkMode} />
                         <NotificationBell userId={user?.id} theme={theme} darkMode={darkMode} />
                         <button
                             type="button"
@@ -899,7 +877,6 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                     </div>
                 </header>
 
-                {/* Page content */}
                 <main style={{ flex: 1, padding: 28, background: 'transparent' }}>
                     {children}
                 </main>
