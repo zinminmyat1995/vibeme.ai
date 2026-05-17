@@ -2,6 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ── Theme ─────────────────────────────────────────────────────
 function useReactiveTheme() {
@@ -112,6 +113,10 @@ const STATUS_CFG = {
 };
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const otPolicyKey = title => String(title || 'OT').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '');
+const otPolicyTitle = (tr, title) => tr(`overtime.policyTitles.${otPolicyKey(title)}`);
+
 
 // ── Premium Dropdown ───────────────────────────────────────────
 function PremiumDropdown({ options, value, onChange, placeholder = 'Select...', theme, dark, disabled = false, width = 'auto' }) {
@@ -235,17 +240,17 @@ function PremiumDropdown({ options, value, onChange, placeholder = 'Select...', 
 // ─────────────────────────────────────────────────────────────
 //  OT POLICY CARDS  ← matches LeaveBalanceCards layout exactly
 // ─────────────────────────────────────────────────────────────
-function OTPolicyCards({ overtimePolicies, dark, theme }) {
+function OTPolicyCards({ overtimePolicies, dark, theme, tr }) {
     if (!overtimePolicies?.length) return null;
     return (
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {overtimePolicies.map(pol => {
                 const c        = getOTColor(pol.title);
                 const bg       = dark ? c.bgDark : c.bg;
-                const dayLabel = pol.day_type === 'public_holiday' ? 'Public Holiday'
-                               : pol.day_type === 'weekend'        ? 'Weekend' : 'Weekday';
-                const shiftLbl = pol.shift_type === 'day'   ? 'Day'
-                               : pol.shift_type === 'night' ? 'Night' : 'All';
+                const dayLabel = pol.day_type === 'public_holiday' ? tr('overtime.labels.publicHoliday')
+                               : pol.day_type === 'weekend'        ? tr('overtime.labels.weekend') : tr('overtime.labels.weekday');
+                const shiftLbl = pol.shift_type === 'day'   ? tr('overtime.labels.day')
+                               : pol.shift_type === 'night' ? tr('overtime.labels.night') : tr('overtime.labels.all');
                 const rateVal  = pol.rate_type === 'multiplier'
                                ? `${Number(pol.rate_value).toFixed(1)}×`
                                : Number(pol.rate_value).toLocaleString();
@@ -284,10 +289,10 @@ function OTPolicyCards({ overtimePolicies, dark, theme }) {
                                 textTransform: 'uppercase', letterSpacing: '0.5px',
                                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                             }}>
-                                {pol.title}
+                                {otPolicyTitle(tr, pol.title)}
                             </div>
                             <div style={{ fontSize: 10, color: theme.textMute, marginTop: 2 }}>
-                                {dayLabel} · {shiftLbl} shift
+                                {dayLabel} · {shiftLbl} {tr('overtime.labels.shift')}
                             </div>
                             {/* mini bar */}
                             <div style={{
@@ -312,7 +317,7 @@ function OTPolicyCards({ overtimePolicies, dark, theme }) {
 // ─────────────────────────────────────────────────────────────
 //  OT REQUEST ROW  ← matches Leave RequestRow layout exactly
 // ─────────────────────────────────────────────────────────────
-function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDelete, isLast }) {
+function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDelete, isLast, tr }) {
     const sc         = STATUS_CFG[req.status] || STATUS_CFG.pending;
     const isMine     = req.user_id === userId;
     const isAssigned = req.approver_id === userId;
@@ -371,7 +376,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                     {/* Left */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Overtime</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{tr('overtime.titleShort')}</span>
  
                         <span style={{
                             fontSize: 10, fontWeight: 700,
@@ -379,7 +384,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                             borderRadius: 99, padding: '2px 8px',
                             display: 'inline-flex', alignItems: 'center', gap: 3,
                         }}>
-                            {sc.label}
+                            {tr(`overtime.status.${req.status}`)}
                         </span>
  
                         {/* hours badge */}
@@ -417,7 +422,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                         {/* Awaiting stacked */}
                         {req.status === 'pending' && req.approver && !showActions && (
                             <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Awaiting</div>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>{tr('overtime.labels.awaiting')}</div>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: '#2563eb' }}>
                                     {req.approver.name}
                                 </div>
@@ -427,7 +432,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                         {/* Approved by */}
                         {req.status === 'approved' && req.approvedBy && (
                             <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Approved by</div>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>{tr('overtime.labels.approvedBy')}</div>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: theme.success }}>
                                     {req.approvedBy.name}
                                 </div>
@@ -437,7 +442,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                         {/* Rejected by */}
                         {req.status === 'rejected' && req.approvedBy && (
                             <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Rejected by</div>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>{tr('overtime.labels.rejectedBy')}</div>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: theme.danger }}>
                                     {req.approvedBy.name}
                                 </div>
@@ -468,7 +473,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                                         strokeLinecap="round" strokeLinejoin="round">
                                         <polyline points="20 6 9 17 4 12"/>
                                     </svg>
-                                    Approve
+                                    {tr('overtime.actions.approve')}
                                 </button>
                                 <button
                                     onClick={onReject}
@@ -493,7 +498,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                                         <line x1="18" y1="6" x2="6" y2="18"/>
                                         <line x1="6" y1="6" x2="18" y2="18"/>
                                     </svg>
-                                    Reject
+                                    {tr('overtime.actions.reject')}
                                 </button>
                             </div>
                         )}
@@ -502,7 +507,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                         {showDelete && (
                             <button
                                 onClick={() => onDelete(req)}
-                                title="Delete request"
+                                title={tr('overtime.actions.deleteRequest')}
                                 style={{
                                     width: 28, height: 28, borderRadius: 7,
                                     background: 'transparent', border: 'none',
@@ -538,7 +543,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                         <span style={{
                             fontSize:11, fontWeight:700, color: dark ? '#818cf8' : '#6366f1',
                             textTransform:'uppercase', letterSpacing:'0.06em',
-                        }}>Project</span>
+                        }}>{tr('overtime.labels.project')}</span>
                         <span style={{
                             fontSize:13, fontWeight:800, color: dark ? '#a5b4fc' : '#4338ca',
                         }}>
@@ -574,7 +579,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                     {isMultiDay ? (
                         /* Multi-day: StartDate (StartTime) → EndDate (EndTime) */
                         <>
-                            <span style={{ ...chipLabel, color: theme.textMute }}>DATE</span>
+                            <span style={{ ...chipLabel, color: theme.textMute }}>{tr('overtime.labels.date')}</span>
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                 <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.start_date)}</span>
                                 <span style={{ fontSize: 11, color: theme.primary, fontWeight: 700 }}>({to12h(req.start_time)})</span>
@@ -591,14 +596,14 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                         /* Single day: DATE ... · TIME ... */
                         <>
                             <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                                <span style={{ ...chipLabel, color: theme.textMute }}>Date</span>
+                                <span style={{ ...chipLabel, color: theme.textMute }}>{tr('overtime.labels.date')}</span>
                                 <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.start_date)}</span>
                             </span>
 
                             <span style={{ color: theme.border, fontSize: 12 }}>·</span>
 
                             <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                                <span style={{ ...chipLabel, color: theme.textMute }}>Time</span>
+                                <span style={{ ...chipLabel, color: theme.textMute }}>{tr('overtime.labels.time')}</span>
                                 <span style={{ ...chipValue, color: theme.primary }}>
                                     {to12h(req.start_time)} — {to12h(req.end_time)}
                                 </span>
@@ -640,7 +645,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                                                 <span style={{
                                                     fontSize: 11, fontWeight: 700, color: oc.color,
                                                 }}>
-                                                    {seg.overtime_policy?.title || 'OT'}
+                                                    {otPolicyTitle(tr, seg.overtime_policy?.title)}
                                                 </span>
                                                 {/* time range */}
                                                 <span style={{ fontSize: 11, color: theme.textMute }}>
@@ -674,17 +679,17 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                                     fontSize: 9, fontWeight: 700, color: theme.textMute,
                                     textTransform: 'uppercase', letterSpacing: '0.05em',
                                 }}>
-                                    Total
+                                    {tr('overtime.labels.total')}
                                 </span>
-                                {Object.entries(typeTotals).map(([t, h]) => {
-                                    const tc = getOTColor(t);
+                                {Object.entries(typeTotals).map(([typeTitle, h]) => {
+                                    const tc = getOTColor(typeTitle);
                                     return (
-                                        <span key={t} style={{
+                                        <span key={typeTitle} style={{
                                             fontSize: 11, fontWeight: 700, color: tc.color,
                                             background: dark ? tc.bgDark : tc.bg,
                                             borderRadius: 99, padding: '1px 8px',
                                         }}>
-                                            {t.replace(' OT', '')} {fmtHrs(h)}
+                                            {otPolicyTitle(tr, typeTitle).replace(' OT', '')} {fmtHrs(h)}
                                         </span>
                                     );
                                 })}
@@ -696,7 +701,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
                 {/* ── Reason row — chip style, no box ── */}
                 {req.reason && (
                     <div style={{ display: 'inline-flex', alignItems: 'baseline', marginTop: 7 }}>
-                        <span style={{ ...chipLabel, color: theme.textMute }}>Reason</span>
+                        <span style={{ ...chipLabel, color: theme.textMute }}>{tr('overtime.labels.reason')}</span>
                         <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft }}>
                             {req.reason}
                         </span>
@@ -713,6 +718,7 @@ function OTRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDe
 // ─────────────────────────────────────────────────────────────
 export default function OvertimeIndex({ requests, overtimePolicies, employees, filters, selectedMonth, selectedYear, userAssignments = [] }) {
     const { auth } = usePage().props;
+    const { t: tr } = useTranslation();
     const user       = auth?.user;
     const roleName   = user?.role?.name || 'employee';
     const canApprove = ['management','hr','admin'].includes(roleName);
@@ -739,7 +745,7 @@ const handleApprove = (req, segs) => {
         onError: (errors) => {
             setActionLoading(false);
             setConfirmModal(null);
-            const msg = errors?.message || 'Request no longer exists. It may have been deleted.';
+            const msg = errors?.message || tr('overtime.messages.requestNoLongerExists');
             window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'error' } }));
         },
     });
@@ -752,7 +758,7 @@ const handleReject = req => {
         onError: (errors) => {
             setActionLoading(false);
             setConfirmModal(null);
-            const msg = errors?.message || 'Request no longer exists. It may have been deleted.';
+            const msg = errors?.message || tr('overtime.messages.requestNoLongerExists');
             window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'error' } }));
         },
     });
@@ -766,19 +772,19 @@ const handleReject = req => {
         : mainTab === 'all' ? requests.data
         : myRequests;
 
-    const monthOpts  = MONTHS.map((m, i) => ({ value: i+1, label: m }));
+    const monthOpts  = MONTHS.map((m, i) => ({ value: i+1, label: tr(`overtime.months.${m}`) }));
     const yearOpts   = [2024,2025,2026,2027].map(y => ({ value:y, label:String(y) }));
     const statusOpts = [
-        { value:'',         label:'All Status' },
-        { value:'pending',  label:'Pending' },
-        { value:'approved', label:'Approved' },
-        { value:'rejected', label:'Rejected' },
+        { value:'',         label:tr('overtime.filters.allStatus') },
+        { value:'pending',  label:tr('overtime.status.pending') },
+        { value:'approved', label:tr('overtime.status.approved') },
+        { value:'rejected', label:tr('overtime.status.rejected') },
     ];
 
     const tabs = [
-        { key:'my',        label:'My Requests',      count:myRequests.length,  alert:false },
-        ...(canApprove ? [{ key:'approvals', label:'Pending Approvals', count:pendingCount, alert:pendingCount>0 }] : []),
-        ...(canViewAll  ? [{ key:'all',      label:'All Requests',      count:requests.total, alert:false }] : []),
+        { key:'my',        label:tr('overtime.tabs.myRequests'),      count:myRequests.length,  alert:false },
+        ...(canApprove ? [{ key:'approvals', label:tr('overtime.tabs.pendingApprovals'), count:pendingCount, alert:pendingCount>0 }] : []),
+        ...(canViewAll  ? [{ key:'all',      label:tr('overtime.tabs.allRequests'),      count:requests.total, alert:false }] : []),
     ];
 
 
@@ -790,15 +796,15 @@ const handleReject = req => {
                 setActionLoading(false);
                 setConfirmModal(null);
                 window.dispatchEvent(new CustomEvent('global-toast', {
-                    detail: { message: 'Request could not be deleted.', type: 'error' }
+                    detail: { message: tr('overtime.messages.requestCouldNotBeDeleted'), type: 'error' }
                 }));
             },
         });
     }
 
     return (
-        <AppLayout title="Overtime Request">
-            <Head title="Overtime"/>
+        <AppLayout title={tr('overtime.pageTitle')}>
+            <Head title={tr('overtime.headTitle')}/>
             <style>{`
                 @keyframes otDropUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes otDrop  { from { opacity:0; transform:translateY(-7px); } to { opacity:1; transform:translateY(0); } }
@@ -811,7 +817,7 @@ const handleReject = req => {
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
 
                 {/* ── Row 1: Policy cards ── */}
-                <OTPolicyCards overtimePolicies={overtimePolicies} dark={dark} theme={theme}/>
+                <OTPolicyCards overtimePolicies={overtimePolicies} dark={dark} theme={theme} tr={tr}/>
 
                 {/* ── Row 2: Filters + button ── */}
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10 }}>
@@ -826,7 +832,7 @@ const handleReject = req => {
                         onMouseLeave={e => e.currentTarget.style.transform='translateY(0)'}
                         style={{ background:`linear-gradient(135deg, ${theme.primary}, ${dark ? '#6d28d9' : '#4f46e5'})`, color:'#fff', border:'none', borderRadius:12, padding:'10px 20px', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:8, boxShadow:`0 8px 22px ${theme.primary}44`, transition:'all 0.15s' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Request Overtime
+                        {tr('overtime.actions.requestOvertime')}
                     </button>
                 </div>
 
@@ -854,15 +860,15 @@ const handleReject = req => {
                     {displayList.length === 0 ? (
                         <div style={{ padding:'56px 24px', textAlign:'center' }}>
                             <div style={{ fontSize:36, marginBottom:12 }}>{mainTab === 'approvals' ? '🎉' : '⏰'}</div>
-                            <div style={{ fontSize:14, fontWeight:600, color:theme.textSoft, marginBottom:4 }}>{mainTab === 'approvals' ? 'No pending approvals' : 'No overtime requests found'}</div>
-                            <div style={{ fontSize:12, color:theme.textMute }}>{mainTab === 'approvals' ? 'All caught up!' : 'Click "Request Overtime" to submit a new request.'}</div>
+                            <div style={{ fontSize:14, fontWeight:600, color:theme.textSoft, marginBottom:4 }}>{mainTab === 'approvals' ? tr('overtime.empty.noPendingApprovals') : tr('overtime.empty.noOvertimeRequestsFound')}</div>
+                            <div style={{ fontSize:12, color:theme.textMute }}>{mainTab === 'approvals' ? tr('overtime.empty.allCaughtUp') : tr('overtime.empty.clickRequestOvertime')}</div>
                         </div>
                     ) : displayList.map((req, idx) => (
                         <OTRow key={req.id} req={req} dark={dark} theme={theme} canApprove={canApprove} userId={user?.id}
                             onApprove={() => setConfirmModal({ type:'approve', req })}
                             onReject ={() => setConfirmModal({ type:'reject',  req })}
                             onDelete ={() => setConfirmModal({ type:'delete',  req })}
-                            isLast={idx === displayList.length - 1}/>
+                            isLast={idx === displayList.length - 1} tr={tr}/>
                     ))}
 
                     {/* Pagination */}
@@ -877,8 +883,8 @@ const handleReject = req => {
                 </div>
             </div>
 
-            {showModal    && <OTRequestModal employees={employees} roleName={roleName} dark={dark} theme={theme} userAssignments={userAssignments} onClose={() => setShowModal(false)} onSuccess={() => setShowModal(false)}/>}
-            {confirmModal && <ConfirmModal   type={confirmModal.type} req={confirmModal.req} loading={actionLoading} dark={dark} theme={theme} onCancel={() => setConfirmModal(null)} onApprove={segs => handleApprove(confirmModal.req, segs)} onReject={() => handleReject(confirmModal.req)} onDelete={() => handleDelete(confirmModal.req)}/>}
+            {showModal    && <OTRequestModal employees={employees} roleName={roleName} dark={dark} theme={theme} userAssignments={userAssignments} tr={tr} onClose={() => setShowModal(false)} onSuccess={() => setShowModal(false)}/>}
+            {confirmModal && <ConfirmModal   type={confirmModal.type} req={confirmModal.req} loading={actionLoading} dark={dark} theme={theme} tr={tr} onCancel={() => setConfirmModal(null)} onApprove={segs => handleApprove(confirmModal.req, segs)} onReject={() => handleReject(confirmModal.req)} onDelete={() => handleDelete(confirmModal.req)}/>}
         </AppLayout>
     );
 }
@@ -886,7 +892,7 @@ const handleReject = req => {
 // ─────────────────────────────────────────────────────────────
 //  OT REQUEST MODAL
 // ─────────────────────────────────────────────────────────────
-function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess, userAssignments = [] }) {
+function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess, userAssignments = [], tr }) {
     const isAdmin = roleName === 'admin';
     const [form,   setForm]   = useState({ start_date:'', start_time:'', end_date:'', end_time:'', reason:'', approver_id: employees[0]?.id || '',project_id: '' });
     const [errors, setErrors] = useState({});
@@ -916,16 +922,16 @@ function OTRequestModal({ employees, roleName, dark, theme, onClose, onSuccess, 
 
 const validate = () => {
     const e={};
-    if(!form.start_date) e.start_date='Start date is required.';
-    if(!form.start_time) e.start_time='Start time is required.';
-    if(!form.end_date)   e.end_date='End date is required.';
-    if(!form.end_time)   e.end_time='End time is required.';
-    if(!form.reason.trim()) e.reason='Reason is required.';
-    if(!isAdmin && !form.approver_id) e.approver_id='Please select an approver.';
+    if(!form.start_date) e.start_date=tr('overtime.validation.startDateRequired');
+    if(!form.start_time) e.start_time=tr('overtime.validation.startTimeRequired');
+    if(!form.end_date)   e.end_date=tr('overtime.validation.endDateRequired');
+    if(!form.end_time)   e.end_time=tr('overtime.validation.endTimeRequired');
+    if(!form.reason.trim()) e.reason=tr('overtime.validation.reasonRequired');
+    if(!isAdmin && !form.approver_id) e.approver_id=tr('overtime.validation.selectApprover');
 
     // Assignment ရှိပေမဲ့ project မရွေးရင် error
     if (userAssignments.length > 0 && !form.project_id) {
-        e.project_id = 'Please select a project for this OT.';
+        e.project_id = tr('overtime.validation.selectProjectForOT');
     }
 
     // ── datetime comparison ──
@@ -933,8 +939,8 @@ const validate = () => {
         const start = new Date(`${form.start_date}T${form.start_time}`);
         const end   = new Date(`${form.end_date}T${form.end_time}`);
         if(end <= start) {
-            e.end_date = 'End must be after start.';
-            e.end_time = 'End time must be after start time.';
+            e.end_date = tr('overtime.validation.endAfterStart');
+            e.end_time = tr('overtime.validation.endTimeAfterStartTime');
         }
     }
     return e;
@@ -953,7 +959,7 @@ const validate = () => {
     const lbl = { fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.06em', display:'block', marginBottom:5 };
 
     const approverOptions = [
-        { value: '', label: 'Select approver', disabled: true },
+        { value: '', label: tr('overtime.placeholders.selectApprover'), disabled: true },
         ...employees.map(e => ({ value: e.id, label: e.name })),
     ];
 
@@ -968,8 +974,8 @@ const validate = () => {
                         <div style={{ display:'flex', gap:14, alignItems:'center' }}>
                             <div style={{ width:44, height:44, borderRadius:14, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>⏰</div>
                             <div>
-                                <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', marginBottom:3 }}>Overtime Management</div>
-                                <div style={{ fontSize:17, fontWeight:900, color:'#fff' }}>Request Overtime</div>
+                                <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', marginBottom:3 }}>{tr('overtime.modal.overtimeManagement')}</div>
+                                <div style={{ fontSize:17, fontWeight:900, color:'#fff' }}>{tr('overtime.actions.requestOvertime')}</div>
                             </div>
                         </div>
                         <button onClick={onClose} style={{ width:32, height:32, borderRadius:10, background:'rgba(255,255,255,0.16)', border:'none', cursor:'pointer', fontSize:20, color:'rgba(255,255,255,0.85)', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
@@ -978,15 +984,15 @@ const validate = () => {
 
                 <div className="ot-hide" style={{ padding:'20px 24px', display:'flex', flexDirection:'column', gap:14, overflowY:'auto', flex:1 }}>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                        <div><label style={lbl}>Start date</label><input type="date" value={form.start_date} onChange={e=>set('start_date',e.target.value)} style={inp(errors.start_date)}/>{errors.start_date&&<ErrMsg msg={errors.start_date} theme={theme}/>}</div>
-                        <div><label style={lbl}>Start time</label>
+                        <div><label style={lbl}>{tr('overtime.fields.startDate')}</label><input type="date" value={form.start_date} onChange={e=>set('start_date',e.target.value)} style={inp(errors.start_date)}/>{errors.start_date&&<ErrMsg msg={errors.start_date} theme={theme}/>}</div>
+                        <div><label style={lbl}>{tr('overtime.fields.startTime')}</label>
                             <TimePicker value={form.start_time} onChange={v=>set('start_time',v)} theme={theme} dark={dark} error={errors.start_time}/>
                             {errors.start_time&&<ErrMsg msg={errors.start_time} theme={theme}/>}
                         </div>
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                        <div><label style={lbl}>End date</label><input type="date" value={form.end_date} min={form.start_date||undefined} onChange={e=>set('end_date',e.target.value)} style={inp(errors.end_date)}/>{errors.end_date&&<ErrMsg msg={errors.end_date} theme={theme}/>}</div>
-                        <div><label style={lbl}>End time</label>
+                        <div><label style={lbl}>{tr('overtime.fields.endDate')}</label><input type="date" value={form.end_date} min={form.start_date||undefined} onChange={e=>set('end_date',e.target.value)} style={inp(errors.end_date)}/>{errors.end_date&&<ErrMsg msg={errors.end_date} theme={theme}/>}</div>
+                        <div><label style={lbl}>{tr('overtime.fields.endTime')}</label>
                             <TimePicker value={form.end_time} onChange={v=>set('end_time',v)} theme={theme} dark={dark} error={errors.end_time}/>
                             {errors.end_time&&<ErrMsg msg={errors.end_time} theme={theme}/>}
                         </div>
@@ -996,8 +1002,8 @@ const validate = () => {
                         <div style={{ background: summary.isMulti?(dark?'rgba(251,191,36,0.08)':'#fefce8'):(dark?theme.primarySoft:'#f3e8ff'), border:`1px solid ${summary.isMulti?(dark?'rgba(251,191,36,0.25)':'#fde047'):(dark?'rgba(139,92,246,0.3)':'#ddd6fe')}`, borderRadius:12, padding:'11px 14px', display:'flex', alignItems:'center', gap:10 }}>
                             <span style={{ fontSize:18 }}>{summary.isMulti?'📅':'⏱️'}</span>
                             <div>
-                                <div style={{ fontSize:12, fontWeight:800, color: summary.isMulti?theme.warning:theme.primary }}>{summary.isMulti?`Multi-day · ${summary.days} days`:'Same-day OT'} <span style={{ marginLeft:8 }}>{summary.hrs} total</span></div>
-                                <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>{to12h(form.start_time)} ({form.start_date}) → {to12h(form.end_time)} ({form.end_date}) · Auto-split per shift</div>
+                                <div style={{ fontSize:12, fontWeight:800, color: summary.isMulti?theme.warning:theme.primary }}>{summary.isMulti?tr('overtime.summary.multiDay').replace('{{days}}', summary.days):tr('overtime.summary.sameDayOT')} <span style={{ marginLeft:8 }}>{tr('overtime.summary.totalHours').replace('{{hrs}}', summary.hrs)}</span></div>
+                                <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>{to12h(form.start_time)} ({form.start_date}) → {to12h(form.end_time)} ({form.end_date}) · {tr('overtime.summary.autoSplitPerShift')}</div>
                             </div>
                         </div>
                     )}
@@ -1005,7 +1011,7 @@ const validate = () => {
                     {/* Project Selector */}
                     <div>
                         <label style={lbl}>
-                            Project
+                            {tr('overtime.labels.project')}
                             
                         </label>
 
@@ -1016,12 +1022,12 @@ const validate = () => {
                                 background: dark ? theme.inputBg : '#f8fafc',
                                 border:`1px solid ${theme.inputBorder}`,
                             }}>
-                                No active projects assigned to you
+                                {tr('overtime.empty.noActiveProjectsAssigned')}
                             </div>
                         ) : (
                             <PremiumDropdown
                                 options={[
-                                    { value:'', label:'— Please select a project —' },
+                                    { value:'', label:tr('overtime.placeholders.pleaseSelectProject') },
                                     ...userAssignments.map(a => ({
                                         value: String(a.project_id),
                                         label: `${a.project_name}`,
@@ -1029,7 +1035,7 @@ const validate = () => {
                                 ]}
                                 value={form.project_id}
                                 onChange={v => set('project_id', v)}
-                                placeholder="Select project..."
+                                placeholder={tr('overtime.placeholders.selectProject')}
                                 theme={theme}
                                 dark={dark}
                                 width="100%"
@@ -1038,16 +1044,16 @@ const validate = () => {
                         {errors.project_id && <ErrMsg msg={errors.project_id} theme={theme} />}
                     </div>
 
-                    <div><label style={lbl}>Reason</label><textarea value={form.reason} onChange={e=>set('reason',e.target.value)} rows={3} placeholder="Describe the reason for overtime..." className="ot-hide" style={{...inp(errors.reason),resize:'none'}}/>{errors.reason&&<ErrMsg msg={errors.reason} theme={theme}/>}</div>
+                    <div><label style={lbl}>{tr('overtime.labels.reason')}</label><textarea value={form.reason} onChange={e=>set('reason',e.target.value)} rows={3} placeholder={tr('overtime.placeholders.describeReason')} className="ot-hide" style={{...inp(errors.reason),resize:'none'}}/>{errors.reason&&<ErrMsg msg={errors.reason} theme={theme}/>}</div>
 
                     {!isAdmin && employees.length > 0 && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                            <label style={lbl}>Approver</label>
+                            <label style={lbl}>{tr('overtime.labels.approver')}</label>
                             <PremiumDropdown
                                 options={approverOptions}
                                 value={form.approver_id}
                                 onChange={v => set('approver_id', v)}
-                                placeholder="Select approver"
+                                placeholder={tr('overtime.placeholders.selectApprover')}
                                 theme={theme}
                                 dark={dark}
                                 width="100%"
@@ -1063,21 +1069,21 @@ const validate = () => {
                             borderRadius: 12, padding: '12px 16px',
                         }}>
                             <div style={{ fontSize: 12, fontWeight: 700, color: dark ? '#f59e0b' : '#c2410c' }}>
-                                ⚠ No approver available
+                                ⚠ {tr('overtime.empty.noApproverAvailable')}
                             </div>
                             <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>
-                                No approver found for your branch. Please contact HR.
+                                {tr('overtime.empty.noApproverFound')}
                             </div>
                         </div>
                     )}
-                    {isAdmin && <div style={{ background: dark?theme.successSoft:'#ecfdf5', border:`1px solid ${dark?'rgba(16,185,129,0.3)':'#6ee7b7'}`, borderRadius:10, padding:'9px 13px', fontSize:12, color:theme.success, fontWeight:600 }}>✓ As admin, this request will be auto-approved.</div>}
+                    {isAdmin && <div style={{ background: dark?theme.successSoft:'#ecfdf5', border:`1px solid ${dark?'rgba(16,185,129,0.3)':'#6ee7b7'}`, borderRadius:10, padding:'9px 13px', fontSize:12, color:theme.success, fontWeight:600 }}>{tr('overtime.messages.adminAutoApproved')}</div>}
                 </div>
 
                 <div style={{ borderTop:`1px solid ${theme.border}`, padding:'14px 24px', display:'flex', justifyContent:'flex-end', gap:10, flexShrink:0 }}>
-                    <button onClick={onClose} disabled={saving} style={{ background: dark?theme.panelSoft:'#fff', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 16px', fontSize:13, fontWeight:600, color:theme.textSoft, cursor:'pointer' }}>Cancel</button>
+                    <button onClick={onClose} disabled={saving} style={{ background: dark?theme.panelSoft:'#fff', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 16px', fontSize:13, fontWeight:600, color:theme.textSoft, cursor:'pointer' }}>{tr('overtime.actions.cancel')}</button>
                     <button onClick={handleSubmit} disabled={saving} style={{ background:theme.modalHeader, border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor: saving?'not-allowed':'pointer', opacity: saving?0.65:1, display:'flex', alignItems:'center', gap:8, boxShadow:`0 8px 24px ${theme.primary}44`, transition:'all 0.15s' }}>
                         {saving&&<span style={{ width:13, height:13, border:'2px solid rgba(255,255,255,0.3)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'otSpin 0.7s linear infinite' }}/>}
-                        {saving?'Submitting...':'Submit Request'}
+                        {saving?tr('overtime.actions.submitting'):tr('overtime.actions.submitRequest')}
                     </button>
                 </div>
             </div>
@@ -1089,7 +1095,7 @@ const validate = () => {
 // ─────────────────────────────────────────────────────────────
 //  CONFIRM MODAL
 // ─────────────────────────────────────────────────────────────
-function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, onReject, onDelete }) {
+function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, onReject, onDelete, tr }) {
     const isApprove = type === 'approve';
     const isDelete  = type === 'delete';
     const segments  = req.segments || [];
@@ -1110,10 +1116,10 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, on
                         </div>
                         <div>
                             <div style={{ fontSize:16, fontWeight:900, color:theme.text }}>
-                                {isDelete ? 'Delete Overtime Request' : isApprove ? 'Approve Overtime' : 'Reject Overtime'}
+                                {isDelete ? tr('overtime.confirm.deleteOvertimeRequest') : isApprove ? tr('overtime.confirm.approveOvertime') : tr('overtime.confirm.rejectOvertime')}
                             </div>
                             <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>
-                                {isDelete ? 'This action cannot be undone' : isApprove ? 'Adjust approved hours per segment if needed' : 'Employee will be notified'}
+                                {isDelete ? tr('overtime.confirm.actionCannotBeUndone') : isApprove ? tr('overtime.confirm.adjustApprovedHours') : tr('overtime.confirm.employeeWillBeNotified')}
                             </div>
                         </div>
                     </div>
@@ -1121,7 +1127,7 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, on
                     <div style={{ background: dark?theme.panelSoft:'#f8fafc', border:`1px solid ${theme.border}`, borderRadius:14, padding:'13px 15px', marginBottom: isApprove&&!isDelete ? 18 : 0 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:5, flexWrap:'wrap' }}>
                             <span style={{ fontSize:13, fontWeight:800, color:theme.text }}>
-                                {isDelete ? 'Your request' : req.user?.name}
+                                {isDelete ? tr('overtime.confirm.yourRequest') : req.user?.name}
                             </span>
                             <span style={{ fontSize:11, fontWeight:700, color:theme.primary, background: dark?theme.primarySoft:'#ede9fe', borderRadius:6, padding:'1px 8px' }}>
                                 {fmtHrs(req.hours_requested)} total
@@ -1143,7 +1149,7 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, on
                     {/* Segments — approve only */}
                     {isApprove && segments.length > 0 && (
                         <div>
-                            <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:8 }}>Segments — adjust hours if needed</div>
+                            <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:8 }}>{tr('overtime.confirm.segmentsAdjustHours')}</div>
                             <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
                                 {segments.map(seg => {
                                     const c = getOTColor(seg.overtime_policy?.title);
@@ -1151,26 +1157,26 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, on
                                     return (
                                         <div key={seg.id} style={{ background: dark?c.bgDark:c.bg, border:`1px solid ${c.border}`, borderRadius:12, padding:'10px 13px', display:'flex', alignItems:'center', gap:10 }}>
                                             <div style={{ flex:1 }}>
-                                                <div style={{ fontSize:12, fontWeight:700, color:c.color }}>{seg.overtime_policy?.title||'OT'}</div>
+                                                <div style={{ fontSize:12, fontWeight:700, color:c.color }}>{otPolicyTitle(tr, seg.overtime_policy?.title)}</div>
                                                 <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>
                                                     {seg.segment_date && <span style={{ marginRight:6, fontWeight:600, color:theme.textSoft }}>{fmtDate(seg.segment_date)}</span>}
                                                     {to12h(seg.start_time)} → {to12h(seg.end_time)}
-                                                    <span style={{ marginLeft:6, color:theme.textMute }}>req: {fmtHrs(seg.hours)}</span>
+                                                    <span style={{ marginLeft:6, color:theme.textMute }}>{tr('overtime.labels.req')}: {fmtHrs(seg.hours)}</span>
                                                 </div>
                                             </div>
                                             <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                                                <span style={{ fontSize:11, color:theme.textMute }}>Approve</span>
+                                                <span style={{ fontSize:11, color:theme.textMute }}>{tr('overtime.actions.approve')}</span>
                                                 <input type="number" value={segHours[seg.id] ?? seg.hours} min={0} max={max} step={0.01}
                                                     onKeyDown={e => { const ok=['Backspace','Delete','Tab','Escape','Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','.']; if(!ok.includes(e.key)&&!/^\d$/.test(e.key))e.preventDefault(); if(e.key==='.'&&String(segHours[seg.id]??seg.hours).includes('.'))e.preventDefault(); }}
                                                     onChange={e => { const r=e.target.value; if(r===''||r==='.'){setSegHours(p=>({...p,[seg.id]:r}));return;} const n=parseFloat(r); if(isNaN(n))return; setSegHours(p=>({...p,[seg.id]:Math.round(Math.min(n,max)*100)/100})); }}
                                                     style={{ width:64, border:`1.5px solid ${c.border}`, borderRadius:8, padding:'5px 8px', fontSize:12, fontWeight:700, color:c.color, textAlign:'center', background: dark?'rgba(255,255,255,0.08)':'#fff' }}/>
-                                                <span style={{ fontSize:11, color:theme.textMute }}>hrs</span>
+                                                <span style={{ fontSize:11, color:theme.textMute }}>{tr('overtime.units.hrs')}</span>
                                             </div>
                                         </div>
                                     );
                                 })}
                                 <div style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', gap:8, paddingTop:4 }}>
-                                    <span style={{ fontSize:12, color:theme.textMute }}>Total approved:</span>
+                                    <span style={{ fontSize:12, color:theme.textMute }}>{tr('overtime.labels.totalApproved')}</span>
                                     <span style={{ fontSize:15, fontWeight:900, color:theme.success }}>{fmtHrs(total)}</span>
                                 </div>
                             </div>
@@ -1179,22 +1185,22 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onApprove, on
                 </div>
 
                 <div style={{ borderTop:`1px solid ${theme.border}`, padding:'14px 24px', display:'flex', justifyContent:'flex-end', gap:10, flexShrink:0 }}>
-                    <button onClick={onCancel} disabled={loading} style={{ background: dark?theme.panelSoft:'#fff', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 16px', fontSize:13, fontWeight:600, color:theme.textSoft, cursor:'pointer' }}>Cancel</button>
+                    <button onClick={onCancel} disabled={loading} style={{ background: dark?theme.panelSoft:'#fff', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 16px', fontSize:13, fontWeight:600, color:theme.textSoft, cursor:'pointer' }}>{tr('overtime.actions.cancel')}</button>
 
                     {isDelete ? (
                         <button onClick={onDelete} disabled={loading}
                             style={{ background:'linear-gradient(135deg,#dc2626,#ef4444)', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor:'pointer', opacity:loading?0.6:1, boxShadow:'0 4px 14px rgba(220,38,38,0.35)' }}>
-                            {loading ? 'Deleting...' : '🗑 Delete'}
+                            {loading ? tr('overtime.actions.deleting') : `🗑 ${tr('overtime.actions.delete')}`}
                         </button>
                     ) : isApprove ? (
                         <button onClick={() => onApprove(segments.map(s => ({id:s.id, hours_approved:parseFloat(segHours[s.id]||0)})))} disabled={loading}
                             style={{ background:'linear-gradient(135deg,#059669,#10b981)', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor:'pointer', opacity:loading?0.6:1, boxShadow:'0 4px 14px rgba(5,150,105,0.35)' }}>
-                            {loading ? 'Approving…' : '✓ Approve'}
+                            {loading ? tr('overtime.actions.approving') : tr('overtime.actions.approveWithIcon')}
                         </button>
                     ) : (
                         <button onClick={onReject} disabled={loading}
                             style={{ background:'linear-gradient(135deg,#dc2626,#ef4444)', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor:'pointer', opacity:loading?0.6:1, boxShadow:'0 4px 14px rgba(220,38,38,0.35)' }}>
-                            {loading ? 'Rejecting…' : '✕ Reject'}
+                            {loading ? tr('overtime.actions.rejecting') : tr('overtime.actions.rejectWithIcon')}
                         </button>
                     )}
                 </div>

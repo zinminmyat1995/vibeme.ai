@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Head, router } from "@inertiajs/react";
 import { ChevronLeft } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
+import { useTranslation } from "@/Contexts/LanguageContext";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme System  (identical pattern to Assignments/Index.jsx)
@@ -104,11 +105,11 @@ function getTheme(dark) {
 // Config
 // ─────────────────────────────────────────────────────────────────────────────
 const STATUS_CFG = {
-    active:    { label:"Active",    color:"#16a34a", bg:"#f0fdf4", bgDark:"rgba(22,163,74,0.15)",   border:"#86efac" },
-    upcoming:  { label:"Upcoming",  color:"#2563eb", bg:"#eff6ff", bgDark:"rgba(37,99,235,0.15)",   border:"#93c5fd" },
-    completed: { label:"Completed", color:"#7c3aed", bg:"#f5f3ff", bgDark:"rgba(124,58,237,0.15)", border:"#c4b5fd" },
-    cancelled: { label:"Cancelled", color:"#9ca3af", bg:"#f9fafb", bgDark:"rgba(156,163,175,0.12)",border:"#d1d5db" },
-    removed:   { label:"Removed",   color:"#dc2626", bg:"#fef2f2", bgDark:"rgba(220,38,38,0.14)",  border:"#fca5a5" },
+    active:    { label:"projectShow.status.active",    color:"#16a34a", bg:"#f0fdf4", bgDark:"rgba(22,163,74,0.15)",   border:"#86efac" },
+    upcoming:  { label:"projectShow.status.upcoming",  color:"#2563eb", bg:"#eff6ff", bgDark:"rgba(37,99,235,0.15)",   border:"#93c5fd" },
+    completed: { label:"projectShow.status.completed", color:"#7c3aed", bg:"#f5f3ff", bgDark:"rgba(124,58,237,0.15)", border:"#c4b5fd" },
+    cancelled: { label:"projectShow.status.cancelled", color:"#9ca3af", bg:"#f9fafb", bgDark:"rgba(156,163,175,0.12)",border:"#d1d5db" },
+    removed:   { label:"projectShow.status.removed",   color:"#dc2626", bg:"#fef2f2", bgDark:"rgba(220,38,38,0.14)",  border:"#fca5a5" },
 };
 
 const CC = {
@@ -150,13 +151,13 @@ function Ava({ name, url, size = 34 }) {
         border:"2px solid rgba(255,255,255,0.2)", boxShadow:"0 2px 8px rgba(0,0,0,0.18)" }}>{letters}</div>;
 }
 
-function StatusPill({ status, dark }) {
+function StatusPill({ status, dark, tr }) {
     const cfg = STATUS_CFG[status] || STATUS_CFG.active;
     return <span style={{ fontSize:10, fontWeight:700, color:cfg.color,
         background: dark ? cfg.bgDark : cfg.bg,
         border:`1px solid ${dark ? cfg.color+"44" : cfg.border}`,
         padding:"3px 10px", borderRadius:99, textTransform:"uppercase", letterSpacing:"0.06em", whiteSpace:"nowrap" }}>
-        {cfg.label}</span>;
+        {tr ? tr(cfg.label) : cfg.label}</span>;
 }
 
 function Spinner() {
@@ -246,7 +247,7 @@ function PremiumSelect({ options=[], value="", onChange, placeholder="Select…"
 // ─────────────────────────────────────────────────────────────────────────────
 // Remove Confirm Modal
 // ─────────────────────────────────────────────────────────────────────────────
-function RemoveConfirmModal({ assignment, onConfirm, onCancel, isRemoving, t, dark }) {
+function RemoveConfirmModal({ assignment, onConfirm, onCancel, isRemoving, t, dark, tr }) {
     return (
         <div style={{ position:"fixed", inset:0, background:t.overlay,
             display:"flex", alignItems:"center", justifyContent:"center",
@@ -262,17 +263,17 @@ function RemoveConfirmModal({ assignment, onConfirm, onCancel, isRemoving, t, da
                     background: dark?"rgba(239,68,68,0.16)":"#fee2e2",
                     border:`1.5px solid ${dark?"rgba(239,68,68,0.3)":"#fca5a5"}`,
                     display:"flex", alignItems:"center", justifyContent:"center", fontSize:24 }}>🗑️</div>
-                <h3 style={{ fontSize:16, fontWeight:800, color:t.text, marginBottom:8 }}>Remove Member?</h3>
+                <h3 style={{ fontSize:16, fontWeight:800, color:t.text, marginBottom:8 }}>{tr("projectShow.confirm.removeTitle")}</h3>
                 <p style={{ fontSize:13, color:t.textSoft, marginBottom:24, lineHeight:1.7 }}>
-                    Remove <strong style={{ color:t.text }}>{assignment?.user?.name}</strong> from this project?<br/>
-                    <span style={{ fontSize:12, color:t.textMute }}>This action cannot be undone.</span>
+                    {tr("projectShow.confirm.removeMessage")} <strong style={{ color:t.text }}>{assignment?.user?.name}</strong>?<br/>
+                    <span style={{ fontSize:12, color:t.textMute }}>{tr("projectShow.confirm.cannotUndo")}</span>
                 </p>
                 <div style={{ display:"flex", gap:10 }}>
                     <button onClick={onCancel} disabled={isRemoving} style={{
                         flex:1, padding:"11px", background:t.surfaceSoft,
                         border:`1.5px solid ${t.border}`, borderRadius:12, color:t.textSoft,
                         fontSize:13, fontWeight:600, cursor:isRemoving?"not-allowed":"pointer",
-                        opacity:isRemoving?0.5:1, fontFamily:"inherit" }}>Cancel</button>
+                        opacity:isRemoving?0.5:1, fontFamily:"inherit" }}>{tr("projectShow.actions.cancel")}</button>
                     <button onClick={onConfirm} disabled={isRemoving} style={{
                         flex:1, padding:"11px",
                         background: isRemoving ? "#fca5a5" : "linear-gradient(135deg,#ef4444,#dc2626)",
@@ -281,7 +282,7 @@ function RemoveConfirmModal({ assignment, onConfirm, onCancel, isRemoving, t, da
                         boxShadow: isRemoving?"none":"0 4px 14px rgba(239,68,68,0.38)",
                         display:"flex", alignItems:"center", justifyContent:"center", gap:7,
                         fontFamily:"inherit" }}>
-                        {isRemoving ? <><Spinner/> Removing…</> : "🗑 Yes, Remove"}
+                        {isRemoving ? <><Spinner/> {tr("projectShow.actions.removing")}</> : `🗑 ${tr("projectShow.actions.yesRemove")}`}
                     </button>
                 </div>
             </div>
@@ -292,7 +293,7 @@ function RemoveConfirmModal({ assignment, onConfirm, onCancel, isRemoving, t, da
 // ─────────────────────────────────────────────────────────────────────────────
 // Assign Modal — all original logic: capacity check, existingAssign, hBtn
 // ─────────────────────────────────────────────────────────────────────────────
-function AssignModal({ project, availableUsers, onClose, t, dark }) {
+function AssignModal({ project, availableUsers, onClose, t, dark, tr }) {
     const [form, setForm] = useState({
         user_id:       "",
         start_date:    project.start_date?.slice(0,10) || "",
@@ -324,12 +325,12 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
 
     const validate = () => {
         const e = {};
-        if (!form.user_id)       e.user_id       = "Please select a member";
-        if (!form.hours_per_day) e.hours_per_day = "Please select hours per day";
-        if (!form.start_date)    e.start_date    = "Start date is required";
-        if (!form.end_date)      e.end_date      = "End date is required";
+        if (!form.user_id)       e.user_id       = tr("projectShow.validation.selectMember");
+        if (!form.hours_per_day) e.hours_per_day = tr("projectShow.validation.selectHoursPerDay");
+        if (!form.start_date)    e.start_date    = tr("projectShow.validation.startDateRequired");
+        if (!form.end_date)      e.end_date      = tr("projectShow.validation.endDateRequired");
         if (form.start_date && form.end_date && form.end_date < form.start_date)
-            e.end_date = "End date must be after start date";
+            e.end_date = tr("projectShow.validation.endDateAfterStart");
         return e;
     };
 
@@ -372,9 +373,9 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                 <div style={{ padding:"20px 24px 16px", borderBottom:`1px solid ${t.border}`, background:t.headerGrad }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <div>
-                            <h2 style={{ fontSize:16, fontWeight:800, color:t.text, margin:0 }}>Assign Member</h2>
+                            <h2 style={{ fontSize:16, fontWeight:800, color:t.text, margin:0 }}>{tr("projectShow.modal.assignTitle")}</h2>
                             <p style={{ fontSize:12, color:t.textMute, marginTop:3 }}>
-                                Add a member to <span style={{ color:t.primary, fontWeight:600 }}>{project.name}</span>
+                                {tr("projectShow.modal.assignSubtitle")} <span style={{ color:t.primary, fontWeight:600 }}>{project.name}</span>
                             </p>
                         </div>
                         <button onClick={onClose} style={{ background:t.surfaceSoft, border:`1.5px solid ${t.border}`,
@@ -387,7 +388,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
 
                     {/* Custom Member Dropdown */}
                     <div style={{ position:"relative" }} ref={dropRef}>
-                        <FieldLabel t={t}>Member *</FieldLabel>
+                        <FieldLabel t={t}>{tr("projectShow.fields.member")} *</FieldLabel>
                         <div onClick={() => setDropOpen(o => !o)} style={{
                             width:"100%", background:trigBg, cursor:"pointer",
                             border:`1.5px solid ${errors.user_id ? "#fca5a5" : dropOpen ? t.primary : t.inputBorder}`,
@@ -404,7 +405,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                                     <span style={{ fontSize:11, color:t.textMute }}>{titleCase(selectedUser.country)}</span>
                                 </div>
                             ) : (
-                                <span style={{ fontSize:13, color:t.textMute }}>Select a member…</span>
+                                <span style={{ fontSize:13, color:t.textMute }}>{tr("projectShow.placeholders.selectMember")}</span>
                             )}
                             <svg width="12" height="12" viewBox="0 0 16 16" fill="none"
                                 style={{ transform:dropOpen?"rotate(180deg)":"none", transition:"transform 0.15s", flexShrink:0 }}>
@@ -472,12 +473,12 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                                 <span style={{ fontSize:18 }}>ℹ️</span>
                                 <div>
                                     <div style={{ fontSize:12, fontWeight:700, color:dark?"#60a5fa":"#1d4ed8" }}>
-                                        Already assigned to this project
+                                        {tr("projectShow.messages.alreadyAssigned")}
                                     </div>
                                     <div style={{ fontSize:11, color:dark?"#93c5fd":"#3b82f6", marginTop:1 }}>
-                                        Current: <strong>{existingAssign.hours_per_day}h/day</strong>
-                                        {" · "}Submitting will add <strong>+{form.hours_per_day}h</strong> → total{" "}
-                                        <strong>{Math.min(24, existingAssign.hours_per_day + (form.hours_per_day||0))}h/day</strong>
+                                        {tr("projectShow.labels.current")}: <strong>{existingAssign.hours_per_day}{tr("projectShow.units.hoursPerDay")}</strong>
+                                        {" · "}{tr("projectShow.labels.submittingWillAdd")} <strong>+{form.hours_per_day}h</strong> → {tr("projectShow.labels.total")}{" "}
+                                        <strong>{Math.min(24, existingAssign.hours_per_day + (form.hours_per_day||0))}{tr("projectShow.units.hoursPerDay")}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -498,11 +499,11 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                                     <div style={{ fontSize:12, fontWeight:600,
                                         color: isOverCap?(dark?"#fbbf24":"#b45309"):(dark?"#34d399":"#15803d") }}>
                                         {isOverCap
-                                            ? `Over capacity — ${usedHours}h already, +${form.hours_per_day}h = ${usedHours+form.hours_per_day}h/day`
-                                            : `Capacity OK — ${usedHours}h used · ${availableHrs}h available`}
+                                            ? `${tr("projectShow.messages.overCapacity")} — ${usedHours}h ${tr("projectShow.labels.already")}, +${form.hours_per_day}h = ${usedHours + form.hours_per_day}${tr("projectShow.units.hoursPerDay")}`
+                                            : `${tr("projectShow.messages.capacityOk")} — ${usedHours}h ${tr("projectShow.labels.used")} · ${availableHrs}h ${tr("projectShow.labels.available")}`}
                                     </div>
                                     <div style={{ fontSize:11, color:t.textMute, marginTop:1 }}>
-                                        On {selectedUser.active_count} active project(s) · daily limit: {CAPACITY}h
+                                        {tr("projectShow.labels.on")} {selectedUser.active_count} {tr("projectShow.labels.activeProjects")} · {tr("projectShow.labels.dailyLimit")}: {CAPACITY}h
                                     </div>
                                 </div>
                             </div>
@@ -511,7 +512,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
 
                     {/* Dates */}
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                        {[["Start Date *","start_date"],["End Date *","end_date"]].map(([lbl,key]) => (
+                        {[[`${tr("projectShow.fields.startDate")} *`,"start_date"],[`${tr("projectShow.fields.endDate")} *`,"end_date"]].map(([lbl,key]) => (
                             <div key={key}>
                                 <FieldLabel t={t}>{lbl}</FieldLabel>
                                 <input type="date" value={form[key]} onChange={e => set(key,e.target.value)} style={inp(t,!!errors[key])} />
@@ -523,10 +524,10 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                     {/* Hours per Day (capacity-aware) */}
                     <div>
                         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-                            <FieldLabel t={t}>Hours per Day</FieldLabel>
+                            <FieldLabel t={t}>{tr("projectShow.fields.hoursPerDay")}</FieldLabel>
                             {selectedUser && (
                                 <span style={{ fontSize:11, color:t.textMute }}>
-                                    Available:{" "}
+                                    {tr("projectShow.labels.available")}:{" "}
                                     <strong style={{ color:availableHrs===0?"#ef4444":availableHrs<=4?"#d97706":"#16a34a" }}>
                                         {availableHrs}h
                                     </strong> / {CAPACITY}h
@@ -538,7 +539,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                                 const b = hBtn(h);
                                 return (
                                     <button key={h} onClick={() => { if(!b.disabled) set("hours_per_day",h); }}
-                                        disabled={b.disabled} title={b.disabled?`Exceeds ${CAPACITY}h daily limit`:`${h}h per day`}
+                                        disabled={b.disabled} title={b.disabled?`${tr("projectShow.messages.exceedsDailyLimit")} ${CAPACITY}h`:`${h}h ${tr("projectShow.units.perDay")}`}
                                         style={{ flex:1, padding:"9px 0", borderRadius:10, cursor:b.cursor,
                                             border:`1.5px solid ${b.border}`, background:b.bg, color:b.color,
                                             fontSize:13, fontWeight:700, transition:"all 0.15s",
@@ -561,9 +562,9 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
 
                     {/* Notes */}
                     <div>
-                        <FieldLabel t={t}>Notes <span style={{ fontWeight:400, textTransform:"none" }}>(optional)</span></FieldLabel>
+                        <FieldLabel t={t}>{tr("projectShow.fields.notes")} <span style={{ fontWeight:400, textTransform:"none" }}>({tr("projectShow.labels.optional")})</span></FieldLabel>
                         <textarea value={form.notes} onChange={e => set("notes",e.target.value)}
-                            placeholder="Optional notes…" rows={2}
+                            placeholder={tr("projectShow.placeholders.optionalNotes")} rows={2}
                             style={{ ...inp(t), resize:"vertical" }} />
                     </div>
 
@@ -574,7 +575,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                                 fontSize: 10, fontWeight: 800, color: t.textMute,
                                 textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8,
                             }}>
-                                Priority Order
+                                {tr("projectShow.labels.priorityOrder")}
                             </div>
 
                             <div style={{
@@ -587,7 +588,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                                         padding: "10px 14px", fontSize: 12, color: t.textMute,
                                         background: dark ? "rgba(255,255,255,0.02)" : "#f8fafc",
                                     }}>
-                                        No other assignments — this will be <strong style={{ color: t.primary }}>Priority 1</strong>
+                                        {tr("projectShow.messages.noOtherAssignments")} — {tr("projectShow.messages.thisWillBe")} <strong style={{ color: t.primary }}>{tr("projectShow.labels.priority")} 1</strong>
                                     </div>
                                 ) : (
                                     <>
@@ -654,10 +655,10 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
 
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ fontSize: 12, fontWeight: 700, color: t.primary }}>
-                                                    {project.name} <span style={{ fontWeight: 400, color: t.textMute }}>(this project)</span>
+                                                    {project.name} <span style={{ fontWeight: 400, color: t.textMute }}>({tr("projectShow.labels.thisProject")})</span>
                                                 </div>
                                                 <div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>
-                                                    {form.hours_per_day ? `${form.hours_per_day}h/day` : "Select hours above"}
+                                                    {form.hours_per_day ? `${form.hours_per_day}${tr("projectShow.units.hoursPerDay")}` : tr("projectShow.messages.selectHoursAbove")}
                                                 </div>
                                             </div>
 
@@ -696,7 +697,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                             </div>
 
                             <p style={{ fontSize: 11, color: t.textMute, marginTop: 6, margin: "6px 0 0" }}>
-                                P1 = morning session. Higher priority = assigned time slot comes later in the day.
+                                {tr("projectShow.messages.priorityHint")}
                             </p>
                         </div>
                     )}
@@ -707,7 +708,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                         flex:1, padding:"11px", background:t.surfaceSoft,
                         border:`1.5px solid ${t.border}`, borderRadius:12, color:t.textSoft,
                         fontSize:13, fontWeight:600, cursor:isSubmitting?"not-allowed":"pointer",
-                        opacity:isSubmitting?0.5:1, fontFamily:"inherit" }}>Cancel</button>
+                        opacity:isSubmitting?0.5:1, fontFamily:"inherit" }}>{tr("projectShow.actions.cancel")}</button>
                     <button onClick={handleSubmit} disabled={isSubmitting} style={{
                         flex:2, padding:"11px",
                         background: isSubmitting?"#a5b4fc":existingAssign
@@ -719,8 +720,8 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
                             ?"0 4px 14px rgba(37,99,235,0.35)":"0 4px 14px rgba(79,70,229,0.35)",
                         display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                         opacity:isSubmitting?0.8:1, transition:"all 0.15s", fontFamily:"inherit" }}>
-                        {isSubmitting ? <><Spinner/> Assigning…</>
-                            : existingAssign ? "➕ Update Hours" : isOverCap ? "⚠ Assign Anyway" : "Assign Member"}
+                        {isSubmitting ? <><Spinner/> {tr("projectShow.actions.assigning")}</>
+                            : existingAssign ? `➕ ${tr("projectShow.actions.updateHours")}` : isOverCap ? `⚠ ${tr("projectShow.actions.assignAnyway")}` : tr("projectShow.actions.assignMember")}
                     </button>
                 </div>
             </div>
@@ -731,7 +732,7 @@ function AssignModal({ project, availableUsers, onClose, t, dark }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Edit Assignment Modal — all original logic preserved
 // ─────────────────────────────────────────────────────────────────────────────
-function EditModal({ assignment, onClose, t, dark }) {
+function EditModal({ assignment, onClose, t, dark, tr }) {
     const [form, setForm] = useState({
         start_date:    assignment.start_date?.slice(0,10) || "",
         end_date:      assignment.end_date?.slice(0,10)   || "",
@@ -758,7 +759,7 @@ function EditModal({ assignment, onClose, t, dark }) {
     };
 
     const statusOpts = ["upcoming","active","completed","removed"].map(s => ({
-        value:s, label:STATUS_CFG[s]?.label||s,
+        value:s, label:tr(STATUS_CFG[s]?.label||s),
         icon:{ upcoming:"🕐",active:"⚡",completed:"✅",removed:"🗑" }[s],
     }));
 
@@ -775,7 +776,7 @@ function EditModal({ assignment, onClose, t, dark }) {
                 <div style={{ padding:"20px 24px 16px", borderBottom:`1px solid ${t.border}`, background:t.headerGrad }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                         <div>
-                            <h2 style={{ fontSize:16, fontWeight:800, color:t.text, margin:0 }}>Edit Assignment</h2>
+                            <h2 style={{ fontSize:16, fontWeight:800, color:t.text, margin:0 }}>{tr("projectShow.modal.editAssignmentTitle")}</h2>
 
                             {/* Member · Project · Priority */}
                             <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:6, flexWrap:"wrap" }}>
@@ -783,7 +784,7 @@ function EditModal({ assignment, onClose, t, dark }) {
                                 {/* Member */}
                                 <div style={{ display:"flex", alignItems:"center", gap:5 }}>
                                     <span style={{ fontSize:9, fontWeight:700, color:t.textMute,
-                                        textTransform:"uppercase", letterSpacing:"0.07em" }}>Member</span>
+                                        textTransform:"uppercase", letterSpacing:"0.07em" }}>{tr("projectShow.fields.member")}</span>
                                     <span style={{ fontSize:12, fontWeight:700, color:t.primary }}>
                                         {assignment.user?.name}
                                     </span>
@@ -795,7 +796,7 @@ function EditModal({ assignment, onClose, t, dark }) {
                                 {assignment.project?.name && (
                                     <div style={{ display:"flex", alignItems:"center", gap:5 }}>
                                         <span style={{ fontSize:9, fontWeight:700, color:t.textMute,
-                                            textTransform:"uppercase", letterSpacing:"0.07em" }}>Project</span>
+                                            textTransform:"uppercase", letterSpacing:"0.07em" }}>{tr("projectShow.fields.project")}</span>
                                         <span style={{ fontSize:12, fontWeight:700, color:t.textSoft }}>
                                             {assignment.project.name}
                                         </span>
@@ -808,7 +809,7 @@ function EditModal({ assignment, onClose, t, dark }) {
                                 {assignment.priority_order && (
                                     <div style={{ display:"flex", alignItems:"center", gap:5 }}>
                                         <span style={{ fontSize:9, fontWeight:700, color:t.textMute,
-                                            textTransform:"uppercase", letterSpacing:"0.07em" }}>Priority</span>
+                                            textTransform:"uppercase", letterSpacing:"0.07em" }}>{tr("projectShow.labels.priority")}</span>
                                         <div style={{
                                             width:20, height:20, borderRadius:"50%",
                                             background:"linear-gradient(135deg,#4f46e5,#3b82f6)",
@@ -831,7 +832,7 @@ function EditModal({ assignment, onClose, t, dark }) {
                 <div style={{ padding:"20px 24px", display:"flex", flexDirection:"column", gap:16 }}>
                     {/* Dates */}
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                        {[["Start Date","start_date"],["End Date","end_date"]].map(([lbl,key]) => (
+                        {[[tr("projectShow.fields.startDate"),"start_date"],[tr("projectShow.fields.endDate"),"end_date"]].map(([lbl,key]) => (
                             <div key={key}>
                                 <FieldLabel t={t}>{lbl}</FieldLabel>
                                 <input type="date" value={form[key]} onChange={e => set(key,e.target.value)} style={inp(t)} />
@@ -841,7 +842,7 @@ function EditModal({ assignment, onClose, t, dark }) {
 
                     {/* Hours */}
                     <div>
-                        <FieldLabel t={t}>Hours per Day</FieldLabel>
+                        <FieldLabel t={t}>{tr("projectShow.fields.hoursPerDay")}</FieldLabel>
                         <div style={{ display:"flex", gap:8 }}>
                             {[2,4,6,8].map(h => (
                                 <button key={h} onClick={() => set("hours_per_day",h)} style={{
@@ -871,7 +872,7 @@ function EditModal({ assignment, onClose, t, dark }) {
 
                     {/* Status — PremiumSelect */}
                     <div>
-                        <FieldLabel t={t}>Status</FieldLabel>
+                        <FieldLabel t={t}>{tr("projectShow.fields.status")}</FieldLabel>
                         <PremiumSelect options={statusOpts} value={form.status} onChange={v => set("status",v)} t={t} dark={dark} zIndex={300} />
 
                         {errors.user_id && (
@@ -892,7 +893,7 @@ function EditModal({ assignment, onClose, t, dark }) {
 
                     {/* Notes */}
                     <div>
-                        <FieldLabel t={t}>Notes</FieldLabel>
+                        <FieldLabel t={t}>{tr("projectShow.fields.notes")}</FieldLabel>
                         <textarea value={form.notes} onChange={e => set("notes",e.target.value)}
                             rows={2} style={{ ...inp(t), resize:"vertical" }} />
                     </div>
@@ -901,7 +902,7 @@ function EditModal({ assignment, onClose, t, dark }) {
                 <div style={{ padding:"0 24px 22px", display:"flex", gap:10 }}>
                     <button onClick={onClose} style={{ flex:1, padding:"11px", background:t.surfaceSoft,
                         border:`1.5px solid ${t.border}`, borderRadius:12, color:t.textSoft,
-                        fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+                        fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{tr("projectShow.actions.cancel")}</button>
                     <button onClick={submit} disabled={isSaving} style={{
                         flex:2, padding:"11px",
                         background: isSaving?"#6ee7b7":"linear-gradient(135deg,#059669,#10b981)",
@@ -910,7 +911,7 @@ function EditModal({ assignment, onClose, t, dark }) {
                         boxShadow: isSaving?"none":"0 4px 14px rgba(5,150,105,0.35)",
                         display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                         opacity:isSaving?0.85:1, transition:"all 0.15s", fontFamily:"inherit" }}>
-                        {isSaving ? <><Spinner/> Updating…</> : "💾 Update"}
+                        {isSaving ? <><Spinner/> {tr("projectShow.actions.updating")}</> : `💾 ${tr("projectShow.actions.update")}`}
                     </button>
                 </div>
             </div>
@@ -921,7 +922,7 @@ function EditModal({ assignment, onClose, t, dark }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Progress Bar
 // ─────────────────────────────────────────────────────────────────────────────
-function ProgressBar({ start, end, t }) {
+function ProgressBar({ start, end, t, tr }) {
     const pct = (() => {
         if (!start || !end) return 0;
         const total   = new Date(end)  - new Date(start);
@@ -932,7 +933,7 @@ function ProgressBar({ start, end, t }) {
     return (
         <div>
             <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:t.textMute, marginBottom:5 }}>
-                <span>Timeline</span>
+                <span>{tr ? tr("projectShow.labels.timeline") : "Timeline"}</span>
                 <span style={{ fontWeight:700, color:t.text }}>{pct}%</span>
             </div>
             <div style={{ height:6, background:t.surfaceSofter, borderRadius:99, overflow:"hidden", border:`1px solid ${t.border}` }}>
@@ -948,6 +949,7 @@ function ProgressBar({ start, end, t }) {
 // Main Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ProjectShow({ project, availableUsers = [] }) {
+    const { t: tr } = useTranslation();
     const dark = useReactiveTheme();
     const t    = getTheme(dark);
 
@@ -991,10 +993,10 @@ export default function ProjectShow({ project, availableUsers = [] }) {
     const s = STATUS_CFG[project.status] || STATUS_CFG.active;
 
     const stats = [
-        { label:"Total Members", value:assignments.length,                                         bg:t.stat1, color:t.stat1c, icon:"👥" },
-        { label:"Active",        value:assignments.filter(a => a.status==="active").length,        bg:t.stat2, color:t.stat2c, icon:"⚡" },
-        { label:"Upcoming",      value:assignments.filter(a => a.status==="upcoming").length,      bg:t.stat3, color:t.stat3c, icon:"🕐" },
-        { label:"Est. Hours",    value:`~${totalHours.toLocaleString()}h`,                         bg:t.stat4, color:t.stat4c, icon:"⏱" },
+        { label:tr("projectShow.stats.totalMembers"), value:assignments.length,                                         bg:t.stat1, color:t.stat1c, icon:"👥" },
+        { label:tr("projectShow.stats.active"),        value:assignments.filter(a => a.status==="active").length,        bg:t.stat2, color:t.stat2c, icon:"⚡" },
+        { label:tr("projectShow.stats.upcoming"),      value:assignments.filter(a => a.status==="upcoming").length,      bg:t.stat3, color:t.stat3c, icon:"🕐" },
+        { label:tr("projectShow.stats.estimatedHours"),    value:`~${totalHours.toLocaleString()}h`,                         bg:t.stat4, color:t.stat4c, icon:"⏱" },
     ];
 
     function ActionGlyph({ type, color }) {
@@ -1023,7 +1025,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
     }
 
     return (
-        <AppLayout title="Project Assignments">
+        <AppLayout title={tr("projectShow.appTitle")}>
             <Head title={project.name} />
             <style>{`
                 input[type=date]:focus,textarea:focus{
@@ -1040,7 +1042,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
 
                 {/* ── Back button ── */}
                 <div style={{ marginBottom:16, marginTop:"-8px" }}>
-                    <div onClick={() => router.visit("/admin/projects")} title="Back to Projects" style={{
+                    <div onClick={() => router.visit("/admin/projects")} title={tr("projectShow.actions.backToProjects")} style={{
                         display:"inline-flex", alignItems:"center", justifyContent:"center",
                         width:40, height:40, borderRadius:12, cursor:"pointer",
                         color:t.textMute, transition:"all 0.15s", border:"1px solid transparent",
@@ -1066,7 +1068,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                             <div style={{ flex:1, minWidth:0 }}>
                                 <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:8, flexWrap:"wrap" }}>
                                     <h1 style={{ fontSize:22, fontWeight:800, color:t.text, margin:0, lineHeight:1.2 }}>{project.name}</h1>
-                                    <StatusPill status={project.status} dark={dark} />
+                                    <StatusPill status={project.status} dark={dark} tr={tr} />
                                 </div>
 
                                 {project.description && (
@@ -1081,11 +1083,11 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                                         background:t.surfaceSoft, border:`1px solid ${t.border}`,
                                         borderRadius:10, padding:"7px 14px" }}>
                                         <span style={{ fontSize:9, fontWeight:800, color:"#3b82f6",
-                                            textTransform:"uppercase", letterSpacing:"0.08em" }}>FROM</span>
+                                            textTransform:"uppercase", letterSpacing:"0.08em" }}>{tr("projectShow.labels.from")}</span>
                                         <span style={{ fontSize:12, fontWeight:700, color:t.text }}>{fmt(project.start_date)}</span>
                                         <span style={{ color:t.textMute, fontSize:12 }}>→</span>
                                         <span style={{ fontSize:9, fontWeight:800, color:"#10b981",
-                                            textTransform:"uppercase", letterSpacing:"0.08em" }}>TO</span>
+                                            textTransform:"uppercase", letterSpacing:"0.08em" }}>{tr("projectShow.labels.to")}</span>
                                         <span style={{ fontSize:12, fontWeight:700, color:t.text }}>{fmt(project.end_date)}</span>
                                     </div>
 
@@ -1094,7 +1096,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                                             background:t.surfaceSoft, border:`1px solid ${t.border}`,
                                             borderRadius:10, padding:"7px 14px" }}>
                                             <Ava name={project.creator.name} url={project.creator.avatar_url} size={20} />
-                                            <span style={{ fontSize:11, color:t.textMute }}>Created by</span>
+                                            <span style={{ fontSize:11, color:t.textMute }}>{tr("projectShow.labels.createdBy")}</span>
                                             <span style={{ fontSize:12, fontWeight:700, color:t.text }}>{project.creator.name}</span>
                                         </div>
                                     )}
@@ -1103,7 +1105,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                                 {/* Progress bar */}
                                 {["active","upcoming"].includes(project.status) && project.start_date && project.end_date && (
                                     <div style={{ marginTop:16, maxWidth:480 }}>
-                                        <ProgressBar start={project.start_date} end={project.end_date} t={t} />
+                                        <ProgressBar start={project.start_date} end={project.end_date} t={t} tr={tr} />
                                     </div>
                                 )}
                             </div>
@@ -1121,7 +1123,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                                 onMouseEnter={e => { e.currentTarget.style.opacity="0.9"; e.currentTarget.style.transform="translateY(-1px)"; }}
                                 onMouseLeave={e => { e.currentTarget.style.opacity="1"; e.currentTarget.style.transform="translateY(0)"; }}
                             >
-                                <span style={{ fontSize:16 }}>+</span> Assign Member
+                                <span style={{ fontSize:16 }}>+</span> {tr("projectShow.actions.assignMember")}
                             </button>
                         </div>
                     </div>
@@ -1155,8 +1157,8 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                     background: dark?"rgba(255,255,255,0.04)":"#f1f5f9",
                     border:`1px solid ${t.border}`, borderRadius:14, padding:4, width:"fit-content" }}>
                     {[
-                        { key:"members", label:"Members",      count:assignments.length },
-                        { key:"logs",    label:"Activity Log", count:logs.length },
+                        { key:"members", label:tr("projectShow.tabs.members"),      count:assignments.length },
+                        { key:"logs",    label:tr("projectShow.tabs.activityLog"), count:logs.length },
                     ].map(tab => {
                         const isActive = activeTab === tab.key;
                         return (
@@ -1193,21 +1195,21 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                         {assignments.length === 0 ? (
                             <div style={{ padding:"60px", textAlign:"center" }}>
                                 <div style={{ fontSize:40, marginBottom:12 }}>👥</div>
-                                <div style={{ fontSize:14, color:t.textMute, marginBottom:18, fontWeight:500 }}>No members assigned yet</div>
+                                <div style={{ fontSize:14, color:t.textMute, marginBottom:18, fontWeight:500 }}>{tr("projectShow.empty.noMembersAssigned")}</div>
                                 <button onClick={() => setShowAssign(true)} style={{
                                     padding:"10px 24px",
                                     background:"linear-gradient(135deg,#4f46e5,#3b82f6)",
                                     border:"none", borderRadius:10, color:"#fff",
                                     fontSize:13, cursor:"pointer", fontWeight:700,
                                     boxShadow:"0 4px 14px rgba(79,70,229,0.35)", fontFamily:"inherit" }}>
-                                    + Assign Member
+                                    + {tr("projectShow.actions.assignMember")}
                                 </button>
                             </div>
                         ) : (
                             <table style={{ width:"100%", borderCollapse:"collapse" }}>
                                 <thead>
                                     <tr style={{ borderBottom:`1px solid ${t.border}`, background:t.surfaceSoft }}>
-                                        {["Member","Period","Hours/Day","Status","Assigned By","Notes","Actions"].map(h => (
+                                        {[tr("projectShow.table.member"),tr("projectShow.table.period"),tr("projectShow.table.hoursPerDay"),tr("projectShow.table.status"),tr("projectShow.table.assignedBy"),tr("projectShow.table.notes"),tr("projectShow.table.actions")].map(h => (
                                             <th key={h} style={{ padding:"11px 16px", textAlign:"left",
                                                 fontSize:10, color:t.textMute, fontWeight:800,
                                                 textTransform:"uppercase", letterSpacing:"0.07em", whiteSpace:"nowrap" }}>{h}</th>
@@ -1246,12 +1248,12 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                                                 <div style={{ display:"inline-flex", flexDirection:"column", gap:5 }}>
                                                     <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                                                         <span style={{ fontSize:9, fontWeight:800, color:"#3b82f6",
-                                                            textTransform:"uppercase", letterSpacing:"0.08em", width:28, flexShrink:0 }}>FROM</span>
+                                                            textTransform:"uppercase", letterSpacing:"0.08em", width:28, flexShrink:0 }}>{tr("projectShow.labels.from")}</span>
                                                         <span style={{ fontSize:12, fontWeight:600, color:t.text }}>{fmt(a.start_date)}</span>
                                                     </div>
                                                     <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                                                         <span style={{ fontSize:9, fontWeight:800, color:"#10b981",
-                                                            textTransform:"uppercase", letterSpacing:"0.08em", width:28, flexShrink:0 }}>TO</span>
+                                                            textTransform:"uppercase", letterSpacing:"0.08em", width:28, flexShrink:0 }}>{tr("projectShow.labels.to")}</span>
                                                         <span style={{ fontSize:12, fontWeight:600, color:t.text }}>{fmt(a.end_date)}</span>
                                                     </div>
                                                 </div>
@@ -1261,13 +1263,13 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                                             <td style={{ padding:"14px 16px" }}>
                                                 <div style={{ display:"inline-flex", alignItems:"baseline", gap:3, borderRadius:8, padding:"4px 10px" }}>
                                                     <span style={{ fontSize:17, fontWeight:800, color:t.primary }}>{a.hours_per_day}</span>
-                                                    <span style={{ fontSize:11, color:t.textMute, fontWeight:600 }}>h/day</span>
+                                                    <span style={{ fontSize:11, color:t.textMute, fontWeight:600 }}>{tr("projectShow.units.hoursPerDay")}</span>
                                                 </div>
                                             </td>
 
                                             {/* Status */}
                                             <td style={{ padding:"14px 16px" }}>
-                                                <StatusPill status={a.status} dark={dark} />
+                                                <StatusPill status={a.status} dark={dark} tr={tr} />
                                             </td>
 
                                             {/* Assigned By */}
@@ -1344,13 +1346,13 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                         {logs.length === 0 ? (
                             <div style={{ padding:"60px", textAlign:"center" }}>
                                 <div style={{ fontSize:36, marginBottom:12 }}>📋</div>
-                                <div style={{ fontSize:14, color:t.textMute, marginBottom:18, fontWeight:500 }}>No Activity yet</div>
+                                <div style={{ fontSize:14, color:t.textMute, marginBottom:18, fontWeight:500 }}>{tr("projectShow.empty.noActivityYet")}</div>
                             </div>
                         ) : (
                             <div style={{ padding:22, display:"flex", flexDirection:"column", gap:0 }}>
                                 {logs.map((log, i) => {
                                     const aColor = { assigned:"#16a34a", edited:"#2563eb", removed:"#dc2626" }[log.action] || "#64748b";
-                                    const aLabel = { assigned:"assigned", edited:"edited assignment of", removed:"removed" }[log.action] || log.action;
+                                    const aLabel = { assigned:tr("projectShow.logs.assigned"), edited:tr("projectShow.logs.editedAssignmentOf"), removed:tr("projectShow.logs.removed") }[log.action] || log.action;
                                     const aIcon  = { assigned:"✅", edited:"✏️", removed:"❌" }[log.action];
                                     return (
                                         <div key={log.id} style={{
@@ -1390,7 +1392,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                                                     }}>
                                                         {log.old_values.start_date !== log.new_values.start_date && (
                                                             <span>
-                                                                start: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.start_date}</span>
+                                                                {tr("projectShow.fields.startDate")}: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.start_date}</span>
                                                                 {" → "}
                                                                 <span style={{ color:"#16a34a", fontWeight:600 }}>{log.new_values.start_date}</span>
                                                             </span>
@@ -1398,7 +1400,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
 
                                                         {log.old_values.end_date !== log.new_values.end_date && (
                                                             <span>
-                                                                end: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.end_date}</span>
+                                                                {tr("projectShow.fields.endDate")}: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.end_date}</span>
                                                                 {" → "}
                                                                 <span style={{ color:"#16a34a", fontWeight:600 }}>{log.new_values.end_date}</span>
                                                             </span>
@@ -1406,7 +1408,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
 
                                                         {log.old_values.status !== log.new_values.status && (
                                                             <span>
-                                                                status: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.status}</span>
+                                                                {tr("projectShow.fields.status")}: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.status}</span>
                                                                 {" → "}
                                                                 <span style={{ color:"#16a34a", fontWeight:600 }}>{log.new_values.status}</span>
                                                             </span>
@@ -1414,7 +1416,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
 
                                                         {Number(log.old_values.hours_per_day) !== Number(log.new_values.hours_per_day) && (
                                                             <span>
-                                                                hours/day: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.hours_per_day}h</span>
+                                                                {tr("projectShow.fields.hoursPerDay")}: <span style={{ color:"#ef4444", fontWeight:600 }}>{log.old_values.hours_per_day}h</span>
                                                                 {" → "}
                                                                 <span style={{ color:"#16a34a", fontWeight:600 }}>{log.new_values.hours_per_day}h</span>
                                                             </span>
@@ -1434,10 +1436,10 @@ export default function ProjectShow({ project, availableUsers = [] }) {
             {/* ── Modals ── */}
             {showAssign && (
                 <AssignModal project={project} availableUsers={availableUsers}
-                    onClose={() => setShowAssign(false)} t={t} dark={dark} />
+                    onClose={() => setShowAssign(false)} t={t} dark={dark} tr={tr} />
             )}
             {editTarget && (
-                <EditModal assignment={editTarget} onClose={() => setEditTarget(null)} t={t} dark={dark} />
+                <EditModal assignment={editTarget} onClose={() => setEditTarget(null)} t={t} dark={dark} tr={tr} />
             )}
             {removeTarget && (
                 <RemoveConfirmModal
@@ -1445,7 +1447,7 @@ export default function ProjectShow({ project, availableUsers = [] }) {
                     onConfirm={confirmRemove}
                     onCancel={() => { if(!isRemoving) setRemoveTgt(null); }}
                     isRemoving={isRemoving}
-                    t={t} dark={dark}
+                    t={t} dark={dark} tr={tr}
                 />
             )}
         </AppLayout>

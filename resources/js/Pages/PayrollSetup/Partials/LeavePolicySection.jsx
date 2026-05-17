@@ -1,5 +1,7 @@
 import { useForm, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '@/Contexts/LanguageContext';
+const trPresetName = (tr, value) => tr(`hrPolicy.presets.${String(value || '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '')}`) || value;
 
 // ── Theme hook ─────────────────────────────────────────────────
 function useTheme() {
@@ -113,7 +115,7 @@ const PRESET_LEAVE_TYPES = [
 
 
 // ── PremiumSelect (UserRoles pattern) ────────────────────────
-function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Select...', T, dark, disabled = false, zIndex = 300 }) {
+function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Select...', T, dark, disabled = false, zIndex = 300, tr }) {
     const [open, setOpen] = useState(false);
     const wrapRef = useRef(null);
     const selected = options.find(o => String(o.value) === String(value));
@@ -142,7 +144,7 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
                     opacity: disabled ? 0.6 : 1,
                 }}>
                 <span style={{ fontSize: 13, fontWeight: selected ? 700 : 500, color: selected ? T.text : T.textMute, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {selected ? selected.label : placeholder}
+                    {selected ? (selected.labelKey && tr ? tr(selected.labelKey) : selected.label) : placeholder}
                 </span>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
                     style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease', flexShrink: 0 }}>
@@ -179,7 +181,7 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
                                     </svg>
                                 )}
                                 {!isSel && <span style={{ width: 13 }}/>}
-                                {opt.label}
+                                {opt.labelKey && tr ? tr(opt.labelKey) : opt.label}
                             </button>
                         );
                     })}
@@ -190,8 +192,15 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
 }
 
 export default function LeavePolicySection({ leavePolicies }) {
+    const { t: tr } = useTranslation();
     const dark = useTheme();
     const T    = getTheme(dark);
+
+    const isPresetLeaveType = (value) =>
+        PRESET_LEAVE_TYPES.some(p => p.name === value);
+
+    const displayLeaveType = (value) =>
+        isPresetLeaveType(value) ? trPresetName(tr, value) : value;
 
     const [showForm, setShowForm]         = useState(false);
     const [editingId, setEditingId]       = useState(null);
@@ -203,11 +212,11 @@ export default function LeavePolicySection({ leavePolicies }) {
 
     const validate = () => {
         const errs = {};
-        if (!data.leave_type.trim()) errs.leave_type = 'Leave type name is required.';
-        if (!data.days_per_year)     errs.days_per_year = 'Days per year is required.';
-        else if (Number(data.days_per_year) < 1) errs.days_per_year = 'Must be at least 1 day.';
+        if (!data.leave_type.trim()) errs.leave_type = tr('hrPolicy.validation.leaveTypeRequired');
+        if (!data.days_per_year)     errs.days_per_year = tr('hrPolicy.validation.daysPerYearRequired');
+        else if (Number(data.days_per_year) < 1) errs.days_per_year = tr('hrPolicy.validation.mustBeAtLeastOneDay');
         if (data.carry_over_days === '' || data.carry_over_days === null || data.carry_over_days === undefined)
-            errs.carry_over_days = 'Carry over days is required.';
+            errs.carry_over_days = tr('hrPolicy.validation.carryOverRequired');
         return errs;
     };
 
@@ -294,18 +303,18 @@ export default function LeavePolicySection({ leavePolicies }) {
                     <div onClick={() => !deleting && setDeleteTarget(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}/>
                     <div className="lp-animate" style={{ position: 'relative', background: T.panelSolid, border: `1px solid ${T.border}`, borderRadius: 20, width: '100%', maxWidth: 400, padding: '28px 28px 24px', boxShadow: T.shadow }}>
                         <div style={{ width: 52, height: 52, borderRadius: 16, background: T.dangerSoft, border: `1px solid ${dark ? 'rgba(248,113,113,0.2)' : '#fecaca'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24 }}>🗑️</div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>Delete Leave Type</div>
-                        <div style={{ fontSize: 13, color: T.textMute, textAlign: 'center', lineHeight: 1.6, marginBottom: 4 }}>Are you sure you want to delete</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{deleteTarget.leave_type}"?</div>
-                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>This action cannot be undone.</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>{tr('hrPolicy.leave.deleteLeavePolicy')}</div>
+                        <div style={{ fontSize: 13, color: T.textMute, textAlign: 'center', lineHeight: 1.6, marginBottom: 4 }}>{tr('hrPolicy.delete.areYouSureDelete')}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{displayLeaveType(deleteTarget.leave_type)}"?</div>
+                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>{tr('common.thisActionCannotBeUndone')}</div>
                         <div style={{ display: 'flex', gap: 10 }}>
                             <button onClick={() => !deleting && setDeleteTarget(null)} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                                Cancel
+                                {tr('common.cancel')}
                             </button>
                             <button onClick={handleDeleteConfirm} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: `linear-gradient(135deg, #ef4444, #dc2626)`, color: '#fff', fontSize: 13, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1, boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}>
-                                {deleting ? '⏳ Deleting...' : 'Yes, Delete'}
+                                {deleting ? `⏳ ${tr('common.deleting')}` : tr('common.yesDelete')}
                             </button>
                         </div>
                     </div>
@@ -318,8 +327,8 @@ export default function LeavePolicySection({ leavePolicies }) {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                         <thead>
                             <tr style={{ background: T.tableHead, borderBottom: `1px solid ${T.divider}` }}>
-                                {['Leave Type','Days/Yr','Paid','Carry Over','Gender','Document','Status','Actions'].map(h => (
-                                    <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, textAlign: h === 'Leave Type' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                                {[tr('hrPolicy.leave.leaveType'),tr('hrPolicy.leave.daysPerYearShort'),tr('hrPolicy.leave.paid'),tr('hrPolicy.leave.carryOver'),tr('hrPolicy.leave.gender'),tr('hrPolicy.leave.document'),tr('common.status'),tr('common.actions')].map(h => (
+                                    <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, textAlign: h === tr('hrPolicy.leave.leaveType') ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -327,22 +336,22 @@ export default function LeavePolicySection({ leavePolicies }) {
                             {leavePolicies.map((policy, idx) => (
                                 <tr key={policy.id} className="lp-row" style={{ borderBottom: idx < leavePolicies.length - 1 ? `1px solid ${T.divider}` : 'none', transition: 'background 0.1s' }}>
                                     <td style={{ padding: '12px 14px' }}>
-                                        <span style={{ fontWeight: 700, color: T.text, fontSize: 13 }}>{policy.leave_type}</span>
+                                        <span style={{ fontWeight: 700, color: T.text, fontSize: 13 }}>{displayLeaveType(policy.leave_type)}</span>
                                     </td>
                                     <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                         <span style={{ fontWeight: 800, color: T.primary, fontSize: 14 }}>{policy.days_per_year}</span>
                                         <span style={{ fontSize: 10, color: T.textMute, marginLeft: 2 }}>d</span>
                                     </td>
                                     <td style={{ padding: '12px 14px', textAlign: 'center' }}>
-                                        <LPBadge value={policy.is_paid} trueLabel="Paid" falseLabel="Unpaid" trueColor={T.success} trueSoft={T.successSoft} falseColor={T.textMute} falseSoft={T.panelSoft} dark={dark} />
+                                        <LPBadge value={policy.is_paid} trueLabel={tr('hrPolicy.leave.paid')} falseLabel={tr('hrPolicy.leave.unpaid')} trueColor={T.success} trueSoft={T.successSoft} falseColor={T.textMute} falseSoft={T.panelSoft} dark={dark} />
                                     </td>
                                     <td style={{ padding: '12px 14px', textAlign: 'center', color: T.textSoft, fontSize: 12, fontWeight: 600 }}>{policy.carry_over_days}d</td>
-                                    <td style={{ padding: '12px 14px', textAlign: 'center', color: T.textSoft, fontSize: 12, fontWeight: 600, textTransform: 'capitalize' }}>{policy.applicable_gender ?? 'all'}</td>
+                                    <td style={{ padding: '12px 14px', textAlign: 'center', color: T.textSoft, fontSize: 12, fontWeight: 600, textTransform: 'capitalize' }}>{policy.applicable_gender === 'male' ? tr('hrPolicy.leave.male') : policy.applicable_gender === 'female' ? tr('hrPolicy.leave.female') : tr('hrPolicy.leave.allGenders')}</td>
                                     <td style={{ padding: '12px 14px', textAlign: 'center' }}>
-                                        <LPBadge value={policy.requires_document} trueLabel="Required" falseLabel="No" trueColor={T.warning} trueSoft={T.warningSoft} falseColor={T.textMute} falseSoft={T.panelSoft} dark={dark} />
+                                        <LPBadge value={policy.requires_document} trueLabel={tr('common.required')} falseLabel={tr('common.no')} trueColor={T.warning} trueSoft={T.warningSoft} falseColor={T.textMute} falseSoft={T.panelSoft} dark={dark} />
                                     </td>
                                     <td style={{ padding: '12px 14px', textAlign: 'center' }}>
-                                        <LPBadge value={policy.is_active} trueLabel="Active" falseLabel="Inactive" trueColor={T.success} trueSoft={T.successSoft} falseColor={T.danger} falseSoft={T.dangerSoft} dark={dark} />
+                                        <LPBadge value={policy.is_active} trueLabel={tr('common.active')} falseLabel={tr('common.inactive')} trueColor={T.success} trueSoft={T.successSoft} falseColor={T.danger} falseSoft={T.dangerSoft} dark={dark} />
                                     </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
@@ -350,7 +359,7 @@ export default function LeavePolicySection({ leavePolicies }) {
                                                 style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textSoft, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                 onMouseEnter={e => { e.currentTarget.style.background = T.panelSofter; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                                                 onMouseLeave={e => { e.currentTarget.style.background = T.panelSoft; e.currentTarget.style.transform = 'translateY(0)'; }}
-                                                title="Edit">
+                                                title={tr('common.edit')}>
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                     <path d="M12 20h9"/>
                                                     <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
@@ -360,7 +369,7 @@ export default function LeavePolicySection({ leavePolicies }) {
                                                 style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.dangerSoft, color: T.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.85'; }}
                                                 onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.opacity = '1'; }}
-                                                title="Delete">
+                                                title={tr('common.delete')}>
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                     <polyline points="3 6 5 6 21 6"/>
                                                     <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -378,8 +387,8 @@ export default function LeavePolicySection({ leavePolicies }) {
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', borderRadius: 16, border: `1.5px dashed ${T.emptyBorder}`, background: T.panelSoft, textAlign: 'center', gap: 6 }}>
                     <div style={{ fontSize: 32, marginBottom: 4 }}>📅</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: T.textSoft }}>No leave types configured yet</div>
-                    <div style={{ fontSize: 11, color: T.textMute }}>Click below to add your first leave type</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.textSoft }}>{tr('hrPolicy.leave.noLeavePoliciesYet')}</div>
+                    <div style={{ fontSize: 11, color: T.textMute }}>{tr('hrPolicy.leave.createFirstLeaveType')}</div>
                 </div>
             )}
 
@@ -394,7 +403,7 @@ export default function LeavePolicySection({ leavePolicies }) {
                                 {editingId ? '✏️' : '➕'}
                             </div>
                             <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>
-                                {editingId ? 'Edit Leave Type' : 'Add New Leave Type'}
+                                {editingId ? tr('hrPolicy.leave.editLeavePolicy') : tr('hrPolicy.leave.addLeavePolicy')}
                             </div>
                         </div>
                         <button type="button" onClick={handleCancel} style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✕</button>
@@ -402,12 +411,12 @@ export default function LeavePolicySection({ leavePolicies }) {
 
                     {/* Quick Select */}
                     <div>
-                        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 8 }}>Quick Select</div>
+                        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 8 }}>{tr('hrPolicy.allowance.quickSelect')}</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                             {PRESET_LEAVE_TYPES.map(preset => {
                                 const isSelected = data.leave_type === preset.name;
                                 return (
-                                    <button key={preset.name} type="button" disabled={processing}
+                                    <button key={trPresetName(tr, preset.name)} type="button" disabled={processing}
                                         className="lp-preset"
                                         onClick={() => {
                                             setData({ ...data, leave_type: preset.name, days_per_year: preset.days, is_paid: preset.paid, applicable_gender: preset.gender });
@@ -421,13 +430,13 @@ export default function LeavePolicySection({ leavePolicies }) {
                                             background: isSelected ? T.primarySoft : T.panelSolid,
                                             color: isSelected ? T.primary : T.textSoft,
                                         }}>
-                                        {preset.name}
+                                        {trPresetName(tr, preset.name)}
                                         <span style={{ fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 99, background: preset.paid ? (dark ? 'rgba(52,211,153,0.15)' : '#d1fae5') : (dark ? 'rgba(148,163,184,0.12)' : '#f1f5f9'), color: preset.paid ? T.success : T.textMute }}>
-                                            {preset.paid ? 'paid' : 'unpaid'}
+                                            {preset.paid ? tr('hrPolicy.leave.paid') : tr('hrPolicy.leave.unpaid')}
                                         </span>
                                         {preset.gender !== 'all' && (
                                             <span style={{ fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 99, background: dark ? 'rgba(96,165,250,0.15)' : '#eff6ff', color: T.info }}>
-                                                {preset.gender}
+                                                {preset.gender === 'male' ? tr('hrPolicy.leave.male') : preset.gender === 'female' ? tr('hrPolicy.leave.female') : tr('hrPolicy.leave.allGenders')}
                                             </span>
                                         )}
                                     </button>
@@ -440,18 +449,18 @@ export default function LeavePolicySection({ leavePolicies }) {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                         <div>
                             <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                Leave Type Name <span style={{ color: T.danger }}>*</span>
+                                {tr('hrPolicy.leave.leaveType')} <span style={{ color: T.danger }}>*</span>
                             </label>
                             <input className="lp-inp" type="text" value={data.leave_type} disabled={processing}
                                 onChange={e => { setData('leave_type', e.target.value); setFormErrors(p => ({ ...p, leave_type: '' })); }}
-                                placeholder="e.g. Annual, Sick, Maternity"
+                                placeholder={tr('hrPolicy.leave.leaveTypePlaceholder')}
                                 style={inp(!!formErrors.leave_type)} />
                             {formErrors.leave_type && <ErrMsg msg={formErrors.leave_type} />}
                         </div>
 
                         <div>
                             <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                Days Per Year <span style={{ color: T.danger }}>*</span>
+                                {tr('hrPolicy.leave.daysPerYear')} <span style={{ color: T.danger }}>*</span>
                             </label>
                             <input className="lp-inp" type="number" value={data.days_per_year} min="0" disabled={processing}
                                 onChange={e => {
@@ -467,7 +476,7 @@ export default function LeavePolicySection({ leavePolicies }) {
 
                         <div>
                             <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                Carry Over Days <span style={{ color: T.danger }}>*</span>
+                                {tr('hrPolicy.leave.carryOverDays')} <span style={{ color: T.danger }}>*</span>
                             </label>
                             <input className="lp-inp" type="number" value={data.carry_over_days} min="0" disabled={processing}
                                 onChange={e => {
@@ -482,29 +491,30 @@ export default function LeavePolicySection({ leavePolicies }) {
 
                         <div>
                             <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                Applicable Gender
+                                {tr('hrPolicy.leave.applicableGender')}
                             </label>
                             <PremiumSelect
                                 options={[
-                                    { value: 'all', label: 'All' },
-                                    { value: 'male', label: 'Male only' },
-                                    { value: 'female', label: 'Female only' },
+                                    { value: 'all', labelKey: 'hrPolicy.leave.allGenders', label: 'All' },
+                                    { value: 'male', labelKey: 'hrPolicy.leave.maleOnly', label: 'Male only' },
+                                    { value: 'female', labelKey: 'hrPolicy.leave.femaleOnly', label: 'Female only' },
                                 ]}
                                 value={data.applicable_gender}
                                 onChange={v => setData('applicable_gender', v)}
-                                placeholder="Select gender..."
+                                placeholder={tr('hrPolicy.leave.selectGender')}
                                 T={T} dark={dark}
                                 disabled={processing}
                                 zIndex={200}
+                                tr={tr}
                             />
                         </div>
                     </div>
 
                     {/* Toggles */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, padding: '14px 18px', borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, alignItems: 'center' }}>
-                        <LPToggle label="Paid Leave"        checked={data.is_paid}           onChange={v => setData('is_paid', v)}           disabled={processing} T={T} />
-                        <LPToggle label="Requires Document" checked={data.requires_document}  onChange={v => setData('requires_document', v)}  disabled={processing} T={T} />
-                        <LPToggle label="Active"            checked={data.is_active}          onChange={v => setData('is_active', v)}          disabled={processing} T={T} />
+                        <LPToggle label={tr('hrPolicy.leave.paidLeave')}        checked={data.is_paid}           onChange={v => setData('is_paid', v)}           disabled={processing} T={T} />
+                        <LPToggle label={tr('hrPolicy.leave.requiresDocument')} checked={data.requires_document}  onChange={v => setData('requires_document', v)}  disabled={processing} T={T} />
+                        <LPToggle label={tr('common.active')}            checked={data.is_active}          onChange={v => setData('is_active', v)}          disabled={processing} T={T} />
                     </div>
 
                     {/* Actions */}
@@ -514,15 +524,15 @@ export default function LeavePolicySection({ leavePolicies }) {
                             onMouseEnter={e => { if (!processing) e.currentTarget.style.opacity = '0.9'; }}
                             onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                             {processing
-                                ? <><LPSpinner /> Saving...</>
-                                : <>{editingId ? '✅ Update Leave Type' : '✅ Add Leave Type'}</>
+                                ? <><LPSpinner /> {tr('common.saving')}</>
+                                : <>{editingId ? `✅ ${tr('hrPolicy.leave.updateLeaveType')}` : `✅ ${tr('hrPolicy.leave.addLeavePolicy')}`}</>
                             }
                         </button>
                         <button type="button" onClick={handleCancel} disabled={processing}
                             style={{ padding: '10px 18px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                             onMouseEnter={e => e.currentTarget.style.background = T.panelSoft}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                            Cancel
+                            {tr('common.cancel')}
                         </button>
                     </div>
                 </form>
@@ -538,7 +548,7 @@ export default function LeavePolicySection({ leavePolicies }) {
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Add Leave Type
+                    {tr('hrPolicy.leave.addLeavePolicy')}
                 </button>
             )}
         </div>

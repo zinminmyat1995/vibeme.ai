@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo,useRef  } from "react";
 import { Head, router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
+import { useTranslation } from "@/Contexts/LanguageContext";
 import { createPortal } from "react-dom";
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
@@ -72,15 +73,15 @@ function getTheme(dark) {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const STATUS = {
-    active:    { label: "Active",    color: "#059669", bg: "rgba(5,150,105,0.10)",  bgDark: "rgba(52,211,153,0.14)"  },
-    upcoming:  { label: "Upcoming",  color: "#4f46e5", bg: "rgba(79,70,229,0.10)",  bgDark: "rgba(99,102,241,0.18)"  },
-    completed: { label: "Completed", color: "#0891b2", bg: "rgba(8,145,178,0.10)",  bgDark: "rgba(34,211,238,0.14)"  },
-    cancelled: { label: "Cancelled", color: "#dc2626", bg: "rgba(220,38,38,0.09)",  bgDark: "rgba(248,113,113,0.14)" },
+    active:    { labelKey: "projects.status.active",    label: "Active",    color: "#059669", bg: "rgba(5,150,105,0.10)",  bgDark: "rgba(52,211,153,0.14)"  },
+    upcoming:  { labelKey: "projects.status.upcoming",  label: "Upcoming",  color: "#4f46e5", bg: "rgba(79,70,229,0.10)",  bgDark: "rgba(99,102,241,0.18)"  },
+    completed: { labelKey: "projects.status.completed", label: "Completed", color: "#0891b2", bg: "rgba(8,145,178,0.10)",  bgDark: "rgba(34,211,238,0.14)"  },
+    cancelled: { labelKey: "projects.status.cancelled", label: "Cancelled", color: "#dc2626", bg: "rgba(220,38,38,0.09)",  bgDark: "rgba(248,113,113,0.14)" },
 };
 
 
 // ── Small components ──────────────────────────────────────────────────────────
-function StatusBadge({ status, dark }) {
+function StatusBadge({ status, dark, tr }) {
     const cfg = STATUS[status] || STATUS.upcoming;
     return (
         <span style={{
@@ -94,7 +95,7 @@ function StatusBadge({ status, dark }) {
                 width: 5, height: 5, borderRadius: "50%",
                 background: cfg.color, flexShrink: 0,
             }} />
-            {cfg.label}
+            {cfg.labelKey ? tr(cfg.labelKey) : cfg.label}
         </span>
     );
 }
@@ -130,7 +131,7 @@ function Field({ label, error, children }) {
     );
 }
 // ── Project Modal (Create / Edit) ─────────────────────────────────────────────
-function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
+function ProjectModal({ project, clients, currencies, onClose, dark, theme, tr }) {
     const isEdit = !!project;
     const [form, setForm] = useState({
         name:           project?.name           || "",
@@ -158,32 +159,32 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
 
     // Dropdown options
     const statusOptions = [
-        { value: "upcoming",  label: "Upcoming"  },
-        { value: "active",    label: "Active"    },
-        { value: "completed", label: "Completed" },
-        { value: "cancelled", label: "Cancelled" },
+        { value: "upcoming",  label: tr("projects.status.upcoming")  },
+        { value: "active",    label: tr("projects.status.active")    },
+        { value: "completed", label: tr("projects.status.completed") },
+        { value: "cancelled", label: tr("projects.status.cancelled") },
     ];
     const clientOptions = [
-        { value: "", label: "— No client —" },
+        { value: "", label: tr("projects.client.noClient") },
         ...clients.map(c => ({ value: String(c.id), label: c.company_name + (c.country ? ` (${c.country})` : "") })),
     ];
     const currencyOptions = currencies.map(c => ({ value: c.currency_code, label: c.currency_code }));
 
     const validate = () => {
         const e = {};
-        if (!form.name)           e.name           = "Required";
-        if (!form.start_date)     e.start_date     = "Required";
-        if (!form.end_date)       e.end_date       = "Required";
-        if (!form.contract_value) e.contract_value = "Required";   // ← ထည့်
-        if (!form.currency)       e.currency       = "Required";   // ← ထည့်
-        if (!form.est_team_size)  e.est_team_size  = "Required";   // ← ထည့်
+        if (!form.name)           e.name           = tr("projects.validation.required");
+        if (!form.start_date)     e.start_date     = tr("projects.validation.required");
+        if (!form.end_date)       e.end_date       = tr("projects.validation.required");
+        if (!form.contract_value) e.contract_value = tr("projects.validation.required");   // ← ထည့်
+        if (!form.currency)       e.currency       = tr("projects.validation.required");   // ← ထည့်
+        if (!form.est_team_size)  e.est_team_size  = tr("projects.validation.required");   // ← ထည့်
         // ← ဒါထည့် — client_id လည်းမရွေး၊ client_name လည်းမရိုက်ရင် error
         if (!form.client_id && !form.client_name)
-            e.client = "Please select or type a client name";
+            e.client = tr("projects.validation.clientRequired");
         if (form.start_date && form.end_date && form.end_date < form.start_date)
-            e.end_date = "Must be after start date";
+            e.end_date = tr("projects.validation.endDateAfterStart");
         if (form.contract_value && isNaN(Number(form.contract_value)))
-            e.contract_value = "Must be a valid number";
+            e.contract_value = tr("projects.validation.validNumber");
         return e;
     };
 
@@ -258,10 +259,10 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                         </div>
                         <div>
                             <div style={{ fontSize: 15, fontWeight: 800, color: theme.text }}>
-                                {isEdit ? "Edit Project" : "New Project"}
+                                {isEdit ? tr("projects.modal.editProject") : tr("projects.modal.newProject")}
                             </div>
                             <div style={{ fontSize: 11, color: theme.textMute, marginTop: 1 }}>
-                                Project Management
+                                {tr("projects.appTitle")}
                             </div>
                         </div>
                     </div>
@@ -277,26 +278,26 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                 {/* ── Body ── */}
                 <div style={{ padding: "18px 22px", "--ft-mute": theme.textMute }}>
 
-                    <Field label="Project Name *" error={errors.name}>
+                    <Field label={`${tr("projects.fields.projectName")} *`} error={errors.name}>
                         <input
                             value={form.name}
                             onChange={e => set("name", e.target.value)}
-                            placeholder="e.g. CRM System v2"
+                            placeholder={tr("projects.placeholders.projectName")}
                             style={inp(errors.name)}
                         />
                     </Field>
 
-                    <Field label="Description">
+                    <Field label={tr("projects.fields.description")}>
                         <textarea
                             value={form.description}
                             onChange={e => set("description", e.target.value)}
-                            placeholder="Brief description..."
+                            placeholder={tr("projects.placeholders.description")}
                             rows={3}
                             style={{ ...inp(false), resize: "vertical", minHeight: 68 }}
                         />
                     </Field>
 
-                    <Field label="Status">
+                    <Field label={tr("projects.fields.status")}>
                         <PremiumSelect
                             value={form.status}
                             onChange={v => set("status", v)}
@@ -307,18 +308,18 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                     </Field>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-                        <Field label="Start Date *" error={errors.start_date}>
+                        <Field label={`${tr("projects.fields.startDate")} *`} error={errors.start_date}>
                             <input type="date" value={form.start_date} onChange={e => set("start_date", e.target.value)} style={inp(errors.start_date)} />
                         </Field>
-                        <Field label="End Date *" error={errors.end_date}>
+                        <Field label={`${tr("projects.fields.endDate")} *`} error={errors.end_date}>
                             <input type="date" value={form.end_date} onChange={e => set("end_date", e.target.value)} style={inp(errors.end_date)} />
                         </Field>
                     </div>
 
-                    {/* ── Contract & Budget ── */}
+                    {/* ── {tr("projects.sections.contractBudget")} ── */}
                     <div style={{ height: 1, background: theme.border, margin: "4px 0 16px" }} />
                     <p style={{ fontSize: 11, fontWeight: 800, color: theme.success, textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 14px" }}>
-                        Contract & Budget
+                        {tr("projects.sections.contractBudget")}
                     </p>
 
                     {/* Client */}
@@ -328,7 +329,7 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                             textTransform: "uppercase", letterSpacing: "0.07em",
                             color: theme.textMute, marginBottom: 5,
                         }}>
-                            Client
+                            {tr("projects.fields.client")}
                         </label>
 
                         {/* Dropdown — existing client ရွေးချင်ရင် */}
@@ -336,7 +337,7 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                             value={form.client_id}
                             onChange={v => { set("client_id", v); if (v) set("client_name", ""); }}
                             options={clientOptions}
-                            placeholder="Select existing client..."
+                            placeholder={tr("projects.placeholders.selectClient")}
                             dark={dark}
                             theme={theme}
                         />
@@ -345,7 +346,7 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                         <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "8px 0" }}>
                             <div style={{ flex: 1, height: 1, background: theme.border }} />
                             <span style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, letterSpacing: "0.05em" }}>
-                                OR TYPE MANUALLY
+                                {tr("projects.labels.orTypeManually")}
                             </span>
                             <div style={{ flex: 1, height: 1, background: theme.border }} />
                         </div>
@@ -357,7 +358,7 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                                 set("client_name", e.target.value);
                                 if (e.target.value) set("client_id", "");
                             }}
-                            placeholder="Or type client name manually..."
+                            placeholder={tr("projects.placeholders.clientNameManual")}
                             style={{
                                 width: "100%", padding: "9px 12px", fontSize: 13, borderRadius: 8,
                                 outline: "none", boxSizing: "border-box", fontFamily: "inherit",
@@ -375,19 +376,19 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                     </div>
 
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 100px", gap:10, marginBottom:16 }}>
-                        <Field label="Contract Value *" error={errors.contract_value}>
+                        <Field label={`${tr("projects.fields.contractValue")} *`} error={errors.contract_value}>
                             <input type="number" min="0" step="0.01" value={form.contract_value}
                                 onChange={e => set("contract_value", e.target.value)}
                                 placeholder="0.00" style={inp(errors.contract_value)} />
                         </Field>
-                        <Field label="Currency *" error={errors.currency}>
+                        <Field label={`${tr("projects.fields.currency")} *`} error={errors.currency}>
                             <PremiumSelect value={form.currency} onChange={v => set("currency", v)}
                                 options={currencyOptions} dark={dark} theme={theme} />
                         </Field>
-                        <Field label="Team Size *" error={errors.est_team_size}>
+                        <Field label={`${tr("projects.fields.teamSize")} *`} error={errors.est_team_size}>
                             <input type="number" min="1" max="999" value={form.est_team_size}
                                 onChange={e => set("est_team_size", e.target.value)}
-                                placeholder="e.g. 4" style={inp(errors.est_team_size)} />
+                                placeholder={tr("projects.placeholders.teamSize")} style={inp(errors.est_team_size)} />
                         </Field>
                     </div>
                 </div>
@@ -406,7 +407,7 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                         background: theme.surfaceSoft, color: theme.textSoft,
                         fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
                     }}>
-                        Cancel
+                        {tr("projects.actions.cancel")}
                     </button>
                     <button onClick={submit} disabled={saving} style={{
                         padding: "10px 24px", borderRadius: 8, border: "none",
@@ -418,7 +419,7 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
                         boxShadow: saving ? "none" : "0 4px 14px rgba(79,70,229,0.3)",
                     }}>
                         {saving && <Spinner />}
-                        {saving ? (isEdit ? "Updating…" : "Creating…") : (isEdit ? "Update Project" : "Create Project")}
+                        {saving ? (isEdit ? tr("projects.loading.updating") : tr("projects.loading.creating")) : (isEdit ? tr("projects.actions.update") : tr("projects.actions.create"))}
                     </button>
                 </div>
             </div>
@@ -428,7 +429,7 @@ function ProjectModal({ project, clients, currencies, onClose, dark, theme }) {
 }
 
 // ── Delete Modal ──────────────────────────────────────────────────────────────
-function DeleteModal({ project, onClose, dark, theme }) {
+function DeleteModal({ project, onClose, dark, theme, tr }) {
     const [deleting, setDeleting] = useState(false);
 
     const confirm = () => {
@@ -463,8 +464,8 @@ function DeleteModal({ project, onClose, dark, theme }) {
                             border: `1px solid ${dark ? "rgba(248,113,113,0.25)" : "#fca5a5"}`,
                         }}>🗑</div>
                         <div>
-                            <div style={{ fontSize: 15, fontWeight: 800, color: theme.text }}>Delete Project</div>
-                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 1 }}>This cannot be undone</div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: theme.text }}>{tr("projects.modal.deleteProject")}</div>
+                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 1 }}>{tr("projects.modal.cannotBeUndone")}</div>
                         </div>
                     </div>
                     <div style={{
@@ -473,7 +474,7 @@ function DeleteModal({ project, onClose, dark, theme }) {
                         borderRadius: 10, padding: "12px 14px", marginBottom: 18,
                     }}>
                         <p style={{ fontSize: 13, color: theme.textSoft, margin: 0 }}>
-                            Are you sure you want to delete{" "}
+                            {tr("projects.confirm.deleteQuestion")}{" "}
                             <strong style={{ color: theme.text }}>"{project.name}"</strong>?
                         </p>
                     </div>
@@ -496,7 +497,7 @@ function DeleteModal({ project, onClose, dark, theme }) {
                             boxShadow: deleting ? "none" : "0 4px 14px rgba(239,68,68,0.3)",
                         }}>
                             {deleting && <Spinner />}
-                            {deleting ? "Deleting…" : "Yes, Delete"}
+                            {deleting ? tr("projects.loading.deleting") : tr("projects.actions.yesDelete")}
                         </button>
                     </div>
                 </div>
@@ -531,7 +532,7 @@ function ActionGlyph({ type, color }) {
     return null;
 }
 
-function ProjectRow({ project, dark, theme, isLast, onEdit, onDelete }) {
+function ProjectRow({ project, dark, theme, isLast, onEdit, onDelete, tr }) {
     const fmt = (d) => d
         ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
         : "—";
@@ -546,7 +547,7 @@ function ProjectRow({ project, dark, theme, isLast, onEdit, onDelete }) {
                 borderBottom: isLast ? "none" : `1px solid ${theme.border}`,
                 padding: "13px 20px", gap: 12,
                 transition: "background 0.15s",
-                minWidth: 1100,
+                minWidth: 1420,
             }}
             onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
@@ -587,13 +588,13 @@ function ProjectRow({ project, dark, theme, isLast, onEdit, onDelete }) {
             {/* Team */}
             <div style={{ flex: "0 0 180px", textAlign: "center" }}>
                 <div style={{ fontSize: 12, color: theme.textSoft }}>
-                    {project.est_team_size ? `${project.est_team_size} person` : "—"}
+                    {project.est_team_size ? `${project.est_team_size} ${tr("projects.units.person")}` : "—"}
                 </div>
             </div>
 
             {/* Status */}
-            <div style={{ flex: "150px" }}>
-                <StatusBadge status={project.status} dark={dark} />
+            <div style={{ flex: "0 0 150px" }}>
+                <StatusBadge status={project.status} dark={dark} tr={tr} />
             </div>
 
             {/* Actions — User role form button style */}
@@ -769,6 +770,7 @@ function PremiumSelect({ value, onChange, options, placeholder, dark, theme, wid
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function HRProjectsIndex({ projects: raw = [], clients = [], currencies = [] }) {
+    const { t: tr } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -808,26 +810,26 @@ export default function HRProjectsIndex({ projects: raw = [], clients = [], curr
     };
 
     const TABS = [
-        { key: "all",       label: `All (${counts.all})`             },
-        { key: "active",    label: `Active (${counts.active})`       },
-        { key: "upcoming",  label: `Upcoming (${counts.upcoming})`   },
-        { key: "completed", label: `Completed (${counts.completed})` },
-        { key: "cancelled", label: `Cancelled (${counts.cancelled})` },
+        { key: "all",       label: `${tr("projects.status.all")} (${counts.all})`             },
+        { key: "active",    label: `${tr("projects.status.active")} (${counts.active})`       },
+        { key: "upcoming",  label: `${tr("projects.status.upcoming")} (${counts.upcoming})`   },
+        { key: "completed", label: `${tr("projects.status.completed")} (${counts.completed})` },
+        { key: "cancelled", label: `${tr("projects.status.cancelled")} (${counts.cancelled})` },
     ];
 
     const COL_HEADS = [
-        { label: "Project",        w: "250px" },
-        { label: "Client",         w: "220px" },
-        { label: "Contract Value", w: "180px" },
-        { label: "Timeline",       w: "220px" },
-        { label: "Team",           w: "180px",  align: "center" },
-        { label: "Status",         w: "150px" },
-        { label: "Actions",        w: "120px", align: "center" },
+        { label: tr("projects.table.project"),        w: "250px" },
+        { label: tr("projects.table.client"),         w: "220px" },
+        { label: tr("projects.table.contractValue"),  w: "180px" },
+        { label: tr("projects.table.timeline"),       w: "220px" },
+        { label: tr("projects.table.team"),           w: "180px",  align: "center" },
+        { label: tr("projects.table.status"),         w: "150px" },
+        { label: tr("projects.table.actions"),        w: "120px", align: "center" },
     ];
 
     return (
-        <AppLayout title="Project Management">
-            <Head title="Project Management" />
+        <AppLayout title={tr("projects.appTitle")}>
+            <Head title={tr("projects.appTitle")} />
             <style>{`@keyframes hrpjSpin { to { transform: rotate(360deg); } }`}</style>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
@@ -843,35 +845,35 @@ export default function HRProjectsIndex({ projects: raw = [], clients = [], curr
                 }}>
                     <div style={{ display: "flex", gap: 32 }}>
                         <div>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#818cf8" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.07em" }}>Total Projects</div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#818cf8" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.07em" }}>{tr("projects.stats.totalProjects")}</div>
                             <div style={{ fontSize: 26, fontWeight: 900, color: dark ? "#e0e7ff" : "#3730a3", marginTop: 2 }}>{projects.length}</div>
                         </div>
                         <div style={{ width: 1, background: dark ? "rgba(148,163,184,0.15)" : "#c7d2fe" }} />
                         <div>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#818cf8" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.07em" }}>Total Contract Value</div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#818cf8" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.07em" }}>{tr("projects.stats.totalContractValue")}</div>
                             <div style={{ fontSize: 26, fontWeight: 900, color: dark ? "#e0e7ff" : "#3730a3", marginTop: 2 }}>
                                 {totalValue > 0 ? `USD ${totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "—"}
                             </div>
                         </div>
                         <div style={{ width: 1, background: dark ? "rgba(148,163,184,0.15)" : "#c7d2fe" }} />
                         <div>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#34d399" : "#059669", textTransform: "uppercase", letterSpacing: "0.07em" }}>Active</div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#34d399" : "#059669", textTransform: "uppercase", letterSpacing: "0.07em" }}>{tr("projects.status.active")}</div>
                             <div style={{ fontSize: 26, fontWeight: 900, color: dark ? "#6ee7b7" : "#047857", marginTop: 2 }}>{counts.active}</div>
                         </div>
                         <div style={{ width: 1, background: dark ? "rgba(148,163,184,0.15)" : "#c7d2fe" }} />
                         <div>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#818cf8" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.07em" }}>Upcoming</div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: dark ? "#818cf8" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.07em" }}>{tr("projects.status.upcoming")}</div>
                             <div style={{ fontSize: 26, fontWeight: 900, color: dark ? "#e0e7ff" : "#3730a3", marginTop: 2 }}>{counts.upcoming}</div>
                         </div>
                     </div>
                 </div>
 
-                {/* ── Search + New Project ── */}
+                {/* ── Search {tr("projects.actions.createProject")} ── */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
                     <input
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Search by project name..."
+                        placeholder={tr("projects.placeholders.searchProjects")}
                         style={{ ...inp, flex: 1, boxSizing: "border-box" }}
                     />
                     <button
@@ -886,7 +888,7 @@ export default function HRProjectsIndex({ projects: raw = [], clients = [], curr
                             whiteSpace: "nowrap",
                         }}
                     >
-                        + New Project
+                        {tr("projects.actions.createProject")}
                     </button>
                 </div>
 
@@ -946,8 +948,8 @@ export default function HRProjectsIndex({ projects: raw = [], clients = [], curr
                                 {filtered.length === 0 ? (
                                     <div style={{ padding: "48px 20px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>
                                         {search || statusF !== "all"
-                                            ? "No projects match your filters."
-                                            : "No projects yet — create your first project."}
+                                            ? tr("projects.empty.noProjectsMatch")
+                                            : tr("projects.empty.noProjectsYet")}
                                     </div>
                                 ) : (
                                     filtered.map((p, i) => (
@@ -959,6 +961,7 @@ export default function HRProjectsIndex({ projects: raw = [], clients = [], curr
                                             isLast={i === filtered.length - 1}
                                             onEdit={proj  => setModal(proj)}
                                             onDelete={proj => setDelTarget(proj)}
+                                            tr={tr}
                                         />
                                     ))
                                 )}
@@ -976,6 +979,7 @@ export default function HRProjectsIndex({ projects: raw = [], clients = [], curr
                     dark={dark}
                     theme={theme}
                     onClose={() => setModal(null)}
+                    tr={tr}
                 />
             )}
             {delTarget && (
@@ -984,6 +988,7 @@ export default function HRProjectsIndex({ projects: raw = [], clients = [], curr
                     dark={dark}
                     theme={theme}
                     onClose={() => setDelTarget(null)}
+                    tr={tr}
                 />
             )}
         </AppLayout>

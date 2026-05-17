@@ -1,5 +1,7 @@
 import { useForm, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/Contexts/LanguageContext';
+const trPresetName = (tr, value) => tr(`hrPolicy.presets.${String(value || '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '')}`) || value;
 
 // ── Theme hook ─────────────────────────────────────────────────
 function useTheme() {
@@ -130,8 +132,15 @@ function ALSpinner() {
 
 // ── Main ───────────────────────────────────────────────────────
 export default function AllowanceSection({ allowances }) {
+    const { t: tr } = useTranslation();
     const dark = useTheme();
     const T    = getTheme(dark);
+
+    const isPresetAllowance = (value) =>
+        PRESET_ALLOWANCES.some(p => p.name === value);
+
+    const displayAllowanceName = (value) =>
+        isPresetAllowance(value) ? trPresetName(tr, value) : value;
 
     const [showForm, setShowForm]         = useState(false);
     const [editingId, setEditingId]       = useState(null);
@@ -143,9 +152,9 @@ export default function AllowanceSection({ allowances }) {
 
     const validate = () => {
         const errs = {};
-        if (!data.name.trim()) errs.name  = 'Allowance name is required.';
-        if (!data.value)       errs.value = 'Value is required.';
-        else if (Number(data.value) < 0) errs.value = 'Must be 0 or greater.';
+        if (!data.name.trim()) errs.name  = tr('hrPolicy.validation.allowanceNameRequired');
+        if (!data.value)       errs.value = tr('hrPolicy.validation.valueRequired');
+        else if (Number(data.value) < 0) errs.value = tr('hrPolicy.validation.mustBeZeroOrGreater');
         return errs;
     };
 
@@ -233,17 +242,17 @@ export default function AllowanceSection({ allowances }) {
                     <div onClick={() => !deleting && setDeleteTarget(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}/>
                     <div className="al-animate" style={{ position: 'relative', background: T.panelSolid, border: `1px solid ${T.border}`, borderRadius: 20, width: '100%', maxWidth: 400, padding: '28px 28px 24px', boxShadow: T.shadow }}>
                         <div style={{ width: 52, height: 52, borderRadius: 16, background: T.dangerSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24 }}>🗑️</div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>Delete Allowance</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{deleteTarget.name}"</div>
-                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>This action cannot be undone.</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>{tr('hrPolicy.allowance.deleteAllowance')}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{displayAllowanceName(deleteTarget.name)}"</div>
+                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>{tr('common.thisActionCannotBeUndone')}</div>
                         <div style={{ display: 'flex', gap: 10 }}>
                             <button onClick={() => !deleting && setDeleteTarget(null)} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                                Cancel
+                                {tr('common.cancel')}
                             </button>
                             <button onClick={handleDeleteConfirm} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1, boxShadow: '0 4px 14px rgba(239,68,68,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                                {deleting ? <><ALSpinner/> Deleting...</> : 'Yes, Delete'}
+                                {deleting ? <><ALSpinner/> {tr('common.deleting')}</> : tr('common.yesDelete')}
                             </button>
                         </div>
                     </div>
@@ -256,7 +265,7 @@ export default function AllowanceSection({ allowances }) {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                         <thead>
                             <tr style={{ background: T.tableHead, borderBottom: `1px solid ${T.divider}` }}>
-                                {['Allowance Name', 'Type', 'Value', 'Status', 'Actions'].map((h, i) => (
+                                {[tr('hrPolicy.allowance.allowanceName'), tr('common.type'), tr('common.value'), tr('common.status'), tr('common.actions')].map((h, i) => (
                                     <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, whiteSpace: 'nowrap', textAlign: i === 0 ? 'left' : 'center' }}>
                                         {h}
                                     </th>
@@ -273,12 +282,12 @@ export default function AllowanceSection({ allowances }) {
                                         <td style={{ padding: '12px 14px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 <span style={{ fontSize: 16 }}>{preset?.emoji ?? (allowance.type === 'percentage' ? '📊' : '💵')}</span>
-                                                <span style={{ fontWeight: 700, color: T.text }}>{allowance.name}</span>
+                                                <span style={{ fontWeight: 700, color: T.text }}>{displayAllowanceName(allowance.name)}</span>
                                             </div>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                             <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: badge.bg, color: badge.color }}>
-                                                {allowance.type === 'percentage' ? '% Percentage' : '# Flat'}
+                                                {allowance.type === 'percentage' ? `% ${tr('hrPolicy.common.percentage')}` : `# ${tr('hrPolicy.common.flat')}`}
                                             </span>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -289,13 +298,13 @@ export default function AllowanceSection({ allowances }) {
                                                         : Number(allowance.value).toLocaleString()}
                                                 </span>
                                                 <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 99, background: badge.bg, color: badge.color }}>
-                                                    {allowance.type === 'percentage' ? 'Rate' : 'Flat'}
+                                                    {allowance.type === 'percentage' ? tr('hrPolicy.deduction.rate') : tr('hrPolicy.common.flat')}
                                                 </span>
                                             </div>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                             <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: allowance.is_active ? T.successSoft : T.panelSoft, color: allowance.is_active ? T.success : T.textMute }}>
-                                                {allowance.is_active ? 'Active' : 'Inactive'}
+                                                {allowance.is_active ? tr('common.active') : tr('common.inactive')}
                                             </span>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -304,7 +313,7 @@ export default function AllowanceSection({ allowances }) {
                                                     style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textSoft, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                     onMouseEnter={e => { e.currentTarget.style.background = T.panelSofter; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.background = T.panelSoft;   e.currentTarget.style.transform = 'translateY(0)'; }}
-                                                    title="Edit">
+                                                    title={tr('common.edit')}>
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
                                                     </svg>
@@ -313,7 +322,7 @@ export default function AllowanceSection({ allowances }) {
                                                     style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.dangerSoft, color: T.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.75'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)';   e.currentTarget.style.opacity = '1'; }}
-                                                    title="Delete">
+                                                    title={tr('common.delete')}>
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                                                         <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
@@ -330,8 +339,8 @@ export default function AllowanceSection({ allowances }) {
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 16, border: `1.5px dashed ${T.emptyBorder}`, background: T.panelSoft, padding: '36px 24px', gap: 8 }}>
                     <div style={{ width: 48, height: 48, borderRadius: 14, background: T.panelSofter, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 4 }}>🎁</div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: T.textSoft, margin: 0 }}>No allowances configured yet</p>
-                    <p style={{ fontSize: 12, color: T.textMute, margin: 0 }}>Click below to add your first allowance</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: T.textSoft, margin: 0 }}>{tr('hrPolicy.allowance.noAllowancesYet')}</p>
+                    <p style={{ fontSize: 12, color: T.textMute, margin: 0 }}>{tr('hrPolicy.allowance.createFirstAllowance')}</p>
                 </div>
             )}
 
@@ -346,7 +355,7 @@ export default function AllowanceSection({ allowances }) {
                                 {editingId ? '✏️' : '➕'}
                             </div>
                             <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>
-                                {editingId ? 'Edit Allowance' : 'Add New Allowance'}
+                                {editingId ? tr('hrPolicy.allowance.editAllowance') : tr('hrPolicy.allowance.addAllowance')}
                             </div>
                         </div>
                         <button type="button" onClick={handleCancel} style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✕</button>
@@ -354,13 +363,13 @@ export default function AllowanceSection({ allowances }) {
 
                     {/* Quick Select */}
                     <div>
-                        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 10 }}>Quick Select</div>
+                        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 10 }}>{tr('hrPolicy.allowance.quickSelect')}</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: 8 }}>
                             {PRESET_ALLOWANCES.map(preset => {
                                 const isSelected = data.name === preset.name;
                                 const badge = typeBadge(preset.type);
                                 return (
-                                    <button key={preset.name} type="button" onClick={() => handlePreset(preset)}
+                                    <button key={trPresetName(tr, preset.name)} type="button" onClick={() => handlePreset(preset)}
                                         style={{
                                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                             padding: '11px 14px', borderRadius: 14, textAlign: 'left',
@@ -374,9 +383,9 @@ export default function AllowanceSection({ allowances }) {
                                         <div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
                                                 <span style={{ fontSize: 14 }}>{preset.emoji}</span>
-                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? T.primary : T.text }}>{preset.name}</span>
+                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? T.primary : T.text }}>{trPresetName(tr, preset.name)}</span>
                                             </div>
-                                            <div style={{ fontSize: 10, fontWeight: 600, paddingLeft: 20, color: badge.color }}>{preset.type === 'percentage' ? '% Percentage' : '# Flat Amount'}</div>
+                                            <div style={{ fontSize: 10, fontWeight: 600, paddingLeft: 20, color: badge.color }}>{preset.type === 'percentage' ? `% ${tr('hrPolicy.common.percentage')}` : `# ${tr('hrPolicy.overtime.flatAmount')}`}</div>
                                         </div>
                                         {isSelected && <div style={{ width: 8, height: 8, borderRadius: '50%', background: T.primary, flexShrink: 0 }}/>}
                                     </button>
@@ -388,11 +397,11 @@ export default function AllowanceSection({ allowances }) {
                     {/* Name (full width) */}
                     <div>
                         <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                            Allowance Name <span style={{ color: T.danger }}>*</span>
+                            {tr('hrPolicy.allowance.allowanceName')} <span style={{ color: T.danger }}>*</span>
                         </label>
                         <input className="al-inp" type="text" value={data.name} disabled={processing}
                             onChange={e => { setData('name', e.target.value); setFormErrors(p => ({ ...p, name: '' })); }}
-                            placeholder="e.g. Housing Allowance, Transport Allowance..."
+                            placeholder={tr('hrPolicy.allowance.allowanceNamePlaceholder')}
                             style={inp(!!formErrors.name)} />
                         <ErrMsg msg={formErrors.name} />
                     </div>
@@ -401,11 +410,11 @@ export default function AllowanceSection({ allowances }) {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                         {/* Type */}
                         <div>
-                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Allowance Type</label>
+                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{tr('hrPolicy.allowance.allowanceType')}</label>
                             <div style={{ display: 'flex', gap: 8 }}>
                                 {[
-                                    { value: 'percentage', label: 'Percentage', hint: 'e.g. 5%, 10%' },
-                                    { value: 'flat',       label: 'Flat Amount', hint: 'e.g. 50,000' },
+                                    { value: 'percentage', labelKey: 'hrPolicy.common.percentage', label: 'Percentage', hint: 'e.g. 5%, 10%' },
+                                    { value: 'flat',       labelKey: 'hrPolicy.overtime.flatAmount', label: 'Flat Amount', hint: 'e.g. 50,000' },
                                 ].map(opt => {
                                     const isSel = data.type === opt.value;
                                     return (
@@ -415,7 +424,7 @@ export default function AllowanceSection({ allowances }) {
                                                 <div style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${isSel ? T.primary : T.textMute}`, background: isSel ? T.primary : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
                                                     {isSel && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff' }}/>}
                                                 </div>
-                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSel ? T.primary : T.textSoft }}>{opt.label}</span>
+                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSel ? T.primary : T.textSoft }}>{opt.labelKey ? tr(opt.labelKey) : opt.label}</span>
                                             </div>
                                             <div style={{ fontSize: 10, color: T.textMute, paddingLeft: 20 }}>{opt.hint}</div>
                                         </label>
@@ -427,7 +436,7 @@ export default function AllowanceSection({ allowances }) {
                         {/* Value */}
                         <div>
                             <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                {data.type === 'percentage' ? 'Rate (%)' : 'Amount'} <span style={{ color: T.danger }}>*</span>
+                                {data.type === 'percentage' ? tr('hrPolicy.allowance.ratePercent') : tr('hrPolicy.allowance.amount')} <span style={{ color: T.danger }}>*</span>
                             </label>
                             <div style={{ position: 'relative' }}>
                                 <input className="al-inp" type="number" value={data.value} disabled={processing}
@@ -446,19 +455,19 @@ export default function AllowanceSection({ allowances }) {
 
                     {/* Toggle + Submit */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                        <ALToggle label="Active" checked={data.is_active} onChange={v => setData('is_active', v)} disabled={processing} T={T} dark={dark} />
+                        <ALToggle label={tr('common.active')} checked={data.is_active} onChange={v => setData('is_active', v)} disabled={processing} T={T} dark={dark} />
                         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
                             <button type="submit" disabled={processing}
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 12, border: 'none', background: processing ? T.textMute : 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', boxShadow: processing ? 'none' : '0 4px 14px rgba(124,58,237,0.35)', transition: 'all 0.15s' }}
                                 onMouseEnter={e => { if (!processing) e.currentTarget.style.opacity = '0.9'; }}
                                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                                {processing ? <><ALSpinner/> Saving...</> : <>{editingId ? '✅ Update Allowance' : '✅ Add Allowance'}</>}
+                                {processing ? <><ALSpinner/> {tr('common.saving')}</> : <>{editingId ? `✅ ${tr('hrPolicy.allowance.updateAllowance')}` : `✅ ${tr('hrPolicy.allowance.addAllowance')}`}</>}
                             </button>
                             <button type="button" onClick={handleCancel} disabled={processing}
                                 style={{ padding: '10px 18px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.12s' }}
                                 onMouseEnter={e => e.currentTarget.style.background = T.panelSoft}
                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                Cancel
+                                {tr('common.cancel')}
                             </button>
                         </div>
                     </div>
@@ -474,7 +483,7 @@ export default function AllowanceSection({ allowances }) {
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Add Allowance
+                    {tr('hrPolicy.allowance.addAllowance')}
                 </button>
             )}
         </div>

@@ -3,15 +3,15 @@
 import { useState } from 'react';
 
 const LANGUAGES = [
-    { code: 'en', label: 'English',    flag: '🇬🇧' },
-    { code: 'ja', label: 'Japanese',   flag: '🇯🇵' },
-    { code: 'my', label: 'Myanmar',    flag: '🇲🇲' },  // Burmese → Myanmar
-    { code: 'km', label: 'Khmer',      flag: '🇰🇭' },
-    { code: 'vi', label: 'Vietnamese', flag: '🇻🇳' },
-    { code: 'ko', label: 'Korean',     flag: '🇰🇷' },
+    { code: 'en', label: 'English', labelKey: 'smartMail.languages.en',    flag: '🇬🇧' },
+    { code: 'ja', label: 'Japanese', labelKey: 'smartMail.languages.ja',   flag: '🇯🇵' },
+    { code: 'my', label: 'Myanmar', labelKey: 'smartMail.languages.my',    flag: '🇲🇲' },  // Burmese → Myanmar
+    { code: 'km', label: 'Khmer', labelKey: 'smartMail.languages.km',      flag: '🇰🇭' },
+    { code: 'vi', label: 'Vietnamese', labelKey: 'smartMail.languages.vi', flag: '🇻🇳' },
+    { code: 'ko', label: 'Korean', labelKey: 'smartMail.languages.ko',     flag: '🇰🇷' },
 ];
 
-export default function MailView({ mail, hasApi, onReply, onForward, onShowToast, theme, darkMode = false }) {
+export default function MailView({ mail, hasApi, onReply, onForward, onShowToast, theme, darkMode = false, tr = (key, vars = {}, fallback = '') => fallback || key }) {
     const [translating, setTranslating]       = useState(false);
     const [translated, setTranslated]         = useState(null);
     const [showTranslated, setShowTranslated] = useState(false);
@@ -34,8 +34,8 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 34,
                     }}>📬</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: theme.text }}>Select a mail to read</div>
-                    <div style={{ fontSize: 12, color: theme.textMute, marginTop: 6 }}>Click any mail from the list</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: theme.text }}>{tr('smartMail.view.selectMail')}</div>
+                    <div style={{ fontSize: 12, color: theme.textMute, marginTop: 6 }}>{tr('smartMail.view.clickMailFromList')}</div>
                 </div>
             </div>
         );
@@ -64,7 +64,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
             if (data.success) {
                 setTranslated(data.translated);
                 setShowTranslated(true);
-                if (data.demo) onShowToast('Demo mode — configure API for real translation', 'warning');
+                if (data.demo) onShowToast(tr('smartMail.messages.demoTranslation'), 'warning');
 
                 // ── Token console ──────────────────────────
                 const usage = data.usage;
@@ -84,7 +84,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                 console.groupEnd();
             }
         } catch {
-            onShowToast('Translation failed.', 'error');
+            onShowToast(tr('smartMail.messages.translationFailed'), 'error');
         }
         setTranslating(false);
     };
@@ -165,7 +165,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                         active={!showTranslated}
                         theme={theme}
                     >
-                        {showTranslated ? `Original` : `${selectedLang?.label} Translated`}
+                        {showTranslated ? tr('smartMail.actions.original') : tr('smartMail.view.translatedLabel', { language: tr(selectedLang?.labelKey, {}, selectedLang?.label) }, `${selectedLang?.label} Translated`)}
                     </ToolBtn>
                 )}
 
@@ -195,7 +195,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                                     display: 'inline-block',
                                     animation: 'spin 0.7s linear infinite',
                                 }} />
-                                Translating...
+                                {tr('smartMail.actions.translating')}
                             </>
                         ) : (
                             <>
@@ -204,7 +204,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                                     <line x1="2" y1="12" x2="22" y2="12"/>
                                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                                 </svg>
-                                Translate
+                                {tr('smartMail.actions.translate')}
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                                     <polyline points="6 9 12 15 18 9"/>
                                 </svg>
@@ -232,7 +232,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                                     borderRadius: 10, marginBottom: 6,
                                     border: `1px solid ${theme.warning}30`,
                                 }}>
-                                    ⚠ Demo mode — no API key
+                                    ⚠ {tr('smartMail.labels.demoNoApiKey')}
                                 </div>
                             )}
                             {LANGUAGES.map(l => (
@@ -255,7 +255,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                                     }}
                                 >
                                  
-                                    <span style={{ flex: 1 }}>{l.label}</span>
+                                    <span style={{ flex: 1 }}>{tr(l.labelKey, {}, l.label)}</span>
                                     
                                 </button>
                             ))}
@@ -266,7 +266,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                 {/* Download */}
                 <button
                     onClick={() => window.location.href = `/smart-mail/${mail.id}/download-pdf`}
-                    title="Download"
+                    title={tr('smartMail.actions.download')}
                     style={{
                         width: 36, height: 36, borderRadius: 12,
                         border: `1px solid ${theme.border}`,
@@ -296,7 +296,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                     margin: '0 0 18px', lineHeight: 1.3,
                     display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8,
                 }}>
-                    {mail.subject || '(No Subject)'}
+                    {mail.subject || tr('smartMail.labels.noSubject')}
                     {mail.ai_generated && (
                         <span style={{
                             fontSize: 10, padding: '3px 10px', borderRadius: 99,
@@ -332,8 +332,8 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                             <div style={{ fontSize: 11, color: theme.textMute, marginTop: 1 }}>{mail.from_address}</div>
                         )}
                         <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>
-                            To: {mail.to_addresses?.join(', ')}
-                            {mail.cc_addresses?.length > 0 && ` · CC: ${mail.cc_addresses.join(', ')}`}
+                            {tr('smartMail.labels.to')}: {mail.to_addresses?.join(', ')}
+                            {mail.cc_addresses?.length > 0 && `${' · '}${tr('smartMail.labels.cc')}: ${mail.cc_addresses.join(', ')}`}
                         </div>
                     </div>
                     <div style={{ fontSize: 11, color: theme.textMute, flexShrink: 0 }}>{mail.mail_date}</div>
@@ -352,7 +352,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                         color: theme.success,
                     }}>
                         <span style={{ fontSize: 14 }}>🌐</span>
-                        Showing {selectedLang.label} translation
+                        {tr('smartMail.view.showingTranslation', { language: tr(selectedLang.labelKey, {}, selectedLang.label) }, `Showing ${selectedLang.label} translation`)}
                         <button onClick={() => setShowTranslated(false)} style={{
                             marginLeft: 'auto', background: 'none', border: 'none',
                             cursor: 'pointer', color: theme.success, fontSize: 14, lineHeight: 1,
@@ -414,7 +414,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                             }}
                         />
                     ) : (
-                        <div style={{ whiteSpace: 'pre-wrap' }}>{mail.body_text || '(No content)'}</div>
+                        <div style={{ whiteSpace: 'pre-wrap' }}>{mail.body_text || tr('smartMail.labels.noContent')}</div>
                     )}
                 </div>
 
@@ -426,7 +426,7 @@ export default function MailView({ mail, hasApi, onReply, onForward, onShowToast
                             letterSpacing: '0.10em', textTransform: 'uppercase',
                             color: theme.textMute, marginBottom: 10,
                         }}>
-                            Attachments ({mail.attachments.length})
+                            {tr('smartMail.labels.attachments')} ({mail.attachments.length})
                         </div>
                         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                             {mail.attachments.map(att => (

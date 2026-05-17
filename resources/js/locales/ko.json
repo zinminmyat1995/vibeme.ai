@@ -2,39 +2,39 @@
   "nav": {
     "groups": {
       "MAIN": "메인",
-      "AI WORKSPACE": "AI 작업공간",
-      "OPERATIONS": "운영",
-      "PEOPLE & HR": "인사관리",
-      "WORK MANAGEMENT": "업무관리",
-      "PAYROLL": "급여"
+      "AI WORKSPACE": "AI 워크스페이스",
+      "OPERATIONS": "운영 관리",
+      "PEOPLE & HR": "인사 및 HR",
+      "WORK MANAGEMENT": "업무 관리",
+      "PAYROLL": "급여 관리"
     },
     "items": {
       "Dashboard": "대시보드",
       "My Profile": "내 프로필",
       "Requirement Analysis": "요구사항 분석",
-      "Proposal Generator": "제안서 생성",
+      "Proposal Generator": "제안서 생성기",
       "Project Management": "프로젝트 관리",
-      "My Assignments": "내 업무",
+      "My Assignments": "내 배정 업무",
       "P&L Report": "손익 보고서",
       "Document Translation": "문서 번역",
-      "Smart Mail": "이메일",
+      "Smart Mail": "스마트 메일",
       "AI Chat": "AI 채팅",
-      "Trip Schedule": "운행 일정",
+      "Trip Schedule": "출장 일정",
       "Surveys": "설문조사",
       "HR Alerts": "HR 알림",
       "Performance Review": "성과 평가",
-      "Recruitment": "채용",
-      "User & Roles": "사용자 및 역할",
-      "HR Policy": "HR 정책",
+      "Recruitment": "채용 관리",
+      "User & Roles": "사용자 및 권한",
+      "HR Policy": "인사 정책",
       "Project Assignment": "프로젝트 배정",
       "Bookings": "예약",
-      "Attendance": "출근",
-      "Check In/Out Request": "출퇴근 요청",
+      "Attendance": "근태 관리",
+      "Check In/Out Request": "출퇴근 수정 요청",
       "Leave Request": "휴가 신청",
-      "Overtime Request": "초과근무 신청",
-      "Expense Request": "비용 신청",
+      "Overtime Request": "연장 근로 신청",
+      "Expense Request": "비용 청구",
       "Employee Salary": "직원 급여",
-      "Payroll": "급여 처리",
+      "Payroll": "급여 정산",
       "Payslip": "급여명세서",
       "Bank Export": "은행 내보내기"
     },
@@ -46,7 +46,7 @@
     "hr": "HR 매니저",
     "management": "경영진",
     "employee": "직원",
-    "driver": "운전기사"
+    "driver": "운전원"
   },
   "lang": {
     "label": "언어",
@@ -56,5 +56,3996 @@
     "vi": "Tiếng Việt",
     "ko": "한국어",
     "ja": "日本語"
+  },
+  "dash": {
+    "announcement": "공지사항",
+    "by": "작성자:",
+    "deleteAnnouncement": "공지사항 삭제",
+    "announcementDeleted": "공지사항이 삭제되었습니다.",
+    "failedToDelete": "삭제에 실패했습니다.",
+    "networkError": "네트워크 오류가 발생했습니다.",
+    "seeLess": "간략히 보기",
+    "seeMore": "자세히 보기",
+    "attachment": "첨부파일",
+    "download": "다운로드",
+    "link": "링크",
+    "newAnnouncement": "새 공지사항",
+    "title": "제목",
+    "content": "내용",
+    "announcementTitlePlaceholder": "공지사항 제목 입력...",
+    "announcementContentPlaceholder": "공지사항 내용을 작성하세요...",
+    "startDate": "시작일",
+    "endDate": "종료일",
+    "attachmentsOptional": "첨부파일 (선택)",
+    "attachFilePlaceholder": "파일 첨부 (PDF, Word, Excel, 이미지, ZIP — 최대 20MB)",
+    "linkPlaceholder": "또는 링크 붙여넣기 (https://...)",
+    "cancel": "취소",
+    "publish": "게시",
+    "publishing": "게시 중...",
+    "announcementPublished": "공지사항이 게시되었습니다!",
+    "failed": "실패했습니다.",
+    "required": "필수 입력 항목입니다.",
+    "typeLeave": "휴가",
+    "typeOT": "연장근로",
+    "typeAttendance": "근태",
+    "typeExpense": "경비",
+    "total": "총",
+    "timeNotRecorded": "시간 기록 없음",
+    "attendanceCorrection": "근태 수정",
+    "approve": "승인",
+    "reject": "반려",
+    "leaveRequest": "휴가 신청",
+    "overtimeRequest": "연장 근로 신청",
+    "attendanceRequest": "근태 신청",
+    "expenseRequest": "비용 신청",
+    "request": "요청",
+    "leaveType": "휴가 종류",
+    "totalDays": "총 일수",
+    "days": "일",
+    "note": "비고",
+    "document": "문서",
+    "date": "날짜",
+    "workHours": "근무 시간",
+    "checkIn": "출근",
+    "checkOut": "퇴근",
+    "late": "지각",
+    "amount": "금액",
+    "category": "카테고리",
+    "expenseDate": "경비 발생일",
+    "description": "내용",
+    "attachments": "첨부파일",
+    "noteOptional": "비고 (선택)",
+    "noteForEmployee": "직원에게 남길 메모를 입력하세요…",
+    "rejectionReason": "반려 사유",
+    "rejectionReasonPlaceholder": "반려하는 사유를 입력하세요…",
+    "rejectionReasonRequired": "반려 사유는 필수 입력 항목입니다.",
+    "confirmApproval": "승인 확인",
+    "confirmRejection": "반려 확인",
+    "requestedBy": "요청자",
+    "requestDetails": "요청 상세 내용",
+    "processing": "처리 중…",
+    "segmentsAdjust": "구간 — 승인된 시간 조정",
+    "req": "요청",
+    "hrs": "시간",
+    "totalApproved": "총 승인 시간",
+    "pendingApprovals": "대기 중인 승인",
+    "all": "전체",
+    "leave": "휴가",
+    "ot": "연장 근로",
+    "attendance": "근태",
+    "expense": "비용",
+    "allCaughtUp": "모두 확인했습니다!",
+    "noPendingApprovals": "현재 대기 중인 승인 요청이 없습니다.",
+    "unknownRequestType": "알 수 없는 요청 유형입니다.",
+    "actionFailed": "작업에 실패했습니다.",
+    "noLeaveData": "이번 달 휴가 데이터가 없습니다.",
+    "noOTData": "이번 달 연장 근로 프로젝트 데이터가 없습니다.",
+    "noPayrollData": "급여 데이터가 없습니다.",
+    "latest": "최신",
+    "weekday": "평일",
+    "today": "오늘",
+    "weekend": "주말",
+    "noLateArrivals": "이번 달 지각 내역이 없습니다.",
+    "kpi": {
+      "headcount": "총 인원",
+      "presentToday": "오늘 출근",
+      "onLeaveToday": "오늘 휴가",
+      "allPending": "전체 대기",
+      "otHoursMonth": "월간 연장 근로 시간",
+      "leaveRate": "휴가 사용률",
+      "ofWorkingDays": "근무일 기준",
+      "turnoverQ": "분기 이직률",
+      "countries": "국가",
+      "allOffices": "모든 오피스"
+    },
+    "approved": "승인됨",
+    "resigned": "퇴사",
+    "leaveUsageThisMonth": "이번 달 휴가 사용 현황",
+    "top20ByDays": "휴가 사용 상위 20인 (일수 기준)",
+    "otByProject": "프로젝트별 연장 근로",
+    "top10OTHours": "상위 10인 · 이번 달 승인된 시간",
+    "monthlyAttendance": "월간 근태 현황",
+    "dailyPresentCount": "일별 출근 인원",
+    "payrollTrend": "급여 트렌드",
+    "last6Months": "최근 6개월 · 총 순수령액",
+    "employmentMix": "고용 형태 구성",
+    "byTypeActive": "유형별 — 재직 직원",
+    "permanent": "정규직",
+    "probation": "수습직",
+    "contract": "계약직",
+    "departmentHeadcount": "부서별 인원",
+    "noData": "데이터 없음",
+    "lateCheckIn": "지각 빈도",
+    "lateCheckInSubtitle": "이번 달 · 횟수 내림차순 정렬 · 상위 20인",
+    "probationEndingSoon": "수습 만료 예정",
+    "within10Days": "10일 이내",
+    "contractExpiring": "계약 만료 예정",
+    "within30Days": "30일 이내",
+    "noAlerts": "알림 없음",
+    "birthdaysThisWeek": "이번 주 생일",
+    "noBirthdays": "이번 주 생일자 없음",
+    "checkBackNextWeek": "다음 주에 다시 확인하세요!",
+    "onLeaveToday": "오늘 휴가",
+    "employeesOnLeave": "승인된 휴가 중인 직원",
+    "approvedLeaveCoveringToday": "오늘을 포함하는 승인된 휴가",
+    "upcomingHolidays": "다가오는 공휴일",
+    "noUpcomingHolidays": "다가오는 공휴일 없음",
+    "noOneOnLeave": "오늘 휴가자가 없습니다",
+    "showLess": "▲ 간략히 보기",
+    "showMore": "▼ {{count}}개 더 보기",
+    "importAttendance": "근태 데이터 가져오기",
+    "goodMorning": "좋은 아침입니다",
+    "goodAfternoon": "좋은 오후입니다",
+    "goodEvening": "좋은 저녁입니다",
+    "personal": "개인",
+    "dashboard": "대시보드",
+    "pending": "대기 중",
+    "present": "출근",
+    "staff": "직원",
+    "checkedIn": "출근 완료",
+    "notCheckedIn": "미출근",
+    "out": "퇴근",
+    "currentlyAtWork": "현재 근무 중",
+    "todayIsWorkingDay": "오늘은 근무일입니다",
+    "warning": "경고",
+    "daysAbsent": "일 결근",
+    "absenceWarning": "결근 경고",
+    "lateArrivalWarning": "지각 경고",
+    "markAsRead": "읽음으로 표시",
+    "marking": "표시 중…",
+    "emp": {
+      "presentDays": "출근 일수",
+      "otThisMonth": "이번 달 연장 근로",
+      "pendingLeave": "대기 중인 휴가",
+      "absentDays": "결근 일수",
+      "lateArrivals": "지각 횟수"
+    },
+    "thisMonth": "이번 달",
+    "awaitingApproval": "승인 대기 중",
+    "submitted": "제출됨",
+    "myPendingRequests": "내 대기 중인 요청",
+    "waitingForApproval": "승인 대기 중",
+    "latestPayslip": "최신 급여명세서",
+    "hideAmounts": "금액 숨기기",
+    "showAmounts": "금액 보기",
+    "netSalary": "실수령액",
+    "baseSalary": "기본급",
+    "otPay": "연장 근로 수당",
+    "allowances": "수당",
+    "deductions": "공제액",
+    "leaveBalances": "휴가 잔여일수",
+    "remainingDays": "남은 일수",
+    "myWeeklyAttendance": "내 주간 근태",
+    "workHoursPerDay": "하루 근무 시간"
+  },
+  "profile": {
+    "pageTitle": "내 프로필",
+    "sections": {
+      "personalInformation": "인적 사항",
+      "workInformation": "근무 정보",
+      "salaryInformation": "급여 정보"
+    },
+    "fields": {
+      "fullName": "성명",
+      "email": "이메일",
+      "phone": "전화번호",
+      "dateOfBirth": "생년월일",
+      "country": "국가",
+      "position": "직위",
+      "department": "부서",
+      "joinDate": "입사일",
+      "employment": "고용 형태",
+      "contractEnd": "계약 종료일",
+      "role": "역할 권한",
+      "baseSalary": "기본급",
+      "bank": "은행",
+      "accountName": "예금주",
+      "accountNo": "계좌번호",
+      "branch": "지점",
+      "effectiveDate": "적용 시작일",
+      "allowances": "수당"
+    },
+    "actions": {
+      "show": "보기",
+      "hide": "숨기기"
+    },
+    "status": {
+      "active": "재직"
+    },
+    "employmentTypes": {
+      "probation": "수습직",
+      "permanent": "정규직",
+      "contract": "계약직"
+    },
+    "countries": {
+      "myanmar": "미얀마",
+      "vietnam": "베트남",
+      "korea": "대한민국",
+      "cambodia": "캄보디아",
+      "japan": "일본"
+    },
+    "tenure": {
+      "year": "년",
+      "month": "개월",
+      "day": "일",
+      "today": "오늘"
+    },
+    "messages": {
+      "revealSalary": "수당 금액을 확인하려면 급여 정보를 표시하세요.",
+      "noPayrollProfile": "배정된 급여 프로필이 없습니다. HR 담당자에게 문의하세요."
+    },
+    "fallback": {
+      "employee": "직원"
+    }
+  },
+  "attendance": {
+    "pageTitle": "근태 관리",
+    "selectEmployee": "직원 선택",
+    "addAttendance": "근태 추가",
+    "editAttendance": "근태 수정",
+    "updateAttendanceRecord": "근태 기록 업데이트",
+    "recordEmployeeAttendance": "직원 근태 기록",
+    "addRecord": "기록 추가",
+    "monthlySummary": "월간 요약",
+    "workingDays": "근무일수",
+    "workingDaysLower": "근무일",
+    "present": "출근",
+    "absent": "결근",
+    "lateDays": "지각 일수",
+    "otHours": "연장 근로 시간",
+    "leaveDays": "휴가 일수",
+    "totalLate": "총 지각 시간",
+    "workHours": "근무 시간",
+    "holidays": "공휴일",
+    "employee": "직원",
+    "status": "상태",
+    "checkIn": "출근",
+    "checkOut": "퇴근",
+    "shortHours": "조퇴/부족 시간",
+    "late": "지각",
+    "overtimeDetail": "연장 근로 상세",
+    "note": "비고",
+    "edit": "수정",
+    "delete": "삭제",
+    "deleteAttendance": "근태 기록을 삭제하시겠습니까?",
+    "cancel": "취소",
+    "deleting": "삭제 중...",
+    "yesDelete": "네, 삭제합니다",
+    "save": "저장",
+    "saving": "저장 중...",
+    "date": "날짜",
+    "lateMin": "지각 (분)",
+    "auto": "자동",
+    "lunch": "점심시간",
+    "start": "시작",
+    "requiredNote": "필수 비고 항목...",
+    "weekend": "주말",
+    "publicHoliday": "공휴일",
+    "noAttendanceRequired": "근태 기록 불필요",
+    "futureDate": "미래 날짜",
+    "absentNoRecord": "결근 — 기록 없음",
+    "clickDayDetails": "날짜를 클릭하여 상세 내용을 확인하세요",
+    "exceedsStandard": "기준인 :hours시간을 초과했습니다. 연장 근로 신청을 고려해 보세요.",
+    "mustBeLater": ":time 또는 그 이후여야 합니다",
+    "mustBeEarlier": ":time 또는 그 이전여야 합니다",
+    "amHalfLeaveCheckIn": "오전 반차 — 출근 시간은 :time 또는 그 이후여야 합니다",
+    "pmHalfLeaveCheckIn": "오후 반차 — 출근 시간은 :time 이전여야 합니다",
+    "pmHalfLeaveCheckOut": "오후 반차 — 퇴근 시간은 :time 또는 그 이전여야 합니다",
+    "actions": {
+      "addAttendance": "근태 추가",
+      "addRecord": "기록 추가",
+      "edit": "수정",
+      "delete": "삭제",
+      "cancel": "취소",
+      "deleting": "삭제 중...",
+      "yesDelete": "네, 삭제합니다",
+      "save": "저장",
+      "saving": "저장 중..."
+    },
+    "stats": {
+      "workingDays": "근무일수",
+      "present": "출근",
+      "absent": "결근",
+      "lateDays": "지각 일수",
+      "otHours": "연장 근로 시간",
+      "leaveDays": "휴가 일수",
+      "totalLate": "총 지각 시간",
+      "workHours": "근무 시간",
+      "holidays": "공휴일"
+    },
+    "fields": {
+      "employee": "직원",
+      "status": "상태",
+      "checkIn": "출근",
+      "checkOut": "퇴근",
+      "checkInTime": "출근 시간",
+      "checkOutTime": "퇴근 시간",
+      "workHours": "근무 시간",
+      "shortHours": "조퇴/부족 시간",
+      "late": "지각",
+      "otHours": "연장 근로 시간",
+      "date": "날짜",
+      "lateMin": "지각 (분)",
+      "note": "비고"
+    },
+    "labels": {
+      "weekend": "주말",
+      "publicHoliday": "공휴일",
+      "overtimeDetail": "연장 근로 상세",
+      "note": "비고",
+      "auto": "자동",
+      "lunch": "점심시간",
+      "start": "시작"
+    },
+    "summary": {
+      "monthlySummary": "월간 요약"
+    },
+    "placeholders": {
+      "select": "선택...",
+      "selectEmployee": "직원 선택",
+      "auto": "자동",
+      "requiredNote": "필수 비고 항목..."
+    },
+    "validation": {
+      "employeeRequired": "직원은 필수 선택 항목입니다.",
+      "dateRequired": "날짜는 필수 선택 항목입니다.",
+      "checkInRequired": "출근 시간은 필수 입력 항목입니다.",
+      "checkOutRequired": "퇴근 시간은 필수 입력 항목입니다.",
+      "workHoursRequired": "근무 시간은 필수 입력 항목입니다.",
+      "lateMinutesRequired": "지각 시간(분)은 필수 입력 항목입니다.",
+      "noteRequired": "비고는 필수 입력 항목입니다.",
+      "hhmmFormat": "시간은 HH:MM 형식이어야 합니다.",
+      "amHalfCheckIn": "오전 반차 — 출근 시간은 :time 또는 그 이후여야 합니다",
+      "pmHalfCheckIn": "오후 반차 — 출근 시간은 :time 이전여야 합니다",
+      "pmHalfCheckOut": "오후 반차 — 퇴근 시간은 :time 또는 그 이전여야 합니다"
+    },
+    "errors": {
+      "somethingWrong": "문제가 발생했습니다.",
+      "employeeRequired": "직원은 필수 선택 항목입니다.",
+      "dateRequired": "날짜는 필수 선택 항목입니다.",
+      "checkInRequired": "출근 시간은 필수 입력 항목입니다.",
+      "checkOutRequired": "퇴근 시간은 필수 입력 항목입니다.",
+      "workHoursRequired": "근무 시간은 필수 입력 항목입니다.",
+      "lateMinutesRequired": "지각 시간(분)은 필수 입력 항목입니다.",
+      "noteRequired": "비고는 필수 입력 항목입니다."
+    },
+    "modal": {
+      "addTitle": "근태 추가",
+      "editTitle": "근태 수정",
+      "recordSubtitle": "직원 근태 기록",
+      "updateSubtitle": "근태 기록 업데이트"
+    },
+    "deleteConfirm": {
+      "title": "근태 기록을 삭제하시겠습니까?"
+    },
+    "units": {
+      "short": "부족",
+      "min": "분"
+    },
+    "messages": {
+      "somethingWentWrong": "문제가 발생했습니다.",
+      "exceedsStandard": "기준인 :hours시간을 초과했습니다. 연장 근로 신청을 고려해 보세요.",
+      "noAttendanceRequired": "근태 기록 불필요",
+      "futureDate": "미래 날짜",
+      "absentNoRecord": "결근 — 기록 없음",
+      "clickDayDetails": "날짜를 클릭하여 상세 내용을 확인하세요"
+    },
+    "hints": {
+      "mustBeOrLater": ":time 또는 그 이후여야 합니다",
+      "mustBeOrEarlier": ":time 또는 그 이전여야 합니다"
+    },
+    "months": {
+      "January": "1월",
+      "February": "2월",
+      "March": "3월",
+      "April": "4월",
+      "May": "5월",
+      "June": "6월",
+      "July": "7월",
+      "August": "8월",
+      "September": "9월",
+      "October": "10월",
+      "November": "11월",
+      "December": "12월",
+      "january": "1월",
+      "february": "2월",
+      "march": "3월",
+      "april": "4월",
+      "may": "5월",
+      "june": "6월",
+      "july": "7월",
+      "august": "8월",
+      "september": "9월",
+      "october": "10월",
+      "november": "11월",
+      "december": "12월"
+    },
+    "days": {
+      "Sun": "일",
+      "Mon": "월",
+      "Tue": "화",
+      "Wed": "수",
+      "Thu": "목",
+      "Fri": "금",
+      "Sat": "토",
+      "sun": "일",
+      "mon": "월",
+      "tue": "화",
+      "wed": "수",
+      "thu": "목",
+      "fri": "금",
+      "sat": "토"
+    },
+    "leaveTypes": {
+      "annual": "연차 휴가",
+      "medical": "병가",
+      "emergency": "경조사 휴가",
+      "unpaid": "무급 휴가",
+      "maternity": "출산 휴가",
+      "paternity": "배우자 출산 휴가",
+      "leave": "휴가",
+      "amHalf": "오전 반차",
+      "pmHalf": "오후 반차",
+      "fullDay": "종일 휴가",
+      "amHalfDay": "오전 반일",
+      "pmHalfDay": "오후 반일",
+      "fullDayLeave": "종일 휴가",
+      "halfDayLeave": ":type 반차"
+    },
+    "leaveDayTypes": {
+      "amHalf": "오전 반차",
+      "pmHalf": "오후 반차",
+      "fullDay": "종일 휴가",
+      "amHalfDay": "오전 반일",
+      "pmHalfDay": "오후 반일"
+    },
+    "table": {
+      "in": "출근",
+      "out": "퇴근",
+      "wh": "근무시간",
+      "ot": "연장근로",
+      "short": "부족"
+    },
+    "shortLabels": {
+      "in": "출",
+      "out": "퇴",
+      "wh": "근무",
+      "leave": "휴가",
+      "ot": "연장",
+      "late": "지각",
+      "short": "부족"
+    },
+    "statusLabels": {
+      "present": "출근",
+      "absent": "결근",
+      "late": "지각",
+      "halfDay": "반차",
+      "otOnly": "연장 전용"
+    },
+    "status": {
+      "present": "출근",
+      "absent": "결근",
+      "late": "지각",
+      "halfDay": "반차",
+      "otOnly": "연장 전용"
+    }
+  },
+  "attendanceRequest": {
+    "pageTitle": "체크인/체크아웃 요청",
+    "modal": {
+      "badge": "근태 요청"
+    },
+    "fields": {
+      "date": "날짜",
+      "approver": "승인자",
+      "requestType": "요청 유형",
+      "requestedCheckIn": "요청 체크인",
+      "requestedCheckOut": "요청 체크아웃",
+      "reason": "사유"
+    },
+    "placeholders": {
+      "selectApprover": "승인자 선택",
+      "reason": "체크인/체크아웃 수정을 요청하는 이유를 입력하세요."
+    },
+    "requestTypes": {
+      "checkInOnly": "체크인만",
+      "checkOutOnly": "체크아웃만",
+      "both": "체크인/체크아웃 모두",
+      "bothShort": "둘 다",
+      "inOnly": "In만",
+      "outOnly": "Out만"
+    },
+    "preview": {
+      "workSchedule": "근무 일정",
+      "lunchBreak": "점심시간",
+      "autoPreview": "자동 미리보기"
+    },
+    "actions": {
+      "cancel": "취소",
+      "submitRequest": "요청 제출",
+      "submitting": "제출 중...",
+      "requestCheckInOut": "체크인/체크아웃 요청",
+      "approve": "승인",
+      "approving": "승인 중...",
+      "reject": "거절",
+      "rejecting": "거절 중...",
+      "delete": "삭제",
+      "deleting": "삭제 중...",
+      "deleteRequest": "요청 삭제"
+    },
+    "status": {
+      "pending": "대기 중",
+      "approved": "승인됨",
+      "rejected": "거절됨",
+      "autoApproved": "자동 승인"
+    },
+    "filters": {
+      "allStatus": "전체 상태"
+    },
+    "tabs": {
+      "myRequests": "내 요청",
+      "pendingApprovals": "승인 대기",
+      "allRequests": "전체 요청"
+    },
+    "empty": {
+      "noPendingApprovals": "승인 대기 요청이 없습니다",
+      "noRequestsFound": "체크인/체크아웃 요청을 찾을 수 없습니다",
+      "allCaughtUp": "모두 처리되었습니다!",
+      "clickToSubmit": "\"체크인/체크아웃 요청\"을 눌러 새 요청을 제출하세요."
+    },
+    "confirm": {
+      "deleteTitle": "요청 삭제",
+      "approveTitle": "요청 승인",
+      "rejectTitle": "요청 거절",
+      "deleteSubtext": "이 작업은 되돌릴 수 없습니다",
+      "notifySubtext": "직원에게 알림이 전송됩니다",
+      "yourRequest": "내 요청"
+    },
+    "labels": {
+      "awaiting": "대기 중",
+      "approvedBy": "승인자",
+      "rejectedBy": "거절자",
+      "late": "지각"
+    },
+    "shortLabels": {
+      "in": "IN",
+      "out": "OUT",
+      "wh": "근무"
+    },
+    "validation": {
+      "dateRequired": "날짜가 필요합니다",
+      "checkInRequired": "체크인 시간이 필요합니다",
+      "checkOutRequired": "체크아웃 시간이 필요합니다",
+      "checkOutLater": "체크아웃은 체크인보다 늦어야 합니다",
+      "reasonRequired": "사유가 필요합니다",
+      "approverRequired": "승인자가 필요합니다",
+      "validationError": "유효성 검사 오류"
+    },
+    "messages": {
+      "requestNoLongerExists": "요청이 더 이상 존재하지 않습니다. 요청자가 삭제했을 수 있습니다.",
+      "requestDeleteFailed": "요청이 더 이상 존재하지 않거나 삭제할 수 없습니다."
+    },
+    "months": {
+      "January": "1월",
+      "February": "2월",
+      "March": "3월",
+      "April": "4월",
+      "May": "5월",
+      "June": "6월",
+      "July": "7월",
+      "August": "8월",
+      "September": "9월",
+      "October": "10월",
+      "November": "11월",
+      "December": "12월"
+    }
+  },
+  "overtime": {
+    "pageTitle": "초과근무 신청",
+    "headTitle": "초과근무",
+    "titleShort": "초과근무",
+    "status": {
+      "pending": "대기 중",
+      "approved": "승인됨",
+      "rejected": "거부됨"
+    },
+    "labels": {
+      "publicHoliday": "공휴일",
+      "weekend": "주말",
+      "weekday": "평일",
+      "day": "주간",
+      "night": "야간",
+      "all": "전체",
+      "shift": "근무",
+      "awaiting": "대기 중",
+      "approvedBy": "승인자",
+      "rejectedBy": "거부자",
+      "project": "프로젝트",
+      "date": "날짜",
+      "time": "시간",
+      "total": "합계",
+      "reason": "사유",
+      "approver": "승인자",
+      "req": "요청",
+      "totalApproved": "승인 합계:"
+    },
+    "actions": {
+      "approve": "승인",
+      "reject": "거부",
+      "deleteRequest": "신청 삭제",
+      "requestOvertime": "초과근무 신청",
+      "cancel": "취소",
+      "submitting": "제출 중...",
+      "submitRequest": "신청 제출",
+      "deleting": "삭제 중...",
+      "delete": "삭제",
+      "approving": "승인 중…",
+      "approveWithIcon": "✓ 승인",
+      "rejecting": "거부 중…",
+      "rejectWithIcon": "✕ 거부"
+    },
+    "filters": {
+      "allStatus": "전체 상태"
+    },
+    "tabs": {
+      "myRequests": "내 신청",
+      "pendingApprovals": "승인 대기",
+      "allRequests": "전체 신청"
+    },
+    "empty": {
+      "noPendingApprovals": "승인 대기 항목이 없습니다",
+      "noOvertimeRequestsFound": "초과근무 신청을 찾을 수 없습니다",
+      "allCaughtUp": "모두 처리되었습니다!",
+      "clickRequestOvertime": "새 신청을 제출하려면 \"초과근무 신청\"을 클릭하세요.",
+      "noActiveProjectsAssigned": "할당된 활성 프로젝트가 없습니다",
+      "noApproverAvailable": "승인자가 없습니다",
+      "noApproverFound": "귀하의 지점에 대한 승인자를 찾을 수 없습니다. HR에 문의하세요."
+    },
+    "messages": {
+      "requestCouldNotBeDeleted": "신청을 삭제할 수 없습니다.",
+      "adminAutoApproved": "관리자이므로 이 신청은 자동 승인됩니다.",
+      "requestNoLongerExists": "신청이 더 이상 존재하지 않습니다. 삭제되었을 수 있습니다."
+    },
+    "modal": {
+      "overtimeManagement": "초과근무 관리"
+    },
+    "fields": {
+      "startDate": "시작일",
+      "startTime": "시작 시간",
+      "endDate": "종료일",
+      "endTime": "종료 시간"
+    },
+    "validation": {
+      "startDateRequired": "시작일은 필수입니다.",
+      "startTimeRequired": "시작 시간은 필수입니다.",
+      "endDateRequired": "종료일은 필수입니다.",
+      "endTimeRequired": "종료 시간은 필수입니다.",
+      "reasonRequired": "사유는 필수입니다.",
+      "selectApprover": "승인자를 선택하세요.",
+      "selectProjectForOT": "이 OT의 프로젝트를 선택하세요.",
+      "endAfterStart": "종료는 시작 이후여야 합니다.",
+      "endTimeAfterStartTime": "종료 시간은 시작 시간 이후여야 합니다."
+    },
+    "summary": {
+      "multiDay": "여러 날 · {{days}}일",
+      "sameDayOT": "당일 OT",
+      "totalHours": "총 {{hrs}}",
+      "autoSplitPerShift": "근무별 자동 분할"
+    },
+    "placeholders": {
+      "selectApprover": "승인자 선택",
+      "pleaseSelectProject": "— 프로젝트를 선택하세요 —",
+      "selectProject": "프로젝트 선택...",
+      "describeReason": "초과근무 사유를 입력하세요..."
+    },
+    "confirm": {
+      "deleteOvertimeRequest": "초과근무 신청 삭제",
+      "approveOvertime": "초과근무 승인",
+      "rejectOvertime": "초과근무 거부",
+      "actionCannotBeUndone": "이 작업은 되돌릴 수 없습니다",
+      "adjustApprovedHours": "필요한 경우 세그먼트별 승인 시간을 조정하세요",
+      "employeeWillBeNotified": "직원에게 알림이 전송됩니다",
+      "yourRequest": "내 신청",
+      "segmentsAdjustHours": "세그먼트 — 필요한 경우 시간 조정"
+    },
+    "units": {
+      "hrs": "시간"
+    },
+    "policyTitles": {
+      "Day_Weekday_OT": "평일 주간 OT",
+      "Night_Weekday_OT": "평일 야간 OT",
+      "Day_Weekend_OT": "주말 주간 OT",
+      "Night_Weekend_OT": "주말 야간 OT",
+      "Public_Holiday_OT": "공휴일 OT"
+    },
+    "months": {
+      "January": "1월",
+      "February": "2월",
+      "March": "3월",
+      "April": "4월",
+      "May": "5월",
+      "June": "6월",
+      "July": "7월",
+      "August": "8월",
+      "September": "9월",
+      "October": "10월",
+      "November": "11월",
+      "December": "12월"
+    }
+  },
+"leaveRequest": {
+  "pageTitle": "휴가 신청",
+  "months": {
+    "January": "1월",
+    "February": "2월",
+    "March": "3월",
+    "April": "4월",
+    "May": "5월",
+    "June": "6월",
+    "July": "7월",
+    "August": "8월",
+    "September": "9월",
+    "October": "10월",
+    "November": "11월",
+    "December": "12월"
+  },
+  "modal": {
+    "badge": "휴가 관리"
+  },
+  "actions": {
+    "requestLeave": "휴가 요청",
+    "submitRequest": "요청 제출",
+    "submitting": "제출 중...",
+    "cancel": "취소",
+    "delete": "삭제",
+    "deleting": "삭제 중...",
+    "deleteRequest": "요청 삭제",
+    "approve": "승인",
+    "approving": "승인 중...",
+    "reject": "거절",
+    "rejecting": "거절 중..."
+  },
+  "fields": {
+    "employee": "직원",
+    "leaveType": "휴가 유형",
+    "dayType": "휴가 일 유형",
+    "date": "날짜",
+    "startDate": "시작일",
+    "endDate": "종료일",
+    "reason": "사유",
+    "approver": "승인자",
+    "supportingDocument": "증빙 서류"
+  },
+  "placeholders": {
+    "selectApprover": "승인자 선택",
+    "reason": "사유 입력..."
+  },
+  "filters": {
+    "allStatus": "전체 상태"
+  },
+  "tabs": {
+    "myRequests": "내 요청",
+    "pendingApprovals": "승인 대기",
+    "allRequests": "전체 요청"
+  },
+  "status": {
+    "pending": "대기 중",
+    "approved": "승인됨",
+    "rejected": "거절됨"
+  },
+  "dayTypes": {
+    "full_day": "종일",
+    "half_day_am": "오전 반차",
+    "half_day_pm": "오후 반차"
+  },
+  "empty": {
+    "noRequestsFound": "휴가 요청이 없습니다",
+    "noPendingApprovals": "승인 대기 요청이 없습니다",
+    "allCaughtUp": "모두 완료되었습니다!",
+    "clickToSubmit": "\"휴가 요청\"을 눌러 새 요청을 제출하세요."
+  },
+  "labels": {
+    "used": "사용",
+    "total": "총",
+    "availableBalance": "남은 휴가",
+    "approvedBy": "승인자",
+    "rejectedBy": "거절자",
+    "awaiting": "대기 중",
+    "from": "시작",
+    "to": "종료",
+    "days": "일",
+    "downloadDocument": "문서 다운로드",
+    "required": "필수",
+    "optional": "선택",
+    "doc": "문서",
+    "absent": "결근",
+    "unpaid": "무급"
+  },
+  "units": {
+    "day": "일",
+    "days": "일",
+    "daysShort": "일",
+    "half": "반",
+    "halfDay": "반일"
+  },
+  "preview": {
+    "totalLeaveDays": "총 휴가일:"
+  },
+  "upload": {
+    "dropToUpload": "드롭하여 업로드",
+    "dropFileHereOr": "파일을 여기에 놓거나",
+    "browse": "찾아보기",
+    "fileHint": "PDF, JPG, PNG · 최대 5MB",
+    "ready": "준비 완료"
+  },
+  "confirm": {
+    "deleteTitle": "휴가 요청 삭제",
+    "approveTitle": "휴가 요청 승인",
+    "rejectTitle": "휴가 요청 거절",
+    "deleteSubtext": "이 작업은 되돌릴 수 없습니다",
+    "notifySubtext": "직원에게 알림이 전송됩니다"
+  },
+  "validation": {
+    "leaveTypeRequired": "휴가 유형은 필수입니다",
+    "startDateRequired": "시작일은 필수입니다",
+    "endDateRequired": "종료일은 필수입니다",
+    "reasonRequired": "사유는 필수입니다",
+    "approverRequired": "승인자를 선택하세요",
+    "endDateAfterStart": "종료일은 시작일 이후여야 합니다",
+    "documentRequired": "이 휴가 유형에는 증빙 서류가 필요합니다.",
+    "fileType": "PDF, JPG, PNG만 허용됩니다.",
+    "fileSize": "파일은 5MB 미만이어야 합니다.",
+    "validationError": "유효성 검사 오류"
+  },
+  "messages": {
+    "noLeaveTypes": "휴가 유형이 설정되지 않았습니다. HR에 문의하세요.",
+    "balanceExceeded": "잔여 휴가를 초과했습니다 — 자동으로 분할됩니다",
+    "noBalance": ":type 잔여 휴가가 없습니다",
+    "requestNoLongerExists": "요청이 더 이상 존재하지 않습니다. 삭제되었을 수 있습니다.",
+    "requestDeleteFailed": "요청을 삭제할 수 없습니다."
+  }
+},
+  "employeeSalary": {
+    "pageTitle": "직원 급여",
+    "employment": {
+      "probation": "수습",
+      "permanent": "정규직",
+      "contract": "계약직"
+    },
+    "fields": {
+      "employee": "직원",
+      "position": "직책",
+      "department": "부서",
+      "employment": "고용 형태",
+      "joined": "입사일",
+      "baseSalary": "기본급",
+      "allowances": "수당",
+      "bankInformation": "은행 정보",
+      "bank": "은행",
+      "accountHolderName": "예금주명",
+      "accountNumber": "계좌번호",
+      "salary": "급여",
+      "actions": "작업"
+    },
+    "stats": {
+      "total": "전체",
+      "withBank": "은행 있음",
+      "missingBank": "은행 없음"
+    },
+    "actions": {
+      "addProfile": "프로필 추가",
+      "cancel": "취소",
+      "saving": "저장 중…",
+      "saveProfile": "프로필 저장",
+      "updateProfile": "프로필 업데이트",
+      "removing": "삭제 중…",
+      "removeProfile": "프로필 삭제"
+    },
+    "placeholders": {
+      "selectEmployeeDash": "— 직원 선택 —",
+      "searchEmployee": "직원 검색…",
+      "fullName": "전체 이름",
+      "accountNumber": "계좌번호"
+    },
+    "validation": {
+      "selectEmployee": "직원을 선택하세요.",
+      "validSalaryAmount": "유효한 급여 금액을 입력하세요."
+    },
+    "messages": {
+      "salaryProfileUpdated": "급여 프로필이 업데이트되었습니다.",
+      "salaryProfileSaved": "급여 프로필이 저장되었습니다.",
+      "somethingWentWrong": "문제가 발생했습니다.",
+      "selectAllowancesApply": "이 직원에게 적용할 수당을 선택하세요.",
+      "salaryProfileRemoved": "급여 프로필이 삭제되었습니다.",
+      "failedToRemoveProfile": "프로필을 삭제하지 못했습니다."
+    },
+    "empty": {
+      "noEmployeesFound": "직원을 찾을 수 없습니다",
+      "noResultsFound": "결과가 없습니다",
+      "noSalaryProfilesYet": "급여 프로필이 아직 없습니다",
+      "tryDifferentSearchTerm": "다른 검색어를 시도하세요.",
+      "clickAddProfile": "급여를 지정하려면 \"프로필 추가\"를 클릭하세요."
+    },
+    "labels": {
+      "optionalDash": "— 선택 사항",
+      "notSet": "미설정"
+    },
+    "modal": {
+      "addSalaryProfile": "급여 프로필 추가",
+      "setupSalaryAllowancesBank": "급여, 수당 및 은행 정보를 설정합니다.",
+      "editSalaryProfile": "급여 프로필 수정",
+      "updateSalaryAllowancesBank": "급여, 수당 또는 은행 정보를 업데이트합니다.",
+      "removeProfile": "프로필 삭제",
+      "deactivateSalaryProfile": "급여 프로필이 비활성화됩니다."
+    },
+    "confirm": {
+      "deactivateProfileWarning": "급여 프로필이 비활성화됩니다. 이전 급여 기록은 그대로 유지됩니다."
+    }
+  },
+ "expense": {
+    "stats": {
+      "total": "합계",
+      "pending": "대기 중",
+      "approved": "승인됨",
+      "rejected": "거부됨",
+      "unreimbursed": "미상환",
+      "unreimbursedSub": "전체 기간 · 승인됨, 미지급"
+    },
+    "tabs": {
+      "my": "내 요청",
+      "approvals": "승인 대기",
+      "all": "전체 요청"
+    },
+    "filters": {
+      "allStatus": "전체 상태"
+    },
+    "btn": {
+      "submit": "비용 신청",
+      "cancel": "취소",
+      "submitRequest": "신청하기",
+      "submitting": "제출 중…",
+      "approve": "승인",
+      "reject": "거부",
+      "delete": "요청 삭제",
+      "processing": "처리 중…"
+    },
+    "row": {
+      "awaiting": "대기",
+      "approvedBy": "승인자",
+      "rejectedBy": "거부자",
+      "date": "날짜",
+      "amount": "금액",
+      "note": "메모",
+      "rejected": "거부됨",
+      "reimbursed": "✓ 상환 완료",
+      "noApprover": "HR"
+    },
+    "empty": {
+      "noPendingApprovals": "승인 대기 없음",
+      "allCaughtUp": "모두 완료!",
+      "noExpenses": "비용 신청 없음",
+      "noExpensesSub": "\"비용 신청\" 버튼을 눌러 추가하세요."
+    },
+    "modal": {
+      "header": "비용 신청",
+      "title": "비용 신청",
+      "titleLabel": "제목",
+      "titlePlaceholder": "예: 고객 저녁식사, 공항 택시…",
+      "amountLabel": "금액",
+      "categoryLabel": "분류",
+      "categoryPlaceholder": "선택…",
+      "expenseDateLabel": "비용 날짜",
+      "descriptionLabel": "설명",
+      "descriptionPlaceholder": "비용에 대한 추가 정보…",
+      "attachmentsLabel": "첨부파일",
+      "attachmentsSub": "— 영수증, 청구서, 서류 (최대 5개)",
+      "attachmentsClick": "클릭하여 파일 업로드",
+      "approverHr": "HR (승인자)",
+      "approverAdmin": "관리자 (승인자)",
+      "approverPlaceholder": "— 승인자 선택 —",
+      "approverNone": "해당 국가에 {role}가 없습니다.",
+      "autoApprove": "✓ 관리자로서 이 신청은 즉시 자동 승인됩니다.",
+      "optional": "(선택)"
+    },
+    "confirm": {
+      "deleteTitle": "요청 삭제",
+      "deleteBody": "이 작업은 취소할 수 없습니다.",
+      "approveTitle": "비용 승인",
+      "approveBody": "직원에게 알림이 전송됩니다.",
+      "rejectTitle": "비용 거부",
+      "rejectBody": "거부 사유를 입력하세요.",
+      "noteLabel": "메모",
+      "noteOptional": "(선택)",
+      "notePlaceholder": "직원에게 메모 추가…",
+      "reasonLabel": "거부 사유",
+      "reasonPlaceholder": "거부 이유를 입력하세요…",
+      "confirmDelete": "🗑 삭제",
+      "confirmApprove": "✓ 승인",
+      "confirmReject": "✕ 거부"
+    },
+    "category": {
+      "transport": "교통",
+      "meal": "식사",
+      "accommodation": "숙박",
+      "equipment": "장비",
+      "medical": "의료",
+      "training": "교육",
+      "communication": "통신",
+      "other": "기타"
+    },
+    "validation": {
+      "titleRequired": "제목이 필요합니다.",
+      "amountInvalid": "유효한 금액을 입력하세요.",
+      "dateRequired": "비용 날짜가 필요합니다.",
+      "categoryRequired": "분류가 필요합니다.",
+      "approverRequired": "승인자를 선택하세요."
+    },
+    "noApproversAvailable": "승인자 없음",
+    "networkError": "네트워크 오류. 다시 시도하세요.",
+    "deleteError": "삭제 실패.",
+    "actionError": "오류가 발생했습니다.",
+    "months": [
+      "1월",
+      "2월",
+      "3월",
+      "4월",
+      "5월",
+      "6월",
+      "7월",
+      "8월",
+      "9월",
+      "10월",
+      "11월",
+      "12월"
+    ]
+  },
+  "payslip": {
+    "pageTitle": "급여명세서",
+    "fields": {
+      "employee": "직원",
+      "payPeriod": "급여 기간",
+      "netSalary": "실수령액",
+      "detail": "상세",
+      "download": "다운로드"
+    },
+    "filters": {
+      "allMonths": "전체 월",
+      "allPeriods": "전체 기간"
+    },
+    "cycles": {
+      "semiMonthly": "반월",
+      "tenDay": "10일",
+      "monthly": "월간"
+    },
+    "stats": {
+      "payslips": "급여명세서",
+      "totalNet": "총 실수령액",
+      "employees": "직원",
+      "avgNet": "평균 실수령액",
+      "highest": "최고",
+      "total": "합계"
+    },
+    "actions": {
+      "loading": "불러오는 중…",
+      "refreshIcon": "🔄",
+      "refresh": "새로고침",
+      "preparing": "준비 중…",
+      "allPdfsZipIcon": "📦",
+      "allPdfsZip": "전체 PDF (ZIP)",
+      "allExcelIcon": "📊",
+      "allExcel": "전체 Excel",
+      "pdf": "PDF",
+      "excel": "Excel"
+    },
+    "labels": {
+      "details": "상세",
+      "payslip": "급여명세서",
+      "payslips": "급여명세서",
+      "period": "기간",
+      "missing": "부족",
+      "late": "지각",
+      "ofBaseSalary": "기본급의",
+      "fixedAmount": "고정 금액"
+    },
+    "shortLabels": {
+      "in": "출근",
+      "out": "퇴근"
+    },
+    "status": {
+      "paid": "지급됨",
+      "confirmed": "확정됨"
+    },
+    "placeholders": {
+      "searchEmployee": "직원 검색…"
+    },
+    "messages": {
+      "downloadedSuccessfully": "급여명세서가 다운로드되었습니다",
+      "downloadFailed": "다운로드 실패",
+      "failedToLoadDetail": "상세 정보를 불러오지 못했습니다",
+      "failedToLoadPayslips": "급여명세서를 불러오지 못했습니다",
+      "loadingPayslips": "급여명세서 불러오는 중…"
+    },
+    "empty": {
+      "noShortRecords": "부족 시간 기록이 없습니다.",
+      "noLateRecords": "지각 기록이 없습니다.",
+      "noRecords": "기록이 없습니다.",
+      "noOTRecords": "OT 기록이 없습니다.",
+      "noAllowanceDetails": "수당 상세가 없습니다.",
+      "noBonusDetails": "보너스 상세가 없습니다.",
+      "noExpenseDetails": "비용 상세가 없습니다.",
+      "noResultsFor": "검색 결과 없음:",
+      "noConfirmedPayslips": "확정된 급여명세서를 찾을 수 없습니다",
+      "tryAdjustingPeriod": "위 기간 필터를 조정해 보세요."
+    },
+    "detail": {
+      "insufficientHours": "근무 시간 부족",
+      "workingHours": "근무 시간",
+      "lateArrival": "지각",
+      "attendance": "근태",
+      "workingDays": "근무일",
+      "present": "출근",
+      "absent": "결근",
+      "late": "지각",
+      "paidLeave": "유급 휴가",
+      "unpaidLeave": "무급 휴가",
+      "overtime": "초과근무",
+      "earnings": "수입",
+      "baseSalary": "기본급",
+      "allowances": "수당",
+      "overtimePay": "초과근무 수당",
+      "bonus": "보너스",
+      "bonuses": "보너스",
+      "expenseReimbursement": "비용 환급",
+      "totalBeforeDeductions": "공제 전 합계",
+      "deductions": "공제",
+      "totalDeductions": "총 공제",
+      "netSalary": "실수령액",
+      "leaveRecords": "휴가 기록",
+      "otRecords": "OT 기록",
+      "otPayThisPeriod": "이번 기간 OT 수당",
+      "breakdown": "내역",
+      "totalAllowances": "총 수당",
+      "totalBonus": "총 보너스",
+      "approvedExpenses": "승인된 비용",
+      "totalReimbursement": "총 환급",
+      "salaryDetail": "급여 상세"
+    },
+    "dayTypes": {
+      "fullDay": "종일",
+      "amHalf": "오전 반차",
+      "pmHalf": "오후 반차",
+      "halfDay": "반차"
+    },
+    "units": {
+      "days": "일",
+      "min": "분"
+    },
+    "months": {
+      "January": "1월",
+      "February": "2월",
+      "March": "3월",
+      "April": "4월",
+      "May": "5월",
+      "June": "6월",
+      "July": "7월",
+      "August": "8월",
+      "September": "9월",
+      "October": "10월",
+      "November": "11월",
+      "December": "12월"
+    }
+  },
+"bankExport": {
+  "payPeriodFilter": "급여 기간 필터",
+  "year": "연도",
+  "month": "월",
+  "period": "기간",
+  "employee": "직원",
+  "allEmployees": "전체 직원",
+  "loading": "불러오는 중…",
+  "refresh": "새로고침",
+  "record": "건",
+  "records": "건",
+  "readyForTransfer": "이체 준비 완료",
+  "noConfirmedRecords": "확정된 기록이 없습니다",
+  "exporting": "내보내는 중…",
+  "generating": "생성 중…",
+  "sendToBank": "은행으로 전송",
+  "saving": "저장 중…",
+  "markAllPaid": "전체 지급 완료 처리",
+  "loadingRecords": "기록 불러오는 중…",
+  "noConfirmedPayroll": "확정된 급여 기록이 없습니다",
+  "emptyStateDesc": "급여 기록은 <strong>확정</strong> 후 이곳에 표시됩니다.<br />Payroll → Preview &amp; Approve 에서 확정하세요.",
+  "colEmployee": "직원",
+  "colBank": "은행",
+  "colAccount": "계좌번호",
+  "colDept": "부서",
+  "colStatus": "상태",
+  "colNetSalary": "실수령액",
+  "notSet": "미설정",
+  "statusPaid": "지급완료",
+  "statusConfirmed": "확정",
+  "paid": "지급완료",
+  "infoNote": "<strong>확정된</strong> 급여 기록만 포함됩니다. 계좌 정보는 직원 급여 프로필에서 가져옵니다. 계좌 정보가 없는 직원은 ⚠로 표시됩니다.",
+  "bankTransfer": "은행 이체",
+  "sendPdfToBank": "은행으로 PDF 전송",
+  "modalDesc1": "",
+  "modalDesc2": "기간의 은행 이체 PDF가 이메일 첨부파일로 전송됩니다.",
+  "total": "합계",
+  "employees": "명",
+  "bankEmailLabel": "은행 이메일 주소",
+  "bankEmailPlaceholder": "예: finance@ababank.com",
+  "cancel": "취소",
+  "sending": "전송 중…",
+  "sendPdf": "PDF 전송",
+  "failedToLoad": "미리보기를 불러오지 못했습니다",
+  "downloadFailed": "다운로드 실패",
+  "downloadedSuccess": "다운로드 완료!",
+  "failed": "실패",
+  "markedAsPaid": "지급완료로 표시되었습니다",
+  "recordsMarkedPaid": "건이 지급완료로 표시되었습니다",
+  "failedToSend": "전송 실패",
+  "sentSuccess": "PDF가 은행으로 성공적으로 전송되었습니다! ✉️"
+},
+"payroll": {
+    "steps": {
+      "attendance": {
+        "label": "출근 가져오기",
+        "summary": "템플릿 다운로드 · 출퇴근 입력 · 업로드"
+      },
+      "calculate": {
+        "label": "급여 계산",
+        "summary": "출근·휴가·잔업·HR 정책 기반 계산"
+      },
+      "preview": {
+        "label": "미리보기 & 승인",
+        "summary": "급여 내역 검토 · 보너스 추가 · 승인"
+      }
+    },
+    "sidebar": {
+      "workflow": "워크플로",
+      "stepsDone": "단계 완료",
+      "completed": "완료",
+      "inProgress": "진행 중..."
+    },
+    "period": {
+      "payPeriod": "급여 기간",
+      "period": "기간",
+      "semiMonthly": "격주",
+      "tenDay": "10일",
+      "monthly": "월간"
+    },
+    "status": {
+      "draft": "초안",
+      "calculated": "계산됨",
+      "approved": "승인됨",
+      "confirmed": "확정됨",
+      "paid": "지급됨"
+    },
+    "btn": {
+      "downloadTemplate": "템플릿 다운로드",
+      "downloading": "다운로드 중...",
+      "uploadSave": "업로드 & 저장",
+      "uploading": "업로드 중...",
+      "refresh": "새로고침",
+      "approveAll": "전체 승인",
+      "approving": "승인 중...",
+      "confirmFinalize": "확정 & 마감",
+      "confirming": "확정 중...",
+      "approve": "승인",
+      "detail": "상세",
+      "close": "닫기",
+      "cancel": "취소",
+      "calculate": "계산",
+      "calculating": "계산 중...",
+      "calculateAll": "전체 계산",
+      "continue": "계속"
+    },
+    "attendance": {
+      "stepDownload": "다운로드",
+      "stepDownloadDesc": "직원 및 날짜가 미리 채워진 Excel 템플릿 받기",
+      "stepFill": "출퇴근 입력",
+      "stepFillDesc": "시간(HH:MM) 입력. 주말 건너뜀.",
+      "stepUpload": "업로드",
+      "stepUploadDesc": "저장 시 근무시간·지각분 자동 계산",
+      "downloaded": "템플릿 다운로드 완료.",
+      "saved": "저장됨",
+      "skipped": "건너뜀"
+    },
+    "calculate": {
+      "allEmployees": "전체 직원",
+      "singleEmployee": "직원 1명",
+      "selectEmployee": "직원 선택",
+      "selectEmployeeFirst": "먼저 직원을 선택하세요.",
+      "calculated": "계산 완료",
+      "employees": "명",
+      "done": "완료",
+      "stopped": "중단됨.",
+      "allDone": "전체 직원 계산 완료:",
+      "noPeriodWarning": "급여 기간이 설정되지 않았습니다. HR Policy → 일반 설정으로 이동하세요."
+    },
+    "preview": {
+      "loading": "기록 로딩 중...",
+      "noRecords": "기록이 없습니다. 먼저 2단계에서 급여를 계산하세요.",
+      "loadFailed": "기록 로드 실패",
+      "approved": "승인됨"
+    },
+    "table": {
+      "employee": "직원",
+      "presentWd": "출근 / 근무일",
+      "leave": "휴가",
+      "late": "지각",
+      "ot": "잔업",
+      "base": "기본급",
+      "allowances": "수당",
+      "deductions": "공제",
+      "bonus": "보너스",
+      "netSalary": "순급여",
+      "status": "상태"
+    },
+    "confirm": {
+      "approveAllTitle": "전체 급여 기록 승인",
+      "finalizeTitle": "급여 확정 & 마감",
+      "approveOneTitle": "직원 급여 승인",
+      "approveAllMsg": "모든 기록을 승인하시겠습니까?",
+      "finalizeMsg": "모든 기록을 잠금 처리합니다.",
+      "approveOneMsg": "이 직원의 급여를 승인하시겠습니까?",
+      "recordsFor": "기록",
+      "yesApproveAll": "예, 전체 승인",
+      "yesConfirmLock": "🔒 예, 확정 & 잠금",
+      "yesApprove": "예, 승인"
+    },
+    "detail": {
+      "salaryDetail": "급여 상세",
+      "attendance": "출근",
+      "workingDays": "근무일",
+      "present": "출근",
+      "absent": "결근",
+      "late": "지각",
+      "days": "일",
+      "paidLeave": "유급 휴가",
+      "unpaidLeave": "무급 휴가",
+      "overtime": "잔업",
+      "earnings": "수입",
+      "baseSalary": "기본급",
+      "allowances": "수당",
+      "overtimePay": "잔업 수당",
+      "bonus": "보너스",
+      "expenseReimbursement": "비용 상환",
+      "totalBeforeDeductions": "공제 전 합계",
+      "deductions": "공제",
+      "insufficientHours": "근무 시간 부족",
+      "lateArrival": "지각",
+      "totalDeductions": "공제 합계",
+      "netSalary": "순급여",
+      "workingHours": "근무 시간",
+      "in": "출근",
+      "out": "퇴근",
+      "missing": "부족",
+      "noShortRecords": "부족 기록 없음.",
+      "noLateRecords": "지각 기록 없음.",
+      "leaveRecords": "휴가 기록",
+      "noRecords": "기록 없음.",
+      "otRecords": "잔업 기록",
+      "noOtRecords": "잔업 기록 없음.",
+      "otPayPeriod": "이번 기간 잔업 수당",
+      "breakdown": "내역",
+      "noAllowanceDetails": "수당 내역 없음.",
+      "totalAllowances": "수당 합계",
+      "bonuses": "보너스",
+      "noBonusDetails": "보너스 내역 없음.",
+      "totalBonus": "보너스 합계",
+      "approvedExpenses": "승인된 비용",
+      "noExpenseDetails": "비용 내역 없음.",
+      "totalReimbursement": "상환 합계"
+    },
+    "dayType": {
+      "fullDay": "하루",
+      "halfDayAm": "오전 반일",
+      "halfDayPm": "오후 반일",
+      "halfDay": "반일"
+    }
+  },
+"hrAlerts": {
+    "pageTitle": "HR 알림",
+    "description": "근태 위반에 대한 AI 생성 경고문",
+    "status": {
+      "pending": "대기 중",
+      "sent": "전송됨",
+      "dismissed": "해제됨",
+      "all": "전체"
+    },
+    "types": {
+      "lateAlert": "지각 알림",
+      "absentAlert": "결근 알림"
+    },
+    "summary": {
+      "pendingAlerts": "대기 중 알림",
+      "lateWarnings": "지각 경고",
+      "absentWarnings": "결근 경고",
+      "warningsSent": "전송된 경고",
+      "dismissed": "해제됨"
+    },
+    "labels": {
+      "late": "지각",
+      "absent": "결근",
+      "sentBy": "전송자",
+      "period": "기간",
+      "warningLetter": "경고문"
+    },
+    "actions": {
+      "sendWarning": "경고 전송",
+      "dismiss": "해제",
+      "hideLetter": "문서 숨기기",
+      "viewLetter": "문서 보기",
+      "cancel": "취소",
+      "sending": "전송 중...",
+      "dismissing": "해제 중...",
+      "checking": "확인 중...",
+      "runCheckNow": "지금 확인"
+    },
+    "modal": {
+      "sendWarningLetter": "경고문 전송",
+      "editWarningLetter": "경고문 수정",
+      "aiDraftNote": "AI 생성 초안 — 전송 전 검토하세요",
+      "dismissAlert": "알림 해제",
+      "noWarningWillBeSent": "경고문은 전송되지 않습니다"
+    },
+    "empty": {
+      "noPendingAlerts": "대기 중인 알림이 없습니다",
+      "noAlertsFound": "알림을 찾을 수 없습니다",
+      "allAttendanceWithinThresholds": "모든 근태가 기준 내에 있습니다!",
+      "tryDifferentFilter": "다른 필터를 시도하세요."
+    },
+    "units": {
+      "days": "일"
+    },
+    "monthsShort": {
+      "Jan": "1월",
+      "Feb": "2월",
+      "Mar": "3월",
+      "Apr": "4월",
+      "May": "5월",
+      "Jun": "6월",
+      "Jul": "7월",
+      "Aug": "8월",
+      "Sep": "9월",
+      "Oct": "10월",
+      "Nov": "11월",
+      "Dec": "12월"
+    }
+  },
+"projectAssignments": {
+  "pageTitle": "프로젝트 배정",
+  "actions": { "allProjects": "전체 프로젝트" },
+  "sections": { "activeUpcoming": "진행 중 및 예정" },
+  "placeholders": { "searchMembers": "멤버 검색…" },
+  "filters": {
+    "all": "전체",
+    "twoHours": "2시간",
+    "fourHours": "4시간",
+    "sixHours": "6시간"
+  },
+  "workload": {
+    "free": "여유",
+    "light": "가벼움",
+    "moderate": "보통",
+    "heavy": "많음",
+    "full": "가득 참"
+  },
+  "status": {
+    "active": "진행 중",
+    "upcoming": "예정",
+    "completed": "완료",
+    "cancelled": "취소됨"
+  },
+  "stats": {
+    "totalMembers": "전체 멤버",
+    "activeEmployees": "활성 직원",
+    "available": "가능",
+    "zeroAssignedToday": "오늘 0시간 배정",
+    "utilization": "사용률",
+    "activeProjects": "진행 중 프로젝트",
+    "currentlyRunning": "현재 진행 중"
+  },
+  "labels": {
+    "teamMembers": "팀 멤버",
+    "team": "팀",
+    "open": "빈자리",
+    "openSlot": "빈 슬롯",
+    "assignments": "배정",
+    "dailyCapacity": "일일 용량",
+    "used": "사용됨",
+    "dueToday": "오늘 마감",
+    "noEndDate": "종료일 없음"
+  },
+  "empty": {
+    "noMembersFound": "멤버를 찾을 수 없습니다",
+    "noMembersYet": "아직 멤버가 없습니다",
+    "noAssignmentsYet": "아직 배정이 없습니다",
+    "noActiveUpcomingProjects": "진행 중이거나 예정된 프로젝트가 없습니다"
+  },
+  "units": {
+    "member": "명",
+    "members": "명",
+    "perDay": "하루당",
+    "today": "오늘",
+    "daysLeftSuffix": "일 남음"
+  }
+},
+"bookings": {
+    "heroSubtitle": "자원 예약",
+    "heroTitle": "회의실 및 법인 차량",
+    "heroDesc": "업무에 필요한 회의실과 법인 차량을 예약하세요.",
+    "today": "오늘",
+    "rooms": "회의실",
+    "cars": "차량",
+    "tabCalendar": "캘린더",
+    "tabMyBookings": "내 예약",
+    "tabMyInvitations": "내 초대",
+    "tabDriverNotes": "운전기사 메모",
+    "tabManageResources": "자원 관리",
+    "bookRoom": "회의실 예약",
+    "bookCar": "차량 예약",
+    "loadingSchedule": "일정을 불러오는 중…",
+    "free": "사용 가능",
+    "floor": "층",
+    "seats": "좌석",
+    "capacity": "수용 인원",
+    "passengers": "명",
+    "driver": "운전자",
+    "location": "위치",
+    "rules": "이용 규칙",
+    "noRoomsYet": "등록된 회의실이 없습니다",
+    "noCarsYet": "등록된 차량이 없습니다",
+    "goToManage": "자원 관리로 이동하여 추가하세요",
+    "openEnded": "시간 미정",
+    "onTheWay": "운행 중",
+    "returning": "복귀 중",
+    "requestCar": "법인 차량 신청",
+    "reserveRoom": "회의실 예약",
+    "step1": "1단계 — 날짜 및 시간 설정",
+    "step2": "2단계 — 자원 선택",
+    "step3": "3단계 — 확인 및 제출",
+    "date": "날짜",
+    "startTime": "시작 시간",
+    "endTime": "종료 시간",
+    "returnUnknown": "반납 시간 미정",
+    "openEndedDesc": "시간 미정 — 차량이 사용 중인 경우 대기 명단에 추가됩니다",
+    "waitlistWarning": "반납 시간이 지정되지 않은 다른 예약이 있는 경우, 신청 건이 대기 명단에 추가됩니다.",
+    "numAttendees": "참석자 수",
+    "attendeesHint": "선택 사항 — 좌석 수용 인원으로 필터링",
+    "continueAvailable": "계속 — 사용 가능 자원 보기",
+    "back": "이전",
+    "checkingAvailability": "사용 가능 여부 확인 중…",
+    "noResourcesFound": "등록된 {{type}}이(가) 없습니다.",
+    "selected": "선택됨",
+    "available": "사용 가능",
+    "currentlyOut": "현재 운행 중",
+    "freeFrom": "이후 사용 가능:",
+    "unavailable": "사용 불가",
+    "continueDetails": "계속 — 상세 정보 입력",
+    "attendees": "참석자",
+    "tripType": "운행 유형",
+    "oneWay": "편도",
+    "oneWayDesc": "A에서 B로 이동, 복귀 없음",
+    "multiStop": "경유지 있음",
+    "multiStopDesc": "여러 목적지 경유",
+    "pickupDrop": "픽업 / 드롭",
+    "pickupDropDesc": "운전자가 픽업 또는 드롭",
+    "departureLocation": "출발지",
+    "departurePlaceholder": "예: 회사 로비, A동",
+    "destination": "목적지",
+    "destinationPlaceholder": "예: 공항, 호텔",
+    "officeLobbyPlaceholder": "예: 회사 로비",
+    "stops": "경유지",
+    "addStop": "경유지 추가",
+    "stop": "경유지",
+    "returnToDeparture": "출발지로 복귀",
+    "returnToDepartureDesc": "마지막 경유지 이후 운전자가 출발지로 복귀",
+    "returnTimeEstimated": "반납 예정 시간",
+    "pickupPoint": "픽업 / 출발 장소",
+    "pickupPlaceholder": "예: 자택 주소, 호텔 로비",
+    "pickupDestPlaceholder": "예: 사무실, 공항, 고객사",
+    "driverWaitsReturns": "운전자 대기 후 복귀",
+    "driverWaitsDesc": "운전자가 목적지에서 대기한 후 출발지로 다시 데려다줍니다",
+    "expectedReturnTime": "예상 반납 시간",
+    "participants": "참가자",
+    "purposeLabel": "목적 / 사유 *",
+    "purposeCarPlaceholder": "예: 공항 픽업, 고객사 방문, 업무상 외출…",
+    "purposeRoomPlaceholder": "예: 주간 팀 스탠드업, 고객 프레젠테이션, 워크숍…",
+    "confirming": "확인 중…",
+    "joinWaitlist": "대기 명단 등록",
+    "confirmBooking": "예약 확정",
+    "nameRequired": "이름 *",
+    "roomNamePlaceholder": "예: 회의실 A, 이사회실",
+    "carNamePlaceholder": "예: 현대 그랜저 2023",
+    "floorLocation": "층 / 위치",
+    "parkingLocation": "주차 위치",
+    "floorPlaceholder": "예: 2층",
+    "parkingPlaceholder": "예: 지하 1층 주차장",
+    "seatCapacity": "좌석 수",
+    "passengerCapacity": "탑승 인원",
+    "plateRequired": "차량 번호 *",
+    "assignedDriver": "배정된 운전자 *",
+    "selectDriver": "운전자 선택…",
+    "roomRules": "회의실 이용 규칙",
+    "usageNotes": "사용 유의사항",
+    "roomRulesPlaceholder": "예: 음식물 반입 금지, 예약당 최대 2시간",
+    "usageNotesPlaceholder": "예: 주유 완충 후 반납, 사용 후 내부 정리",
+    "active": "활성",
+    "activeDesc": "비활성화된 자원은 예약 화면에 표시되지 않습니다",
+    "inactive": "비활성",
+    "reactivate": "다시 활성화",
+    "cancel": "취소",
+    "saving": "저장 중…",
+    "saveChanges": "변경 사항 저장",
+    "registerResource": "자원 등록",
+    "registerNewResource": "신규 자원 등록",
+    "resourceManagement": "자원 관리",
+    "meetingRoom": "회의실",
+    "companyCar": "법인 차량",
+    "edit": "수정",
+    "room": "회의실",
+    "car": "차량",
+    "reasonRequired": "사유를 입력해야 합니다.",
+    "bookingRejected": "예약이 거절되었습니다.",
+    "failedToReject": "거절에 실패했습니다.",
+    "rejectBooking": "예약 거절",
+    "hrAction": "인사/관리자 조치",
+    "rejectingDesc": "거절 처리 중",
+    "bookingFor": "대상의 예약:",
+    "reasonForRejection": "거절 사유 *",
+    "rejectReasonPlaceholder": "이 예약을 승인할 수 없는 이유를 설명해 주세요…",
+    "rejecting": "거절 처리 중…",
+    "reason": "사유",
+    "rejected": "거절됨",
+    "cancelNote": "취소 사유",
+    "approve": "승인",
+    "reject": "거절",
+    "markReturned": "반납 완료 처리",
+    "cancelBooking": "예약 취소",
+    "failedToApprove": "승인에 실패했습니다.",
+    "confirmCancellation": "취소 확인",
+    "cancelThisBooking": "이 예약을 취소하시겠습니까?",
+    "cancelWarning": "이 예약은 취소되며 되돌릴 수 없습니다.",
+    "keepBooking": "예약 유지",
+    "cancelling": "취소 중…",
+    "yesCancel": "네, 취소합니다",
+    "failedToCancel": "취소에 실패했습니다.",
+    "bookingDetail": "예약 상세 정보",
+    "bookingInfo": "예약 정보",
+    "time": "시간",
+    "purpose": "목적",
+    "tripInfo": "운행 정보",
+    "type": "유형",
+    "from": "출발지",
+    "return": "반납/복귀",
+    "yesTBD": "예 (미정)",
+    "carInfo": "차량 정보",
+    "plate": "차량 번호",
+    "parking": "주차 위치",
+    "roomInfo": "회의실 정보",
+    "people": "인원",
+    "organizer": "주최자",
+    "loading": "불러오는 중…",
+    "failedToLoad": "불러오지 못했습니다.",
+    "statusPending": "대기 중",
+    "statusApproved": "승인됨",
+    "statusRejected": "거절됨",
+    "statusCancelled": "취소됨",
+    "statusWaitlisted": "대기 명단",
+    "statusCompleted": "완료됨",
+    "busy": "사용 중",
+    "scheduleConflict": "일정 충돌",
+    "checkingSchedule": "일정 확인 중…",
+    "searchByNameEmail": "이름 또는 이메일로 검색…",
+    "noPendingApprovals": "대기 중인 승인 요청이 없습니다",
+    "allCaughtUp": "모두 완료되었습니다!",
+    "noUpcoming": "예정된 {{type}} 예약이 없습니다",
+    "clickToStart": "시작하려면 \"{{type}}\"을(를) 클릭하세요.",
+    "noInvitationsOn": "해당 날짜에 초대가 없습니다:",
+    "selectDateForInvitations": "달력에서 날짜를 선택하여 초대를 확인하세요.",
+    "noDriverNotesOn": "해당 날짜에 운행 일지가 없습니다:",
+    "notesAppearAfterTrips": "운행이 완료되면 여기에 메모가 표시됩니다.",
+    "leftANote": "님이 메모를 남겼습니다",
+    "noRoomsYetManage": "등록된 회의실이 없습니다 — + 자원 등록을 클릭하여 추가하세요",
+    "noCarsYetManage": "등록된 차량이 없습니다 — + 자원 등록을 클릭하여 추가하세요",
+    "meetingRooms": "회의실 목록",
+    "companyCars": "법인 차량 목록",
+    "confirmDelete": "삭제 확인",
+    "deleteResource": "삭제",
+    "deleteResourceWarning": "이 작업은 다음 자원을 영구적으로 삭제합니다:",
+    "deleteResourceWarning2": "및 모든 데이터를 영구적으로 삭제합니다. 예약 내역을 보존하려면 대신 비활성화하는 것을 고려해 보세요.",
+    "deletePermanently": "영구 삭제",
+    "failedToDelete": "삭제에 실패했습니다.",
+    "failedToSave": "자원 저장에 실패했습니다.",
+    "carMarkedReturned": "차량이 반납 처리되었습니다.",
+    "myRoomBooking": "내 회의실 예약",
+    "myCarBooking": "내 차량 예약",
+    "errorPurpose": "목적을 입력해 주세요",
+    "errorResource": "자원을 선택해 주세요",
+    "errorPickup": "픽업 장소는 필수 입력 사항입니다",
+    "errorDeparture": "출발지는 필수 입력 사항입니다",
+    "errorDestination": "목적지는 필수 입력 사항입니다",
+    "errorStops": "모든 경유지 장소를 입력해야 합니다",
+    "errorStopsMin": "최소 한 곳의 경유지가 필요합니다",
+    "errorEndTime": "종료 시간은 시작 시간보다 늦어야 합니다.",
+    "errorName": "이름은 필수 입력 사항입니다",
+    "errorPlate": "차량 번호는 필수 입력 사항입니다",
+    "errorDriver": "운전자를 배정해 주세요",
+    "errorCapacity": "수용 인원은 최소 1명 이상이어야 합니다",
+    "submitFailed": "제출에 실패했습니다. 다시 시도해 주세요."
+  },
+"performance": {
+    "pageTitle": "성과 평가",
+    "labels": {
+      "metrics": "지표",
+      "analysisResults": "분석 결과",
+      "employeeMetrics": "직원 지표",
+      "employees": "직원"
+    },
+    "metrics": {
+      "late": "지각",
+      "absent": "결근",
+      "leave": "휴가",
+      "overtime": "초과근무"
+    },
+    "ratings": {
+      "Excellent": "매우 우수",
+      "Good": "우수",
+      "Average": "보통",
+      "NeedsImprovement": "개선 필요",
+      "Poor": "미흡"
+    },
+    "placeholders": {
+      "year": "연도",
+      "country": "국가"
+    },
+    "actions": {
+      "exportPdf": "PDF 내보내기",
+      "analyzing": "분석 중",
+      "aiAnalysis": "AI 분석"
+    },
+    "kpis": {
+      "totalEmployees": "총 직원 수",
+      "avgLateDays": "평균 지각일",
+      "avgAbsentDays": "평균 결근일",
+      "avgLeaveDays": "평균 휴가일",
+      "avgOTHours": "평균 OT 시간"
+    },
+    "table": {
+      "employee": "직원",
+      "dept": "부서",
+      "attendance": "근태",
+      "lateDays": "지각일",
+      "absent": "결근",
+      "leaveDays": "휴가일",
+      "leave": "휴가",
+      "otHours": "OT 시간",
+      "otHrs": "OT 시간",
+      "rating": "평가",
+      "remark": "비고",
+      "score": "점수",
+      "aiRemark": "AI 비고"
+    },
+    "empty": {
+      "noEmployeeData": "선택한 필터에 대한 직원 데이터를 찾을 수 없습니다."
+    },
+    "pdf": {
+      "hrPerformanceReport": "HR 성과 보고서",
+      "annualPerformanceReview": "연간 성과 평가",
+      "ratingDistribution": "평가 분포",
+      "confidentialHrDocument": "기밀 HR 문서",
+      "generatedBySmartHr": "Smart HR에서 생성",
+      "printSavePdf": "인쇄 / PDF로 저장"
+    }
+  },
+"projects": {
+  "pageTitle": "프로젝트",
+  "appTitle": "프로젝트 배정",
+  "actions": {
+    "backToAssignments": "배정으로 돌아가기",
+    "createProject": "프로젝트 생성",
+    "update": "업데이트",
+    "create": "프로젝트 생성",
+    "cancel": "취소",
+    "delete": "삭제",
+    "view": "보기",
+    "yesUpdate": "업데이트"
+  },
+  "modal": {
+    "newProject": "새 프로젝트",
+    "editProject": "프로젝트 수정",
+    "confirmUpdate": "업데이트 확인",
+    "deleteProject": "프로젝트를 삭제하시겠습니까?",
+    "updateSubtitle": "아래 프로젝트 세부 정보를 업데이트하세요",
+    "createSubtitle": "아래 프로젝트 세부 정보를 입력하세요",
+    "confirmUpdateMessage": "이 프로젝트를 업데이트하시겠습니까",
+    "deleteMessage": "및 모든 배정이 영구적으로 삭제됩니다.",
+    "cannotBeUndone": "이 작업은 되돌릴 수 없습니다."
+  },
+  "fields": {
+    "projectName": "프로젝트 이름",
+    "description": "설명",
+    "status": "상태",
+    "startDate": "시작일",
+    "endDate": "종료일",
+    "optional": "선택"
+  },
+  "placeholders": {
+    "projectName": "예: CRM System v2",
+    "description": "간단한 프로젝트 설명…",
+    "searchProjects": "프로젝트 검색…"
+  },
+  "status": {
+    "all": "전체",
+    "active": "진행 중",
+    "upcoming": "예정",
+    "completed": "완료",
+    "cancelled": "취소됨"
+  },
+  "table": {
+    "project": "프로젝트",
+    "status": "상태",
+    "duration": "기간",
+    "members": "멤버",
+    "daysLeft": "남은 일수",
+    "actions": "작업",
+    "from": "시작",
+    "to": "종료"
+  },
+  "empty": {
+    "noProjectsFound": "프로젝트를 찾을 수 없습니다",
+    "tryDifferentSearch": "다른 검색어를 시도하세요"
+  },
+  "pagination": {
+    "prev": "이전",
+    "next": "다음"
+  },
+  "validation": {
+    "required": "필수",
+    "endDateAfterStart": "종료일은 시작일 이후여야 합니다"
+  },
+  "messages": {
+    "created": "프로젝트가 성공적으로 생성되었습니다!",
+    "updated": "프로젝트가 성공적으로 업데이트되었습니다!",
+    "deleted": "프로젝트가 성공적으로 삭제되었습니다.",
+    "createFailed": "프로젝트 생성에 실패했습니다. 다시 시도하세요.",
+    "updateFailed": "프로젝트 업데이트에 실패했습니다. 다시 시도하세요.",
+    "deleteFailed": "프로젝트 삭제에 실패했습니다."
+  },
+  "loading": {
+    "creating": "생성 중…",
+    "updating": "업데이트 중…",
+    "deleting": "삭제 중…"
+  },
+  "units": {
+    "project": "프로젝트",
+    "projects": "프로젝트",
+    "dayOverdue": "일 지남",
+    "dueToday": "오늘 마감",
+    "dayLeft": "일 남음",
+    "daysLeft": "일 남음"
+  }
+},
+"surveys": {
+    "actions": {
+      "back": "뒤로",
+      "cancel": "취소",
+      "delete": "삭제"
+    },
+    "labels": {
+      "anonymous": "익명",
+      "questions": "질문",
+      "questionsLower": "질문",
+      "responses": "응답",
+      "responsesLower": "응답",
+      "closes": "마감",
+      "by": "작성자"
+    },
+    "status": {
+      "all": "전체",
+      "draft": "초안",
+      "active": "진행 중",
+      "closed": "마감됨"
+    },
+    "questionTypes": {
+      "single": "단일 선택",
+      "multiple": "복수 선택",
+      "yesNo": "예/아니오",
+      "rating": "평점",
+      "text": "텍스트",
+      "singleChoice": "단일 선택형",
+      "multiChoice": "다중 선택형",
+      "textAnswer": "텍스트 답변형"
+    },
+    "closed": {
+      "headTitle": "설문 조사 종료",
+      "title": "설문 마감",
+      "message": "이 설문 조사는 더 이상 응답을 받지 않습니다. 제출 기간이 종료되었습니다.",
+      "responsesNoLongerCollected": "응답 수집이 종료되었습니다.",
+      "contactHr": "문의 사항이 있으시면 인사팀(HR)으로 연락해 주세요 💜"
+    },
+    "create": {
+      "createSurvey": "설문 조사 생성",
+      "editSurvey": "설문 조사 수정",
+      "newSurvey": "새 설문 조사",
+      "surveyBuilder": "설문 빌더",
+      "createSubtitle": "조건부 로직, 다양한 질문 유형 및 스마트 설정을 사용하여 설문 조사를 작성하세요.",
+      "editSubtitle": "설문 내용, 질문 및 설정을 업데이트하세요.",
+      "surveyDetails": "설문 상세 정보",
+      "settings": "설정",
+      "summary": "요약",
+      "fields": {
+        "question": "질문",
+        "type": "유형",
+        "titleRequired": "제목 *",
+        "description": "설명",
+        "closeDate": "마감일",
+        "title": "제목"
+      },
+      "placeholders": {
+        "question": "질문을 입력하세요...",
+        "option": "옵션",
+        "selectAnswer": "답변 선택...",
+        "title": "예: Q2 임직원 만족도 조사",
+        "description": "선택 사항 — 이 설문 조사에 대해 간략히 설명해 주세요."
+      },
+      "labels": {
+        "conditionalLogic": "조건부 로직",
+        "showIf": "다음 경우에 표시",
+        "alwaysShow": "항상 표시",
+        "emptyQuestion": "(비어 있음)",
+        "answerIs": "답변이 다음과 같을 때",
+        "questionShowsOnlyWhen": "이 질문은 다음 경우에만 표시됩니다",
+        "required": "필수",
+        "optional": "선택 사항",
+        "conditional": "조건부"
+      },
+      "actions": {
+        "addOption": "+ 옵션 추가",
+        "addQuestion": "질문 추가",
+        "saveAsDraft": "초안으로 저장",
+        "saving": "저장 중...",
+        "publishSurvey": "설문 조사 게시"
+      },
+      "validation": {
+        "titleRequired": "설문 조사 제목은 필수입니다.",
+        "addQuestion": "최소 한 개의 질문을 추가해 주세요.",
+        "required": "필수 입력 항목입니다",
+        "needTwoOptions": "최소 2개의 옵션이 필요합니다"
+      },
+      "anonymousOn": "이름을 기록하지 않고 응답을 수집합니다. 인사팀(HR)은 누가 답변했는지 확인할 수 없습니다.",
+      "anonymousOff": "응답자의 이름이 기록됩니다. 인사팀(HR)은 누가 답변했는지 확인할 수 있습니다."
+    },
+    "index": {
+      "pageTitle": "설문 조사",
+      "copySurveyLink": "설문 링크 복사",
+      "copied": "복사되었습니다!",
+      "copyLink": "링크 복사",
+      "results": "결과",
+      "activate": "활성화",
+      "close": "마감",
+      "createSurvey": "설문 조사 생성",
+      "noSurveysFound": "설문 조사를 찾을 수 없습니다",
+      "createFirstSurvey": "\"설문 조사 생성\"을 클릭하여 첫 번째 설문 조사를 만들어 보세요.",
+      "stats": {
+        "totalSurveys": "총 설문 조사 수",
+        "totalResponses": "총 응답 수"
+      }
+    },
+    "public": {
+      "validation": {
+        "questionRequired": "이 질문은 필수 항목입니다."
+      },
+      "errors": {
+        "somethingWentWrong": "문제가 발생했습니다.",
+        "connectionError": "연결 오류가 발생했습니다. 다시 시도해 주세요."
+      },
+      "alreadySubmitted": "이미 제출됨",
+      "alreadySharedPrefix": "다음에 대한 피드백을 이미 제출하셨습니다:",
+      "onlyOnce": "각 사용자당 한 번만 응답할 수 있습니다.",
+      "anonymousRecorded": "익명 응답이 기록되었습니다.",
+      "responseSaved": "응답이 저장되었습니다.",
+      "thankYouParticipating": "참여해 주셔서 감사합니다 💜",
+      "thankYouTitle": "감사합니다!",
+      "responseRecorded": "응답 기록 완료!",
+      "feedbackSubmitted": "피드백이 제출되었습니다. 시간을 내어 의견을 주셔서 감사합니다. 소중한 의견은 서비스 개선에 도움이 됩니다.",
+      "submittedAnonymously": "익명으로 제출되었습니다 — 귀하의 신원은 안전하게 보호됩니다.",
+      "employeeSurvey": "임직원 설문 조사",
+      "allQuestionsAnswered": "✓ 모든 질문에 답변 완료",
+      "of": "중",
+      "answered": "답변 완료",
+      "poor": "매우 불만족",
+      "excellent": "매우 만족",
+      "shareThoughts": "여기에 의견을 공유해 주세요...",
+      "submittingResponse": "응답을 제출하는 중...",
+      "sendFeedback": "피드백 보내기",
+      "anonymousConfidential": "귀하의 응답은 익명으로 처리되며 철저히 비밀이 보장됩니다.",
+      "nameRecorded": "응답과 함께 귀하의 이름이 기록됩니다.",
+      "yes": "예",
+      "no": "아니오"
+    },
+    "results": {
+      "pageTitle": "설문 결과",
+      "avg": "평균",
+      "noTextAnswersYet": "아직 주관식 답변이 없습니다.",
+      "unknown": "알 수 없음",
+      "avgCompletion": "평균 완료율",
+      "exportCsv": "CSV 내보내기",
+      "questionResults": "질문별 결과",
+      "individualResponses": "개별 응답",
+      "aiInsight": "AI 인사이트",
+      "noResponsesYet": "아직 응답이 없습니다.",
+      "aiAnalysis": "AI 분석",
+      "generated": "생성됨",
+      "analyzing": "분석 중...",
+      "regenerate": "재생성",
+      "generateInsight": "인사이트 생성",
+      "noInsightGeneratedYet": "아직 생성된 인사이트가 없습니다",
+      "collectResponsesBeforeInsights": "AI 인사이트를 생성하기 전에 응답을 수집해 주세요.",
+      "clickGenerateInsight": "\"인사이트 생성\"을 클릭하여 AI로 모든 응답을 분석해 보세요."
+    }
+  },
+"projectShow": {
+  "appTitle": "프로젝트 배정",
+  "actions": {
+    "backToProjects": "프로젝트로 돌아가기",
+    "assignMember": "멤버 배정",
+    "assigning": "배정 중...",
+    "assignAnyway": "그래도 배정",
+    "updateHours": "시간 업데이트",
+    "cancel": "취소",
+    "update": "업데이트",
+    "updating": "업데이트 중...",
+    "removing": "제거 중...",
+    "yesRemove": "제거"
+  },
+  "status": {
+    "active": "진행 중",
+    "upcoming": "예정",
+    "completed": "완료",
+    "cancelled": "취소됨",
+    "removed": "제거됨"
+  },
+  "stats": {
+    "totalMembers": "전체 멤버",
+    "active": "진행 중",
+    "upcoming": "예정",
+    "estimatedHours": "예상 시간"
+  },
+  "tabs": {
+    "members": "멤버",
+    "activityLog": "활동 로그"
+  },
+  "table": {
+    "member": "멤버",
+    "period": "기간",
+    "hoursPerDay": "시간/일",
+    "status": "상태",
+    "assignedBy": "배정자",
+    "notes": "메모",
+    "actions": "작업"
+  },
+  "fields": {
+    "member": "멤버",
+    "project": "프로젝트",
+    "priority": "우선순위",
+    "startDate": "시작일",
+    "endDate": "종료일",
+    "hoursPerDay": "하루당 시간",
+    "status": "상태",
+    "notes": "메모"
+  },
+  "labels": {
+    "from": "시작",
+    "to": "종료",
+    "createdBy": "생성자",
+    "timeline": "타임라인",
+    "available": "가능",
+    "current": "현재",
+    "submittingWillAdd": "제출 시 추가됨",
+    "total": "총",
+    "already": "이미",
+    "used": "사용됨",
+    "on": "에서",
+    "activeProjects": "진행 중 프로젝트",
+    "dailyLimit": "일일 한도",
+    "optional": "선택",
+    "priorityOrder": "우선순위",
+    "priority": "우선순위",
+    "thisProject": "이 프로젝트"
+  },
+  "modal": {
+    "assignTitle": "멤버 배정",
+    "assignSubtitle": "멤버 추가 대상",
+    "editAssignmentTitle": "배정 수정"
+  },
+  "confirm": {
+    "removeTitle": "멤버를 제거하시겠습니까?",
+    "removeMessage": "제거",
+    "cannotUndo": "이 작업은 되돌릴 수 없습니다."
+  },
+  "empty": {
+    "noMembersAssigned": "아직 배정된 멤버가 없습니다",
+    "noActivityYet": "아직 활동이 없습니다"
+  },
+  "placeholders": {
+    "selectMember": "멤버 선택...",
+    "optionalNotes": "선택 메모..."
+  },
+  "messages": {
+    "alreadyAssigned": "이미 이 프로젝트에 배정되어 있습니다",
+    "capacityOk": "용량 정상",
+    "overCapacity": "용량 초과",
+    "exceedsDailyLimit": "일일 한도를 초과합니다",
+    "noOtherAssignments": "다른 배정이 없습니다",
+    "thisWillBe": "이것은",
+    "selectHoursAbove": "위에서 시간을 선택하세요",
+    "priorityHint": "P1 = 오전 세션. 우선순위가 높을수록 배정 시간대가 하루 중 더 늦게 배치됩니다."
+  },
+  "validation": {
+    "selectMember": "멤버를 선택하세요",
+    "selectHoursPerDay": "하루당 시간을 선택하세요",
+    "startDateRequired": "시작일은 필수입니다",
+    "endDateRequired": "종료일은 필수입니다",
+    "endDateAfterStart": "종료일은 시작일 이후여야 합니다"
+  },
+  "logs": {
+    "assigned": "배정함",
+    "editedAssignmentOf": "의 배정을 수정함",
+    "removed": "제거함"
+  },
+  "units": {
+    "hoursPerDay": "시간/일",
+    "perDay": "하루당"
+  }
+},
+  "recruitment": {
+    "actions": {
+      "add": "추가",
+      "applyToAll": "모두 적용",
+      "cancel": "취소",
+      "createJobPosting": "채용 공고 생성",
+      "delete": "삭제",
+      "deletePermanently": "영구 삭제",
+      "deletePosting": "공고 삭제",
+      "deleting": "삭제 중",
+      "edit": "수정",
+      "newPosting": "새 공고",
+      "reschedule": "일정 변경",
+      "rescheduleSendEmail": "일정 변경 이메일 전송",
+      "saveChanges": "변경 사항 저장",
+      "saveScore": "점수 저장",
+      "saving": "저장 중",
+      "scheduleSendEmail": "일정 이메일 전송",
+      "scheduling": "일정 예약 중",
+      "update": "업데이트",
+      "updating": "업데이트 중"
+    },
+    "delete": {
+      "allDataRemoved": "모든 데이터 삭제됨",
+      "applicationRecord": "지원 기록",
+      "applicationWarning": "지원 경고",
+      "areYouSure": "정말 진행하시겠습니까?",
+      "cannotBeUndone": "취소할 수 없습니다",
+      "interviewRecord": "면접 기록",
+      "noApplicationsSafe": "지원서 없음 (안전)",
+      "uploadedCv": "업로드된 이력서",
+      "willAlsoBeDeleted": "함께 삭제됩니다",
+      "willBeDeleted": "삭제됩니다"
+    },
+    "empty": {
+      "applicationsWillAppear": "지원서가 여기에 표시됩니다",
+      "createFirstJobPosting": "첫 채용 공고 생성",
+      "noApplicationsYet": "아직 지원서가 없습니다",
+      "noJobPostings": "채용 공고가 없습니다"
+    },
+    "fields": {
+      "applicationDeadline": "지원 마감일",
+      "areasForImprovement": "개선 필요 사항",
+      "companyOffice": "근무지",
+      "dateTime": "일시",
+      "department": "부서",
+      "description": "상세 설명",
+      "hrNote": "인사 메모",
+      "internalNote": "내부 메모",
+      "interviewType": "면접 유형",
+      "interviewerName": "면접관 이름",
+      "jobTitle": "직무명",
+      "jobType": "고용 형태",
+      "location": "위치",
+      "meetingLink": "회의 링크",
+      "noteToCandidate": "지원자 대상 메모",
+      "platform": "플랫폼",
+      "positions": "포지션 목록",
+      "postingStatus": "공고 상태",
+      "recommendation": "추천",
+      "requirements": "자격 요건",
+      "responsibilities": "담당 업무",
+      "salaryRange": "급여 범위",
+      "setStatusTo": "상태 변경:",
+      "strengths": "강점"
+    },
+    "filters": {
+      "allCountries": "모든 국가",
+      "allStatus": "모든 상태"
+    },
+    "labels": {
+      "applicant": "지원자",
+      "applicants": "지원자 목록",
+      "application": "지원서",
+      "applications": "지원서 목록",
+      "applied": "지원 완료",
+      "autoSelected": "자동 선택됨",
+      "interview": "면접",
+      "link": "링크",
+      "negotiable": "협의 가능",
+      "note": "메모",
+      "online": "온라인",
+      "onsite": "대면",
+      "position": "포지션",
+      "positions": "포지션 목록",
+      "score": "점수",
+      "viewOnly": "조회 전용"
+    },
+    "messages": {
+      "invitationEmailSent": "초대 이메일이 발송되었습니다"
+    },
+    "modal": {
+      "application": "지원서",
+      "bulkAction": "일괄 작업",
+      "deleteApplication": "지원서 삭제",
+      "deleteJobPosting": "채용 공고 삭제",
+      "editPosting": "공고 수정",
+      "interviewScore": "면접 점수",
+      "jobRecruitment": "직무 채용",
+      "newJobPosting": "새 채용 공고",
+      "rescheduleInterview": "면접 일정 변경",
+      "scheduleInterview": "면접 일정 예약"
+    },
+    "pageTitle": "채용 관리",
+    "placeholders": {
+      "addItem": "항목 추가",
+      "department": "부서 선택",
+      "descriptionPoint": "상세 설명 항목",
+      "hrNote": "인사 메모 작성",
+      "internalNote": "내부 메모 작성",
+      "interviewerName": "면접관 이름 입력",
+      "jobTitle": "직무명 입력",
+      "location": "위치 입력",
+      "noteToCandidate": "지원자에게 보낼 메모",
+      "requirementPoint": "자격 요건 항목",
+      "responsibilityPoint": "담당 업무 항목",
+      "salaryRange": "급여 범위 입력",
+      "searchJobs": "채용 공고 검색",
+      "selectOffice": "오피스 선택",
+      "strengths": "강점 작성",
+      "weaknesses": "보완점 작성"
+    },
+    "recommendations": {
+      "hold": "보류",
+      "proceed": "진행",
+      "reject": "불합격"
+    },
+    "score": {
+      "average": "보통",
+      "excellent": "우수",
+      "poor": "미흡"
+    },
+    "sort": {
+      "byScore": "점수순",
+      "latestFirst": "최신순",
+      "nameAZ": "이름순 (가나다)"
+    },
+    "stats": {
+      "newUnread": "읽지 않음",
+      "openPositions": "모집 중인 포지션",
+      "totalApplicants": "총 지원자",
+      "totalPostings": "총 공고"
+    },
+    "status": {
+      "all": "전체"
+    },
+    "table": {
+      "actions": "작업",
+      "applicants": "지원자수",
+      "company": "회사",
+      "deadline": "마감일",
+      "position": "포지션",
+      "slots": "모집 인원",
+      "status": "상태",
+      "type": "유형"
+    },
+    "tabs": {
+      "applications": "지원 현황",
+      "jobPostings": "채용 공고"
+    },
+    "validation": {
+      "atLeastOnePosition": "최소 하나의 포지션을 선택해야 합니다",
+      "descriptionPoint": "상세 설명 항목을 입력하세요",
+      "interviewFuture": "면접 일정은 미래 날짜여야 합니다",
+      "jobTitleRequired": "직무명은 필수 항목입니다",
+      "requirementPoint": "자격 요건 항목을 입력하세요",
+      "salaryOrNegotiable": "급여 또는 협의 가능 여부를 선택하세요",
+      "selectCompanyOffice": "회사 오피스를 선택하세요",
+      "selectDateTime": "날짜 및 시간을 선택하세요",
+      "selectJobType": "고용 형태를 선택하세요"
+    },
+    "jobTypes": {
+      "fullTime": "정규직",
+      "partTime": "아르바이트 / 시간제",
+      "contract": "계약직",
+      "internship": "인턴십"
+    },
+    "jobStatus": {
+      "open": "모집중",
+      "paused": "일시중단",
+      "closed": "마감"
+    },
+    "appStatus": {
+      "new": "신규 지원",
+      "reviewing": "검토중",
+      "interview": "면접 진행중",
+      "accepted": "합격",
+      "rejected": "불합격"
+    },
+    "platforms": {
+      "zoom": "줌 (Zoom)",
+      "google_meet": "구글 미트 (Google Meet)",
+      "teams": "마이크로소프트 팀즈 (Microsoft Teams)",
+      "physical": "대면 / 대면 면접",
+      "other": "기타"
+    }
+  },
+  "userRoles": {
+    "pageTitle": "사용자 및 역할",
+    "hero": {
+      "eyebrow": "사용자 관리",
+      "title": "프리미엄 워크스페이스 개요",
+      "desc": "동일한 흐름과 로직을 유지하면서 더 깔끔하고 전문적인 인터페이스로 개선했습니다."
+    },
+    "stats": {
+      "members": "멤버",
+      "totalRegisteredUsers": "전체 등록 사용자",
+      "active": "활성"
+    },
+    "filters": {
+      "allCountries": "모든 국가",
+      "allRoles": "모든 역할"
+    },
+    "placeholders": {
+      "searchByNameOrEmail": "이름 또는 이메일로 검색...",
+      "selectRole": "역할 선택...",
+      "selectCountry": "국가 선택...",
+      "fullName": "John Doe",
+      "email": "john@vibeme.ai",
+      "department": "Engineering",
+      "position": "Senior Developer"
+    },
+    "actions": {
+      "addNewUser": "새 사용자 추가",
+      "cancel": "취소",
+      "saving": "저장 중...",
+      "createUser": "사용자 생성",
+      "updateUser": "사용자 업데이트",
+      "deleting": "삭제 중...",
+      "yesDelete": "예, 삭제"
+    },
+    "labels": {
+      "result": "결과",
+      "results": "결과",
+      "found": "찾음",
+      "liveDirectory": "실시간 디렉터리",
+      "autoAssigned": "자동 할당됨"
+    },
+    "table": {
+      "teamMembers": "팀 멤버",
+      "user": "사용자",
+      "country": "국가",
+      "role": "역할",
+      "department": "부서",
+      "position": "직책",
+      "phone": "전화",
+      "dateOfBirth": "생년월일",
+      "employment": "고용 형태",
+      "joined": "입사일",
+      "status": "상태",
+      "actions": "작업"
+    },
+    "fields": {
+      "fullName": "전체 이름",
+      "emailAddress": "이메일 주소",
+      "dateOfBirth": "생년월일",
+      "country": "국가",
+      "newPassword": "새 비밀번호",
+      "password": "비밀번호",
+      "role": "역할",
+      "department": "부서",
+      "position": "직책",
+      "phone": "전화",
+      "joinedDate": "입사일",
+      "employmentType": "고용 형태",
+      "contractEndDate": "계약 종료일",
+      "profilePhoto": "프로필 사진",
+      "activeStatus": "활성 상태"
+    },
+    "empty": {
+      "noUsersFound": "사용자를 찾을 수 없습니다",
+      "tryAdjusting": "검색 또는 필터를 조정해 보세요."
+    },
+    "modal": {
+      "addNewUser": "새 사용자 추가",
+      "userManagement": "사용자 관리",
+      "editUser": "사용자 편집",
+      "updateProfile": "프로필 업데이트",
+      "confirmDelete": "삭제 확인",
+      "dangerZone": "위험 구역"
+    },
+    "confirm": {
+      "deleteUser": "사용자를 삭제하시겠습니까?",
+      "areYouSureDeletePrefix": "정말 삭제하시겠습니까",
+      "cannotBeUndone": "이 작업은 되돌릴 수 없습니다."
+    },
+    "status": {
+      "active": "활성",
+      "inactive": "비활성"
+    }
+  },
+  "driverSchedule": {
+    "pageTitle": "출장 일정",
+    "driverStatus": {
+      "start": "시작 전",
+      "onTheWay": "이동 중",
+      "returned": "복귀 중",
+      "ended": "완료됨"
+    },
+    "bookingStatus": {
+      "approved": "승인됨",
+      "waitlisted": "대기 명단",
+      "completed": "완료됨",
+      "cancelled": "취소됨"
+    },
+    "tripTypes": {
+      "oneWay": "편도",
+      "multiStop": "경유지 있음",
+      "pickup": "픽업 / 드롭",
+      "roundTrip": "왕복",
+      "waitReturn": "대기 후 복귀"
+    },
+    "stats": {
+      "total": "전체",
+      "active": "진행 중",
+      "done": "완료"
+    },
+    "tabs": {
+      "tripInfo": "운행 정보",
+      "passengers": "탑승자",
+      "notes": "메모"
+    },
+    "labels": {
+      "type": "유형",
+      "from": "출발지",
+      "return": "복귀",
+      "stops": "경유지",
+      "cancelReason": "취소 사유",
+      "organizer": "주최자",
+      "passenger": "탑승자",
+      "todayUpper": "오늘"
+    },
+    "fields": {
+      "reasonRequired": "사유 *"
+    },
+    "actions": {
+      "back": "뒤로",
+      "confirmCancel": "취소 확인",
+      "cancelling": "취소 중…",
+      "skip": "건너뛰기",
+      "saving": "저장 중…",
+      "saveNote": "메모 저장",
+      "cancelTrip": "운행 취소",
+      "startTrip": "운행 시작",
+      "markReturning": "복귀 중으로 표시",
+      "endTrip": "운행 종료",
+      "today": "오늘"
+    },
+    "cancelModal": {
+      "title": "예약 취소"
+    },
+    "noteModal": {
+      "tripCompleted": "운행이 완료되었습니다!",
+      "addNoteOptional": "메모 추가 (선택)"
+    },
+    "placeholders": {
+      "cancelReason": "예: 차량 고장, 엔진 문제…",
+      "note": "예: 교통 정체, 주유 완료…"
+    },
+    "validation": {
+      "reasonRequired": "사유는 필수입니다."
+    },
+    "messages": {
+      "failedTryAgain": "실패했습니다. 다시 시도하세요.",
+      "tripTimePassed": "이 운행 시간은 이미 지났습니다. 더 이상 시작할 수 없습니다.",
+      "tripCompleted": "운행 완료",
+      "loadingSchedule": "일정 불러오는 중…"
+    },
+    "empty": {
+      "noCarAssigned": "배정된 차량이 없습니다",
+      "contactHrCarAssigned": "차량 배정을 위해 HR에 문의하세요.",
+      "noTripDetails": "운행 상세 정보가 없습니다.",
+      "notesAfterTripEnds": "운행 종료 후 메모가 표시됩니다.",
+      "noBookingsOn": "예약이 없는 날짜:",
+      "freeOnThisDay": "이 날은 일정이 없습니다."
+    },
+    "units": {
+      "seats": "좌석"
+    }
+  },
+  "requirement": {
+    "common": {
+      "status": {
+        "pending": "대기 중",
+        "analyzing": "분석 중",
+        "completed": "완료",
+        "failed": "실패"
+      },
+      "complexity": {
+        "simple": "간단",
+        "medium": "보통",
+        "complex": "복잡",
+        "enterprise": "엔터프라이즈"
+      }
+    },
+    "list": {
+      "pageTitle": "요구사항 분석",
+      "hero": {
+        "eyebrow": "요구사항 분석",
+        "title": "프리미엄 AI 요구사항 워크스페이스",
+        "desc": "깔끔한 흐름으로 요구사항 분석을 생성, 분석, 재실행 및 검토할 수 있습니다."
+      },
+      "stats": {
+        "total": "전체",
+        "allAnalyses": "전체 분석",
+        "waitingQueue": "대기열",
+        "inProgress": "진행 중",
+        "readyToReview": "검토 준비됨",
+        "needsRetry": "재시도 필요"
+      },
+      "analysisDirectory": "분석 목록",
+      "liveAnalysisList": "실시간 분석 목록",
+      "labels": {
+        "feasibility": "실현 가능성"
+      }
+    },
+    "modal": {
+      "title": "새 요구사항 분석",
+      "subtitle": "AI가 자동으로 분석하고 인사이트를 제공합니다.",
+      "steps": {
+        "clientInfo": "고객 정보",
+        "projectDetails": "프로젝트 상세",
+        "requirements": "요구사항"
+      }
+    },
+    "fields": {
+      "companyName": "회사명",
+      "contactPerson": "담당자",
+      "industry": "업종",
+      "email": "이메일",
+      "phone": "전화",
+      "projectTitle": "프로젝트 제목",
+      "projectDescription": "프로젝트 설명",
+      "platform": "플랫폼",
+      "expectedUsers": "예상 사용자",
+      "budgetRange": "예산 범위",
+      "expectedDeadline": "예상 마감일",
+      "coreFeatures": "핵심 기능",
+      "integrationNeeds": "연동 요구사항",
+      "specialRequirements": "특별 요구사항 / 메모"
+    },
+    "placeholders": {
+      "companyName": "Acme Corporation",
+      "contactPerson": "John Smith",
+      "industry": "e.g. Healthcare, Finance",
+      "email": "john@company.com",
+      "phone": "+1 234 567 8900",
+      "projectTitle": "e.g. Hospital Management System",
+      "projectDescription": "Describe what the client needs in detail (min. 20 characters)...",
+      "selectPlatform": "Select platform...",
+      "expectedUsers": "e.g. 500",
+      "selectBudget": "Select budget...",
+      "integrationNeeds": "e.g. Integrate with existing ERP, payment gateway, SMS service...",
+      "specialRequirements": "Any other specific requirements, constraints, or notes...",
+      "searchProjectClient": "Search by project or client..."
+    },
+    "platforms": {
+      "web": "Web",
+      "mobile": "Mobile",
+      "both": "Both",
+      "desktop": "Desktop"
+    },
+    "features": {
+      "userAuthentication": "User Authentication",
+      "dashboardAnalytics": "Dashboard & Analytics",
+      "rolePermissions": "Role & Permissions",
+      "notifications": "Notifications",
+      "fileUpload": "File Upload",
+      "paymentIntegration": "Payment Integration",
+      "apiIntegration": "API Integration",
+      "reportingExport": "Reporting & Export",
+      "multiLanguage": "Multi-language",
+      "mobileResponsive": "Mobile Responsive",
+      "realTimeUpdates": "Real-time Updates",
+      "searchFilter": "Search & Filter"
+    },
+    "validation": {
+      "companyNameRequired": "Company name is required.",
+      "contactPersonRequired": "Contact person is required.",
+      "validEmail": "Please enter a valid email address.",
+      "projectTitleRequired": "Project title is required.",
+      "projectDescriptionRequired": "Project description is required.",
+      "descriptionMin": "Description must be at least 20 characters.",
+      "budgetRequired": "Please select a budget range.",
+      "deadlineRequired": "Please set an expected deadline.",
+      "coreFeatureRequired": "Please select at least one core feature."
+    },
+    "actions": {
+      "newAnalysis": "새 분석",
+      "cancel": "취소",
+      "back": "뒤로",
+      "next": "다음",
+      "analyzing": "분석 중...",
+      "submitAnalyze": "제출 및 분석",
+      "delete": "삭제",
+      "view": "보기",
+      "rerun": "재실행",
+      "reanalyze": "Re-analyze",
+      "generateProposal": "Generate Proposal",
+      "retryAnalysis": "Retry Analysis"
+    },
+    "messages": {
+      "submitted": "Requirement submitted and AI analysis started.",
+      "deleted": "Deleted successfully"
+    },
+    "hints": {
+      "selectAtLeastOne": "(select at least one)"
+    },
+    "filters": {
+      "allStatus": "모든 상태"
+    },
+    "labels": {
+      "result": "result",
+      "results": "results",
+      "found": "found",
+      "duration": "Duration"
+    },
+    "table": {
+      "project": "프로젝트",
+      "client": "클라이언트",
+      "platform": "플랫폼",
+      "complexity": "복잡도",
+      "feasibility": "실현 가능성",
+      "status": "상태",
+      "date": "날짜",
+      "actions": "작업"
+    },
+    "empty": {
+      "noAnalyses": "No analyses yet",
+      "clickNewAnalysis": "Click New Analysis to get started."
+    },
+    "confirm": {
+      "deleteAnalysis": "분석을 삭제하시겠습니까?",
+      "cannotBeUndone": "이 작업은 되돌릴 수 없습니다."
+    },
+    "detail": {
+      "pageTitle": "Requirement Detail",
+      "timeline": {
+        "feasible": "Feasible",
+        "tight": "Tight",
+        "unrealistic": "Unrealistic"
+      },
+      "budget": {
+        "under": "Under Budget",
+        "within": "Within Budget",
+        "over": "Over Budget"
+      },
+      "feasibility": {
+        "highlyFeasible": "Highly Feasible",
+        "moderatelyFeasible": "Moderately Feasible",
+        "challenging": "Challenging",
+        "score": "Feasibility Score"
+      },
+      "states": {
+        "aiAnalyzing": "AI is analyzing...",
+        "pleaseWait": "Please wait while we process the requirements.",
+        "analysisFailed": "Analysis failed",
+        "somethingWrong": "Something went wrong. Please try again.",
+        "pendingAnalysis": "Pending analysis",
+        "startShortly": "Analysis will start shortly."
+      },
+      "sections": {
+        "aiSummary": "AI Summary",
+        "coreModules": "Core Modules",
+        "projectTimeline": "Project Timeline",
+        "riskAssessment": "Risk Assessment",
+        "recommendations": "Recommendations",
+        "clarificationsNeeded": "Clarifications Needed",
+        "quickOverview": "Quick Overview",
+        "assessments": "Assessments",
+        "techStack": "Tech Stack",
+        "recommendedTeam": "Recommended Team",
+        "clientInfo": "Client Info"
+      },
+      "quick": {
+        "users": "Users",
+        "budget": "Budget",
+        "deadline": "Deadline",
+        "timeline": "Timeline"
+      }
+    }
+  },
+"documentTranslation": {
+    "pageTitle": "문서 번역",
+    "hero": {
+      "eyebrow": "문서 번역",
+      "title": "프리미엄 번역 워크스페이스",
+      "desc": "동일한 로직 흐름, 동일한 라우트, 동일한 업로드 및 폴더 작업. 라이트 모드와 다크 모드 모두에서 잘 작동하는 더 깔끔하고 전문적인 UI로 업그레이드되었습니다.",
+      "demoMode": "현재 API가 구성되어 있지 않아 페이지가 데모 모드로 유지됩니다."
+    },
+    "actions": {
+      "uploadDocument": "문서 업로드",
+      "cancel": "취소",
+      "deleting": "삭제 중...",
+      "yesDelete": "네, 삭제합니다",
+      "download": "다운로드",
+      "close": "닫기",
+      "delete": "삭제"
+    },
+    "stats": {
+      "totalFiles": "총 파일 수",
+      "allUploadedDocuments": "업로드된 모든 문서",
+      "completed": "완료됨",
+      "readyToReview": "검토 또는 다운로드 가능",
+      "translating": "번역 중",
+      "jobsRunning": "현재 실행 중인 작업",
+      "failed": "실패함",
+      "needsReview": "검토 또는 재시도 필요"
+    },
+    "labels": {
+      "allFiles": "모든 파일",
+      "uploadedBy": "업로드한 사용자"
+    },
+    "loading": {
+      "files": "파일 로드 중",
+      "fetchingFolder": "폴더 내용 가져오는 중"
+    },
+    "messages": {
+      "unableLoadFolder": "폴더 내용을 로드할 수 없습니다.",
+      "unableRefreshFolder": "폴더 내용을 새로 고칠 수 없습니다.",
+      "unableRefreshDocumentList": "문서 목록을 새로 고칠 수 없습니다.",
+      "folderDeleted": "폴더가 성공적으로 삭제되었습니다.",
+      "folderDeleteFailed": "폴더 삭제에 실패했습니다.",
+      "documentDeleteFailed": "문서 삭제에 실패했습니다."
+    },
+    "delete": {
+      "dangerZone": "위험 구역",
+      "deleteFolder": "폴더 삭제",
+      "confirmTitle": "이 폴더를 삭제하시겠습니까?",
+      "confirmPrefix": "삭제하려고 합니다:",
+      "confirmSuffix": "이 폴더 안의 모든 파일도 영구적으로 삭제됩니다."
+    },
+    "upload": {
+      "eyebrow": "문서 번역",
+      "title": "업로드 워크스페이스",
+      "fileIntake": "파일 가져오기",
+      "dropBrowse": "여기에 파일을 끌어놓거나 찾아보기",
+      "acceptedTypes": "PDF, DOC, DOCX, TXT, PNG, JPG, JPEG",
+      "maxSize": "최대 20MB",
+      "replaceHint": "클릭하여 교체하거나 다른 파일을 여기로 끌어오세요.",
+      "metadata": "메타데이터",
+      "saveToFolder": "폴더에 저장",
+      "rootNoFolder": "루트 (폴더 없음)",
+      "tags": "태그",
+      "tagsPlaceholder": "hr, report, 2026",
+      "languageDirection": "언어 방향",
+      "sourceLanguage": "원본 언어",
+      "translateTo": "번역할 언어",
+      "apiNotConfigured": "API가 구성되지 않음",
+      "imageCannotTranslate": "이미지 파일은 번역할 수 없습니다. 텍스트 기반 파일(TXT, DOC, DOCX, PDF)만 지원됩니다.",
+      "visibilityTitle": "공개 범위",
+      "apiDemoNotice": "번역 API가 구성되지 않았습니다. 문서는 현재 흐름을 사용하여 계속 업로드하고 저장할 수 있습니다.",
+      "uploading": "업로드 중...",
+      "uploadDocument": "문서 업로드",
+      "uploadFailed": "업로드에 실패했습니다. 다시 시도해 주세요.",
+      "visibility": {
+        "private": "비공개",
+        "onlyYou": "나만 보기",
+        "branch": "내 브랜치",
+        "yourBranch": "당신의 브랜치",
+        "all": "모든 브랜치",
+        "everyone": "모든 사람"
+      },
+      "languages": {
+        "en": "영어",
+        "ja": "일본어",
+        "my": "미얀마어",
+        "km": "크메르어",
+        "vi": "베트남어",
+        "ko": "한국어"
+      }
+    },
+    "languages": {
+      "en": "영어",
+      "ja": "일본어",
+      "my": "미얀마어",
+      "km": "크메르어",
+      "vi": "베트남어",
+      "ko": "한국어"
+    },
+    "fileNotes": {
+      "portableDocument": "이동식 문서",
+      "editableDocument": "편집 가능한 문서",
+      "plainText": "일반 텍스트",
+      "imageFile": "이미지 파일"
+    },
+    "status": {
+      "pending": "대기 중",
+      "translating": "번역 중",
+      "completed": "완료됨",
+      "failed": "실패함"
+    },
+    "statusNotes": {
+      "waitingInQueue": "대기열에서 대기 중",
+      "jobsRunning": "작업 현재 실행 중",
+      "downloadsAvailable": "다운로드 가능",
+      "needsReview": "검토 또는 재시도 필요"
+    },
+    "downloadModal": {
+      "eyebrow": "다운로드",
+      "title": "파일 버전 선택",
+      "originalFile": "원본 파일",
+      "translatedVersions": "번역된 버전",
+      "translated": "번역됨"
+    },
+    "deleteDocument": {
+      "confirmTitle": "문서를 삭제하시겠습니까?",
+      "confirmPrefix": "이 작업은 다음을 제거합니다:",
+      "confirmSuffix": "및 이에 연결된 모든 번역된 버전."
+    },
+    "filters": {
+      "allStatuses": "모든 상태",
+      "allFileTypes": "모든 파일 형식"
+    },
+    "library": {
+      "eyebrow": "문서 라이브러리",
+      "visibleFile": "보이는 파일",
+      "visibleFiles": "보이는 파일들",
+      "flowPreserved": "동일한 라우트/API 흐름 유지됨"
+    },
+    "statsShort": {
+      "total": "총계",
+      "completed": "완료",
+      "running": "실행 중",
+      "failed": "실패"
+    },
+    "placeholders": {
+      "searchDocuments": "문서, 업로더, 태그 검색..."
+    },
+    "view": {
+      "grid": "그리드",
+      "list": "리스트"
+    },
+    "empty": {
+      "noDocumentsFound": "문서를 찾을 수 없습니다",
+      "tryAdjusting": "검색어나 필터를 조정해 보세요."
+    },
+    "table": {
+      "document": "문서",
+      "status": "상태",
+      "languages": "언어",
+      "created": "생성일",
+      "uploader": "업로더",
+      "tags": "태그",
+      "actions": "작업"
+    },
+    "folderModal": {
+      "header": {
+        "eyebrow": "폴더 워크스페이스",
+        "editTitle": "폴더 편집",
+        "createTitle": "폴더 생성",
+        "parent": "상위",
+        "rootLevel": "루트 레벨 폴더"
+      },
+      "fields": {
+        "folderName": "폴더 이름",
+        "description": "설명",
+        "visibility": "공개 범위",
+        "folderColor": "폴더 색상",
+        "folderIcon": "폴더 아이콘"
+      },
+      "placeholders": {
+        "folderName": "폴더 이름 입력",
+        "description": "선택 사항: 짧은 설명"
+      },
+      "visibility": {
+        "allBranches": "모든 브랜치",
+        "allBranchesDesc": "모든 브랜치에 표시됨",
+        "myBranch": "내 브랜치",
+        "myBranchDesc": "내 브랜치에만 표시됨",
+        "private": "비공개",
+        "privateDesc": "나에게만 표시됨"
+      },
+      "actions": {
+        "saving": "저장 중...",
+        "updateFolder": "폴더 업데이트",
+        "createFolder": "폴더 생성"
+      },
+      "messages": {
+        "updateFailed": "폴더 업데이트에 실패했습니다.",
+        "createFailed": "폴더 생성에 실패했습니다."
+      }
+    },
+    "folderTree": {
+      "actions": {
+        "more": "더 보기",
+        "addSubfolder": "하위 폴더 추가",
+        "editFolder": "폴더 편집",
+        "deleteFolder": "폴더 삭제"
+      },
+      "library": "라이브러리",
+      "smartFolders": "스마트 폴더",
+      "new": "+ 새로 만들기",
+      "searchPlaceholder": "폴더 검색...",
+      "browseEveryUploadedDocument": "업로드된 모든 문서 탐색",
+      "empty": {
+        "noFoldersFound": "폴더를 찾을 수 없습니다",
+        "noFoldersYet": "아직 폴더가 없습니다",
+        "tryAnotherKeyword": "다른 키워드를 시도해 보세요.",
+        "createFirstFolderDesc": "더 깔끔한 문서 정리를 위해 첫 번째 폴더를 생성해 보세요.",
+        "createFirstFolder": "첫 번째 폴더 생성"
+      },
+      "units": {
+        "file": "파일",
+        "files": "파일",
+        "subfolder": "하위 폴더",
+        "subfolders": "하위 폴더",
+        "folder": "폴더",
+        "folders": "폴더",
+        "total": "총"
+      },
+      "fileNotes": {
+        "portableDocument": "이동식 문서",
+        "editableDocument": "편집 가능한 문서",
+        "plainText": "일반 텍스트",
+        "imageFile": "이미지 파일"
+      },
+      "status": {
+        "pending": "대기 중",
+        "translating": "번역 중",
+        "completed": "완료됨",
+        "failed": "실패함"
+      },
+      "statusNotes": {
+        "waitingInQueue": "대기열에서 대기 중",
+        "jobsRunning": "작업 현재 실행 중",
+        "downloadsAvailable": "다운로드 가능",
+        "needsReviewOrRetry": "검토 또는 재시도 필요"
+      }
+    }
+  },
+"proposalGenerator": {
+    "pageTitle": "제안서 생성기",
+    "title": "프리미엄 AI 제안서 작업 공간",
+    "description": "동일한 제안서 라우트 및 API 흐름을 유지하면서, RequirementAnalysis의 라이트 및 다크 모드 동작에 맞춤화되었습니다.",
+    "actions": {
+      "generateProposal": "제안서 생성",
+      "resetFilters": "필터 초기화",
+      "cancel": "취소",
+      "generating": "생성 중...",
+      "deleting": "삭제 중...",
+      "yesDelete": "네, 삭제합니다"
+    },
+    "status": {
+      "draft": "초안",
+      "sent": "발송됨",
+      "accepted": "수락됨",
+      "rejected": "거절됨"
+    },
+    "languages": {
+      "english": "영어",
+      "myanmar": "미얀마어",
+      "khmer": "크메르어",
+      "vietnamese": "베트남어",
+      "korean": "한국어",
+      "japanese": "일본어"
+    },
+    "templates": {
+      "executive": { "label": "이그제큐티브", "desc": "프리미엄 다크 럭셔리 감성" },
+      "magazine": { "label": "매거진", "desc": "대담한 편집 레이아웃" },
+      "minimal": { "label": "미니멀", "desc": "깔끔한 스위스 스타일 레이아웃" }
+    },
+    "stats": {
+      "total": "전체",
+      "draft": "초안",
+      "sent": "발송됨",
+      "accepted": "수락됨",
+      "rejected": "거절됨",
+      "allGenerated": "생성된 모든 제안서",
+      "waitingNextAction": "다음 작업 대기 중",
+      "sharedWithClients": "고객과 공유됨",
+      "readyToCelebrate": "축하 준비 완료",
+      "needsRevision": "수정 필요"
+    },
+    "placeholders": {
+      "search": "제안서 번호, 프로젝트 또는 고객사로 검색...",
+      "chooseAnalysis": "완료된 분석 선택..."
+    },
+    "filters": {
+      "allStatus": "모든 상태"
+    },
+    "sections": {
+      "directory": "제안서 디렉토리"
+    },
+    "labels": {
+      "liveProposalList": "실시간 제안서 목록",
+      "clientProfileLinked": "요구사항 분석에서 연결된 고객 프로필",
+      "resultFound": "건의 결과",
+      "resultsFound": "건의 결과"
+    },
+    "table": {
+      "proposalNo": "제안서 번호",
+      "project": "프로젝트",
+      "client": "고객사",
+      "language": "언어",
+      "status": "상태",
+      "date": "날짜",
+      "actions": "작업"
+    },
+    "empty": {
+      "noProposalsYet": "아직 제안서가 없습니다",
+      "clickGenerate": "시작하려면 제안서 생성을 클릭하세요.",
+      "noCompletedAnalyses": "아직 이용 가능한 완료된 분석이 없습니다."
+    },
+    "modal": {
+      "generateTitle": "제안서 생성",
+      "generateSubtitle": "동일한 라우트 및 API 흐름을 유지하며, RequirementAnalysis 테마 시스템에 맞춤화되었습니다."
+    },
+    "fields": {
+      "selectProject": "프로젝트 선택",
+      "templateStyle": "템플릿 스타일"
+    },
+    "messages": {
+      "generated": "제안서가 성공적으로 생성되었습니다.",
+      "deleted": "제안서가 성공적으로 삭제되었습니다.",
+      "deleteFailed": "제안서를 삭제할 수 없습니다.",
+      "pdfCompatibility": "PDF 호환성을 극대화하기 위해 제안서는 영어로 생성됩니다."
+    },
+    "validation": {
+      "selectAnalysis": "먼저 프로젝트 분석을 선택해 주세요."
+    },
+    "confirm": {
+      "title": "삭제 확인",
+      "subtitle": "위험 구역",
+      "deleteTitle": "제안서를 삭제하시겠습니까?",
+      "deleteMessage": "정말로 삭제하시겠습니까?",
+      "thisProposal": "이 제안서",
+      "cannotUndo": "이 작업은 되돌릴 수 없습니다."
+    },
+    "common": {
+      "unknown": "알 수 없음",
+      "unknownClient": "알 수 없는 고객사",
+      "untitledProject": "제목 없는 프로젝트",
+      "investmentNotAvailable": "투자 정보를 이용할 수 없음"
+    }
+  },
+  "proposalDetail": {
+    "pageTitle": "제안서 상세",
+    "description": "동일한 백엔드 라우트 및 로직을 유지하면서 템플릿 전환, 미리보기, PDF 내보내기, 상태 업데이트 및 재생성 기능을 제공하는 프리미엄 제안서 검토 작업 공간입니다.",
+    "actions": {
+      "back": "뒤로 가기",
+      "regenerate": "재생성",
+      "regenerating": "재생성 중...",
+      "downloadPdf": "PDF 다운로드",
+      "updating": "업데이트 중...",
+      "minimize": "최소화",
+      "maximize": "최대화",
+      "markAccepted": "수락됨으로 표시"
+    },
+    "status": {
+      "draft": "초안",
+      "sent": "발송됨",
+      "accepted": "수락됨",
+      "rejected": "거절됨"
+    },
+    "languages": {
+      "english": "영어",
+      "myanmar": "미얀마어",
+      "khmer": "크메르어",
+      "vietnamese": "베트남어",
+      "korean": "한국어",
+      "japanese": "일본어"
+    },
+    "templates": {
+      "executive": { "label": "이그제큐티브", "desc": "다크 럭셔리" },
+      "magazine": { "label": "매거진", "desc": "대담한 편집" },
+      "minimal": { "label": "미니멀", "desc": "스위스 그리드" }
+    },
+    "preview": {
+      "livePreview": "제안서 실시간 미리보기"
+    },
+    "sections": {
+      "proposalStatus": "제안서 상태",
+      "clientSummary": "고객 요약",
+      "proposalInsights": "제안서 인사이트",
+      "readyDelivery": "최종 전달 준비가 되셨나요?"
+    },
+    "labels": {
+      "template": "템플릿"
+    },
+    "fields": {
+      "company": "회사",
+      "industry": "업종",
+      "email": "이메일",
+      "project": "프로젝트",
+      "language": "언어",
+      "investment": "투자 금액",
+      "validity": "유효 기간"
+    },
+    "messages": {
+      "readyDeliveryDesc": "선택한 템플릿 미리보기를 검토하고 고객 세부 정보를 확인한 후, 상태를 업데이트하거나 최종 PDF를 다운로드하세요."
+    },
+    "common": {
+      "notSpecified": "지정되지 않음",
+      "na": "해당 없음",
+      "unknownClient": "알 수 없는 고객사",
+      "untitledProject": "제목 없는 프로젝트"
+    }
+  },
+    "projects": {
+    "appTitle": "프로젝트 관리",
+    "status": {
+      "all": "전체",
+      "active": "진행 중",
+      "upcoming": "진행 예정",
+      "completed": "완료됨",
+      "cancelled": "취소됨"
+    },
+    "modal": {
+      "newProject": "새 프로젝트",
+      "editProject": "프로젝트 수정",
+      "deleteProject": "프로젝트 삭제",
+      "cannotBeUndone": "이 작업은 되돌릴 수 없습니다"
+    },
+    "actions": {
+      "cancel": "취소",
+      "create": "프로젝트 생성",
+      "update": "프로젝트 업데이트",
+      "createProject": "+ 새 프로젝트",
+      "yesDelete": "네, 삭제합니다"
+    },
+    "loading": {
+      "creating": "생성 중…",
+      "updating": "업데이트 중…",
+      "deleting": "삭제 중…"
+    },
+    "fields": {
+      "projectName": "프로젝트 이름",
+      "description": "설명",
+      "status": "상태",
+      "startDate": "시작일",
+      "endDate": "종료일",
+      "client": "고객사",
+      "contractValue": "계약 금액",
+      "currency": "통화",
+      "teamSize": "팀원 수"
+    },
+    "sections": {
+      "contractBudget": "계약 및 예산"
+    },
+    "client": {
+      "noClient": "— 고객사 없음 —"
+    },
+    "labels": {
+      "orTypeManually": "또는 직접 입력"
+    },
+    "placeholders": {
+      "projectName": "예: CRM 시스템 v2",
+      "description": "간단한 설명...",
+      "selectClient": "기존 고객사 선택...",
+      "clientNameManual": "또는 고객사 이름 직접 입력...",
+      "teamSize": "예: 4",
+      "searchProjects": "프로젝트 이름으로 검색..."
+    },
+    "validation": {
+      "required": "필수 입력 항목입니다",
+      "clientRequired": "고객사 이름을 선택하거나 직접 입력해 주세요",
+      "endDateAfterStart": "시작일 이후여야 합니다",
+      "validNumber": "올바른 숫자여야 합니다"
+    },
+    "stats": {
+      "totalProjects": "총 프로젝트 수",
+      "totalContractValue": "총 계약 금액"
+    },
+    "table": {
+      "project": "프로젝트",
+      "client": "고객사",
+      "contractValue": "계약 금액",
+      "timeline": "타임라인",
+      "team": "팀",
+      "status": "상태",
+      "actions": "작업"
+    },
+    "confirm": {
+      "deleteQuestion": "정말 삭제하시겠습니까?"
+    },
+    "empty": {
+      "noProjectsMatch": "필터와 일치하는 프로젝트가 없습니다.",
+      "noProjectsYet": "아직 프로젝트가 없습니다. 첫 번째 프로젝트를 생성해 보세요."
+    },
+    "units": {
+      "person": "명"
+    }
+  },
+  "plReport": {
+    "pageTitle": "손익 보고서",
+    "header": {
+      "title": "손익 대시보드",
+      "subtitle": "매출 · 프로젝트 비용 · 간접비 · 순이익"
+    },
+    "filters": {
+      "from": "시작",
+      "to": "종료"
+    },
+    "actions": {
+      "applyFilter": "필터 적용",
+      "back": "뒤로"
+    },
+    "kpi": {
+      "totalRevenue": "총 매출",
+      "projectCost": "프로젝트 비용",
+      "overheadCost": "간접비",
+      "grossProfit": "매출총이익",
+      "netProfit": "순이익",
+      "outstanding": "미수금"
+    },
+    "labels": {
+      "margin": "마진",
+      "of": "의",
+      "contract": "계약",
+      "beforeOverhead": "간접비 제외 전",
+      "totalOverhead": "총 간접비",
+      "cost": "비용",
+      "total": "합계"
+    },
+    "cards": {
+      "operatingIncomeTitle": "영업 수익 및 비용",
+      "operatingIncomeSub": "매출 · 총 비용 · 순마진 % — 월별",
+      "periodComparisonTitle": "기간 비교",
+      "periodComparisonSub": "이번 기간과 이전 기간 비교",
+      "grossProfitTrendTitle": "매출총이익 추이",
+      "grossProfitTrendSub": "매출총이익 · 총마진 % — 월별",
+      "expenseBreakdownTitle": "비용 분석",
+      "expenseBreakdownSub": "급여 · OT · 휴가 · 간접비",
+      "revenueByProjectTitle": "프로젝트별 매출",
+      "revenueByProjectSub": "프로젝트를 클릭하여 상세 내역 보기",
+      "overheadByDepartmentTitle": "부서별 간접비",
+      "overheadByDepartmentSub": "해당 기간 비프로젝트 직원 급여 비용"
+    },
+    "chart": {
+      "revenue": "매출",
+      "totalCost": "총 비용",
+      "netMarginPercent": "순마진 %",
+      "grossProfit": "매출총이익",
+      "marginPercent": "마진 %",
+      "grossMarginPercent": "총마진 %",
+      "cost": "비용",
+      "profit": "이익"
+    },
+    "expense": {
+      "salary": "급여",
+      "overhead": "간접비",
+      "ot": "OT",
+      "leave": "휴가"
+    },
+    "empty": {
+      "noPayrollData": "확정된 급여 데이터가 없습니다. 먼저 급여 기록을 확정하세요.",
+      "noDataAvailable": "데이터 없음",
+      "noProjects": "프로젝트 없음",
+      "noOverheadData": "간접비 데이터 없음"
+    },
+    "units": {
+      "member": "명",
+      "members": "명",
+      "day": "일",
+      "days": "일"
+    },
+    "status": {
+      "active": "진행 중",
+      "upcoming": "예정",
+      "completed": "완료"
+    },
+    "departments": {
+      "HR": "HR",
+      "IT": "IT",
+      "BPO": "BPO",
+      "SST": "SST",
+      "Driver": "운전기사",
+      "Other": "기타"
+    },
+    "show": {
+      "ongoing": "진행 중",
+      "contract": "계약",
+      "confirmedMonth": "확정 월",
+      "confirmedMonths": "확정 월",
+      "monthlyBreakdown": "월별 내역",
+      "revenueCostTrend": "매출 대비 비용 추이",
+      "memberCost": "멤버 비용",
+      "kpi": {
+        "salaryCost": "급여 비용",
+        "otCost": "OT 비용",
+        "leaveCost": "휴가 비용",
+        "netLoss": "순손실"
+      },
+      "table": {
+        "month": "월"
+      },
+      "empty": {
+        "projectNotFound": "프로젝트를 찾을 수 없습니다.",
+        "noProjectPayrollData": "이 프로젝트에 대한 확정된 급여 데이터가 아직 없습니다.",
+        "noMemberData": "이 달의 멤버 데이터가 없습니다."
+      }
+    },
+    "months": {
+      "full": {
+        "1": "1월",
+        "2": "2월",
+        "3": "3월",
+        "4": "4월",
+        "5": "5월",
+        "6": "6월",
+        "7": "7월",
+        "8": "8월",
+        "9": "9월",
+        "10": "10월",
+        "11": "11월",
+        "12": "12월"
+      },
+      "short": {
+        "1": "1월",
+        "2": "2월",
+        "3": "3월",
+        "4": "4월",
+        "5": "5월",
+        "6": "6월",
+        "7": "7월",
+        "8": "8월",
+        "9": "9월",
+        "10": "10월",
+        "11": "11월",
+        "12": "12월"
+      }
+    }
+  },
+  "aiChat": {
+    "pageTitle": "AI 채팅",
+    "common": {
+      "you": "나"
+    },
+    "languages": {
+      "en": "English",
+      "ja": "Japanese",
+      "my": "Burmese",
+      "km": "Khmer",
+      "vi": "Vietnamese",
+      "ko": "Korean"
+    },
+    "actions": {
+      "react": "React",
+      "translate": "번역",
+      "translating": "Translating...",
+      "translatingEllipsis": "Translating…",
+      "reply": "답장",
+      "edit": "편집",
+      "delete": "삭제",
+      "back": "← Back",
+      "cancel": "취소",
+      "startChat": "채팅 시작",
+      "createGroup": "그룹 만들기",
+      "startChatting": "채팅 시작",
+      "newConversation": "New Conversation",
+      "unblockUser": "Unblock User",
+      "blockUser": "Block User",
+      "deleteConversation": "대화 삭제",
+      "previous": "Previous",
+      "next": "Next",
+      "tapToRetry": "Tap to retry",
+      "unblock": "Unblock",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "leave": "Leave",
+      "remove": "Remove",
+      "add": "Add",
+      "yesDelete": "예, 삭제"
+    },
+    "tabs": {
+      "all": "전체",
+      "unread": "읽지 않음",
+      "direct": "Direct",
+      "group": "Group"
+    },
+    "placeholders": {
+      "searchConversations": "Search conversations...",
+      "groupName": "Group name...",
+      "searchUsers": "Search users...",
+      "searchInConversation": "Search in conversation...",
+      "editMessage": "Edit message...",
+      "messageName": "Message {name}...",
+      "searchUsersToAdd": "Search users to add..."
+    },
+    "empty": {
+      "noMessagesYet": "아직 메시지가 없습니다",
+      "noConversationsYet": "아직 대화가 없습니다",
+      "zeroResults": "0 results",
+      "startConversation": "Start the conversation!",
+      "sayHiTo": "Say hi to {name}",
+      "selectConversation": "대화 선택",
+      "chooseChat": "채팅을 선택하거나 새로 시작하세요",
+      "noImagesYet": "No images yet",
+      "noVideosYet": "No videos yet",
+      "noAudioYet": "No audio yet",
+      "noFilesYet": "No files yet",
+      "allUsersInGroup": "All users are already in this group",
+      "noUsersFound": "No users found"
+    },
+    "status": {
+      "online": "● 온라인",
+      "onlinePlain": "온라인",
+      "typing": "입력 중...",
+      "loadingMessages": "Loading messages..."
+    },
+    "labels": {
+      "members": "members",
+      "edited": "edited",
+      "editingMessage": "Editing message",
+      "replyingTo": "Replying to {name}"
+    },
+    "tooltips": {
+      "clickToRemove": "Click to remove",
+      "recordVoice": "Record voice message",
+      "stop": "Stop",
+      "editGroupInfo": "Edit group info",
+      "searchMessages": "Search messages",
+      "attachFile": "Attach file",
+      "sendSticker": "Send sticker"
+    },
+    "modal": {
+      "newConversation": "새 대화"
+    },
+    "media": {
+      "title": "미디어 및 파일",
+      "images": "Images",
+      "videos": "Videos",
+      "audio": "Audio",
+      "files": "Files"
+    },
+    "group": {
+      "clickChangePhoto": "Click to change photo",
+      "groupName": "Group Name",
+      "members": "Members",
+      "addMembers": "Add Members",
+      "transferAdminToLeave": "Transfer admin to leave"
+    },
+    "block": {
+      "youBlockedUser": "You have blocked this user",
+      "youHaveBeenBlocked": "You have been blocked",
+      "unblockToSend": "Unblock them to send messages again.",
+      "cannotSend": "You cannot send messages to this person."
+    },
+    "confirm": {
+      "deleteQuestion": "Are you sure you want to delete your conversation with",
+      "deleteWarning": "This will permanently delete all messages, files, and media in this conversation. This action cannot be undone."
+    },
+    "alerts": {
+      "microphoneDenied": "Microphone access denied"
+    }
+  },
+  "smartMail": {
+    "pageTitle": "스마트 메일",
+    "labels": {
+      "mail": "메일",
+      "demoMode": "데모 모드",
+      "unread": "읽지 않음",
+      "noSubject": "(제목 없음)",
+      "to": "받는 사람",
+      "cc": "참조",
+      "bcc": "숨은 참조",
+      "subject": "제목",
+      "unknown": "알 수 없음",
+      "noContent": "(내용 없음)",
+      "attachments": "첨부 파일",
+      "demoNoApiKey": "데모 모드 — API 키 없음"
+    },
+    "actions": {
+      "mailSettings": "메일 설정",
+      "dismiss": "닫기",
+      "viewMail": "메일 보기",
+      "compose": "작성",
+      "syncing": "동기화 중...",
+      "syncInbox": "받은 편지함 동기화",
+      "loading": "로딩 중...",
+      "loadMore": "더 보기",
+      "cancel": "취소",
+      "delete": "삭제",
+      "star": "별표 표시",
+      "unstar": "별표 해제",
+      "reply": "답장",
+      "forward": "전달",
+      "translate": "번역",
+      "translating": "번역 중...",
+      "original": "원본",
+      "download": "다운로드",
+      "testConnection": "연결 테스트",
+      "testing": "테스트 중...",
+      "saveSettings": "설정 저장",
+      "saving": "저장 중...",
+      "minimize": "최소화",
+      "maximize": "최대화",
+      "writing": "작성 중...",
+      "improving": "개선 중...",
+      "preview": "미리보기"
+    },
+    "notifications": {
+      "newMail": "새 메일"
+    },
+    "sidebar": {
+      "mailbox": "메일함",
+      "inbox": "받은 편지함",
+      "sent": "보낸 편지함",
+      "starred": "별표 표시됨",
+      "connectedAccount": "연결된 계정",
+      "synced": "동기화됨"
+    },
+    "status": {
+      "connected": "연결됨",
+      "notConnected": "연결 안 됨"
+    },
+    "empty": {
+      "inboxEmpty": "받은 편지함이 비어 있습니다",
+      "inboxSub": "새 메일이 여기에 표시됩니다",
+      "sentEmpty": "보낸 메일이 없습니다",
+      "sentSub": "보낸 메일이 여기에 표시됩니다",
+      "starredEmpty": "별표 표시된 메일이 없습니다",
+      "starredSub": "중요한 메일에 별표를 표시하면 여기에 나타납니다",
+      "noTemplatesAvailable": "사용 가능한 템플릿이 없습니다"
+    },
+    "messages": {
+      "mailDeleted": "메일이 삭제되었습니다.",
+      "connectionFailed": "연결에 실패했습니다. 자격 증명을 확인하세요.",
+      "networkError": "네트워크 오류가 발생했습니다. 다시 시도해 주세요.",
+      "accountUpdated": "메일 계정이 성공적으로 업데이트되었습니다!",
+      "accountConnected": "메일 계정이 성공적으로 연결되었습니다!",
+      "connectionSuccessful": "연결에 성공했습니다!",
+      "demoTranslation": "데모 모드 — 실제 번역을 하려면 API를 설정하세요",
+      "translationFailed": "번역에 실패했습니다.",
+      "mailSent": "메일이 성공적으로 전송되었습니다! ✉️",
+      "failedToSend": "전송에 실패했습니다."
+    },
+    "confirm": {
+      "deleteMailTitle": "이 메일을 삭제하시겠습니까?",
+      "cannotBeUndone": "이 작업은 취소할 수 없습니다."
+    },
+    "placeholders": {
+      "searchMails": "메일 검색...",
+      "selectLeaveType": "휴가 유형 선택...",
+      "selectSession": "세션 선택...",
+      "enterField": "{field} 입력...",
+      "typeEmailSearch": "이메일 입력 후 Enter 또는 검색...",
+      "emailSubject": "이메일 제목...",
+      "describeEmail": "작성할 내용을 입력하세요...",
+      "writeMessage": "메시지를 작성하세요..."
+    },
+    "validation": {
+      "validEmailExample": "올바른 이메일 주소를 입력해 주세요 (예: you@gmail.com)",
+      "appPasswordRequired": "테스트하기 전에 앱 비밀번호를 입력해 주세요.",
+      "recipientRequired": "최소 한 명의 수신자를 추가해 주세요."
+    },
+    "setup": {
+      "title": "메일 설정",
+      "updateAccount": "메일 계정 업데이트",
+      "connectEmail": "이메일 연결",
+      "subtitle": "Smart HR에서 직접 메일을 보내고 받을 수 있도록 이메일을 연결하세요",
+      "chooseProvider": "제공업체 선택",
+      "generateAppPassword": "앱 비밀번호 생성",
+      "smtpSend": "SMTP (발신)",
+      "imapReceive": "IMAP (수신)",
+      "serverConfiguration": "서버 구성",
+      "securityNote": "비밀번호는 AES-256으로 암호화되어 안전하게 저장됩니다. 당사는 귀하의 자격 증명을 절대 공유하지 않습니다.",
+      "help": {
+        "gmail": "Gmail은 앱 비밀번호가 필요합니다. 먼저 2단계 인증(2FA)을 활성화한 후 생성하세요.",
+        "outlook": "Outlook 비밀번호를 사용하거나 2단계 인증이 활성화된 경우 앱 비밀번호를 사용하세요.",
+        "yahoo": "Yahoo는 앱 비밀번호가 필요합니다. 계정 보안 설정에서 생성하세요.",
+        "other": "메일 서버 정보를 수동으로 입력하세요."
+      }
+    },
+    "fields": {
+      "displayName": "표시 이름",
+      "emailAddress": "이메일 주소",
+      "appPassword": "앱 비밀번호",
+      "smtpHost": "SMTP 호스트",
+      "imapHost": "IMAP 호스트",
+      "port": "포트"
+    },
+    "hints": {
+      "leaveBlankKeepCurrent": "현재 설정을 유지하려면 빈칸으로 두세요"
+    },
+    "view": {
+      "selectMail": "읽을 메일을 선택하세요",
+      "clickMailFromList": "목록에서 메일을 클릭하세요",
+      "translatedLabel": "{language} 번역됨",
+      "showingTranslation": "{language} 번역본 표시 중"
+    },
+    "languages": {
+      "en": "영어",
+      "ja": "일본어",
+      "my": "미얀마어",
+      "km": "크메르어",
+      "vi": "베트남어",
+      "ko": "한국어"
+    },
+    "compose": {
+      "newMessage": "새 메시지",
+      "templates": "템플릿",
+      "template": "템플릿",
+      "applyTemplate": "템플릿 적용",
+      "applyToBody": "본문에 적용",
+      "toolbar": {
+        "bold": "굵게",
+        "italic": "기울임꼴",
+        "underline": "밑줄",
+        "strike": "취소선",
+        "bulletList": "글머리 기호 목록",
+        "numbered": "번호 매기기",
+        "left": "왼쪽 정렬",
+        "center": "가운데 정렬",
+        "right": "오른쪽 정렬",
+        "bulletListShort": "• 목록",
+        "numberedListShort": "1. 목록"
+      },
+      "fontSizes": {
+        "1": "작게",
+        "3": "보통",
+        "5": "크게",
+        "7": "매우 크게"
+      },
+      "ai": {
+        "write": "작성",
+        "improve": "개선",
+        "translate": "번역",
+        "improveContent": "콘텐츠 개선",
+        "improveHint": "현재 초안을 전문적인 어조로 다시 작성합니다"
+      },
+      "tones": {
+        "professional": "전문적인",
+        "friendly": "친근한",
+        "formal": "격식 있는",
+        "casual": "일상적인",
+        "persuasive": "설득력 있는"
+      },
+      "vars": {
+        "date": "날짜",
+        "from_date": "시작일",
+        "to_date": "종료일",
+        "deadline": "마감일",
+        "effective_date": "시행일",
+        "start_date": "시작일",
+        "leave_type": "휴가 유형",
+        "session": "세션"
+      }
+    }
+  },
+  "common": {
+    "actions": "작업",
+    "active": "활성",
+    "cancel": "취소",
+    "day": "일",
+    "delete": "삭제",
+    "disabled": "비활성화됨",
+    "edit": "수정",
+    "hour": "시간",
+    "inactive": "비활성",
+    "minute": "분",
+    "required": "필수",
+    "select": "선택...",
+    "selectTime": "시간 선택...",
+    "status": "상태",
+    "thisActionCannotBeUndone": "이 작업은 취소할 수 없습니다.",
+    "type": "유형",
+    "update": "업데이트",
+    "value": "값",
+    "yesDelete": "네, 삭제합니다",
+    "deleting": "삭제 중...",
+    "no": "아니요",
+    "saving": "저장 중...",
+    "night": "야간"
+  },
+  "hrPolicy": {
+    "allowance": {
+      "allowanceName": "수당 명칭",
+      "allowanceType": "수당 유형",
+      "deleteAllowance": "수당 삭제",
+      "editAllowance": "수당 수정",
+      "quickSelect": "빠른 선택",
+      "addAllowance": "수당 추가",
+      "amount": "금액",
+      "allowanceNamePlaceholder": "예: 주택 수당, 교통 수당...",
+      "createFirstAllowance": "아래 버튼을 클릭하여 첫 번째 수당을 생성하세요",
+      "noAllowancesYet": "설정된 수당이 없습니다",
+      "ratePercent": "비율 (%)",
+      "updateAllowance": "수당 업데이트"
+    },
+    "delete": {
+      "areYouSureDelete": "정말로 삭제하시겠습니까?"
+    },
+    "bonus": {
+      "addBonusType": "상여금 유형 추가",
+      "bonusName": "상여금 명칭",
+      "bonusSchedules": "상여금 지급 일정",
+      "calculationType": "계산 유형",
+      "deleteBonusType": "상여금 유형 삭제",
+      "editBonusType": "상여금 유형 수정",
+      "frequency": {
+        "_self": "지급 주기",
+        "once": "1회성",
+        "quarterly": "분기별",
+        "yearly": "연간"
+      },
+      "notes": "비고",
+      "bonusNamePlaceholder": "예: 연간 보너스, 성과 보너스",
+      "percentOfSalary": "급여 비율",
+      "fixedAmount": "고정 금액",
+      "updateBonusType": "보너스 유형 업데이트",
+      "noBonusTypesYet": "설정된 보너스 유형이 없습니다",
+      "createFirstBonusType": "아래 버튼을 클릭하여 첫 번째 보너스 유형을 생성하세요"
+    },
+    "common": {
+      "flat": "정액",
+      "flatLower": "정액",
+      "percentageLower": "백분율",
+      "percentage": "백분율"
+    },
+    "currency": {
+      "currencyName": "통화 명칭",
+      "deleteCurrency": "통화 삭제",
+      "editCurrency": "통화 수정",
+      "addCurrency": "통화 추가",
+      "addNewCurrency": "새 통화 추가",
+      "createFirstCurrency": "아래 버튼을 클릭하여 첫 번째 통화를 생성하세요",
+      "currencyCode": "통화 코드",
+      "currencyCodePlaceholder": "예: USD, KHR, MMK",
+      "currencyCodeShort": "코드",
+      "currencyNamePlaceholder": "예: US Dollar, Cambodian Riel",
+      "noCurrenciesConfigured": "설정된 통화가 없습니다",
+      "updateCurrency": "통화 업데이트"
+    },
+    "deduction": {
+      "addDeduction": "공제 규칙 추가",
+      "deductionName": "공제 명칭",
+      "deleteDeduction": "공제 규칙 삭제",
+      "editDeduction": "공제 규칙 수정",
+      "rateAmount": "율 / 금액",
+      "addDeductionRule": "공제 규칙 추가",
+      "createFirstDeduction": "아래 버튼을 클릭하여 첫 번째 공제 규칙을 생성하세요",
+      "deductionNamePlaceholder": "예: 소득세, NSSF, 사용자 정의 공제...",
+      "deductionType": "공제 유형",
+      "noDeductionsYet": "설정된 공제가 없습니다",
+      "quickSelectPreset": "프리셋 빠른 선택",
+      "rate": "비율",
+      "ratePercent": "비율 (%)",
+      "updateDeduction": "공제 업데이트"
+    },
+    "holiday": {
+      "addHoliday": "공휴일 추가",
+      "date": "날짜",
+      "deleteHoliday": "공휴일 삭제",
+      "editHoliday": "공휴일 수정",
+      "holidayName": "공휴일 이름",
+      "recurring": "반복됨",
+      "clickAddHoliday": "시작하려면 공휴일 추가를 클릭하세요",
+      "holidayNamePlaceholder": "예: 크메르 설날, 국경일",
+      "holidaysIn": "공휴일 -",
+      "noPublicHolidaysFor": "해당 연도의 공휴일이 없습니다 -",
+      "oneTime": "한 번만",
+      "recurringAnnually": "매년 반복",
+      "repeatsEveryYear": "매년 반복됩니다",
+      "updateHoliday": "공휴일 업데이트"
+    },
+    "leave": {
+      "leaveType": "휴가 유형",
+      "paidLeave": "유급 휴가",
+      "requiresDocument": "증빙 서류 필요",
+      "addLeavePolicy": "휴가 유형 추가",
+      "allGenders": "전체",
+      "applicableGender": "적용 대상 성별",
+      "carryOver": "이월",
+      "carryOverDays": "이월 일수",
+      "createFirstLeaveType": "아래를 클릭하여 첫 번째 휴가 유형을 추가하세요",
+      "daysPerYear": "연간 휴가 일수",
+      "daysPerYearShort": "일/년",
+      "deleteLeavePolicy": "휴가 유형 삭제",
+      "document": "증빙 서류",
+      "editLeavePolicy": "휴가 유형 수정",
+      "female": "여성",
+      "gender": "성별",
+      "leaveTypePlaceholder": "예: 연차, 병가, 출산휴가",
+      "male": "남성",
+      "noLeavePoliciesYet": "아직 설정된 휴가 유형이 없습니다",
+      "paid": "유급",
+      "selectGender": "성별 선택...",
+      "unpaid": "무급",
+      "updateLeaveType": "휴가 유형 업데이트"
+    },
+    "overtime": {
+      "multiplier": "배율",
+      "publicHoliday": "공휴일",
+      "rateType": "수당 유형",
+      "weekday": "평일",
+      "weekend": "주말",
+      "addOtRate": "OT 요율 추가",
+      "allDay": "종일",
+      "allFiveConfigured": "5개의 OT 유형이 모두 설정되었습니다",
+      "allFiveConfiguredShort": "5개 모두 설정 완료!",
+      "appliesTo": "적용 대상",
+      "deleteOtRate": "OT 요율 삭제",
+      "editOtRate": "OT 요율 수정",
+      "editRatesHint": "위의 수정 버튼으로 각 요율을 개별적으로 수정할 수 있습니다.",
+      "flatAmount": "고정 금액",
+      "multiplierValue": "배수 값",
+      "noRatesConfigured": "아직 설정된 OT 요율이 없습니다",
+      "rate": "요율",
+      "remaining": "남음",
+      "selectOtType": "OT 유형 선택",
+      "selectStandardTypes": "아래의 5가지 표준 OT 유형 중에서 선택하세요",
+      "shift": "근무조",
+      "title": "제목",
+      "updateOtRate": "OT 요율 업데이트"
+    },
+    "pageTitle": "인사 정책 설정",
+    "presets": {
+      "13th_Month_Salary": "13월의 급여",
+      "Absence_Deduction": "결근 공제",
+      "Annual_Bonus": "연간 상여금",
+      "Annual_Leave": "연차 휴가",
+      "Bereavement_Leave": "경조 휴가 (조의)",
+      "Cambodian_Riel": "캄보디아 리엘",
+      "Compensation_Leave": "보상 휴가",
+      "Day_Weekday_OT": "평일 주간 연장 근로",
+      "Day_Weekend_OT": "주말 주간 연장 근로",
+      "Emergency_Leave": "긴급 휴가",
+      "Festival_Bonus": "명절 상여금",
+      "Hardship_Allowance": "험지 수당",
+      "Health_Insurance": "건강 보험",
+      "Housing_Allowance": "주택 수당",
+      "Income_Tax": "소득세",
+      "Japanese_Yen": "일본 엔",
+      "Korean_Won": "대한민국 원",
+      "Marriage_Leave": "결혼 휴가",
+      "Maternity_Leave": "출산 휴가",
+      "Meal_Allowance": "식대 수당",
+      "Medical_Allowance": "의료비 수당",
+      "Myanmar_Kyat": "미얀마 쳣",
+      "NSSF": "NSSF (국가사회보장기금)",
+      "Night_Weekday_OT": "평일 야간 연장 근로",
+      "Night_Weekend_OT": "주말 야간 연장 근로",
+      "Overtime_Allowance": "연장 근로 수당",
+      "Paternity_Leave": "배우자 출산 휴가",
+      "Pension_Fund": "연금 기금",
+      "Performance_Bonus": "성과 상여금",
+      "Phone_Allowance": "통신 수당",
+      "Public_Holiday": "공휴일",
+      "Public_Holiday_OT": "공휴일 연장 근로",
+      "Retention_Bonus": "근속 상여금",
+      "SSB": "SSB (사회보장위원회)",
+      "Sick_Leave": "병가",
+      "Social_Security": "사회 보장",
+      "Transport_Allowance": "교통 수당",
+      "US_Dollar": "미국 달러",
+      "Union_Fee": "노조 회비",
+      "Unpaid_Leave": "무급 휴가",
+      "Vietnamese_Dong": "베트남 동",
+      "Year_End_Bonus": "연말 상여금"
+    },
+    "salary": {
+      "bank": "은행",
+      "currency": "통화",
+      "dailyRate": "일급",
+      "dayShift": "주간 근무",
+      "everyMonth": "매월",
+      "everyTenDays": "10일마다",
+      "everyThreeMonths": "3개월마다",
+      "hourlyRate": "시급",
+      "lateDeduction": "지각 공제",
+      "lunchBreak": "점심 시간",
+      "monthly": "월별",
+      "nightShift": "야간 근무",
+      "onceAMonth": "월 1회",
+      "onceAYear": "연 1회",
+      "otBase": "연장근로 기준급",
+      "payCycle": "급여 주기",
+      "probation": "수습 기간",
+      "semiMonthly": "격주 (월 2회)",
+      "specialBonus": "특별 상여금",
+      "tenDay": "10일",
+      "threePeriodsMonth": "월 3회 지급",
+      "twiceAMonth": "월 2회",
+      "twoPeriodsMonth": "월 2회 지급",
+      "workHours": "근무 시간"
+    },
+    "saved": "저장 완료",
+    "sections": {
+      "allowance": "수당 설정",
+      "bonus": "상여금 설정",
+      "currency": "통화 설정",
+      "deduction": "공제 규칙",
+      "holiday": "공휴일 관리",
+      "leave": "휴가 정책",
+      "overtime": "연장 근로 정책",
+      "salary": "급여 규칙"
+    },
+    "summaries": {
+      "allowance": "주택 · 교통 · 식대 · 맞춤형 수당",
+      "bonus": "상여금 유형 · 지급 일정 · 지급 조건",
+      "currency": "통화 코드 · 기호 · 소수점 형식",
+      "deduction": "세금 · 사회 보장 · 가변 행",
+      "holiday": "국경일 · 반복 · 연도별 필터",
+      "leave": "휴가 유형 · 유급/무급 · 이월 설정",
+      "overtime": "평일 · 주말 · 공휴일 수당률",
+      "salary": "급여 주기 · 마감일 · 교대 근무 규칙"
+    },
+    "validation": {
+      "allowanceNameRequired": "수당 명칭은 필수 항목입니다.",
+      "bonusNameRequired": "상여금 명칭은 필수 항목입니다.",
+      "carryOverRequired": "이월 일수는 필수 항목입니다.",
+      "currencyCodeRequired": "통화 코드는 필수 항목입니다.",
+      "currencyNameRequired": "통화 명칭은 필수 항목입니다.",
+      "dateRequired": "날짜는 필수 항목입니다.",
+      "daysPerYearRequired": "연간 휴가 일수는 필수 항목입니다.",
+      "deductionNameRequired": "공제 명칭은 필수 항목입니다.",
+      "holidayNameRequired": "공휴일 명칭은 필수 항목입니다.",
+      "leaveTypeRequired": "휴가 유형 명칭은 필수 항목입니다.",
+      "maxTenCharacters": "최대 10자까지 입력 가능합니다.",
+      "mustBeAtLeastOneDay": "최소 1일 이상이어야 합니다.",
+      "mustBeZeroOrGreater": "0 이상의 값이어야 합니다.",
+      "rateAmountRequired": "수당률 / 금액은 필수 항목입니다.",
+      "rateRequired": "수당률은 필수 항목입니다.",
+      "selectOtType": "연장 근로(OT) 유형을 선택해 주세요.",
+      "validNumber": "올바른 숫자를 입력해 주세요.",
+      "valueRequired": "값은 필수 항목입니다."
+    },
+    "setupDescription": "조직을 위한 휴가, 연장 근로, 급여 규칙 등을 설정합니다.",
+    "completed": "완료됨",
+    "country": "국가",
+    "notConfigured": "설정되지 않음",
+    "step": "단계",
+    "of": "/"
   }
 }

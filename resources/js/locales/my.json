@@ -2,47 +2,47 @@
   "nav": {
     "groups": {
       "MAIN": "အဓိက",
-      "AI WORKSPACE": "AI အလုပ်ခွင်",
-      "OPERATIONS": "လုပ်ငန်းဆောင်တာများ",
-      "PEOPLE & HR": "လူ့အရင်းအမြစ်",
-      "WORK MANAGEMENT": "အလုပ်စီမံခန့်ခွဲမှု",
-      "PAYROLL": "လစာစနစ်"
+      "AI WORKSPACE": "AI လုပ်ငန်းခွင်",
+      "OPERATIONS": "လုပ်ငန်းလည်ပတ်မှုများ",
+      "PEOPLE & HR": "ဝန်ထမ်းများနှင့် လူ့စွမ်းအားအရင်းအမြစ်",
+      "WORK MANAGEMENT": "လုပ်ငန်းစီမံခန့်ခွဲမှု",
+      "PAYROLL": "လစာစာရင်း"
     },
     "items": {
       "Dashboard": "ဒက်ရှ်ဘုတ်",
-      "My Profile": "ကျွန်ုပ်ပရိုဖိုင်",
-      "Requirement Analysis": "လိုအပ်ချက်ခွဲခြမ်းစိတ်ဖြာမှု",
-      "Proposal Generator": "အဆိုပြုစာဖန်တီးမှု",
-      "Project Management": "စီမံကိန်းစီမံခန့်ခွဲမှု",
-      "My Assignments": "ကျွန်ုပ်၏တာဝန်များ",
-      "P&L Report": "အမြတ်အရှုံးအစီရင်ခံစာ",
-      "Document Translation": "စာရွက်စာတမ်းဘာသာပြန်မှု",
-      "Smart Mail": "အီးမေးလ်",
-      "AI Chat": "AI စကားပြော",
-      "Trip Schedule": "ခရီးစဉ်အချိန်ဇယား",
+      "My Profile": "ကျွန်ုပ်၏ ပရိုဖိုင်",
+      "Requirement Analysis": "လိုအပ်ချက် ဆန်းစစ်ခြင်း",
+      "Proposal Generator": "အဆိုပြုလွှာ ထုတ်ပေးစနစ်",
+      "Project Management": "စီမံကိန်း စီမံခန့်ခွဲမှု",
+      "My Assignments": "ကျွန်ုပ်၏ တာဝန်ပေးချက်များ",
+      "P&L Report": "အမြတ်နှင့် အရှုံး အစီရင်ခံစာ",
+      "Document Translation": "စာရွက်စာတမ်း ဘာသာပြန်ခြင်း",
+      "Smart Mail": "စမတ်မေးလ်",
+      "AI Chat": "AI ချက်တင်",
+      "Trip Schedule": "ခရီးစဉ် အချိန်ဇယား",
       "Surveys": "စစ်တမ်းများ",
-      "HR Alerts": "HR သတိပေးချက်များ",
-      "Performance Review": "စွမ်းဆောင်ရည်သုံးသပ်မှု",
-      "Recruitment": "ဝန်ထမ်းခေါ်ယူမှု",
-      "User & Roles": "သုံးစွဲသူနှင့်အခန်းကဏ္ဍများ",
-      "HR Policy": "လူ့အရင်းအမြစ်မူဝါဒ",
-      "Project Assignment": "စီမံကိန်းတာဝန်ချမှု",
-      "Bookings": "ကြိုတင်မှာကြားမှုများ",
+      "HR Alerts": "HR အသိပေးချက်များ",
+      "Performance Review": "လုပ်ဆောင်ရည် သုံးသပ်ချက်",
+      "Recruitment": "ဝန်ထမ်းခေါ်ယူခြင်း",
+      "User & Roles": "အသုံးပြုသူနှင့် ကဏ္ဍများ",
+      "HR Policy": "HR မူဝါဒ",
+      "Project Assignment": "စီမံကိန်း တာဝန်ပေးခြင်း",
+      "Bookings": "ဘွတ်ကင်လုပ်ခြင်းများ",
       "Attendance": "တက်ရောက်မှု",
-      "Check In/Out Request": "ဝင်/ထွက် တောင်းဆိုမှု",
-      "Leave Request": "ခွင့်တောင်းဆိုမှု",
-      "Overtime Request": "အချိန်ပိုတောင်းဆိုမှု",
-      "Expense Request": "စရိတ်တောင်းဆိုမှု",
+      "Check In/Out Request": "အဝင်/အထွက် တောင်းဆိုချက်",
+      "Leave Request": "ခွင့်တောင်းခံချက်",
+      "Overtime Request": "အချိန်ပိုဆင်းရန် တောင်းဆိုချက်",
+      "Expense Request": "အသုံးစရိတ် တောင်းခံချက်",
       "Employee Salary": "ဝန်ထမ်းလစာ",
-      "Payroll": "လစာစနစ်",
-      "Payslip": "လစာပြေစာ",
-      "Bank Export": "ဘဏ်ထုတ်ယူမှု"
+      "Payroll": "လစာစာရင်း",
+      "Payslip": "လစာဖြတ်ပိုင်း",
+      "Bank Export": "ဘဏ်အချက်အလက် ထုတ်ယူခြင်း"
     },
-    "signOut": "ထွက်မည်",
-    "endSession": "လက်ရှိ session ပိတ်မည်"
+    "signOut": "အကောင့်မှထွက်ရန်",
+    "endSession": "လက်ရှိအသုံးပြုမှုကို အဆုံးသတ်ရန်"
   },
   "roles": {
-    "admin": "စီမံခန့်ခွဲသူ",
+    "admin": "အက်ဒမင်",
     "hr": "HR မန်နေဂျာ",
     "management": "စီမံခန့်ခွဲမှု",
     "employee": "ဝန်ထမ်း",
@@ -50,11 +50,4002 @@
   },
   "lang": {
     "label": "ဘာသာစကား",
-    "en": "English",
+    "en": "အင်္ဂလိပ်",
     "my": "မြန်မာ",
-    "km": "ខ្មែរ",
-    "vi": "Tiếng Việt",
-    "ko": "한국어",
-    "ja": "日本語"
+    "km": "ခမာ",
+    "vi": "ဗီယက်နမ်",
+    "ko": "ကိုရီးယား",
+    "ja": "ဂျပန်"
+  },
+  "dash": {
+    "announcement": "သတင်းထုတ်ပြန်ချက်",
+    "by": "ဖြင့်",
+    "deleteAnnouncement": "သတင်းထုတ်ပြန်ချက် ဖျက်ရန်",
+    "announcementDeleted": "သတင်းထုတ်ပြန်ချက် ဖျက်ပြီးပါပြီ။",
+    "failedToDelete": "ဖျက်ရန် မအောင်မြင်ပါ။",
+    "networkError": "ကွန်ရက် ချို့ယွင်းချက်။",
+    "seeLess": "နည်းနည်းပဲပြရန်",
+    "seeMore": "ပိုမိုကြည့်ရှုရန်",
+    "attachment": "ပူးတွဲဖိုင်",
+    "download": "ဒေါင်းလုဒ်လုပ်ရန်",
+    "link": "လင့်ခ်",
+    "newAnnouncement": "သတင်းထုတ်ပြန်ချက်အသစ်",
+    "title": "ခေါင်းစဉ်",
+    "content": "အကြောင်းအရာ",
+    "announcementTitlePlaceholder": "သတင်းထုတ်ပြန်ချက် ခေါင်းစဉ်...",
+    "announcementContentPlaceholder": "သတင်းထုတ်ပြန်ချက် ရေးသားရန်...",
+    "startDate": "စတင်မည့်ရက်",
+    "endDate": "ကုန်ဆုံးမည့်ရက်",
+    "attachmentsOptional": "ပူးတွဲဖိုင်များ (မဖြစ်မနေမဟုတ်ပါ)",
+    "attachFilePlaceholder": "ဖိုင်ပူးတွဲရန် (PDF, Word, Excel, Image, ZIP — အများဆုံး 20MB)",
+    "linkPlaceholder": "သို့မဟုတ် လင့်ခ်ထည့်ရန် (https://...)",
+    "cancel": "ပယ်ဖျက်ရန်",
+    "publish": "ထုတ်ဝေရန်",
+    "publishing": "ထုတ်ဝေနေသည်...",
+    "announcementPublished": "သတင်းထုတ်ပြန်ချက် ထုတ်ဝေပြီးပါပြီ။",
+    "failed": "မအောင်မြင်ပါ။",
+    "required": "လိုအပ်သည်",
+    "typeLeave": "ခွင့်ယူခြင်း",
+    "typeOT": "အချိန်ပို",
+    "typeAttendance": "တက်ရောက်မှု",
+    "typeExpense": "အသုံးစရိတ်",
+    "total": "စုစုပေါင်း",
+    "timeNotRecorded": "အချိန် မှတ်တမ်းမရှိပါ",
+    "attendanceCorrection": "တက်ရောက်မှု ပြင်ဆင်ခြင်း",
+    "approve": "အတည်ပြုရန်",
+    "reject": "ငြင်းပယ်ရန်",
+    "leaveRequest": "ခွင့်တောင်းခံချက်",
+    "overtimeRequest": "အချိန်ပိုဆင်းရန် တောင်းဆိုချက်",
+    "attendanceRequest": "တက်ရောက်မှု တောင်းဆိုချက်",
+    "expenseRequest": "အသုံးစရိတ် တောင်းခံချက်",
+    "request": "တောင်းဆိုချက်",
+    "leaveType": "ခွင့်အမျိုးအစား",
+    "totalDays": "စုစုပေါင်းရက်",
+    "days": "ရက်",
+    "note": "မှတ်ချက်",
+    "document": "စာရွက်စာတမ်း",
+    "date": "ရက်စွဲ",
+    "workHours": "အလုပ်လုပ်ချိန်",
+    "checkIn": "အဝင်",
+    "checkOut": "အထွက်",
+    "late": "နောက်ကျ",
+    "amount": "ပမာဏ",
+    "category": "အမျိုးအစား",
+    "expenseDate": "အသုံးစရိတ်ရက်စွဲ",
+    "description": "အသေးစိတ်အချက်အလက်",
+    "attachments": "ပူးတွဲဖိုင်များ",
+    "noteOptional": "မှတ်ချက် (မဖြစ်မနေမဟုတ်ပါ)",
+    "noteForEmployee": "ဝန်ထမ်းအတွက် မှတ်ချက်ထည့်ရန်...",
+    "rejectionReason": "ငြင်းပယ်ရသည့် အကြောင်းရင်း",
+    "rejectionReasonPlaceholder": "အဘယ်ကြောင့် ငြင်းပယ်သည်ကို ရေးသားရန်...",
+    "rejectionReasonRequired": "ငြင်းပယ်ရသည့် အကြောင်းရင်း လိုအပ်ပါသည်",
+    "confirmApproval": "အတည်ပြုချက်ကို အတည်ပြုရန်",
+    "confirmRejection": "ငြင်းပယ်မှုကို အတည်ပြုရန်",
+    "requestedBy": "တောင်းဆိုသူ",
+    "requestDetails": "တောင်းဆိုချက် အသေးစိတ်",
+    "processing": "လုပ်ဆောင်နေသည်...",
+    "segmentsAdjust": "အပိုင်းခွဲများ — အတည်ပြုထားသော နာရီများကို ညှိရန်",
+    "req": "တောင်းဆိုချက်",
+    "hrs": "နာရီ",
+    "totalApproved": "စုစုပေါင်း အတည်ပြုချက်",
+    "pendingApprovals": "အတည်ပြုရန် စောင့်ဆိုင်းနေဆဲ",
+    "all": "အားလုံး",
+    "leave": "ခွင့်ယူခြင်း",
+    "ot": "အချိန်ပို",
+    "attendance": "တက်ရောက်မှု",
+    "expense": "အသုံးစရိတ်",
+    "allCaughtUp": "အားလုံး ပြီးစီးပါပြီ။",
+    "noPendingApprovals": "လတ်တလော အတည်ပြုရန် စောင့်ဆိုင်းနေသည်များ မရှိပါ။",
+    "unknownRequestType": "မသိရသော တောင်းဆိုချက် အမျိုးအစား။",
+    "actionFailed": "လုပ်ဆောင်မှု မအောင်မြင်ပါ။",
+    "noLeaveData": "ယခုလအတွက် ခွင့်ယူမှု အချက်အလက် မရှိပါ",
+    "noOTData": "ယခုလအတွက် အချိန်ပို စီမံကိန်း အချက်အလက် မရှိပါ",
+    "noPayrollData": "လစာစာရင်း အချက်အလက် မရှိပါ",
+    "latest": "နောက်ဆုံး",
+    "weekday": "ရုံးဖွင့်ရက်",
+    "today": "ယနေ့",
+    "weekend": "ရုံးပိတ်ရက်",
+    "noLateArrivals": "ယခုလတွင် နောက်ကျရောက်ရှိမှု မရှိပါ",
+    "kpi": {
+      "headcount": "ဝန်ထမ်းဦးရေ",
+      "presentToday": "ယနေ့ တက်ရောက်သူ",
+      "onLeaveToday": "ယနေ့ ခွင့်ယူသူ",
+      "allPending": "စောင့်ဆိုင်းဆဲ အားလုံး",
+      "otHoursMonth": "အချိန်ပိုနာရီ / လ",
+      "leaveRate": "ခွင့်ယူမှုနှုန်း",
+      "ofWorkingDays": "ရုံးဖွင့်ရက်များ၏",
+      "turnoverQ": "ဝန်ထမ်းနုတ်ထွက်မှုနှုန်း Q",
+      "countries": "နိုင်ငံများ",
+      "allOffices": "ရုံးခွဲအားလုံး"
+    },
+    "approved": "အတည်ပြုပြီး",
+    "resigned": "နုတ်ထွက်ပြီး",
+    "leaveUsageThisMonth": "ယခုလအတွင်း ခွင့်အသုံးပြုမှု",
+    "top20ByDays": "ခွင့်ရက်အများဆုံး ဝန်ထမ်း ၂၀ ဦး",
+    "otByProject": "စီမံကိန်းအလိုက် အချိန်ပို",
+    "top10OTHours": "ယခုလအတွင်း အချိန်ပို အတည်ပြုနာရီ အများဆုံး ၁၀ ဦး",
+    "monthlyAttendance": "လစဉ် တက်ရောက်မှု",
+    "dailyPresentCount": "နေ့စဉ် တက်ရောက်သူဦးရေ",
+    "payrollTrend": "လစာစာရင်း အလားအလာ",
+    "last6Months": "လွန်ခဲ့သော ၆ လ · စုစုပေါင်း အသားတင်လစာ",
+    "employmentMix": "အလုပ်အကိုင် ပုံစံများ",
+    "byTypeActive": "အမျိုးအစားအလိုက် — လက်ရှိဝန်ထမ်းများ",
+    "permanent": "အမြဲတမ်း",
+    "probation": "အစမ်းခန့်",
+    "contract": "စာချုပ်ချုပ်ဆိုထားသူ",
+    "departmentHeadcount": "ဌာနအလိုက် ဝန်ထမ်းဦးရေ",
+    "noData": "အချက်အလက် မရှိပါ",
+    "lateCheckIn": "နောက်ကျဝင်ရောက်မှု ကြိမ်နှုန်း",
+    "lateCheckInSubtitle": "ယခုလ · အကြိမ်ရေအများဆုံးမှ အနည်းဆုံး · ထိပ်တန်း ၂၀",
+    "probationEndingSoon": "အစမ်းခန့်ကာလ မကြာမီ ကုန်ဆုံးမည်",
+    "within10Days": "၁၀ ရက်အတွင်း",
+    "contractExpiring": "စာချုပ်သက်တမ်း ကုန်ဆုံးမည်",
+    "within30Days": "၃၀ ရက်အတွင်း",
+    "noAlerts": "သတိပေးချက် မရှိပါ",
+    "birthdaysThisWeek": "ယခုသီတင်းပတ်အတွင်း မွေးနေ့များ",
+    "noBirthdays": "ယခုသီတင်းပတ်အတွင်း မွေးနေ့မရှိပါ",
+    "checkBackNextWeek": "လာမည့်သီတင်းပတ်တွင် ထပ်မံစစ်ဆေးပါ!",
+    "onLeaveToday": "ယနေ့ ခွင့်ယူသူ",
+    "employeesOnLeave": "ခွင့်ပြုချက်ဖြင့် ခွင့်ယူထားသော ဝန်ထမ်းများ",
+    "approvedLeaveCoveringToday": "ယနေ့အပါအဝင် အတည်ပြုထားသော ခွင့်ရက်များ",
+    "upcomingHolidays": "လာမည့် ရုံးပိတ်ရက်များ",
+    "noUpcomingHolidays": "လာမည့် ရုံးပိတ်ရက်များ မရှိပါ",
+    "noOneOnLeave": "ယနေ့ ခွင့်ယူထားသူ မရှိပါ",
+    "showLess": "▲ လျှော့ပြရန်",
+    "showMore": "▼ နောက်ထပ် {{count}} ခု ပြရန်",
+    "importAttendance": "တက်ရောက်မှု မှတ်တမ်းထည့်သွင်းရန်",
+    "goodMorning": "မင်္ဂလာနံနက်ခင်းပါ",
+    "goodAfternoon": "မင်္ဂလာနေ့လယ်ခင်းပါ",
+    "goodEvening": "မင်္ဂလာညချမ်းပါ",
+    "personal": "ကိုယ်ပိုင်",
+    "dashboard": "ဒက်ရှ်ဘုတ်",
+    "pending": "စောင့်ဆိုင်းဆဲ",
+    "present": "တက်ရောက်",
+    "staff": "ဝန်ထမ်း",
+    "checkedIn": "ဝင်ရောက်ပြီး",
+    "notCheckedIn": "မဝင်ရောက်သေးပါ",
+    "out": "အပြင်ထွက်",
+    "currentlyAtWork": "လက်ရှိ အလုပ်လုပ်နေဆဲ",
+    "todayIsWorkingDay": "ယနေ့သည် ရုံးဖွင့်ရက်ဖြစ်သည်",
+    "warning": "သတိပေးချက်",
+    "daysAbsent": "ပျက်ကွက်သည့်ရက်",
+    "absenceWarning": "ပျက်ကွက်မှု သတိပေးချက်",
+    "lateArrivalWarning": "နောက်ကျရောက်ရှိမှု သတိပေးချက်",
+    "markAsRead": "ဖတ်ပြီးကြောင်း မှတ်သားရန်",
+    "marking": "မှတ်သားနေသည်...",
+    "emp": {
+      "presentDays": "တက်ရောက်သည့်ရက်များ",
+      "otThisMonth": "ယခုလအတွင်း အချိန်ပို",
+      "pendingLeave": "စောင့်ဆိုင်းဆဲ ခွင့်ရက်များ",
+      "absentDays": "ပျက်ကွက်သည့်ရက်များ",
+      "lateArrivals": "နောက်ကျရောက်ရှိမှုများ"
+    },
+    "thisMonth": "ယခုလ",
+    "awaitingApproval": "အတည်ပြုချက် စောင့်ဆိုင်းနေသည်",
+    "submitted": "တင်ပြပြီး",
+    "myPendingRequests": "ကျွန်ုပ်၏ စောင့်ဆိုင်းဆဲ တောင်းဆိုချက်များ",
+    "waitingForApproval": "အတည်ပြုချက်အတွက် စောင့်ဆိုင်းနေသည်",
+    "latestPayslip": "နောက်ဆုံး လစာဖြတ်ပိုင်း",
+    "hideAmounts": "ပမာဏများ ဝှက်ရန်",
+    "showAmounts": "ပမာဏများ ပြရန်",
+    "netSalary": "အသားတင်လစာ",
+    "baseSalary": "အခြေခံလစာ",
+    "otPay": "အချိန်ပိုကြေး",
+    "allowances": "ထောက်ပံ့ကြေးများ",
+    "deductions": "ဖြတ်တောက်မှုများ",
+    "leaveBalances": "ကျန်ရှိသော ခွင့်ရက်များ",
+    "remainingDays": "ကျန်ရှိသောရက်များ",
+    "myWeeklyAttendance": "ကျွန်ုပ်၏ အပတ်စဉ် တက်ရောက်မှု",
+    "workHoursPerDay": "တစ်နေ့တာ အလုပ်လုပ်ချိန်"
+  },
+  "profile": {
+    "pageTitle": "ကျွန်ုပ်၏ ပရိုဖိုင်",
+    "sections": {
+      "personalInformation": "ကိုယ်ရေးအချက်အလက်များ",
+      "workInformation": "အလုပ်အကိုင် အချက်အလက်များ",
+      "salaryInformation": "လစာအချက်အလက်များ"
+    },
+    "fields": {
+      "fullName": "အမည်အပြည့်အစုံ",
+      "email": "အီးမေးလ်",
+      "phone": "ဖုန်းနံပါတ်",
+      "dateOfBirth": "မွေးသက္ကရာဇ်",
+      "country": "နိုင်ငံ",
+      "position": "ရာထူး",
+      "department": "ဌာန",
+      "joinDate": "အလုပ်စတင်သည့်ရက်",
+      "employment": "အလုပ်အကိုင် အမျိုးအစား",
+      "contractEnd": "စာချုပ်သက်တမ်းကုန်ရက်",
+      "role": "ကဏ္ဍ",
+      "baseSalary": "အခြေခံလစာ",
+      "bank": "ဘဏ်",
+      "accountName": "အကောင့်အမည်",
+      "accountNo": "အကောင့်နံပါတ်",
+      "branch": "ဘဏ်ခွဲ",
+      "effectiveDate": "စတင်အကျိုးသက်ရောက်မည့်ရက်",
+      "allowances": "ထောက်ပံ့ကြေးများ"
+    },
+    "actions": {
+      "show": "ပြရန်",
+      "hide": "ဝှက်ရန်"
+    },
+    "status": {
+      "active": "အသက်ဝင်ဆဲ"
+    },
+    "employmentTypes": {
+      "probation": "အစမ်းခန့်",
+      "permanent": "အမြဲတမ်း",
+      "contract": "စာချုပ်ချုပ်ဆိုထားသူ"
+    },
+    "countries": {
+      "myanmar": "မြန်မာ",
+      "vietnam": "ဗီယက်နမ်",
+      "korea": "ကိုရီးယား",
+      "cambodia": "ကမ္ဘောဒီးယား",
+      "japan": "ဂျပန်"
+    },
+    "tenure": {
+      "year": "နှစ်",
+      "month": "လ",
+      "day": "ရက်",
+      "today": "ယနေ့"
+    },
+    "messages": {
+      "revealSalary": "ထောက်ပံ့ကြေးများကို ကြည့်ရှုရန် လစာပမာဏကို ဖွင့်ပါ",
+      "noPayrollProfile": "လစာစာရင်း ပရိုဖိုင် မသတ်မှတ်ရသေးပါ။ အသေးစိတ်အတွက် HR ထံ ဆက်သွယ်ပါ။"
+    },
+    "fallback": {
+      "employee": "ဝန်ထမ်း"
+    }
+  },
+  "attendance": {
+    "pageTitle": "တက်ရောက်မှု",
+    "selectEmployee": "ဝန်ထမ်းရွေးချယ်ရန်",
+    "addAttendance": "တက်ရောက်မှု ထည့်ရန်",
+    "editAttendance": "တက်ရောက်မှု ပြင်ဆင်ရန်",
+    "updateAttendanceRecord": "တက်ရောက်မှုမှတ်တမ်းကို မွမ်းမံရန်",
+    "recordEmployeeAttendance": "ဝန်ထမ်းတက်ရောက်မှု မှတ်တမ်းတင်ရန်",
+    "addRecord": "မှတ်တမ်းထည့်ရန်",
+    "monthlySummary": "လစဉ် အကျဉ်းချုပ်",
+    "workingDays": "ရုံးဖွင့်ရက်များ",
+    "workingDaysLower": "ရုံးဖွင့်ရက်များ",
+    "present": "တက်ရောက်",
+    "absent": "ပျက်ကွက်",
+    "lateDays": "နောက်ကျသည့်ရက်များ",
+    "otHours": "အချိန်ပိုနာရီ",
+    "leaveDays": "ခွင့်ရက်များ",
+    "totalLate": "စုစုပေါင်း နောက်ကျချိန်",
+    "workHours": "အလုပ်လုပ်ချိန်",
+    "holidays": "ရုံးပိတ်ရက်များ",
+    "employee": "ဝန်ထမ်း",
+    "status": "အခြေအနေ",
+    "checkIn": "အဝင်",
+    "checkOut": "အထွက်",
+    "shortHours": "အလုပ်ချိန် မပြည့်ခြင်း",
+    "late": "နောက်ကျ",
+    "overtimeDetail": "အချိန်ပို အသေးစိတ်",
+    "note": "မှတ်ချက်",
+    "edit": "ပြင်ဆင်ရန်",
+    "delete": "ဖျက်ရန်",
+    "deleteAttendance": "တက်ရောက်မှုမှတ်တမ်းကို ဖျက်မလား?",
+    "cancel": "ပယ်ဖျက်ရန်",
+    "deleting": "ဖျက်နေသည်...",
+    "yesDelete": "ဟုတ်ကဲ့၊ ဖျက်ပါ",
+    "save": "သိမ်းဆည်းရန်",
+    "saving": "သိမ်းဆည်းနေသည်...",
+    "date": "ရက်စွဲ",
+    "lateMin": "နောက်ကျချိန် (မိနစ်)",
+    "auto": "အလိုအလျောက်",
+    "lunch": "နေ့လယ်စာ",
+    "start": "စတင်ရန်",
+    "requiredNote": "မှတ်ချက် လိုအပ်သည်...",
+    "weekend": "ရုံးပိတ်ရက်",
+    "publicHoliday": "အများပြည်သူ ရုံးပိတ်ရက်",
+    "noAttendanceRequired": "တက်ရောက်မှု မှတ်တမ်းတင်ရန် မလိုပါ",
+    "futureDate": "နောင်လာမည့် ရက်စွဲ",
+    "absentNoRecord": "ပျက်ကွက် — မှတ်တမ်းမရှိပါ",
+    "clickDayDetails": "အသေးစိတ်ကို ကြည့်ရန် ရက်စွဲကို နှိပ်ပါ",
+    "exceedsStandard": "စံသတ်မှတ်ချက် :hours နာရီထက် ကျော်လွန်နေသည်။ အချိန်ပိုတောင်းဆိုရန် စဉ်းစားပါ။",
+    "mustBeLater": ":time သို့မဟုတ် ထို့ထက် နောက်ကျရမည်",
+    "mustBeEarlier": ":time သို့မဟုတ် ထို့ထက် စောရမည်",
+    "amHalfLeaveCheckIn": "နံနက်ပိုင်း ခွင့်တစ်ဝက် — အဝင်သည် :time သို့မဟုတ် ထို့ထက် နောက်ကျရမည်",
+    "pmHalfLeaveCheckIn": "မွန်းလွဲပိုင်း ခွင့်တစ်ဝက် — အဝင်သည် :time မတိုင်မီ ဖြစ်ရမည်",
+    "pmHalfLeaveCheckOut": "မွန်းလွဲပိုင်း ခွင့်တစ်ဝက် — အထွက်သည် :time သို့မဟုတ် ထို့ထက် စောရမည်",
+    "actions": {
+      "addAttendance": "တက်ရောက်မှု ထည့်ရန်",
+      "addRecord": "မှတ်တမ်းထည့်ရန်",
+      "edit": "ပြင်ဆင်ရန်",
+      "delete": "ဖျက်ရန်",
+      "cancel": "ပယ်ဖျက်ရန်",
+      "deleting": "ဖျက်နေသည်...",
+      "yesDelete": "ဟုတ်ကဲ့၊ ဖျက်ပါ",
+      "save": "သိမ်းဆည်းရန်",
+      "saving": "သိမ်းဆည်းနေသည်..."
+    },
+    "stats": {
+      "workingDays": "ရုံးဖွင့်ရက်များ",
+      "present": "တက်ရောက်",
+      "absent": "ပျက်ကွက်",
+      "lateDays": "နောက်ကျသည့်ရက်များ",
+      "otHours": "အချိန်ပိုနာရီ",
+      "leaveDays": "ခွင့်ရက်များ",
+      "totalLate": "စုစုပေါင်း နောက်ကျချိန်",
+      "workHours": "အလုပ်လုပ်ချိန်",
+      "holidays": "ရုံးပိတ်ရက်များ"
+    },
+    "fields": {
+      "employee": "ဝန်ထမ်း",
+      "status": "အခြေအနေ",
+      "checkIn": "အဝင်",
+      "checkOut": "အထွက်",
+      "checkInTime": "အဝင်အချိန်",
+      "checkOutTime": "အထွက်အချိန်",
+      "workHours": "အလုပ်လုပ်ချိန်",
+      "shortHours": "အလုပ်ချိန် မပြည့်ခြင်း",
+      "late": "နောက်ကျ",
+      "otHours": "အချိန်ပိုနာရီ",
+      "date": "ရက်စွဲ",
+      "lateMin": "နောက်ကျချိန် (မိနစ်)",
+      "note": "မှတ်ချက်"
+    },
+    "labels": {
+      "weekend": "ရုံးပိတ်ရက်",
+      "publicHoliday": "အများပြည်သူ ရုံးပိတ်ရက်",
+      "overtimeDetail": "အချိန်ပို အသေးစိတ်",
+      "note": "မှတ်ချက်",
+      "auto": "အလိုအလျောက်",
+      "lunch": "နေ့လယ်စာ",
+      "start": "စတင်ရန်"
+    },
+    "summary": {
+      "monthlySummary": "လစဉ် အကျဉ်းချုပ်"
+    },
+    "placeholders": {
+      "select": "ရွေးချယ်ရန်...",
+      "selectEmployee": "ဝန်ထမ်းရွေးချယ်ရန်",
+      "auto": "အလိုအလျောက်",
+      "requiredNote": "မှတ်ချက် လိုအပ်သည်..."
+    },
+    "validation": {
+      "employeeRequired": "ဝန်ထမ်း ရွေးချယ်ရန် လိုအပ်ပါသည်",
+      "dateRequired": "ရက်စွဲ ထည့်ရန် လိုအပ်ပါသည်",
+      "checkInRequired": "အဝင်အချိန် ထည့်ရန် လိုအပ်ပါသည်",
+      "checkOutRequired": "အထွက်အချိန် ထည့်ရန် လိုအပ်ပါသည်",
+      "workHoursRequired": "အလုပ်လုပ်ချိန် ထည့်ရန် လိုအပ်ပါသည်",
+      "lateMinutesRequired": "နောက်ကျမိနစ် ထည့်ရန် လိုအပ်ပါသည်",
+      "noteRequired": "မှတ်ချက် ထည့်ရန် လိုအပ်ပါသည်",
+      "hhmmFormat": "အချိန်သည် HH:MM ပုံစံနှင့် ကိုက်ညီရပါမည်",
+      "amHalfCheckIn": "နံနက်ပိုင်း ခွင့်တစ်ဝက် — အဝင်သည် :time သို့မဟုတ် ထို့ထက် နောက်ကျရမည်",
+      "pmHalfCheckIn": "မွန်းလွဲပိုင်း ခွင့်တစ်ဝက် — အဝင်သည် :time မတိုင်မီ ဖြစ်ရမည်",
+      "pmHalfCheckOut": "မွန်းလွဲပိုင်း ခွင့်တစ်ဝက် — အထွက်သည် :time သို့မဟုတ် ထို့ထက် စောရမည်"
+    },
+    "errors": {
+      "somethingWrong": "တစ်စုံတစ်ခု မှားယွင်းနေပါသည်။",
+      "employeeRequired": "ဝန်ထမ်း ရွေးချယ်ရန် လိုအပ်ပါသည်",
+      "dateRequired": "ရက်စွဲ ထည့်ရန် လိုအပ်ပါသည်",
+      "checkInRequired": "အဝင်အချိန် ထည့်ရန် လိုအပ်ပါသည်",
+      "checkOutRequired": "အထွက်အချိန် ထည့်ရန် လိုအပ်ပါသည်",
+      "workHoursRequired": "အလုပ်လုပ်ချိန် ထည့်ရန် လိုအပ်ပါသည်",
+      "lateMinutesRequired": "နောက်ကျမိနစ် ထည့်ရန် လိုအပ်ပါသည်",
+      "noteRequired": "မှတ်ချက် ထည့်ရန် လိုအပ်ပါသည်"
+    },
+    "modal": {
+      "addTitle": "တက်ရောက်မှု ထည့်ရန်",
+      "editTitle": "တက်ရောက်မှု ပြင်ဆင်ရန်",
+      "recordSubtitle": "ဝန်ထမ်းတက်ရောက်မှု မှတ်တမ်းတင်ရန်",
+      "updateSubtitle": "တက်ရောက်မှုမှတ်တမ်းကို မွမ်းမံရန်"
+    },
+    "deleteConfirm": {
+      "title": "တက်ရောက်မှုမှတ်တမ်းကို ဖျက်မလား?"
+    },
+    "units": {
+      "short": "မပြည့်",
+      "min": "မိနစ်"
+    },
+    "messages": {
+      "somethingWentWrong": "တစ်စုံတစ်ခု မှားယွင်းနေပါသည်။",
+      "exceedsStandard": "စံသတ်မှတ်ချက် :hours နာရီထက် ကျော်လွန်နေသည်။ အချိန်ပိုတောင်းဆိုရန် စဉ်းစားပါ။",
+      "noAttendanceRequired": "တက်ရောက်မှု မှတ်တမ်းတင်ရန် မလိုပါ",
+      "futureDate": "နောင်လာမည့် ရက်စွဲ",
+      "absentNoRecord": "ပျက်ကွက် — မှတ်တမ်းမရှိပါ",
+      "clickDayDetails": "အသေးစိတ်ကို ကြည့်ရန် ရက်စွဲကို နှိပ်ပါ"
+    },
+    "hints": {
+      "mustBeOrLater": ":time သို့မဟုတ် ထို့ထက် နောက်ကျရမည်",
+      "mustBeOrEarlier": ":time သို့မဟုတ် ထို့ထက် စောရမည်"
+    },
+    "months": {
+      "January": "ဇန်နဝါရီ",
+      "February": "ဖေဖော်ဝါရီ",
+      "March": "မတ်",
+      "April": "ဧပြီ",
+      "May": "မေ",
+      "June": "ဇွန်",
+      "July": "ဇူလိုင်",
+      "August": "သြဂုတ်",
+      "September": "စက်တင်ဘာ",
+      "October": "အောက်တိုဘာ",
+      "November": "နိုဝင်ဘာ",
+      "December": "ဒီဇင်ဘာ",
+      "january": "ဇန်နဝါရီ",
+      "february": "ဖေဖော်ဝါရီ",
+      "march": "မတ်",
+      "april": "ဧပြီ",
+      "may": "မေ",
+      "june": "ဇွန်",
+      "july": "ဇူလိုင်",
+      "august": "သြဂုတ်",
+      "september": "စက်တင်ဘာ",
+      "october": "အောက်တိုဘာ",
+      "november": "နိုဝင်ဘာ",
+      "december": "ဒီဇင်ဘာ"
+    },
+    "days": {
+      "Sun": "တနင်္ဂနွေ",
+      "Mon": "တနင်္လာ",
+      "Tue": "အင်္ဂါ",
+      "Wed": "ဗုဒ္ဓဟူး",
+      "Thu": "ကြာသပတေး",
+      "Fri": "သောကြာ",
+      "Sat": "စနေ",
+      "sun": "တနင်္ဂနွေ",
+      "mon": "တနင်္လာ",
+      "tue": "အင်္ဂါ",
+      "wed": "ဗုဒ္ဓဟူး",
+      "thu": "ကြာသပတေး",
+      "fri": "သောကြာ",
+      "sat": "စနေ"
+    },
+    "leaveTypes": {
+      "annual": "လုပ်သက်ခွင့်",
+      "medical": "ဆေးခွင့်",
+      "emergency": "အရေးပေါ်ခွင့်",
+      "unpaid": "လစာမဲ့ခွင့်",
+      "maternity": "မီးဖွားခွင့်",
+      "paternity": "ဖခင်ဖြစ်မှုခွင့်",
+      "leave": "ခွင့်ယူခြင်း",
+      "amHalf": "နံနက်ပိုင်းတစ်ဝက်",
+      "pmHalf": "မွန်းလွဲပိုင်းတစ်ဝက်",
+      "fullDay": "တစ်ရက်ပြည့်",
+      "amHalfDay": "နံနက်ပိုင်းခွင့်တစ်ဝက်",
+      "pmHalfDay": "မွန်းလွဲပိုင်းခွင့်တစ်ဝက်",
+      "fullDayLeave": "တစ်ရက်ပြည့် ခွင့်ယူခြင်း",
+      "halfDayLeave": ":type ခွင့်တစ်ဝက်"
+    },
+    "leaveDayTypes": {
+      "amHalf": "နံနက်ပိုင်းတစ်ဝက်",
+      "pmHalf": "မွန်းလွဲပိုင်းတစ်ဝက်",
+      "fullDay": "တစ်ရက်ပြည့်",
+      "amHalfDay": "နံနက်ပိုင်းခွင့်တစ်ဝက်",
+      "pmHalfDay": "မွန်းလွဲပိုင်းခွင့်တစ်ဝက်"
+    },
+    "table": {
+      "in": "အဝင်",
+      "out": "အထွက်",
+      "wh": "အလုပ်နာရီ",
+      "ot": "အချိန်ပို",
+      "short": "မပြည့်"
+    },
+    "shortLabels": {
+      "in": "အဝင်",
+      "out": "အထွက်",
+      "wh": "အလုပ်နာရီ",
+      "leave": "ခွင့်",
+      "ot": "အချိန်ပို",
+      "late": "နောက်ကျ",
+      "short": "မပြည့်"
+    },
+    "statusLabels": {
+      "present": "တက်ရောက်",
+      "absent": "ပျက်ကွက်",
+      "late": "နောက်ကျ",
+      "halfDay": "ခွင့်တစ်ဝက်",
+      "otOnly": "အချိန်ပိုသီးသန့်"
+    },
+    "status": {
+      "present": "တက်ရောက်",
+      "absent": "ပျက်ကွက်",
+      "late": "နောက်ကျ",
+      "halfDay": "ခွင့်တစ်ဝက်",
+      "otOnly": "အချိန်ပိုသီးသန့်"
+    }
+  },
+  "attendanceRequest": {
+    "pageTitle": "Check In/Out တောင်းဆိုမှု",
+    "modal": {
+      "badge": "တက်ရောက်မှု တောင်းဆိုမှု"
+    },
+    "fields": {
+      "date": "ရက်စွဲ",
+      "approver": "အတည်ပြုသူ",
+      "requestType": "တောင်းဆိုမှုအမျိုးအစား",
+      "requestedCheckIn": "တောင်းဆိုထားသော အလုပ်ဝင်ချိန်",
+      "requestedCheckOut": "တောင်းဆိုထားသော အလုပ်ထွက်ချိန်",
+      "reason": "အကြောင်းပြချက်"
+    },
+    "placeholders": {
+      "selectApprover": "အတည်ပြုသူ ရွေးချယ်ပါ",
+      "reason": "ဘာကြောင့် check in/out ပြင်ဆင်ရန် တောင်းဆိုတာလဲ?"
+    },
+    "requestTypes": {
+      "checkInOnly": "Check In သာ",
+      "checkOutOnly": "Check Out သာ",
+      "both": "Check In/Out နှစ်ခုလုံး",
+      "bothShort": "နှစ်ခုလုံး",
+      "inOnly": "In သာ",
+      "outOnly": "Out သာ"
+    },
+    "preview": {
+      "workSchedule": "အလုပ်ချိန်ဇယား",
+      "lunchBreak": "နေ့လယ်စာနားချိန်",
+      "autoPreview": "အလိုအလျောက်ကြိုကြည့်မှု"
+    },
+    "actions": {
+      "cancel": "မလုပ်တော့ပါ",
+      "submitRequest": "တောင်းဆိုမှုတင်မည်",
+      "submitting": "တင်နေသည်...",
+      "requestCheckInOut": "Check In/Out တောင်းဆိုရန်",
+      "approve": "အတည်ပြုရန်",
+      "approving": "အတည်ပြုနေသည်...",
+      "reject": "ပယ်ချရန်",
+      "rejecting": "ပယ်ချနေသည်...",
+      "delete": "ဖျက်ရန်",
+      "deleting": "ဖျက်နေသည်...",
+      "deleteRequest": "တောင်းဆိုမှုကို ဖျက်ရန်"
+    },
+    "status": {
+      "pending": "စောင့်ဆိုင်းနေသည်",
+      "approved": "အတည်ပြုပြီး",
+      "rejected": "ပယ်ချပြီး",
+      "autoApproved": "အလိုအလျောက် အတည်ပြုပြီး"
+    },
+    "filters": {
+      "allStatus": "အခြေအနေအားလုံး"
+    },
+    "tabs": {
+      "myRequests": "ကျွန်ုပ်၏ တောင်းဆိုမှုများ",
+      "pendingApprovals": "အတည်ပြုရန် စောင့်နေသောများ",
+      "allRequests": "တောင်းဆိုမှုအားလုံး"
+    },
+    "empty": {
+      "noPendingApprovals": "အတည်ပြုရန် စောင့်နေသောတောင်းဆိုမှု မရှိပါ",
+      "noRequestsFound": "Check In/Out တောင်းဆိုမှု မတွေ့ပါ",
+      "allCaughtUp": "အားလုံးပြီးပါပြီ!",
+      "clickToSubmit": "\"Check In/Out တောင်းဆိုရန်\" ကိုနှိပ်ပြီး တောင်းဆိုမှုအသစ် တင်ပါ။"
+    },
+    "confirm": {
+      "deleteTitle": "တောင်းဆိုမှု ဖျက်ရန်",
+      "approveTitle": "တောင်းဆိုမှု အတည်ပြုရန်",
+      "rejectTitle": "တောင်းဆိုမှု ပယ်ချရန်",
+      "deleteSubtext": "ဤလုပ်ဆောင်ချက်ကို ပြန်ဖျက်၍ မရပါ",
+      "notifySubtext": "ဝန်ထမ်းကို အသိပေးပါမည်",
+      "yourRequest": "သင့်တောင်းဆိုမှု"
+    },
+    "labels": {
+      "awaiting": "စောင့်ဆိုင်းနေသည်",
+      "approvedBy": "အတည်ပြုသူ",
+      "rejectedBy": "ပယ်ချသူ",
+      "late": "နောက်ကျ"
+    },
+    "shortLabels": {
+      "in": "ဝင်",
+      "out": "ထွက်",
+      "wh": "အလုပ်ချိန်"
+    },
+    "validation": {
+      "dateRequired": "ရက်စွဲ လိုအပ်ပါသည်",
+      "checkInRequired": "အလုပ်ဝင်ချိန် လိုအပ်ပါသည်",
+      "checkOutRequired": "အလုပ်ထွက်ချိန် လိုအပ်ပါသည်",
+      "checkOutLater": "အလုပ်ထွက်ချိန်သည် အလုပ်ဝင်ချိန်ထက် နောက်ကျရမည်",
+      "reasonRequired": "အကြောင်းပြချက် လိုအပ်ပါသည်",
+      "approverRequired": "အတည်ပြုသူ လိုအပ်ပါသည်",
+      "validationError": "စစ်ဆေးမှု အမှား"
+    },
+    "messages": {
+      "requestNoLongerExists": "တောင်းဆိုမှု မရှိတော့ပါ။ တောင်းဆိုသူမှ ဖျက်ထားနိုင်ပါသည်။",
+      "requestDeleteFailed": "တောင်းဆိုမှု မရှိတော့ပါ သို့မဟုတ် ဖျက်၍မရပါ။"
+    },
+    "months": {
+      "January": "ဇန်နဝါရီ",
+      "February": "ဖေဖော်ဝါရီ",
+      "March": "မတ်",
+      "April": "ဧပြီ",
+      "May": "မေ",
+      "June": "ဇွန်",
+      "July": "ဇူလိုင်",
+      "August": "ဩဂုတ်",
+      "September": "စက်တင်ဘာ",
+      "October": "အောက်တိုဘာ",
+      "November": "နိုဝင်ဘာ",
+      "December": "ဒီဇင်ဘာ"
+    }
+  },
+  "overtime": {
+    "pageTitle": "အချိန်ပို တောင်းခံမှု",
+    "headTitle": "အချိန်ပို",
+    "titleShort": "အချိန်ပို",
+    "status": {
+      "pending": "စောင့်ဆိုင်းနေ",
+      "approved": "အတည်ပြုပြီး",
+      "rejected": "ငြင်းပယ်ပြီး"
+    },
+    "labels": {
+      "publicHoliday": "အများပြည်သူ ရုံးပိတ်ရက်",
+      "weekend": "စနေ/တနင်္ဂနွေ",
+      "weekday": "ရုံးဖွင့်ရက်",
+      "day": "နေ့",
+      "night": "ည",
+      "all": "အားလုံး",
+      "shift": "ဆိုင်း",
+      "awaiting": "စောင့်ဆိုင်းနေ",
+      "approvedBy": "အတည်ပြုသူ",
+      "rejectedBy": "ငြင်းပယ်သူ",
+      "project": "ပရောဂျက်",
+      "date": "ရက်စွဲ",
+      "time": "အချိန်",
+      "total": "စုစုပေါင်း",
+      "reason": "အကြောင်းပြချက်",
+      "approver": "အတည်ပြုသူ",
+      "req": "တောင်းခံ",
+      "totalApproved": "အတည်ပြုစုစုပေါင်း:"
+    },
+    "actions": {
+      "approve": "အတည်ပြုမည်",
+      "reject": "ငြင်းပယ်မည်",
+      "deleteRequest": "တောင်းခံမှုဖျက်မည်",
+      "requestOvertime": "အချိန်ပို တောင်းခံမည်",
+      "cancel": "ပယ်ဖျက်မည်",
+      "submitting": "တင်နေသည်...",
+      "submitRequest": "တောင်းခံမှု တင်မည်",
+      "deleting": "ဖျက်နေသည်...",
+      "delete": "ဖျက်မည်",
+      "approving": "အတည်ပြုနေသည်…",
+      "approveWithIcon": "✓ အတည်ပြုမည်",
+      "rejecting": "ငြင်းပယ်နေသည်…",
+      "rejectWithIcon": "✕ ငြင်းပယ်မည်"
+    },
+    "filters": {
+      "allStatus": "အခြေအနေအားလုံး"
+    },
+    "tabs": {
+      "myRequests": "ကျွန်ုပ်၏ တောင်းခံမှုများ",
+      "pendingApprovals": "စောင့်ဆိုင်းနေသော အတည်ပြုမှုများ",
+      "allRequests": "တောင်းခံမှုအားလုံး"
+    },
+    "empty": {
+      "noPendingApprovals": "စောင့်ဆိုင်းနေသော အတည်ပြုမှု မရှိပါ",
+      "noOvertimeRequestsFound": "အချိန်ပို တောင်းခံမှု မတွေ့ပါ",
+      "allCaughtUp": "အားလုံးပြီးပါပြီ!",
+      "clickRequestOvertime": "တောင်းခံမှုအသစ်တင်ရန် \"အချိန်ပို တောင်းခံမည်\" ကိုနှိပ်ပါ။",
+      "noActiveProjectsAssigned": "သင့်အတွက် active project မသတ်မှတ်ရသေးပါ",
+      "noApproverAvailable": "အတည်ပြုသူ မရှိပါ",
+      "noApproverFound": "သင့် branch အတွက် အတည်ပြုသူ မတွေ့ပါ။ HR ကိုဆက်သွယ်ပါ။"
+    },
+    "messages": {
+      "requestCouldNotBeDeleted": "တောင်းခံမှုကို ဖျက်၍မရပါ။",
+      "adminAutoApproved": "Admin ဖြစ်သောကြောင့် ဒီတောင်းခံမှုကို အလိုအလျောက် အတည်ပြုပါမည်။",
+      "requestNoLongerExists": "တောင်းခံမှု မရှိတော့ပါ။ ဖျက်ပြီးဖြစ်နိုင်သည်။"
+    },
+    "modal": {
+      "overtimeManagement": "အချိန်ပို စီမံခန့်ခွဲမှု"
+    },
+    "fields": {
+      "startDate": "စတင်ရက်",
+      "startTime": "စတင်ချိန်",
+      "endDate": "ပြီးဆုံးရက်",
+      "endTime": "ပြီးဆုံးချိန်"
+    },
+    "validation": {
+      "startDateRequired": "စတင်ရက် လိုအပ်ပါသည်။",
+      "startTimeRequired": "စတင်ချိန် လိုအပ်ပါသည်။",
+      "endDateRequired": "ပြီးဆုံးရက် လိုအပ်ပါသည်။",
+      "endTimeRequired": "ပြီးဆုံးချိန် လိုအပ်ပါသည်။",
+      "reasonRequired": "အကြောင်းပြချက် လိုအပ်ပါသည်။",
+      "selectApprover": "အတည်ပြုသူ ရွေးချယ်ပါ။",
+      "selectProjectForOT": "ဤ OT အတွက် project ရွေးချယ်ပါ။",
+      "endAfterStart": "ပြီးဆုံးချိန်သည် စတင်ချိန်နောက် ဖြစ်ရပါမည်။",
+      "endTimeAfterStartTime": "ပြီးဆုံးချိန်သည် စတင်ချိန်နောက် ဖြစ်ရပါမည်။"
+    },
+    "summary": {
+      "multiDay": "ရက်များစွာ · {{days}} ရက်",
+      "sameDayOT": "တစ်ရက်တည်း OT",
+      "totalHours": "စုစုပေါင်း {{hrs}}",
+      "autoSplitPerShift": "ဆိုင်းအလိုက် အလိုအလျောက် ခွဲမည်"
+    },
+    "placeholders": {
+      "selectApprover": "အတည်ပြုသူ ရွေးပါ",
+      "pleaseSelectProject": "— Project ရွေးချယ်ပါ —",
+      "selectProject": "Project ရွေးပါ...",
+      "describeReason": "အချိန်ပိုလုပ်ရသည့် အကြောင်းပြချက်ရေးပါ..."
+    },
+    "confirm": {
+      "deleteOvertimeRequest": "အချိန်ပို တောင်းခံမှု ဖျက်မည်",
+      "approveOvertime": "အချိန်ပို အတည်ပြုမည်",
+      "rejectOvertime": "အချိန်ပို ငြင်းပယ်မည်",
+      "actionCannotBeUndone": "ဤလုပ်ဆောင်ချက်ကို ပြန်ပြင်၍မရပါ",
+      "adjustApprovedHours": "လိုအပ်ပါက segment အလိုက် အတည်ပြုနာရီ ပြင်ပါ",
+      "employeeWillBeNotified": "ဝန်ထမ်းထံ အသိပေးပါမည်",
+      "yourRequest": "သင့်တောင်းခံမှု",
+      "segmentsAdjustHours": "Segments — လိုအပ်ပါက နာရီပြင်ပါ"
+    },
+    "units": {
+      "hrs": "နာရီ"
+    },
+    "policyTitles": {
+      "Day_Weekday_OT": "ရုံးဖွင့်ရက် နေ့ပိုင်း OT",
+      "Night_Weekday_OT": "ရုံးဖွင့်ရက် ညပိုင်း OT",
+      "Day_Weekend_OT": "စနေ/တနင်္ဂနွေ နေ့ပိုင်း OT",
+      "Night_Weekend_OT": "စနေ/တနင်္ဂနွေ ညပိုင်း OT",
+      "Public_Holiday_OT": "အများပြည်သူ ရုံးပိတ်ရက် OT"
+    },
+    "months": {
+      "January": "ဇန်နဝါရီ",
+      "February": "ဖေဖော်ဝါရီ",
+      "March": "မတ်",
+      "April": "ဧပြီ",
+      "May": "မေ",
+      "June": "ဇွန်",
+      "July": "ဇူလိုင်",
+      "August": "ဩဂုတ်",
+      "September": "စက်တင်ဘာ",
+      "October": "အောက်တိုဘာ",
+      "November": "နိုဝင်ဘာ",
+      "December": "ဒီဇင်ဘာ"
+    }
+  },
+"leaveRequest": {
+  "pageTitle": "ခွင့်တောင်းဆိုမှု",
+  "months": {
+    "January": "ဇန်နဝါရီ",
+    "February": "ဖေဖော်ဝါရီ",
+    "March": "မတ်",
+    "April": "ဧပြီ",
+    "May": "မေ",
+    "June": "ဇွန်",
+    "July": "ဇူလိုင်",
+    "August": "ဩဂုတ်",
+    "September": "စက်တင်ဘာ",
+    "October": "အောက်တိုဘာ",
+    "November": "နိုဝင်ဘာ",
+    "December": "ဒီဇင်ဘာ"
+  },
+  "modal": {
+    "badge": "ခွင့်စီမံခန့်ခွဲမှု"
+  },
+  "actions": {
+    "requestLeave": "ခွင့်တောင်းမည်",
+    "submitRequest": "တောင်းဆိုမှုတင်မည်",
+    "submitting": "တင်နေသည်...",
+    "cancel": "မလုပ်တော့ပါ",
+    "delete": "ဖျက်ရန်",
+    "deleting": "ဖျက်နေသည်...",
+    "deleteRequest": "တောင်းဆိုမှုကို ဖျက်ရန်",
+    "approve": "အတည်ပြုရန်",
+    "approving": "အတည်ပြုနေသည်...",
+    "reject": "ပယ်ချရန်",
+    "rejecting": "ပယ်ချနေသည်..."
+  },
+  "fields": {
+    "employee": "ဝန်ထမ်း",
+    "leaveType": "ခွင့်အမျိုးအစား",
+    "dayType": "ခွင့်ရက်အမျိုးအစား",
+    "date": "ရက်စွဲ",
+    "startDate": "စတင်ရက်",
+    "endDate": "ပြီးဆုံးရက်",
+    "reason": "အကြောင်းပြချက်",
+    "approver": "အတည်ပြုသူ",
+    "supportingDocument": "ထောက်ခံစာရွက်စာတမ်း"
+  },
+  "placeholders": {
+    "selectApprover": "အတည်ပြုသူရွေးချယ်ပါ",
+    "reason": "အကြောင်းပြချက်ရေးပါ..."
+  },
+  "filters": {
+    "allStatus": "အခြေအနေအားလုံး"
+  },
+  "tabs": {
+    "myRequests": "ကျွန်ုပ်၏တောင်းဆိုမှုများ",
+    "pendingApprovals": "အတည်ပြုရန်စောင့်နေသည်",
+    "allRequests": "တောင်းဆိုမှုအားလုံး"
+  },
+  "status": {
+    "pending": "စောင့်ဆိုင်းနေသည်",
+    "approved": "အတည်ပြုပြီး",
+    "rejected": "ပယ်ချပြီး"
+  },
+  "dayTypes": {
+    "full_day": "တစ်နေ့လုံး",
+    "half_day_am": "နံနက်ပိုင်းတစ်ဝက်",
+    "half_day_pm": "ညနေပိုင်းတစ်ဝက်"
+  },
+  "empty": {
+    "noRequestsFound": "ခွင့်တောင်းဆိုမှု မတွေ့ပါ",
+    "noPendingApprovals": "အတည်ပြုရန်စောင့်နေသော တောင်းဆိုမှုမရှိပါ",
+    "allCaughtUp": "အားလုံးပြီးပါပြီ!",
+    "clickToSubmit": "\"ခွင့်တောင်းမည်\" ကိုနှိပ်ပြီး တောင်းဆိုမှုအသစ် တင်ပါ။"
+  },
+  "labels": {
+    "used": "အသုံးပြုပြီး",
+    "total": "စုစုပေါင်း",
+    "availableBalance": "ကျန်ရှိခွင့်လက်ကျန်",
+    "approvedBy": "အတည်ပြုသူ",
+    "rejectedBy": "ပယ်ချသူ",
+    "awaiting": "စောင့်ဆိုင်းနေသည်",
+    "from": "မှ",
+    "to": "ထိ",
+    "days": "ရက်",
+    "downloadDocument": "စာရွက်စာတမ်းဒေါင်းလုပ်",
+    "required": "လိုအပ်သည်",
+    "optional": "မလိုအပ်လည်းရသည်",
+    "doc": "DOC",
+    "absent": "ပျက်ကွက်",
+    "unpaid": "လစာမဲ့"
+  },
+  "units": {
+    "day": "ရက်",
+    "days": "ရက်",
+    "daysShort": "ရက်",
+    "half": "တစ်ဝက်",
+    "halfDay": "တစ်ဝက်ရက်"
+  },
+  "preview": {
+    "totalLeaveDays": "စုစုပေါင်းခွင့်ရက်:"
+  },
+  "upload": {
+    "dropToUpload": "ဖိုင်ချရန်",
+    "dropFileHereOr": "ဖိုင်ကို ဒီနေရာတွင်ချပါ သို့မဟုတ်",
+    "browse": "ရွေးချယ်ပါ",
+    "fileHint": "PDF, JPG, PNG · အများဆုံး 5MB",
+    "ready": "အသင့်ဖြစ်ပြီ"
+  },
+  "confirm": {
+    "deleteTitle": "ခွင့်တောင်းဆိုမှု ဖျက်ရန်",
+    "approveTitle": "ခွင့်တောင်းဆိုမှု အတည်ပြုရန်",
+    "rejectTitle": "ခွင့်တောင်းဆိုမှု ပယ်ချရန်",
+    "deleteSubtext": "ဤလုပ်ဆောင်ချက်ကို ပြန်ဖျက်၍ မရပါ",
+    "notifySubtext": "ဝန်ထမ်းကို အသိပေးပါမည်"
+  },
+  "validation": {
+    "leaveTypeRequired": "ခွင့်အမျိုးအစား လိုအပ်ပါသည်",
+    "startDateRequired": "စတင်ရက် လိုအပ်ပါသည်",
+    "endDateRequired": "ပြီးဆုံးရက် လိုအပ်ပါသည်",
+    "reasonRequired": "အကြောင်းပြချက် လိုအပ်ပါသည်",
+    "approverRequired": "အတည်ပြုသူ ရွေးချယ်ရန် လိုအပ်ပါသည်",
+    "endDateAfterStart": "ပြီးဆုံးရက်သည် စတင်ရက်နောက် ဖြစ်ရမည်",
+    "documentRequired": "ဤခွင့်အမျိုးအစားအတွက် ထောက်ခံစာရွက်စာတမ်း လိုအပ်ပါသည်။",
+    "fileType": "PDF, JPG, PNG ဖိုင်များသာ ခွင့်ပြုသည်။",
+    "fileSize": "ဖိုင်အရွယ်အစားသည် 5MB အောက် ဖြစ်ရမည်။",
+    "validationError": "စစ်ဆေးမှု အမှား"
+  },
+  "messages": {
+    "noLeaveTypes": "ခွင့်အမျိုးအစား မသတ်မှတ်ရသေးပါ။ HR ကို ဆက်သွယ်ပါ။",
+    "balanceExceeded": "ခွင့်လက်ကျန်ထက် ကျော်လွန်နေသည် — အလိုအလျောက် ခွဲပေးပါမည်",
+    "noBalance": ":type ခွင့်လက်ကျန် မရှိတော့ပါ",
+    "requestNoLongerExists": "တောင်းဆိုမှု မရှိတော့ပါ။ ဖျက်ထားနိုင်ပါသည်။",
+    "requestDeleteFailed": "တောင်းဆိုမှုကို ဖျက်၍မရပါ။"
+  }
+},
+  "employeeSalary": {
+    "pageTitle": "ဝန်ထမ်းလစာ",
+    "employment": {
+      "probation": "အစမ်းခန့်",
+      "permanent": "အမြဲတမ်း",
+      "contract": "စာချုပ်"
+    },
+    "fields": {
+      "employee": "ဝန်ထမ်း",
+      "position": "ရာထူး",
+      "department": "ဌာန",
+      "employment": "အလုပ်ခန့်အပ်မှု",
+      "joined": "စတင်ဝင်ရောက်",
+      "baseSalary": "အခြေခံလစာ",
+      "allowances": "ထောက်ပံ့ကြေးများ",
+      "bankInformation": "ဘဏ်အချက်အလက်",
+      "bank": "ဘဏ်",
+      "accountHolderName": "အကောင့်ပိုင်ရှင်အမည်",
+      "accountNumber": "အကောင့်နံပါတ်",
+      "salary": "လစာ",
+      "actions": "လုပ်ဆောင်ချက်များ"
+    },
+    "stats": {
+      "total": "စုစုပေါင်း",
+      "withBank": "ဘဏ်ရှိ",
+      "missingBank": "ဘဏ်မရှိ"
+    },
+    "actions": {
+      "addProfile": "ပရိုဖိုင်ထည့်မည်",
+      "cancel": "ပယ်ဖျက်မည်",
+      "saving": "သိမ်းနေသည်…",
+      "saveProfile": "ပရိုဖိုင်သိမ်းမည်",
+      "updateProfile": "ပရိုဖိုင်ပြင်မည်",
+      "removing": "ဖယ်ရှားနေသည်…",
+      "removeProfile": "ပရိုဖိုင်ဖယ်ရှားမည်"
+    },
+    "placeholders": {
+      "selectEmployeeDash": "— ဝန်ထမ်းရွေးချယ်ပါ —",
+      "searchEmployee": "ဝန်ထမ်းရှာရန်…",
+      "fullName": "အမည်အပြည့်အစုံ",
+      "accountNumber": "အကောင့်နံပါတ်"
+    },
+    "validation": {
+      "selectEmployee": "ဝန်ထမ်းတစ်ဦး ရွေးချယ်ပါ။",
+      "validSalaryAmount": "မှန်ကန်သော လစာပမာဏ ထည့်ပါ။"
+    },
+    "messages": {
+      "salaryProfileUpdated": "လစာပရိုဖိုင် ပြင်ဆင်ပြီးပါပြီ။",
+      "salaryProfileSaved": "လစာပရိုဖိုင် သိမ်းပြီးပါပြီ။",
+      "somethingWentWrong": "တစ်ခုခုမှားယွင်းသွားသည်။",
+      "selectAllowancesApply": "ဤဝန်ထမ်းနှင့်သက်ဆိုင်သော ထောက်ပံ့ကြေးများကို ရွေးပါ။",
+      "salaryProfileRemoved": "လစာပရိုဖိုင် ဖယ်ရှားပြီးပါပြီ။",
+      "failedToRemoveProfile": "ပရိုဖိုင်ကို ဖယ်ရှား၍မရပါ။"
+    },
+    "empty": {
+      "noEmployeesFound": "ဝန်ထမ်း မတွေ့ပါ",
+      "noResultsFound": "ရလဒ် မတွေ့ပါ",
+      "noSalaryProfilesYet": "လစာပရိုဖိုင် မရှိသေးပါ",
+      "tryDifferentSearchTerm": "အခြားရှာဖွေစာလုံးဖြင့် စမ်းပါ။",
+      "clickAddProfile": "လစာသတ်မှတ်ရန် \"ပရိုဖိုင်ထည့်မည်\" ကိုနှိပ်ပါ။"
+    },
+    "labels": {
+      "optionalDash": "— မဖြည့်လည်းရသည်",
+      "notSet": "မသတ်မှတ်ရသေး"
+    },
+    "modal": {
+      "addSalaryProfile": "လစာပရိုဖိုင် ထည့်ရန်",
+      "setupSalaryAllowancesBank": "လစာ၊ ထောက်ပံ့ကြေးနှင့် ဘဏ်အချက်အလက် သတ်မှတ်ပါ။",
+      "editSalaryProfile": "လစာပရိုဖိုင် ပြင်ရန်",
+      "updateSalaryAllowancesBank": "လစာ၊ ထောက်ပံ့ကြေး သို့မဟုတ် ဘဏ်အချက်အလက် ပြင်ပါ။",
+      "removeProfile": "ပရိုဖိုင် ဖယ်ရှားရန်",
+      "deactivateSalaryProfile": "လစာပရိုဖိုင်ကို မလုပ်ဆောင်တော့အောင် ပြုလုပ်ပါမည်။"
+    },
+    "confirm": {
+      "deactivateProfileWarning": "ဤလုပ်ဆောင်ချက်သည် လစာပရိုဖိုင်ကို မလုပ်ဆောင်တော့အောင် ပြုလုပ်ပါမည်။ ယခင် payroll မှတ်တမ်းများ မပျောက်ပါ။"
+    }
+  },
+"expense": {
+    "stats": {
+      "total": "စုစုပေါင်း",
+      "pending": "စောင့်ဆိုင်း",
+      "approved": "ခွင့်ပြုပြီး",
+      "rejected": "ငြင်းပယ်ပြီး",
+      "unreimbursed": "မပြန်အမ်းရသေး",
+      "unreimbursedSub": "အချိန်ကာလအားလုံး · ခွင့်ပြုပြီး၊ မပေးရသေး"
+    },
+    "tabs": {
+      "my": "ကျွန်ုပ်၏ တောင်းဆိုမှုများ",
+      "approvals": "ခွင့်ပြုချက် စောင့်ဆိုင်း",
+      "all": "တောင်းဆိုမှုအားလုံး"
+    },
+    "filters": {
+      "allStatus": "အခြေအနေအားလုံး"
+    },
+    "btn": {
+      "submit": "စရိတ်တောင်းဆို",
+      "cancel": "ဖျက်သိမ်း",
+      "submitRequest": "တောင်းဆိုမှုပို့မည်",
+      "submitting": "ပေးပို့နေသည်…",
+      "approve": "ခွင့်ပြု",
+      "reject": "ငြင်းပယ်",
+      "delete": "တောင်းဆိုမှုဖျက်",
+      "processing": "လုပ်ဆောင်နေသည်…"
+    },
+    "row": {
+      "awaiting": "စောင့်ဆိုင်း",
+      "approvedBy": "ခွင့်ပြုသူ",
+      "rejectedBy": "ငြင်းပယ်သူ",
+      "date": "ရက်စွဲ",
+      "amount": "ပမာဏ",
+      "note": "မှတ်ချက်",
+      "rejected": "ငြင်းပယ်",
+      "reimbursed": "✓ ပြန်အမ်းပြီး",
+      "noApprover": "HR"
+    },
+    "empty": {
+      "noPendingApprovals": "ခွင့်ပြုချက် စောင့်ဆိုင်းမှု မရှိပါ",
+      "allCaughtUp": "အားလုံး ပြီးဆုံးပြီ!",
+      "noExpenses": "စရိတ်တောင်းဆိုမှု မတွေ့ပါ",
+      "noExpensesSub": "\"စရိတ်တောင်းဆို\" ကို နှိပ်၍ အသစ်ထည့်ပါ။"
+    },
+    "modal": {
+      "header": "စရိတ်တောင်းဆိုမှု",
+      "title": "စရိတ်တောင်းဆို",
+      "titleLabel": "ခေါင်းစဉ်",
+      "titlePlaceholder": "ဥပမာ - သဘောတူညီမှု ညစာ၊ လေဆိပ်သွား တက်စီ…",
+      "amountLabel": "ပမာဏ",
+      "categoryLabel": "အမျိုးအစား",
+      "categoryPlaceholder": "ရွေးချယ်ပါ…",
+      "expenseDateLabel": "စရိတ်ရက်",
+      "descriptionLabel": "ဖော်ပြချက်",
+      "descriptionPlaceholder": "ဤစရိတ်နှင့် ပတ်သက်သော အသေးစိတ်…",
+      "attachmentsLabel": "ပူးတွဲဖိုင်များ",
+      "attachmentsSub": "— ငွေလက်ခံဖြတ်ပိုင်း၊ မှတ်တမ်း၊ စာရွက်များ (အများဆုံး ၅ ဖိုင်)",
+      "attachmentsClick": "ဖိုင်တင်ရန် နှိပ်ပါ",
+      "approverHr": "HR (ခွင့်ပြုသူ)",
+      "approverAdmin": "Admin (ခွင့်ပြုသူ)",
+      "approverPlaceholder": "— ခွင့်ပြုသူ ရွေးချယ်ပါ —",
+      "approverNone": "သင့်နိုင်ငံတွင် {role} မရှိပါ။",
+      "autoApprove": "✓ Admin အနေဖြင့် ဤတောင်းဆိုမှုကို ချက်ချင်း ခွင့်ပြုမည်။",
+      "optional": "(ရွေးချယ်နိုင်)"
+    },
+    "confirm": {
+      "deleteTitle": "တောင်းဆိုမှုဖျက်",
+      "deleteBody": "ပြန်မရနိုင်ပါ။",
+      "approveTitle": "စရိတ် ခွင့်ပြု",
+      "approveBody": "ဝန်ထမ်းကို အကြောင်းကြားမည်။",
+      "rejectTitle": "စရိတ် ငြင်းပယ်",
+      "rejectBody": "ငြင်းပယ်ရသောအကြောင်း ဖော်ပြပါ။",
+      "noteLabel": "မှတ်ချက်",
+      "noteOptional": "(ရွေးချယ်နိုင်)",
+      "notePlaceholder": "ဝန်ထမ်းအတွက် မှတ်ချက်ရေးပါ…",
+      "reasonLabel": "ငြင်းပယ်သောအကြောင်း",
+      "reasonPlaceholder": "ဘာကြောင့် ငြင်းပယ်သနည်း?…",
+      "confirmDelete": "🗑 ဖျက်မည်",
+      "confirmApprove": "✓ ခွင့်ပြု",
+      "confirmReject": "✕ ငြင်းပယ်"
+    },
+    "category": {
+      "transport": "သယ်ယူပို့ဆောင်",
+      "meal": "အစားအသောက်",
+      "accommodation": "နေထိုင်ရေး",
+      "equipment": "ပစ္စည်းကိရိယာ",
+      "medical": "ဆေးကုသရေး",
+      "training": "သင်တန်း",
+      "communication": "ဆက်သွယ်ရေး",
+      "other": "အခြား"
+    },
+    "validation": {
+      "titleRequired": "ခေါင်းစဉ် လိုအပ်သည်။",
+      "amountInvalid": "မှန်ကန်သောပမာဏ ထည့်ပါ။",
+      "dateRequired": "စရိတ်ရက် လိုအပ်သည်။",
+      "categoryRequired": "အမျိုးအစား လိုအပ်သည်။",
+      "approverRequired": "ခွင့်ပြုသူ ရွေးချယ်ပါ။"
+    },
+    "noApproversAvailable": "ခွင့်ပြုသူ မရှိပါ",
+    "networkError": "ကွန်ယက်အမှား။ ထပ်မံကြိုးစားပါ။",
+    "deleteError": "ဖျက်မရပါ။",
+    "actionError": "တစ်ခုခု မှားယွင်းသည်။",
+    "months": [
+      "ဇန်နဝါရီ",
+      "ဖေဖော်ဝါရီ",
+      "မတ်",
+      "ဧပြီ",
+      "မေ",
+      "ဇွန်",
+      "ဇူလိုင်",
+      "သြဂုတ်",
+      "စက်တင်ဘာ",
+      "အောက်တိုဘာ",
+      "နိုဝင်ဘာ",
+      "ဒီဇင်ဘာ"
+    ]
+  },
+  "payslip": {
+    "pageTitle": "လစာစလစ်",
+    "fields": {
+      "employee": "ဝန်ထမ်း",
+      "payPeriod": "လစာကာလ",
+      "netSalary": "လက်ကျန်လစာ",
+      "detail": "အသေးစိတ်",
+      "download": "ဒေါင်းလုဒ်"
+    },
+    "filters": {
+      "allMonths": "လအားလုံး",
+      "allPeriods": "ကာလအားလုံး"
+    },
+    "cycles": {
+      "semiMonthly": "လတစ်လ ၂ ကြိမ်",
+      "tenDay": "၁၀ ရက်တစ်ကြိမ်",
+      "monthly": "လစဉ်"
+    },
+    "stats": {
+      "payslips": "လစာစလစ်များ",
+      "totalNet": "လက်ကျန်စုစုပေါင်း",
+      "employees": "ဝန်ထမ်းများ",
+      "avgNet": "ပျမ်းမျှလက်ကျန်",
+      "highest": "အမြင့်ဆုံး",
+      "total": "စုစုပေါင်း"
+    },
+    "actions": {
+      "loading": "တင်နေသည်…",
+      "refreshIcon": "🔄",
+      "refresh": "ပြန်တင်မည်",
+      "preparing": "ပြင်ဆင်နေသည်…",
+      "allPdfsZipIcon": "📦",
+      "allPdfsZip": "PDF အားလုံး (ZIP)",
+      "allExcelIcon": "📊",
+      "allExcel": "Excel အားလုံး",
+      "pdf": "PDF",
+      "excel": "Excel"
+    },
+    "labels": {
+      "details": "အသေးစိတ်",
+      "payslip": "လစာစလစ်",
+      "payslips": "လစာစလစ်များ",
+      "period": "ကာလ",
+      "missing": "လိုနေသည်",
+      "late": "နောက်ကျ",
+      "ofBaseSalary": "အခြေခံလစာ၏",
+      "fixedAmount": "သတ်မှတ်ငွေပမာဏ"
+    },
+    "shortLabels": {
+      "in": "ဝင်",
+      "out": "ထွက်"
+    },
+    "status": {
+      "paid": "ပေးချေပြီး",
+      "confirmed": "အတည်ပြုပြီး"
+    },
+    "placeholders": {
+      "searchEmployee": "ဝန်ထမ်းရှာရန်…"
+    },
+    "messages": {
+      "downloadedSuccessfully": "လစာစလစ် ဒေါင်းလုဒ်ပြီးပါပြီ",
+      "downloadFailed": "ဒေါင်းလုဒ် မအောင်မြင်ပါ",
+      "failedToLoadDetail": "အသေးစိတ်ကို တင်၍မရပါ",
+      "failedToLoadPayslips": "လစာစလစ်များ တင်၍မရပါ",
+      "loadingPayslips": "လစာစလစ်များ တင်နေသည်…"
+    },
+    "empty": {
+      "noShortRecords": "အချိန်မပြည့် မှတ်တမ်းမရှိပါ။",
+      "noLateRecords": "နောက်ကျမှတ်တမ်း မရှိပါ။",
+      "noRecords": "မှတ်တမ်း မရှိပါ။",
+      "noOTRecords": "OT မှတ်တမ်း မရှိပါ။",
+      "noAllowanceDetails": "ထောက်ပံ့ကြေး အသေးစိတ်မရှိပါ။",
+      "noBonusDetails": "ဘောနပ်စ် အသေးစိတ်မရှိပါ။",
+      "noExpenseDetails": "ကုန်ကျစရိတ် အသေးစိတ်မရှိပါ။",
+      "noResultsFor": "ရလဒ်မတွေ့ပါ",
+      "noConfirmedPayslips": "အတည်ပြုပြီး လစာစလစ် မတွေ့ပါ",
+      "tryAdjustingPeriod": "အပေါ်ရှိ ကာလ filter ကို ပြင်ကြည့်ပါ။"
+    },
+    "detail": {
+      "insufficientHours": "အလုပ်ချိန် မပြည့်ခြင်း",
+      "workingHours": "အလုပ်ချိန်",
+      "lateArrival": "နောက်ကျရောက်ရှိမှု",
+      "attendance": "တက်ရောက်မှု",
+      "workingDays": "အလုပ်လုပ်ရက်",
+      "present": "တက်ရောက်",
+      "absent": "ပျက်ကွက်",
+      "late": "နောက်ကျ",
+      "paidLeave": "လစာပေးခွင့်",
+      "unpaidLeave": "လစာမဲ့ခွင့်",
+      "overtime": "အချိန်ပို",
+      "earnings": "ရရှိငွေများ",
+      "baseSalary": "အခြေခံလစာ",
+      "allowances": "ထောက်ပံ့ကြေးများ",
+      "overtimePay": "အချိန်ပိုကြေး",
+      "bonus": "ဘောနပ်စ်",
+      "bonuses": "ဘောနပ်စ်များ",
+      "expenseReimbursement": "ကုန်ကျစရိတ် ပြန်လည်ပေးချေမှု",
+      "totalBeforeDeductions": "နုတ်ယူမတိုင်မီ စုစုပေါင်း",
+      "deductions": "နုတ်ယူငွေများ",
+      "totalDeductions": "နုတ်ယူစုစုပေါင်း",
+      "netSalary": "လက်ကျန်လစာ",
+      "leaveRecords": "ခွင့်မှတ်တမ်းများ",
+      "otRecords": "OT မှတ်တမ်းများ",
+      "otPayThisPeriod": "ဤကာလ OT ကြေး",
+      "breakdown": "အသေးစိတ်ခွဲခြမ်း",
+      "totalAllowances": "ထောက်ပံ့ကြေးစုစုပေါင်း",
+      "totalBonus": "ဘောနပ်စ်စုစုပေါင်း",
+      "approvedExpenses": "အတည်ပြုပြီး ကုန်ကျစရိတ်များ",
+      "totalReimbursement": "ပြန်လည်ပေးချေမှုစုစုပေါင်း",
+      "salaryDetail": "လစာအသေးစိတ်"
+    },
+    "dayTypes": {
+      "fullDay": "တစ်ရက်လုံး",
+      "amHalf": "မနက်ပိုင်း တစ်ဝက်",
+      "pmHalf": "ညနေပိုင်း တစ်ဝက်",
+      "halfDay": "တစ်ဝက်ရက်"
+    },
+    "units": {
+      "days": "ရက်",
+      "min": "မိနစ်"
+    },
+    "months": {
+      "January": "ဇန်နဝါရီ",
+      "February": "ဖေဖော်ဝါရီ",
+      "March": "မတ်",
+      "April": "ဧပြီ",
+      "May": "မေ",
+      "June": "ဇွန်",
+      "July": "ဇူလိုင်",
+      "August": "ဩဂုတ်",
+      "September": "စက်တင်ဘာ",
+      "October": "အောက်တိုဘာ",
+      "November": "နိုဝင်ဘာ",
+      "December": "ဒီဇင်ဘာ"
+    }
+  },
+"bankExport": {
+  "payPeriodFilter": "လစာ ကာလ စစ်ထုတ်မှု",
+  "year": "နှစ်",
+  "month": "လ",
+  "period": "ကာလ",
+  "employee": "ဝန်ထမ်း",
+  "allEmployees": "ဝန်ထမ်းအားလုံး",
+  "loading": "ဖတ်ရှုနေသည်…",
+  "refresh": "ပြန်ဖတ်မည်",
+  "record": "မှတ်တမ်း",
+  "records": "မှတ်တမ်းများ",
+  "readyForTransfer": "လွှဲပြောင်းရန် အသင့်",
+  "noConfirmedRecords": "အတည်ပြုထားသော မှတ်တမ်း မတွေ့ပါ",
+  "exporting": "ထုတ်နေသည်…",
+  "generating": "ဖန်တီးနေသည်…",
+  "sendToBank": "ဘဏ်သို့ ပို့မည်",
+  "saving": "သိမ်းနေသည်…",
+  "markAllPaid": "အားလုံး ပေးချေပြီးဟု မှတ်မည်",
+  "loadingRecords": "မှတ်တမ်းများ ဖတ်ရှုနေသည်…",
+  "noConfirmedPayroll": "အတည်ပြုထားသော လစာ မှတ်တမ်း မရှိပါ",
+  "emptyStateDesc": "ဤနေရာတွင် ပြသရန် လစာ မှတ်တမ်းများကို <strong>အတည်ပြု</strong>ထားရမည်။<br />Payroll → Preview &amp; Approve သို့ သွားပြီး အတည်ပြုပါ။",
+  "colEmployee": "ဝန်ထမ်း",
+  "colBank": "ဘဏ်",
+  "colAccount": "အကောင့်နံပါတ်",
+  "colDept": "ဌာန",
+  "colStatus": "အခြေအနေ",
+  "colNetSalary": "ရှင်းလင်းသည့် လစာ",
+  "notSet": "မသတ်မှတ်ရသေး",
+  "statusPaid": "ပေးချေပြီး",
+  "statusConfirmed": "အတည်ပြုပြီး",
+  "paid": "ပေးချေပြီး",
+  "infoNote": "<strong>အတည်ပြုထားသော</strong> လစာ မှတ်တမ်းများသာ ပါဝင်သည်။ ဘဏ်အကောင့် အသေးစိတ်များသည် ဝန်ထမ်းလစာ ပရိုဖိုင်မှ ရယူသည်။ ဘဏ်အချက်အလက် မပြည့်စုံသော ဝန်ထမ်းများကို ⚠ ဖြင့် မှတ်သားထားသည်။",
+  "bankTransfer": "ဘဏ်လွှဲပြောင်းမှု",
+  "sendPdfToBank": "PDF ကို ဘဏ်သို့ ပို့မည်",
+  "modalDesc1": "ဘဏ်လွှဲ PDF ကို",
+  "modalDesc2": "အတွက် အီးမေးလ် ပူးတွဲဖိုင်အနေဖြင့် ပို့မည်။",
+  "total": "စုစုပေါင်း",
+  "employees": "ဦး",
+  "bankEmailLabel": "ဘဏ် အီးမေးလ် လိပ်စာ",
+  "bankEmailPlaceholder": "ဥပမာ finance@ababank.com",
+  "cancel": "မလုပ်တော့ပါ",
+  "sending": "ပို့နေသည်…",
+  "sendPdf": "PDF ပို့မည်",
+  "failedToLoad": "Preview ဖတ်မရပါ",
+  "downloadFailed": "ဒေါင်းလုတ် မအောင်မြင်ပါ",
+  "downloadedSuccess": "ဒေါင်းလုတ် အောင်မြင်ပြီ!",
+  "failed": "မအောင်မြင်ပါ",
+  "markedAsPaid": "ပေးချေပြီးဟု မှတ်ယူပြီ",
+  "recordsMarkedPaid": "မှတ်တမ်း ပေးချေပြီးဟု မှတ်ယူပြီ",
+  "failedToSend": "ပို့မရပါ",
+  "sentSuccess": "PDF ကို ဘဏ်သို့ အောင်မြင်စွာ ပို့ပြီ! ✉️"
+},
+"payroll": {
+    "steps": {
+      "attendance": {
+        "label": "တက်ရောက်မှု တင်သွင်း",
+        "summary": "ပုံစံဒေါင်းလုဒ် · ဝင်/ထွက်ချိန်ဖြည့် · တင်ပို့"
+      },
+      "calculate": {
+        "label": "လစာတွက်ချက်မှု",
+        "summary": "တက်ရောက်မှု၊ ခွင့်၊ OT နှင့် HR မူဝါဒအပေါ် အခြေခံတွက်"
+      },
+      "preview": {
+        "label": "ကြိုကြည့် & ခွင့်ပြု",
+        "summary": "လစာချိုးဖြတ်မှု စစ်ဆေး · bonus ထည့် · ခွင့်ပြု"
+      }
+    },
+    "sidebar": {
+      "workflow": "လုပ်ငန်းစဉ်",
+      "stepsDone": "အဆင့် ပြီးဆုံး",
+      "completed": "ပြီးဆုံးပြီ",
+      "inProgress": "လုပ်ဆောင်နေသည်..."
+    },
+    "period": {
+      "payPeriod": "လစာကာလ",
+      "period": "ကာလ",
+      "semiMonthly": "နှစ်ပတ်တစ်ကြိမ်",
+      "tenDay": "၁၀ ရက်",
+      "monthly": "လစဉ်"
+    },
+    "status": {
+      "draft": "မူကြမ်း",
+      "calculated": "တွက်ချက်ပြီး",
+      "approved": "ခွင့်ပြုပြီး",
+      "confirmed": "အတည်ပြုပြီး",
+      "paid": "ပေးချေပြီး"
+    },
+    "btn": {
+      "downloadTemplate": "ပုံစံဒေါင်းလုဒ်",
+      "downloading": "ဒေါင်းလုဒ်နေသည်...",
+      "uploadSave": "တင်ပို့ & သိမ်း",
+      "uploading": "တင်ပို့နေသည်...",
+      "refresh": "ပြန်လည်ဆွဲယူ",
+      "approveAll": "အားလုံးခွင့်ပြု",
+      "approving": "ခွင့်ပြုနေသည်...",
+      "confirmFinalize": "အတည်ပြု & အပြီးသတ်",
+      "confirming": "အတည်ပြုနေသည်...",
+      "approve": "ခွင့်ပြု",
+      "detail": "အသေးစိတ်",
+      "close": "ပိတ်",
+      "cancel": "ဖျက်သိမ်း",
+      "calculate": "တွက်ချက်",
+      "calculating": "တွက်ချက်နေသည်...",
+      "calculateAll": "အားလုံးတွက်",
+      "continue": "ဆက်လုပ်"
+    },
+    "attendance": {
+      "stepDownload": "ဒေါင်းလုဒ်",
+      "stepDownloadDesc": "ဝန်ထမ်းနှင့် ရက်စွဲများ ဖြည့်ထားသော Excel ပုံစံ ရယူပါ",
+      "stepFill": "ဝင်/ထွက်ချိန် ဖြည့်ပါ",
+      "stepFillDesc": "အချိန် (HH:MM) ဖြည့်သွင်းပါ။ စနေ/တနင်္ဂနွေ ကျော်ပါ။",
+      "stepUpload": "တင်ပို့",
+      "stepUploadDesc": "သိမ်းဆည်းသည့်အခါ လုပ်ချိန်နာရီနှင့် နောက်ကျမိနစ်တွေ အလိုအလျောက် တွက်",
+      "downloaded": "ပုံစံ ဒေါင်းလုဒ်ပြီးပါပြီ။",
+      "saved": "သိမ်းဆည်းပြီး",
+      "skipped": "ကျော်သွား"
+    },
+    "calculate": {
+      "allEmployees": "ဝန်ထမ်းအားလုံး",
+      "singleEmployee": "ဝန်ထမ်းတစ်ဦး",
+      "selectEmployee": "ဝန်ထမ်းရွေးချယ်ပါ",
+      "selectEmployeeFirst": "ဝန်ထမ်းအရင်ရွေးချယ်ပါ။",
+      "calculated": "တွက်ချက်ပြီး",
+      "employees": "ဦး",
+      "done": "ပြီး",
+      "stopped": "ရပ်တန့်သွားသည်။",
+      "allDone": "ဝန်ထမ်းအားလုံး တွက်ချက်ပြီးပါပြီ:",
+      "noPeriodWarning": "လစာကာလ မသတ်မှတ်ရသေး။ HR မူဝါဒ → ယေဘုယျ ဆက်တင်သို့ သွားပါ။"
+    },
+    "preview": {
+      "loading": "မှတ်တမ်းများ ဆွဲနေသည်...",
+      "noRecords": "မှတ်တမ်းမရှိသေး။ အဆင့် ၂ (လစာတွက်) ကို အရင်လုပ်ပါ။",
+      "loadFailed": "မှတ်တမ်းများ ဆွဲမရပါ",
+      "approved": "ခွင့်ပြုပြီး"
+    },
+    "table": {
+      "employee": "ဝန်ထမ်း",
+      "presentWd": "တက်ရောက် / အလုပ်ရက်",
+      "leave": "ခွင့်",
+      "late": "နောက်ကျ",
+      "ot": "OT",
+      "base": "အခြေခံ",
+      "allowances": "ထောက်ပံ့ကြေး",
+      "deductions": "နုတ်ယူမှု",
+      "bonus": "ဘောနပ်",
+      "netSalary": "အသားတင်လစာ",
+      "status": "အခြေအနေ"
+    },
+    "confirm": {
+      "approveAllTitle": "လစာမှတ်တမ်းများ အားလုံးခွင့်ပြု",
+      "finalizeTitle": "လစာ အတည်ပြု & အပြီးသတ်",
+      "approveOneTitle": "ဝန်ထမ်းလစာ ခွင့်ပြု",
+      "approveAllMsg": "မှတ်တမ်းများ အားလုံး ခွင့်ပြုမည်မှာ သေချာပါသလား —",
+      "finalizeMsg": "ဤလစာမှတ်တမ်းများကို လော့ချမည် —",
+      "approveOneMsg": "ဤဝန်ထမ်း၏ လစာကို ခွင့်ပြုမည်မှာ သေချာပါသလား —",
+      "recordsFor": "မှတ်တမ်း",
+      "yesApproveAll": "ဟုတ်ကဲ့၊ အားလုံးခွင့်ပြု",
+      "yesConfirmLock": "🔒 ဟုတ်ကဲ့၊ အတည်ပြု & လော့ချ",
+      "yesApprove": "ဟုတ်ကဲ့၊ ခွင့်ပြု"
+    },
+    "detail": {
+      "salaryDetail": "လစာ အသေးစိတ်",
+      "attendance": "တက်ရောက်မှု",
+      "workingDays": "အလုပ်ရက်",
+      "present": "တက်ရောက်",
+      "absent": "မတက်ရောက်",
+      "late": "နောက်ကျ",
+      "days": "ရက်",
+      "paidLeave": "လစာရခွင့်",
+      "unpaidLeave": "လစာမဲ့ခွင့်",
+      "overtime": "အချိန်ပိုနာရီ",
+      "earnings": "ရငွေများ",
+      "baseSalary": "အခြေခံလစာ",
+      "allowances": "ထောက်ပံ့ကြေးများ",
+      "overtimePay": "အချိန်ပိုကြေး",
+      "bonus": "ဘောနပ်",
+      "expenseReimbursement": "စရိတ်ပြန်အမ်း",
+      "totalBeforeDeductions": "နုတ်ယူမမချမီ စုစုပေါင်း",
+      "deductions": "နုတ်ယူမှုများ",
+      "insufficientHours": "နာရီမပြည့်မှု",
+      "lateArrival": "နောက်ကျဝင်ရောက်မှု",
+      "totalDeductions": "စုစုပေါင်း နုတ်ယူမှု",
+      "netSalary": "အသားတင်လစာ",
+      "workingHours": "လုပ်ချိန်နာရီ",
+      "in": "ဝင်",
+      "out": "ထွက်",
+      "missing": "ကျန်",
+      "noShortRecords": "နာရီမပြည့်မှု မှတ်တမ်းမရှိပါ။",
+      "noLateRecords": "နောက်ကျမှု မှတ်တမ်းမရှိပါ။",
+      "leaveRecords": "ခွင့်မှတ်တမ်းများ",
+      "noRecords": "မှတ်တမ်းမရှိပါ။",
+      "otRecords": "OT မှတ်တမ်းများ",
+      "noOtRecords": "OT မှတ်တမ်းမရှိပါ။",
+      "otPayPeriod": "ဤကာလ OT ကြေး",
+      "breakdown": "ခွဲခြမ်းစိတ်ဖြာ",
+      "noAllowanceDetails": "ထောက်ပံ့ကြေး အသေးစိတ်မရှိပါ။",
+      "totalAllowances": "ထောက်ပံ့ကြေး စုစုပေါင်း",
+      "bonuses": "ဘောနပ်များ",
+      "noBonusDetails": "ဘောနပ် အသေးစိတ်မရှိပါ။",
+      "totalBonus": "ဘောနပ် စုစုပေါင်း",
+      "approvedExpenses": "ခွင့်ပြုပြီးသော စရိတ်များ",
+      "noExpenseDetails": "စရိတ် အသေးစိတ်မရှိပါ။",
+      "totalReimbursement": "ပြန်အမ်းငွေ စုစုပေါင်း"
+    },
+    "dayType": {
+      "fullDay": "တစ်ရက်ပြည့်",
+      "halfDayAm": "နံနက်ပိုင်း ထက်ဝက်",
+      "halfDayPm": "နေ့လည်ပိုင်း ထက်ဝက်",
+      "halfDay": "ထက်ဝက်"
+    }
+  },
+"hrAlerts": {
+    "pageTitle": "HR သတိပေးချက်များ",
+    "description": "တက်ရောက်မှု ချိုးဖောက်မှုများအတွက် AI မှထုတ်ပေးသော သတိပေးစာများ",
+    "status": {
+      "pending": "စောင့်ဆိုင်းနေ",
+      "sent": "ပို့ပြီး",
+      "dismissed": "ပယ်ဖျက်ပြီး",
+      "all": "အားလုံး"
+    },
+    "types": {
+      "lateAlert": "နောက်ကျမှု သတိပေးချက်",
+      "absentAlert": "ပျက်ကွက်မှု သတိပေးချက်"
+    },
+    "summary": {
+      "pendingAlerts": "စောင့်ဆိုင်းနေသော သတိပေးချက်များ",
+      "lateWarnings": "နောက်ကျမှု သတိပေးချက်များ",
+      "absentWarnings": "ပျက်ကွက်မှု သတိပေးချက်များ",
+      "warningsSent": "ပို့ပြီးသော သတိပေးချက်များ",
+      "dismissed": "ပယ်ဖျက်ပြီး"
+    },
+    "labels": {
+      "late": "နောက်ကျ",
+      "absent": "ပျက်ကွက်",
+      "sentBy": "ပို့သူ",
+      "period": "ကာလ",
+      "warningLetter": "သတိပေးစာ"
+    },
+    "actions": {
+      "sendWarning": "သတိပေးစာ ပို့မည်",
+      "dismiss": "ပယ်ဖျက်မည်",
+      "hideLetter": "စာဖျောက်မည်",
+      "viewLetter": "စာကြည့်မည်",
+      "cancel": "ပယ်ဖျက်မည်",
+      "sending": "ပို့နေသည်...",
+      "dismissing": "ပယ်ဖျက်နေသည်...",
+      "checking": "စစ်ဆေးနေသည်...",
+      "runCheckNow": "ယခုပြန်စစ်မည်"
+    },
+    "modal": {
+      "sendWarningLetter": "သတိပေးစာ ပို့ရန်",
+      "editWarningLetter": "သတိပေးစာ ပြင်ရန်",
+      "aiDraftNote": "AI ထုတ်ထားသော မူကြမ်း — မပို့မီ ပြန်စစ်ပါ",
+      "dismissAlert": "သတိပေးချက် ပယ်ဖျက်ရန်",
+      "noWarningWillBeSent": "သတိပေးစာ မပို့ပါ"
+    },
+    "empty": {
+      "noPendingAlerts": "စောင့်ဆိုင်းနေသော သတိပေးချက် မရှိပါ",
+      "noAlertsFound": "သတိပေးချက် မတွေ့ပါ",
+      "allAttendanceWithinThresholds": "တက်ရောက်မှုအားလုံး သတ်မှတ်ချက်အတွင်း ရှိပါသည်!",
+      "tryDifferentFilter": "အခြား filter ဖြင့် စမ်းကြည့်ပါ။"
+    },
+    "units": {
+      "days": "ရက်"
+    },
+    "monthsShort": {
+      "Jan": "ဇန်",
+      "Feb": "ဖေ",
+      "Mar": "မတ်",
+      "Apr": "ဧပြီ",
+      "May": "မေ",
+      "Jun": "ဇွန်",
+      "Jul": "ဇူ",
+      "Aug": "ဩ",
+      "Sep": "စက်",
+      "Oct": "အောက်",
+      "Nov": "နို",
+      "Dec": "ဒီ"
+    }
+  },
+"projectAssignments": {
+  "pageTitle": "ပရောဂျက်တာဝန်ချထားမှု",
+  "actions": { "allProjects": "ပရောဂျက်အားလုံး" },
+  "sections": { "activeUpcoming": "လုပ်ဆောင်နေသောနှင့် လာမည့်ပရောဂျက်များ" },
+  "placeholders": { "searchMembers": "အဖွဲ့ဝင်များ ရှာရန်…" },
+  "filters": {
+    "all": "အားလုံး",
+    "twoHours": "၂နာရီ",
+    "fourHours": "၄နာရီ",
+    "sixHours": "၆နာရီ"
+  },
+  "workload": {
+    "free": "အားလပ်",
+    "light": "နည်း",
+    "moderate": "အလယ်အလတ်",
+    "heavy": "များ",
+    "full": "ပြည့်"
+  },
+  "status": {
+    "active": "လုပ်ဆောင်နေသည်",
+    "upcoming": "လာမည်",
+    "completed": "ပြီးဆုံး",
+    "cancelled": "ဖျက်သိမ်း"
+  },
+  "stats": {
+    "totalMembers": "အဖွဲ့ဝင်စုစုပေါင်း",
+    "activeEmployees": "လုပ်ဆောင်နေသောဝန်ထမ်းများ",
+    "available": "အားလပ်နေသူ",
+    "zeroAssignedToday": "ယနေ့ ၀ နာရီ တာဝန်ချထား",
+    "utilization": "အသုံးပြုမှု",
+    "activeProjects": "လုပ်ဆောင်နေသော ပရောဂျက်များ",
+    "currentlyRunning": "လက်ရှိလုပ်ဆောင်နေသည်"
+  },
+  "labels": {
+    "teamMembers": "အဖွဲ့ဝင်များ",
+    "team": "အဖွဲ့",
+    "open": "နေရာလွတ်",
+    "openSlot": "နေရာလွတ်",
+    "assignments": "တာဝန်ချထားမှုများ",
+    "dailyCapacity": "နေ့စဉ်လုပ်နိုင်စွမ်း",
+    "used": "အသုံးပြုပြီး",
+    "dueToday": "ယနေ့နောက်ဆုံးရက်",
+    "noEndDate": "ပြီးဆုံးရက် မရှိပါ"
+  },
+  "empty": {
+    "noMembersFound": "အဖွဲ့ဝင် မတွေ့ပါ",
+    "noMembersYet": "အဖွဲ့ဝင် မရှိသေးပါ",
+    "noAssignmentsYet": "တာဝန်ချထားမှု မရှိသေးပါ",
+    "noActiveUpcomingProjects": "လုပ်ဆောင်နေသော သို့မဟုတ် လာမည့်ပရောဂျက် မရှိပါ"
+  },
+  "units": {
+    "member": "ဦး",
+    "members": "ဦး",
+    "perDay": "တစ်နေ့လျှင်",
+    "today": "ယနေ့",
+    "daysLeftSuffix": "ရက် ကျန်"
+  }
+},
+"bookings": {
+  "heroSubtitle": "အရင်းအမြစ် ကြိုတင်မှာကြားမှု",
+  "heroTitle": "အစည်းအဝေးခန်းများနှင့် မော်တော်ယာဉ်များ",
+  "heroDesc": "အလုပ်လိုအပ်ချက်များအတွက် အစည်းအဝေးခန်းနှင့် ကုမ္ပဏီမော်တော်ယာဉ် ကြိုတင်မှာကြားပါ။",
+  "today": "ယနေ့",
+  "rooms": "ခန်းမများ",
+  "cars": "ယာဉ်များ",
+  "tabCalendar": "ပြက္ခဒိန်",
+  "tabMyBookings": "ကျွန်ုပ်၏ မှာကြားမှုများ",
+  "tabMyInvitations": "ကျွန်ုပ်၏ ဖိတ်ကြားမှုများ",
+  "tabDriverNotes": "ယာဉ်မောင်း မှတ်ချက်များ",
+  "tabManageResources": "အရင်းအမြစ် စီမံမှု",
+  "bookRoom": "ခန်းမ မှာကြားမည်",
+  "bookCar": "ယာဉ် မှာကြားမည်",
+  "loadingSchedule": "အချိန်ဇယား ဖတ်ရှုနေသည်…",
+  "free": "လွတ်",
+  "floor": "ထပ်",
+  "seats": "ထိုင်ခုံ",
+  "capacity": "ဆံ့မှု",
+  "passengers": "ဦး",
+  "driver": "ယာဉ်မောင်း",
+  "location": "တည်နေရာ",
+  "rules": "စည်းမျဉ်းများ",
+  "noRoomsYet": "အစည်းအဝေးခန်း မှတ်ပုံတင်ထားခြင်း မရှိသေးပါ",
+  "noCarsYet": "မော်တော်ယာဉ် မှတ်ပုံတင်ထားခြင်း မရှိသေးပါ",
+  "goToManage": "အရင်းအမြစ် စီမံမှုသို့ သွားပြီး ထည့်ပါ",
+  "openEnded": "ပြန်ရောက်ချိန် မသတ်မှတ်ရသေး",
+  "onTheWay": "သွားနေသည်",
+  "returning": "ပြန်နေသည်",
+  "requestCar": "ကုမ္ပဏီယာဉ် တောင်းဆိုမည်",
+  "reserveRoom": "အစည်းအဝေးခန်း မှာကြားမည်",
+  "step1": "အဆင့် ၁ — ရက်စွဲနှင့် အချိန် သတ်မှတ်မည်",
+  "step2": "အဆင့် ၂ — အရင်းအမြစ် ရွေးချယ်မည်",
+  "step3": "အဆင့် ၃ — အတည်ပြုပြီး တင်သွင်းမည်",
+  "date": "ရက်စွဲ",
+  "startTime": "စတင်ချိန်",
+  "endTime": "ပြီးဆုံးချိန်",
+  "returnUnknown": "ပြန်ရောက်ချိန် မသိ",
+  "openEndedDesc": "ပြန်ရောက်ချိန် မသတ်မှတ်ဘဲ — ယာဉ်ထွက်နေလျှင် စောင့်စာရင်းတွင် ဝင်ရောက်မည်",
+  "waitlistWarning": "ပြန်ရောက်ချိန် မသတ်မှတ်ထားသော မှာကြားမှု ရှိပါက စောင့်စာရင်းတွင် ထည့်မည်",
+  "numAttendees": "တက်ရောက်သူ အရေအတွက်",
+  "attendeesHint": "ရွေးချယ်နိုင် — ထိုင်ခုံ ဆံ့မှုအလိုက် စစ်ထုတ်သည်",
+  "continueAvailable": "ဆက်သွားမည် — ရနိုင်သည့်",
+  "back": "နောက်သို့",
+  "checkingAvailability": "ရနိုင်မှု စစ်ဆေးနေသည်…",
+  "noResourcesFound": "{{type}} မတွေ့ပါ",
+  "selected": "ရွေးချယ်ပြီး",
+  "available": "ရနိုင်",
+  "currentlyOut": "ယခု ထွက်နေသည်",
+  "freeFrom": "ကနေ လွတ်",
+  "unavailable": "မရနိုင်",
+  "continueDetails": "ဆက်သွားမည် — အချက်အလက် ထည့်မည်",
+  "attendees": "ဦး",
+  "tripType": "ခရီးအမျိုးအစား",
+  "oneWay": "တစ်ဦးတည်း",
+  "oneWayDesc": "A မှ B — ပြန်မလာ",
+  "multiStop": "အကြိမ်များစွာ ရပ်တန့်",
+  "multiStopDesc": "ပန်းတိုင် တစ်ခုထက်ပို",
+  "pickupDrop": "လာကြိုပို့",
+  "pickupDropDesc": "ယာဉ်မောင်း လာကြိုသည် သို့မဟုတ် ပို့ပေးသည်",
+  "departureLocation": "ထွက်ခွာသောနေရာ",
+  "departurePlaceholder": "ဥပမာ ရုံးဝင်းဝ၊ အဆောက်အဦ A",
+  "destination": "ပန်းတိုင်",
+  "destinationPlaceholder": "ဥပမာ လေဆိပ်၊ ဟိုတယ်",
+  "officeLobbyPlaceholder": "ဥပမာ ရုံးဝင်းဝ",
+  "stops": "ရပ်နားမည့်နေရာများ",
+  "addStop": "ရပ်နားသောနေရာ ထည့်မည်",
+  "stop": "ရပ်နားသောနေရာ",
+  "returnToDeparture": "ထွက်ခွာသောနေရာ ပြန်သွားမည်",
+  "returnToDepartureDesc": "ယာဉ်မောင်း နောက်ဆုံး ရပ်နားသည့်နေရာမှ ပြန်သွားမည်",
+  "returnTimeEstimated": "ပြန်ရောက်ချိန် (ခန့်မှန်း)",
+  "pickupPoint": "လာကြိုမည့်/ထွက်ခွာမည့် နေရာ",
+  "pickupPlaceholder": "ဥပမာ အိမ်လိပ်စာ၊ ဟိုတယ်ဝင်း",
+  "pickupDestPlaceholder": "ဥပမာ ရုံး၊ လေဆိပ်၊ ဖောက်သည် နေရာ",
+  "driverWaitsReturns": "ယာဉ်မောင်း စောင့်ပြီး ပြန်ပို့မည်",
+  "driverWaitsDesc": "ယာဉ်မောင်း ပန်းတိုင်တွင် စောင့်ပြီး ပြန်ပို့မည်",
+  "expectedReturnTime": "ပြန်ရောက်မည့် အချိန် (ခန့်မှန်း)",
+  "participants": "ပါဝင်သူများ",
+  "purposeLabel": "ရည်ရွယ်ချက် / အကြောင်းရင်း *",
+  "purposeCarPlaceholder": "ဥပမာ လေဆိပ်ကြိုမည်၊ ဖောက်သည် တွေ့ဆုံမည်…",
+  "purposeRoomPlaceholder": "ဥပမာ အပတ်စဉ် team meeting၊ ဖောက်သည် တင်ပြမည်…",
+  "confirming": "အတည်ပြုနေသည်…",
+  "joinWaitlist": "စောင့်စာရင်းတွင် ဝင်မည်",
+  "confirmBooking": "မှာကြားမှု အတည်ပြုမည်",
+  "nameRequired": "အမည် *",
+  "roomNamePlaceholder": "ဥပမာ Meeting Room A",
+  "carNamePlaceholder": "ဥပမာ Toyota Camry 2023",
+  "floorLocation": "ထပ် / တည်နေရာ",
+  "parkingLocation": "ကားပါကင် နေရာ",
+  "floorPlaceholder": "ဥပမာ ၂ ထပ်",
+  "parkingPlaceholder": "ဥပမာ Parking B1",
+  "seatCapacity": "ထိုင်ခုံဆံ့မှု",
+  "passengerCapacity": "လူဆံ့မှု",
+  "plateRequired": "ကားနံပါတ် *",
+  "assignedDriver": "တာဝန်ပေးသော ယာဉ်မောင်း *",
+  "selectDriver": "ယာဉ်မောင်း ရွေးပါ…",
+  "roomRules": "ခန်းမ စည်းမျဉ်း",
+  "usageNotes": "အသုံးပြုမှု မှတ်ချက်",
+  "roomRulesPlaceholder": "ဥပမာ အစားအသောက် မခွင့်ပြု၊ အများဆုံး ၂ နာရီ",
+  "usageNotesPlaceholder": "ဥပမာ ဆီပြည့်ပြင်ဆင်ပြန်မည်၊ အတွင်းသန့်ရှင်းပြန်မည်",
+  "active": "လက်ရှိ ဖွင့်ထား",
+  "activeDesc": "ပိတ်ထားသော အရင်းအမြစ်များ မှာကြားမှုတွင် မပြပါ",
+  "inactive": "ပိတ်ထား",
+  "reactivate": "ပြန်ဖွင့်မည်",
+  "cancel": "မလုပ်တော့ပါ",
+  "saving": "သိမ်းနေသည်…",
+  "saveChanges": "ပြောင်းလဲမှု သိမ်းမည်",
+  "registerResource": "အရင်းအမြစ် မှတ်ပုံတင်မည်",
+  "registerNewResource": "အသစ် မှတ်ပုံတင်မည်",
+  "resourceManagement": "အရင်းအမြစ် စီမံမှု",
+  "meetingRoom": "အစည်းအဝေးခန်း",
+  "companyCar": "ကုမ္ပဏီ ယာဉ်",
+  "edit": "ပြင်ဆင်မည်",
+  "room": "ခန်းမ",
+  "car": "ယာဉ်",
+  "reasonRequired": "အကြောင်းရင်း ထည့်ရမည်",
+  "bookingRejected": "မှာကြားမှု ငြင်းပယ်ပြီး",
+  "failedToReject": "ငြင်းပယ်မရပါ",
+  "rejectBooking": "မှာကြားမှု ငြင်းပယ်မည်",
+  "hrAction": "HR လုပ်ဆောင်ချက်",
+  "rejectingDesc": "ငြင်းပယ်နေသည်",
+  "bookingFor": "၏ မှာကြားမှုကို",
+  "reasonForRejection": "ငြင်းပယ်ရသည့် အကြောင်းရင်း *",
+  "rejectReasonPlaceholder": "ဘာကြောင့် ငြင်းပယ်သနည်း ရှင်းလင်းပါ…",
+  "rejecting": "ငြင်းပယ်နေသည်…",
+  "reason": "အကြောင်း",
+  "rejected": "ငြင်းပယ်ပြီး",
+  "cancelNote": "ပယ်ဖျက်မှတ်ချက်",
+  "approve": "အတည်ပြုမည်",
+  "reject": "ငြင်းပယ်မည်",
+  "markReturned": "ပြန်ရောက်ပြီ မှတ်မည်",
+  "cancelBooking": "မှာကြားမှု ပယ်ဖျက်မည်",
+  "failedToApprove": "အတည်မပြုနိုင်ပါ",
+  "confirmCancellation": "ပယ်ဖျက်မှု အတည်ပြုမည်",
+  "cancelThisBooking": "ဤ မှာကြားမှုကို ပယ်ဖျက်မည်လား?",
+  "cancelWarning": "ဤ မှာကြားမှု ပယ်ဖျက်ပြီးနောက် ပြန်မရနိုင်ပါ။",
+  "keepBooking": "မှာကြားမှု ဆက်ထားမည်",
+  "cancelling": "ပယ်ဖျက်နေသည်…",
+  "yesCancel": "ဟုတ်ကဲ့၊ ပယ်ဖျက်မည်",
+  "failedToCancel": "ပယ်ဖျက်မရပါ",
+  "bookingDetail": "မှာကြားမှု အသေးစိတ်",
+  "bookingInfo": "မှာကြားမှု သတင်းအချက်အလက်",
+  "time": "အချိန်",
+  "purpose": "ရည်ရွယ်ချက်",
+  "tripInfo": "ခရီးစဉ် သတင်းအချက်အလက်",
+  "type": "အမျိုးအစား",
+  "from": "ထွက်ခွာမည့်နေရာ",
+  "return": "ပြန်လာမည်",
+  "yesTBD": "ဟုတ် (နောက်မှ သတ်မှတ်မည်)",
+  "carInfo": "ယာဉ် သတင်းအချက်အလက်",
+  "plate": "ကားနံပါတ်",
+  "parking": "ကားပါကင်",
+  "roomInfo": "ခန်းမ သတင်းအချက်အလက်",
+  "people": "လူများ",
+  "organizer": "စီစဉ်သူ",
+  "loading": "ဖတ်ရှုနေသည်…",
+  "failedToLoad": "ဖတ်မရပါ",
+  "statusPending": "ဆုံးဖြတ်ဆဲ",
+  "statusApproved": "အတည်ပြုပြီး",
+  "statusRejected": "ငြင်းပယ်ပြီး",
+  "statusCancelled": "ပယ်ဖျက်ပြီး",
+  "statusWaitlisted": "စောင့်စာရင်းတွင်",
+  "statusCompleted": "ပြီးစီးပြီး",
+  "busy": "အချိန်မရ",
+  "scheduleConflict": "အချိန်ဆက်တိုက် ထပ်နေသည်",
+  "checkingSchedule": "အချိန်ဇယား စစ်ဆေးနေသည်…",
+  "searchByNameEmail": "အမည် သို့မဟုတ် အီးမေးလ်ဖြင့် ရှာပါ…",
+  "noPendingApprovals": "အတည်ပြုရမည့် မှာကြားမှု မရှိပါ",
+  "allCaughtUp": "အားလုံး ပြီးစီးပြီ!",
+  "noUpcoming": "{{type}} မှာကြားမှု ရှေ့ဆက် မရှိပါ",
+  "clickToStart": "\"{{type}}\" ကိုနှိပ်ပြီး စတင်ပါ",
+  "noInvitationsOn": "ဤနေ့တွင် ဖိတ်ကြားမှု မရှိပါ",
+  "selectDateForInvitations": "ဖိတ်ကြားမှုများ ကြည့်ရန် ပြက္ခဒိန်မှ ရက်ရွေးပါ",
+  "noDriverNotesOn": "ဤနေ့တွင် ယာဉ်မောင်း မှတ်ချက် မရှိပါ",
+  "notesAppearAfterTrips": "ခရီးများ ပြီးစီးပြီးနောက် မှတ်ချက်များ ပေါ်လာမည်",
+  "leftANote": "မှတ်ချက် ထားခဲ့သည်",
+  "noRoomsYetManage": "အစည်းအဝေးခန်း မရှိသေးပါ — + မှတ်ပုံတင်မည် နှိပ်ပါ",
+  "noCarsYetManage": "ယာဉ် မရှိသေးပါ — + မှတ်ပုံတင်မည် နှိပ်ပါ",
+  "meetingRooms": "အစည်းအဝေးခန်းများ",
+  "companyCars": "ကုမ္ပဏီ ယာဉ်များ",
+  "confirmDelete": "ဖျက်မှု အတည်ပြုမည်",
+  "deleteResource": "ဖျက်မည်",
+  "deleteResourceWarning": "ဤ",
+  "deleteResourceWarning2": "ကို အပြီးအပိုင် ဖျက်မည်။ မှာကြားမှု သမိုင်း ထိန်းသိမ်းရန် Inactive ဖြစ်အောင် ပြောင်းပြောင်းပါ",
+  "deletePermanently": "အပြီးအပိုင် ဖျက်မည်",
+  "failedToDelete": "ဖျက်မရပါ",
+  "failedToSave": "သိမ်းမရပါ",
+  "carMarkedReturned": "ယာဉ် ပြန်ရောက်ပြီ မှတ်ယူပြီ",
+  "myRoomBooking": "ကျွန်ုပ်၏ ခန်းမ မှာကြားမှု",
+  "myCarBooking": "ကျွန်ုပ်၏ ယာဉ် မှာကြားမှု",
+  "errorPurpose": "ရည်ရွယ်ချက် ဖြည့်ပါ",
+  "errorResource": "အရင်းအမြစ် ရွေးချယ်ပါ",
+  "errorPickup": "လာကြိုမည့်နေရာ ဖြည့်ရမည်",
+  "errorDeparture": "ထွက်ခွာမည့်နေရာ ဖြည့်ရမည်",
+  "errorDestination": "ပန်းတိုင် ဖြည့်ရမည်",
+  "errorStops": "ရပ်နားသောနေရာ အားလုံး ဖြည့်ရမည်",
+  "errorStopsMin": "ရပ်နားသောနေရာ အနည်းဆုံး တစ်ခု လိုအပ်သည်",
+  "errorEndTime": "ပြီးဆုံးချိန် သည် စတင်ချိန်ထက် နောက်ကျရမည်",
+  "errorName": "အမည် ဖြည့်ရမည်",
+  "errorPlate": "ကားနံပါတ် ဖြည့်ရမည်",
+  "errorDriver": "ယာဉ်မောင်း သတ်မှတ်ပါ",
+  "errorCapacity": "ဆံ့မှု အနည်းဆုံး ၁ ဖြစ်ရမည်",
+  "submitFailed": "တင်သွင်းမရပါ၊ ထပ်မံ ကြိုးစားပါ"
+},
+"performance": {
+    "pageTitle": "စွမ်းဆောင်ရည် သုံးသပ်ချက်",
+    "labels": {
+      "metrics": "တိုင်းတာချက်များ",
+      "analysisResults": "ခွဲခြမ်းစိတ်ဖြာမှု ရလဒ်များ",
+      "employeeMetrics": "ဝန်ထမ်းတိုင်းတာချက်များ",
+      "employees": "ဝန်ထမ်းများ"
+    },
+    "metrics": {
+      "late": "နောက်ကျ",
+      "absent": "ပျက်ကွက်",
+      "leave": "ခွင့်",
+      "overtime": "အချိန်ပို"
+    },
+    "ratings": {
+      "Excellent": "အလွန်ကောင်း",
+      "Good": "ကောင်း",
+      "Average": "ပျမ်းမျှ",
+      "NeedsImprovement": "တိုးတက်ရန်လို",
+      "Poor": "အားနည်း"
+    },
+    "placeholders": {
+      "year": "နှစ်",
+      "country": "နိုင်ငံ"
+    },
+    "actions": {
+      "exportPdf": "PDF ထုတ်မည်",
+      "analyzing": "ခွဲခြမ်းစိတ်ဖြာနေသည်",
+      "aiAnalysis": "AI ခွဲခြမ်းစိတ်ဖြာမှု"
+    },
+    "kpis": {
+      "totalEmployees": "ဝန်ထမ်းစုစုပေါင်း",
+      "avgLateDays": "နောက်ကျရက် ပျမ်းမျှ",
+      "avgAbsentDays": "ပျက်ကွက်ရက် ပျမ်းမျှ",
+      "avgLeaveDays": "ခွင့်ရက် ပျမ်းမျှ",
+      "avgOTHours": "OT နာရီ ပျမ်းမျှ"
+    },
+    "table": {
+      "employee": "ဝန်ထမ်း",
+      "dept": "ဌာန",
+      "attendance": "တက်ရောက်မှု",
+      "lateDays": "နောက်ကျရက်",
+      "absent": "ပျက်ကွက်",
+      "leaveDays": "ခွင့်ရက်",
+      "leave": "ခွင့်",
+      "otHours": "OT နာရီ",
+      "otHrs": "OT နာရီ",
+      "rating": "အဆင့်",
+      "remark": "မှတ်ချက်",
+      "score": "ရမှတ်",
+      "aiRemark": "AI မှတ်ချက်"
+    },
+    "empty": {
+      "noEmployeeData": "ရွေးထားသော filter များအတွက် ဝန်ထမ်းဒေတာ မတွေ့ပါ။"
+    },
+    "pdf": {
+      "hrPerformanceReport": "HR စွမ်းဆောင်ရည် အစီရင်ခံစာ",
+      "annualPerformanceReview": "နှစ်စဉ် စွမ်းဆောင်ရည် သုံးသပ်ချက်",
+      "ratingDistribution": "အဆင့်ခွဲဝေမှု",
+      "confidentialHrDocument": "လျှို့ဝှက် HR စာရွက်စာတမ်း",
+      "generatedBySmartHr": "Smart HR မှ ထုတ်လုပ်သည်",
+      "printSavePdf": "Print / PDF အဖြစ် သိမ်းမည်"
+    }
+  },
+"projects": {
+  "pageTitle": "ပရောဂျက်များ",
+  "appTitle": "ပရောဂျက်တာဝန်ချထားမှု",
+  "actions": {
+    "backToAssignments": "တာဝန်ချထားမှုသို့ ပြန်သွားရန်",
+    "createProject": "ပရောဂျက်ဖန်တီးရန်",
+    "update": "ပြင်ဆင်မည်",
+    "create": "ပရောဂျက်ဖန်တီးမည်",
+    "cancel": "မလုပ်တော့ပါ",
+    "delete": "ဖျက်ရန်",
+    "view": "ကြည့်ရန်",
+    "yesUpdate": "ပြင်ဆင်မည်"
+  },
+  "modal": {
+    "newProject": "ပရောဂျက်အသစ်",
+    "editProject": "ပရောဂျက်ပြင်ရန်",
+    "confirmUpdate": "ပြင်ဆင်မှု အတည်ပြုရန်",
+    "deleteProject": "ပရောဂျက်ကို ဖျက်မလား?",
+    "updateSubtitle": "အောက်တွင် ပရောဂျက်အသေးစိတ်များကို ပြင်ဆင်ပါ",
+    "createSubtitle": "အောက်တွင် ပရောဂျက်အသေးစိတ်များကို ဖြည့်ပါ",
+    "confirmUpdateMessage": "ဤပရောဂျက်ကို ပြင်ဆင်ရန် သေချာပါသလား",
+    "deleteMessage": "သည် ၎င်း၏တာဝန်ချထားမှုများအားလုံးနှင့်အတူ အပြီးတိုင် ဖျက်သိမ်းပါမည်။",
+    "cannotBeUndone": "ဤလုပ်ဆောင်ချက်ကို ပြန်ဖျက်၍ မရပါ။"
+  },
+  "fields": {
+    "projectName": "ပရောဂျက်အမည်",
+    "description": "ဖော်ပြချက်",
+    "status": "အခြေအနေ",
+    "startDate": "စတင်ရက်",
+    "endDate": "ပြီးဆုံးရက်",
+    "optional": "မဖြည့်လည်းရ"
+  },
+  "placeholders": {
+    "projectName": "ဥပမာ CRM System v2",
+    "description": "ပရောဂျက်အကြောင်း အတိုချုံးရေးပါ…",
+    "searchProjects": "ပရောဂျက်များ ရှာရန်…"
+  },
+  "status": {
+    "all": "အားလုံး",
+    "active": "လုပ်ဆောင်နေသည်",
+    "upcoming": "လာမည်",
+    "completed": "ပြီးဆုံး",
+    "cancelled": "ဖျက်သိမ်း"
+  },
+  "table": {
+    "project": "ပရောဂျက်",
+    "status": "အခြေအနေ",
+    "duration": "ကာလ",
+    "members": "အဖွဲ့ဝင်များ",
+    "daysLeft": "ကျန်ရက်",
+    "actions": "လုပ်ဆောင်ချက်များ",
+    "from": "မှ",
+    "to": "ထိ"
+  },
+  "empty": {
+    "noProjectsFound": "ပရောဂျက် မတွေ့ပါ",
+    "tryDifferentSearch": "အခြားရှာဖွေစကားလုံးဖြင့် ထပ်ရှာပါ"
+  },
+  "pagination": {
+    "prev": "နောက်သို့",
+    "next": "ရှေ့သို့"
+  },
+  "validation": {
+    "required": "လိုအပ်သည်",
+    "endDateAfterStart": "ပြီးဆုံးရက်သည် စတင်ရက်နောက် ဖြစ်ရမည်"
+  },
+  "messages": {
+    "created": "ပရောဂျက်ကို အောင်မြင်စွာ ဖန်တီးပြီးပါပြီ!",
+    "updated": "ပရောဂျက်ကို အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ!",
+    "deleted": "ပရောဂျက်ကို အောင်မြင်စွာ ဖျက်ပြီးပါပြီ။",
+    "createFailed": "ပရောဂျက်ဖန်တီး၍ မရပါ။ ထပ်မံကြိုးစားပါ။",
+    "updateFailed": "ပရောဂျက်ပြင်ဆင်၍ မရပါ။ ထပ်မံကြိုးစားပါ။",
+    "deleteFailed": "ပရောဂျက်ဖျက်၍ မရပါ။"
+  },
+  "loading": {
+    "creating": "ဖန်တီးနေသည်…",
+    "updating": "ပြင်ဆင်နေသည်…",
+    "deleting": "ဖျက်နေသည်…"
+  },
+  "units": {
+    "project": "ပရောဂျက်",
+    "projects": "ပရောဂျက်များ",
+    "dayOverdue": "ရက် ကျော်လွန်",
+    "dueToday": "ယနေ့နောက်ဆုံးရက်",
+    "dayLeft": "ရက် ကျန်",
+    "daysLeft": "ရက် ကျန်"
+  }
+},
+"surveys": {
+    "actions": {
+      "back": "နောက်သို့",
+      "cancel": "ပယ်ဖျက်မည်",
+      "delete": "ဖျက်မည်"
+    },
+    "labels": {
+      "anonymous": "အမည်မဖော်",
+      "questions": "မေးခွန်းများ",
+      "questionsLower": "မေးခွန်းများ",
+      "responses": "တုံ့ပြန်မှုများ",
+      "responsesLower": "တုံ့ပြန်မှုများ",
+      "closes": "ပိတ်မည့်ရက်",
+      "by": "ဖန်တီးသူ"
+    },
+    "status": {
+      "all": "အားလုံး",
+      "draft": "မူကြမ်း",
+      "active": "အသုံးပြုနေ",
+      "closed": "ပိတ်ပြီး"
+    },
+    "questionTypes": {
+      "single": "တစ်ခုရွေး",
+      "multiple": "အများရွေး",
+      "yesNo": "ဟုတ်/မဟုတ်",
+      "rating": "အဆင့်ပေး",
+      "text": "စာသား",
+      "singleChoice": "တစ်ခုရွေး",
+      "multiChoice": "အများရွေး",
+      "textAnswer": "စာသားဖြေချက်"
+    },
+    "closed": {
+      "headTitle": "Survey ပိတ်ထားသည်",
+      "title": "Survey ပိတ်ထားသည်",
+      "message": "ဤ survey သည် တုံ့ပြန်မှုများ မလက်ခံတော့ပါ။ ဖြေဆိုချိန် ပြီးဆုံးသွားပါပြီ။",
+      "responsesNoLongerCollected": "တုံ့ပြန်မှုများ မစုဆောင်းတော့ပါ",
+      "contactHr": "မေးခွန်းရှိပါက HR ကိုဆက်သွယ်ပါ 💜"
+    },
+    "create": {
+      "createSurvey": "Survey ဖန်တီးရန်",
+      "editSurvey": "Survey ပြင်ရန်",
+      "newSurvey": "Survey အသစ်",
+      "surveyBuilder": "Survey Builder",
+      "createSubtitle": "Conditional logic၊ မေးခွန်းအမျိုးအစားများနှင့် smart settings ပါသော survey ဖန်တီးပါ။",
+      "editSubtitle": "Survey အကြောင်းအရာ၊ မေးခွန်းများနှင့် settings များကို ပြင်ဆင်ပါ။",
+      "surveyDetails": "Survey အသေးစိတ်",
+      "settings": "ဆက်တင်များ",
+      "summary": "အကျဉ်းချုပ်",
+      "fields": {
+        "question": "မေးခွန်း",
+        "type": "အမျိုးအစား",
+        "titleRequired": "ခေါင်းစဉ် *",
+        "description": "ဖော်ပြချက်",
+        "closeDate": "ပိတ်မည့်ရက်",
+        "title": "ခေါင်းစဉ်"
+      },
+      "placeholders": {
+        "question": "မေးခွန်းကို ဒီမှာရေးပါ...",
+        "option": "ရွေးချယ်မှု",
+        "selectAnswer": "အဖြေရွေးပါ...",
+        "title": "ဥပမာ Q2 ဝန်ထမ်းကျေနပ်မှု Survey",
+        "description": "မဖြည့်လည်းရသည် — survey အကြောင်း အတိုချုံးရေးပါ။"
+      },
+      "labels": {
+        "conditionalLogic": "Conditional Logic",
+        "showIf": "ပြရန် အခြေအနေ",
+        "alwaysShow": "အမြဲပြရန်",
+        "emptyQuestion": "(ဗလာ)",
+        "answerIs": "အဖြေသည်",
+        "questionShowsOnlyWhen": "ဤမေးခွန်းသည် အောက်ပါအခြေအနေတွင်သာ ပြပါမည်",
+        "required": "လိုအပ်သည်",
+        "optional": "မဖြည့်လည်းရသည်",
+        "conditional": "အခြေအနေပါ"
+      },
+      "actions": {
+        "addOption": "+ ရွေးချယ်မှုထည့်မည်",
+        "addQuestion": "မေးခွန်းထည့်မည်",
+        "saveAsDraft": "မူကြမ်းအဖြစ်သိမ်းမည်",
+        "saving": "သိမ်းနေသည်...",
+        "publishSurvey": "Survey ထုတ်ပြန်မည်"
+      },
+      "validation": {
+        "titleRequired": "Survey ခေါင်းစဉ် လိုအပ်ပါသည်။",
+        "addQuestion": "အနည်းဆုံး မေးခွန်းတစ်ခု ထည့်ပါ။",
+        "required": "လိုအပ်သည်",
+        "needTwoOptions": "အနည်းဆုံး ရွေးချယ်မှု ၂ ခု လိုအပ်ပါသည်"
+      },
+      "anonymousOn": "အမည်မပါဘဲ တုံ့ပြန်မှုများ စုဆောင်းမည်။ HR သည် မည်သူဖြေသည်ကို မမြင်နိုင်ပါ။",
+      "anonymousOff": "ဖြေဆိုသူအမည်များ မှတ်တမ်းတင်မည်။ HR သည် မည်သူဖြေသည်ကို မြင်နိုင်ပါသည်။"
+    },
+    "index": {
+      "pageTitle": "Survey များ",
+      "copySurveyLink": "Survey link ကော်ပီလုပ်ရန်",
+      "copied": "ကော်ပီပြီးပါပြီ!",
+      "copyLink": "Link ကော်ပီ",
+      "results": "ရလဒ်များ",
+      "activate": "အသုံးပြုမည်",
+      "close": "ပိတ်မည်",
+      "createSurvey": "Survey ဖန်တီးရန်",
+      "noSurveysFound": "Survey မတွေ့ပါ",
+      "createFirstSurvey": "ပထမဆုံး survey ဖန်တီးရန် \"Survey ဖန်တီးရန်\" ကိုနှိပ်ပါ။",
+      "stats": {
+        "totalSurveys": "Survey စုစုပေါင်း",
+        "totalResponses": "တုံ့ပြန်မှုစုစုပေါင်း"
+      }
+    },
+    "public": {
+      "validation": {
+        "questionRequired": "ဤမေးခွန်းကို ဖြေရန်လိုအပ်ပါသည်။"
+      },
+      "errors": {
+        "somethingWentWrong": "တစ်ခုခုမှားယွင်းသွားသည်။",
+        "connectionError": "ချိတ်ဆက်မှု အမှားဖြစ်သည်။ ပြန်ကြိုးစားပါ။"
+      },
+      "alreadySubmitted": "တင်ပြီးသားဖြစ်သည်",
+      "alreadySharedPrefix": "သင်၏ feedback ကို တင်ပြီးသားဖြစ်သည်",
+      "onlyOnce": "လူတစ်ဦးလျှင် တစ်ကြိမ်သာ ဖြေနိုင်ပါသည်။",
+      "anonymousRecorded": "သင့်အမည်မဖော် တုံ့ပြန်မှုကို မှတ်တမ်းတင်ပြီးပါပြီ။",
+      "responseSaved": "သင့်တုံ့ပြန်မှုကို သိမ်းပြီးပါပြီ။",
+      "thankYouParticipating": "ပါဝင်ဖြေဆိုသည့်အတွက် ကျေးဇူးတင်ပါသည် 💜",
+      "thankYouTitle": "ကျေးဇူးတင်ပါသည်!",
+      "responseRecorded": "တုံ့ပြန်မှု မှတ်တမ်းတင်ပြီးပါပြီ!",
+      "feedbackSubmitted": "သင့် feedback ကို တင်ပြီးပါပြီ။ သင့်အချိန်နှင့် အကြံပြုချက်အတွက် ကျေးဇူးတင်ပါသည်။",
+      "submittedAnonymously": "အမည်မဖော်ဘဲ တင်ပြီးပါပြီ — သင့်အချက်အလက်ကို ကာကွယ်ထားပါသည်။",
+      "employeeSurvey": "ဝန်ထမ်း Survey",
+      "allQuestionsAnswered": "✓ မေးခွန်းအားလုံး ဖြေပြီးပါပြီ",
+      "of": "ထဲမှ",
+      "answered": "ဖြေပြီး",
+      "poor": "အားနည်း",
+      "excellent": "အလွန်ကောင်း",
+      "shareThoughts": "သင့်အမြင်ကို ဒီမှာရေးပါ...",
+      "submittingResponse": "သင့်တုံ့ပြန်မှုကို တင်နေသည်...",
+      "sendFeedback": "Feedback ပို့မည်",
+      "anonymousConfidential": "သင့်တုံ့ပြန်မှုသည် အမည်မဖော်နှင့် လျှို့ဝှက်ဖြစ်သည်။",
+      "nameRecorded": "သင့်အမည်ကို တုံ့ပြန်မှုနှင့်အတူ မှတ်တမ်းတင်မည်။",
+      "yes": "ဟုတ်",
+      "no": "မဟုတ်"
+    },
+    "results": {
+      "pageTitle": "Survey ရလဒ်များ",
+      "avg": "ပျမ်းမျှ",
+      "noTextAnswersYet": "စာသားဖြေချက် မရှိသေးပါ။",
+      "unknown": "မသိရ",
+      "avgCompletion": "ပြီးဆုံးချိန် ပျမ်းမျှ",
+      "exportCsv": "CSV ထုတ်မည်",
+      "questionResults": "မေးခွန်းရလဒ်များ",
+      "individualResponses": "တစ်ဦးချင်း တုံ့ပြန်မှုများ",
+      "aiInsight": "AI အမြင်",
+      "noResponsesYet": "တုံ့ပြန်မှု မရှိသေးပါ။",
+      "aiAnalysis": "AI ခွဲခြမ်းစိတ်ဖြာမှု",
+      "generated": "ထုတ်ပြီးချိန်",
+      "analyzing": "ခွဲခြမ်းစိတ်ဖြာနေသည်...",
+      "regenerate": "ပြန်ထုတ်မည်",
+      "generateInsight": "Insight ထုတ်မည်",
+      "noInsightGeneratedYet": "Insight မထုတ်ရသေးပါ",
+      "collectResponsesBeforeInsights": "AI insight မထုတ်မီ တုံ့ပြန်မှုများ စုဆောင်းပါ။",
+      "clickGenerateInsight": "တုံ့ပြန်မှုအားလုံးကို AI ဖြင့် ခွဲခြမ်းရန် \"Insight ထုတ်မည်\" ကိုနှိပ်ပါ။"
+    }
+  },
+"projectShow": {
+  "appTitle": "ပရောဂျက်တာဝန်ချထားမှု",
+  "actions": {
+    "backToProjects": "ပရောဂျက်များသို့ ပြန်သွားရန်",
+    "assignMember": "အဖွဲ့ဝင် တာဝန်ချရန်",
+    "assigning": "တာဝန်ချနေသည်...",
+    "assignAnyway": "မည်သို့ပင်ဖြစ်စေ တာဝန်ချမည်",
+    "updateHours": "နာရီချိန် ပြင်မည်",
+    "cancel": "မလုပ်တော့ပါ",
+    "update": "ပြင်ဆင်မည်",
+    "updating": "ပြင်ဆင်နေသည်...",
+    "removing": "ဖယ်ရှားနေသည်...",
+    "yesRemove": "ဖယ်ရှားမည်"
+  },
+  "status": {
+    "active": "လုပ်ဆောင်နေသည်",
+    "upcoming": "လာမည်",
+    "completed": "ပြီးဆုံး",
+    "cancelled": "ဖျက်သိမ်း",
+    "removed": "ဖယ်ရှားပြီး"
+  },
+  "stats": {
+    "totalMembers": "အဖွဲ့ဝင်စုစုပေါင်း",
+    "active": "လုပ်ဆောင်နေသည်",
+    "upcoming": "လာမည်",
+    "estimatedHours": "ခန့်မှန်းနာရီ"
+  },
+  "tabs": {
+    "members": "အဖွဲ့ဝင်များ",
+    "activityLog": "လုပ်ဆောင်မှုမှတ်တမ်း"
+  },
+  "table": {
+    "member": "အဖွဲ့ဝင်",
+    "period": "ကာလ",
+    "hoursPerDay": "တစ်နေ့လျှင် နာရီ",
+    "status": "အခြေအနေ",
+    "assignedBy": "တာဝန်ချသူ",
+    "notes": "မှတ်ချက်",
+    "actions": "လုပ်ဆောင်ချက်များ"
+  },
+  "fields": {
+    "member": "အဖွဲ့ဝင်",
+    "project": "ပရောဂျက်",
+    "priority": "ဦးစားပေး",
+    "startDate": "စတင်ရက်",
+    "endDate": "ပြီးဆုံးရက်",
+    "hoursPerDay": "တစ်နေ့လျှင် နာရီ",
+    "status": "အခြေအနေ",
+    "notes": "မှတ်ချက်"
+  },
+  "labels": {
+    "from": "မှ",
+    "to": "ထိ",
+    "createdBy": "ဖန်တီးသူ",
+    "timeline": "အချိန်ဇယား",
+    "available": "ရရှိနိုင်",
+    "current": "လက်ရှိ",
+    "submittingWillAdd": "တင်သွင်းပါက ထပ်ပေါင်းမည်",
+    "total": "စုစုပေါင်း",
+    "already": "ရှိပြီးသား",
+    "used": "အသုံးပြုပြီး",
+    "on": "တွင်",
+    "activeProjects": "လုပ်ဆောင်နေသော ပရောဂျက်",
+    "dailyLimit": "နေ့စဉ်ကန့်သတ်ချက်",
+    "optional": "မဖြည့်လည်းရ",
+    "priorityOrder": "ဦးစားပေးအစီအစဉ်",
+    "priority": "ဦးစားပေး",
+    "thisProject": "ဤပရောဂျက်"
+  },
+  "modal": {
+    "assignTitle": "အဖွဲ့ဝင် တာဝန်ချရန်",
+    "assignSubtitle": "အဖွဲ့ဝင်တစ်ဦးကို ထည့်ရန်",
+    "editAssignmentTitle": "တာဝန်ချထားမှု ပြင်ရန်"
+  },
+  "confirm": {
+    "removeTitle": "အဖွဲ့ဝင်ကို ဖယ်ရှားမလား?",
+    "removeMessage": "ဖယ်ရှားမည်",
+    "cannotUndo": "ဤလုပ်ဆောင်ချက်ကို ပြန်ဖျက်၍ မရပါ။"
+  },
+  "empty": {
+    "noMembersAssigned": "အဖွဲ့ဝင် တာဝန်ချထားမှု မရှိသေးပါ",
+    "noActivityYet": "လုပ်ဆောင်မှု မရှိသေးပါ"
+  },
+  "placeholders": {
+    "selectMember": "အဖွဲ့ဝင် ရွေးချယ်ပါ...",
+    "optionalNotes": "မှတ်ချက် ရေးလိုပါက ရေးပါ..."
+  },
+  "messages": {
+    "alreadyAssigned": "ဤပရောဂျက်တွင် တာဝန်ချထားပြီးသား ဖြစ်သည်",
+    "capacityOk": "စွမ်းဆောင်ရည် အဆင်ပြေသည်",
+    "overCapacity": "စွမ်းဆောင်ရည် ကျော်လွန်နေသည်",
+    "exceedsDailyLimit": "နေ့စဉ်ကန့်သတ်ချက် ကျော်လွန်သည်",
+    "noOtherAssignments": "အခြားတာဝန်ချထားမှု မရှိပါ",
+    "thisWillBe": "ဤသည် ဖြစ်မည်",
+    "selectHoursAbove": "အပေါ်မှ နာရီချိန် ရွေးပါ",
+    "priorityHint": "P1 သည် မနက်ပိုင်း slot ဖြစ်သည်။ ဦးစားပေးနံပါတ်မြင့်လေ အချိန် slot သည် နေ့ပိုင်းနောက်ကျလေ ဖြစ်သည်။"
+  },
+  "validation": {
+    "selectMember": "အဖွဲ့ဝင် ရွေးချယ်ရန် လိုအပ်ပါသည်",
+    "selectHoursPerDay": "တစ်နေ့လျှင် နာရီချိန် ရွေးချယ်ရန် လိုအပ်ပါသည်",
+    "startDateRequired": "စတင်ရက် လိုအပ်ပါသည်",
+    "endDateRequired": "ပြီးဆုံးရက် လိုအပ်ပါသည်",
+    "endDateAfterStart": "ပြီးဆုံးရက်သည် စတင်ရက်နောက် ဖြစ်ရမည်"
+  },
+  "logs": {
+    "assigned": "တာဝန်ချခဲ့သည်",
+    "editedAssignmentOf": "၏တာဝန်ချထားမှုကို ပြင်ခဲ့သည်",
+    "removed": "ဖယ်ရှားခဲ့သည်"
+  },
+  "units": {
+    "hoursPerDay": "နာရီ/နေ့",
+    "perDay": "တစ်နေ့လျှင်"
+  }
+},
+  "recruitment": {
+    "actions": {
+      "add": "ထည့်ရန်",
+      "applyToAll": "အားလုံးတွင် အသုံးပြုရန်",
+      "cancel": "ပယ်ဖျက်ရန်",
+      "createJobPosting": "အလုပ်ခေါ်စာ ဖန်တီးရန်",
+      "delete": "ဖျက်ရန်",
+      "deletePermanently": "အပြီးတိုင် ဖျက်ရန်",
+      "deletePosting": "အလုပ်ခေါ်စာ ဖျက်ရန်",
+      "deleting": "ဖျက်နေသည်...",
+      "edit": "ပြင်ဆင်ရန်",
+      "newPosting": "အလုပ်ခေါ်စာအသစ်",
+      "reschedule": "ရက်ချိန်းပြန်လည်သတ်မှတ်ရန်",
+      "rescheduleSendEmail": "ရက်ချိန်းပြန်လည်သတ်မှတ်ပြီး အီးမေးလ်ပို့ရန်",
+      "saveChanges": "ပြင်ဆင်မှုများကို သိမ်းဆည်းရန်",
+      "saveScore": "ရမှတ်သိမ်းဆည်းရန်",
+      "saving": "သိမ်းဆည်းနေသည်...",
+      "scheduleSendEmail": "ရက်ချိန်းသတ်မှတ်ပြီး အီးမေးလ်ပို့ရန်",
+      "scheduling": "ရက်ချိန်းသတ်မှတ်နေသည်...",
+      "update": "မွမ်းမံရန်",
+      "updating": "မွမ်းမံနေသည်..."
+    },
+    "delete": {
+      "allDataRemoved": "ဒေတာအားလုံး ဖယ်ရှားပြီးပါပြီ",
+      "applicationRecord": "လျှောက်လွှာမှတ်တမ်း",
+      "applicationWarning": "လျှောက်လွှာ သတိပေးချက်",
+      "areYouSure": "သေချာပါသလား",
+      "cannotBeUndone": "ယခုလုပ်ဆောင်ချက်ကို ပြန်ပြင်၍မရနိုင်ပါ",
+      "interviewRecord": "လူတွေ့စစ်ဆေးမှု မှတ်တမ်း",
+      "noApplicationsSafe": "လျှောက်လွှာမရှိသဖြင့် စိတ်ချရပါသည်",
+      "uploadedCv": "တင်ထားသော CV",
+      "willAlsoBeDeleted": "ကိုလည်း အတူတူဖျက်သွားမည်ဖြစ်သည်",
+      "willBeDeleted": "ကို ဖျက်သွားမည်ဖြစ်သည်"
+    },
+    "empty": {
+      "applicationsWillAppear": "လျှောက်လွှာများ ဤနေရာတွင် ပေါ်လာမည်ဖြစ်သည်",
+      "createFirstJobPosting": "ပထမဆုံး အလုပ်ခေါ်စာကို ဖန်တီးပါ",
+      "noApplicationsYet": "လျှောက်လွှာ မရှိသေးပါ",
+      "noJobPostings": "အလုပ်ခေါ်စာ မရှိပါ"
+    },
+    "fields": {
+      "applicationDeadline": "လျှောက်လွှာပိတ်ရက်",
+      "areasForImprovement": "တိုးတက်ရန် လိုအပ်သော အချက်များ",
+      "companyOffice": "ကုမ္ပဏီရုံးခွဲ",
+      "dateTime": "ရက်စွဲနှင့် အချိန်",
+      "department": "ဌာန",
+      "description": "အသေးစိတ်ဖော်ပြချက်",
+      "hrNote": "HR မှတ်စု",
+      "internalNote": "အတွင်းပိုင်းမှတ်စု",
+      "interviewType": "လူတွေ့စစ်ဆေးမှု အမျိုးအစား",
+      "interviewerName": "လူတွေ့စစ်ဆေးသူ အမည်",
+      "jobTitle": "ရာထူးအမည်",
+      "jobType": "အလုပ်အမျိုးအစား",
+      "location": "တည်နေရာ",
+      "meetingLink": "အစည်းအဝေးလင့်ခ်",
+      "noteToCandidate": "လျှောက်ထားသူထံ ပေးပို့မည့် မှတ်စု",
+      "platform": "ပလက်ဖောင်း",
+      "positions": "လစ်လပ်ရာထူးများ",
+      "postingStatus": "အလုပ်ခေါ်စာ အခြေအနေ",
+      "recommendation": "အကြံပြုချက်",
+      "requirements": "လိုအပ်ချက်များ",
+      "responsibilities": "တာဝန်ဝတ္တရားများ",
+      "salaryRange": "လစာပမာဏ",
+      "setStatusTo": "အခြေအနေကို သတ်မှတ်ရန်",
+      "strengths": "အားသာချက်များ"
+    },
+    "filters": {
+      "allCountries": "နိုင်ငံအားလုံး",
+      "allStatus": "အခြေအနေအားလုံး"
+    },
+    "labels": {
+      "applicant": "လျှောက်ထားသူ",
+      "applicants": "လျှောက်ထားသူများ",
+      "application": "လျှောက်လွှာ",
+      "applications": "လျှောက်လွှာများ",
+      "applied": "လျှောက်ထားပြီး",
+      "autoSelected": "အလိုအလျောက် ရွေးချယ်ပြီး",
+      "interview": "လူတွေ့စစ်ဆေးခြင်း",
+      "link": "လင့်ခ်",
+      "negotiable": "ညှိနှိုင်းနိုင်သည်",
+      "note": "မှတ်စု",
+      "online": "အွန်လိုင်း",
+      "onsite": "ရုံးတွင်",
+      "position": "ရာထူး",
+      "positions": "ရာထူးများ",
+      "score": "ရမှတ်",
+      "viewOnly": "ကြည့်ရှုရန်သာ"
+    },
+    "messages": {
+      "invitationEmailSent": "ဖိတ်ခေါ်စာ အီးမေးလ် ပို့ပြီးပါပြီ"
+    },
+    "modal": {
+      "application": "လျှောက်လွှာ",
+      "bulkAction": "အစုလိုက် လုပ်ဆောင်ချက်",
+      "deleteApplication": "လျှောက်လွှာဖျက်ရန်",
+      "deleteJobPosting": "အလုပ်ခေါ်စာဖျက်ရန်",
+      "editPosting": "အလုပ်ခေါ်စာ ပြင်ဆင်ရန်",
+      "interviewScore": "လူတွေ့စစ်ဆေးမှု ရမှတ်",
+      "jobRecruitment": "ဝန်ထမ်းခေါ်ယူခြင်း",
+      "newJobPosting": "အလုပ်ခေါ်စာအသစ်",
+      "rescheduleInterview": "လူတွေ့စစ်ဆေးမှု ရက်ချိန်းပြန်လည်သတ်မှတ်ရန်",
+      "scheduleInterview": "လူတွေ့စစ်ဆေးမှု ရက်ချိန်းသတ်မှတ်ရန်"
+    },
+    "pageTitle": "ဝန်ထမ်းခေါ်ယူခြင်း",
+    "placeholders": {
+      "addItem": "အချက်အလက် ထည့်ရန်",
+      "department": "ဌာန",
+      "descriptionPoint": "ဖော်ပြချက် အချက်အလက်",
+      "hrNote": "HR မှတ်စု",
+      "internalNote": "အတွင်းပိုင်းမှတ်စု",
+      "interviewerName": "လူတွေ့စစ်ဆေးသူ အမည်",
+      "jobTitle": "ရာထူးအမည်",
+      "location": "တည်နေရာ",
+      "noteToCandidate": "လျှောက်ထားသူထံ ပေးပို့မည့် မှတ်စု",
+      "requirementPoint": "လိုအပ်ချက် အချက်အလက်",
+      "responsibilityPoint": "တာဝန်ဝတ္တရား အချက်အလက်",
+      "salaryRange": "လစာပမာဏ",
+      "searchJobs": "အလုပ်အကိုင်များ ရှာဖွေရန်",
+      "selectOffice": "ရုံးခွဲရွေးချယ်ရန်",
+      "strengths": "အားသာချက်များ",
+      "weaknesses": "အားနည်းချက်များ"
+    },
+    "recommendations": {
+      "hold": "ဆိုင်းငံ့ထားရန်",
+      "proceed": "ရှေ့ဆက်ရန်",
+      "reject": "ငြင်းပယ်ရန်"
+    },
+    "score": {
+      "average": "အလယ်အလတ်",
+      "excellent": "ထူးချွန်",
+      "poor": "ညံ့ဖျင်း"
+    },
+    "sort": {
+      "byScore": "ရမှတ်အလိုက်",
+      "latestFirst": "နောက်ဆုံးပေါ် အရင်",
+      "nameAZ": "အမည် (က-ဟ အလိုက်)"
+    },
+    "stats": {
+      "newUnread": "မဖတ်ရသေးသော အသစ်များ",
+      "openPositions": "လစ်လပ်ရာထူးများ",
+      "totalApplicants": "လျှောက်ထားသူ စုစုပေါင်း",
+      "totalPostings": "အလုပ်ခေါ်စာ စုစုပေါင်း"
+    },
+    "status": {
+      "all": "အားလုံး"
+    },
+    "table": {
+      "actions": "လုပ်ဆောင်ချက်များ",
+      "applicants": "လျှောက်ထားသူများ",
+      "company": "ကုမ္ပဏီ",
+      "deadline": "ပိတ်ရက်",
+      "position": "ရာထူး",
+      "slots": "နေရာလွတ်",
+      "status": "အခြေအနေ",
+      "type": "အမျိုးအစား"
+    },
+    "tabs": {
+      "applications": "လျှောက်လွှာများ",
+      "jobPostings": "အလုပ်ခေါ်စာများ"
+    },
+    "validation": {
+      "atLeastOnePosition": "အနည်းဆုံး ရာထူးတစ်ခု လိုအပ်သည်",
+      "descriptionPoint": "ဖော်ပြချက် အချက်အလက်",
+      "interviewFuture": "လူတွေ့စစ်ဆေးမှုသည် အနာဂတ်အချိန် ဖြစ်ရမည်",
+      "jobTitleRequired": "ရာထူးအမည် လိုအပ်သည်",
+      "requirementPoint": "လိုအပ်ချက် အချက်အလက်",
+      "salaryOrNegotiable": "လစာ သို့မဟုတ် ညှိနှိုင်းနိုင်မှု လိုအပ်သည်",
+      "selectCompanyOffice": "ကုမ္ပဏီရုံးခွဲကို ရွေးချယ်ပါ",
+      "selectDateTime": "ရက်စွဲနှင့် အချိန်ကို ရွေးချယ်ပါ",
+      "selectJobType": "အလုပ်အမျိုးအစားကို ရွေးချယ်ပါ"
+    },
+      "jobTypes": {
+    "fullTime": "အချိန်ပြည့်",
+    "partTime": "အချိန်ပိုင်း",
+    "contract": "စာချုပ်",
+    "internship": "အလုပ်သင်"
+  },
+  "jobStatus": {
+    "open": "ခေါ်ယူနေဆဲ",
+    "paused": "ခေတ္တရပ်နားထားသည်",
+    "closed": "ပိတ်ထားသည်"
+  },
+  "appStatus": {
+    "new": "အသစ်",
+    "reviewing": "စိစစ်နေဆဲ",
+    "interview": "အင်တာဗျူး",
+    "accepted": "လက်ခံသည်",
+    "rejected": "ငြင်းပယ်သည်"
+  },
+  "platforms": {
+    "zoom": "Zoom",
+    "google_meet": "Google Meet",
+    "teams": "Microsoft Teams",
+    "physical": "လူကိုယ်တိုင် / လုပ်ငန်းခွင်၌",
+    "other": "အခြား"
+  }
+  },
+  "userRoles": {
+    "pageTitle": "အသုံးပြုသူနှင့် Role များ",
+    "hero": {
+      "eyebrow": "User Management",
+      "title": "Premium workspace overview",
+      "desc": "Flow နှင့် logic မပြောင်းဘဲ ပိုသန့်ရှင်းပြီး professional ဖြစ်သော interface ဖြင့် ပြထားသည်။"
+    },
+    "stats": {
+      "members": "Members",
+      "totalRegisteredUsers": "မှတ်ပုံတင်ထားသော user စုစုပေါင်း",
+      "active": "active"
+    },
+    "filters": {
+      "allCountries": "နိုင်ငံအားလုံး",
+      "allRoles": "Role အားလုံး"
+    },
+    "placeholders": {
+      "searchByNameOrEmail": "နာမည် သို့မဟုတ် email ဖြင့် ရှာရန်...",
+      "selectRole": "Role ရွေးပါ...",
+      "selectCountry": "နိုင်ငံ ရွေးပါ...",
+      "fullName": "John Doe",
+      "email": "john@vibeme.ai",
+      "department": "Engineering",
+      "position": "Senior Developer"
+    },
+    "actions": {
+      "addNewUser": "User အသစ်ထည့်ရန်",
+      "cancel": "မလုပ်တော့ပါ",
+      "saving": "သိမ်းနေသည်...",
+      "createUser": "User ဖန်တီးရန်",
+      "updateUser": "User ပြင်ရန်",
+      "deleting": "ဖျက်နေသည်...",
+      "yesDelete": "ဟုတ်ကဲ့၊ ဖျက်မည်"
+    },
+    "labels": {
+      "result": "ရလဒ်",
+      "results": "ရလဒ်များ",
+      "found": "တွေ့ရှိသည်",
+      "liveDirectory": "Live directory",
+      "autoAssigned": "အလိုအလျောက် သတ်မှတ်ထားသည်"
+    },
+    "table": {
+      "teamMembers": "Team members",
+      "user": "User",
+      "country": "နိုင်ငံ",
+      "role": "Role",
+      "department": "ဌာန",
+      "position": "ရာထူး",
+      "phone": "ဖုန်း",
+      "dateOfBirth": "မွေးနေ့",
+      "employment": "အလုပ်အကိုင်အမျိုးအစား",
+      "joined": "စတင်ဝင်ရောက်သည့်နေ့",
+      "status": "အခြေအနေ",
+      "actions": "လုပ်ဆောင်ချက်များ"
+    },
+    "fields": {
+      "fullName": "အမည်အပြည့်အစုံ",
+      "emailAddress": "Email လိပ်စာ",
+      "dateOfBirth": "မွေးနေ့",
+      "country": "နိုင်ငံ",
+      "newPassword": "Password အသစ်",
+      "password": "Password",
+      "role": "Role",
+      "department": "ဌာန",
+      "position": "ရာထူး",
+      "phone": "ဖုန်း",
+      "joinedDate": "စတင်ဝင်ရောက်သည့်နေ့",
+      "employmentType": "အလုပ်အကိုင်အမျိုးအစား",
+      "contractEndDate": "စာချုပ်ပြီးဆုံးမည့်နေ့",
+      "profilePhoto": "Profile Photo",
+      "activeStatus": "Active Status"
+    },
+    "empty": {
+      "noUsersFound": "User မတွေ့ပါ",
+      "tryAdjusting": "ရှာဖွေမှု သို့မဟုတ် filter များကို ပြင်ကြည့်ပါ။"
+    },
+    "modal": {
+      "addNewUser": "User အသစ်ထည့်ရန်",
+      "userManagement": "User Management",
+      "editUser": "User ပြင်ရန်",
+      "updateProfile": "Profile ပြင်ရန်",
+      "confirmDelete": "ဖျက်ရန် အတည်ပြုခြင်း",
+      "dangerZone": "Danger Zone"
+    },
+    "confirm": {
+      "deleteUser": "User ကို ဖျက်မလား?",
+      "areYouSureDeletePrefix": "ဖျက်ရန် သေချာပါသလား",
+      "cannotBeUndone": "ဤလုပ်ဆောင်ချက်ကို ပြန်ပြင်၍ မရပါ။"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "driverSchedule": {
+    "pageTitle": "ခရီးစဉ်ဇယား",
+    "driverStatus": {
+      "start": "မစတင်ရသေး",
+      "onTheWay": "သွားနေသည်",
+      "returned": "ပြန်လာနေသည်",
+      "ended": "ပြီးဆုံးပြီး"
+    },
+    "bookingStatus": {
+      "approved": "အတည်ပြုပြီး",
+      "waitlisted": "စောင့်ဆိုင်းစာရင်း",
+      "completed": "ပြီးဆုံးပြီး",
+      "cancelled": "ပယ်ဖျက်ပြီး"
+    },
+    "tripTypes": {
+      "oneWay": "တစ်ကြောင်းသွား",
+      "multiStop": "နေရာအများကြီးဝင်",
+      "pickup": "လာကြို / ပို့ဆောင်",
+      "roundTrip": "အသွားအပြန်",
+      "waitReturn": "စောင့်ပြီးပြန်"
+    },
+    "stats": {
+      "total": "စုစုပေါင်း",
+      "active": "လုပ်ဆောင်နေ",
+      "done": "ပြီးဆုံး"
+    },
+    "tabs": {
+      "tripInfo": "ခရီးစဉ်အချက်အလက်",
+      "passengers": "ခရီးသည်များ",
+      "notes": "မှတ်ချက်များ"
+    },
+    "labels": {
+      "type": "အမျိုးအစား",
+      "from": "မှ",
+      "return": "ပြန်ချိန်",
+      "stops": "ဝင်မည့်နေရာများ",
+      "cancelReason": "ပယ်ဖျက်ရသည့်အကြောင်းရင်း",
+      "organizer": "စီစဉ်သူ",
+      "passenger": "ခရီးသည်",
+      "todayUpper": "ယနေ့"
+    },
+    "fields": {
+      "reasonRequired": "အကြောင်းရင်း *"
+    },
+    "actions": {
+      "back": "နောက်သို့",
+      "confirmCancel": "ပယ်ဖျက်ရန် အတည်ပြု",
+      "cancelling": "ပယ်ဖျက်နေသည်…",
+      "skip": "ကျော်မည်",
+      "saving": "သိမ်းနေသည်…",
+      "saveNote": "မှတ်ချက် သိမ်းမည်",
+      "cancelTrip": "ခရီးစဉ် ပယ်ဖျက်မည်",
+      "startTrip": "ခရီးစဉ် စတင်မည်",
+      "markReturning": "ပြန်လာနေသည်ဟု သတ်မှတ်မည်",
+      "endTrip": "ခရီးစဉ် ပြီးဆုံးမည်",
+      "today": "ယနေ့"
+    },
+    "cancelModal": {
+      "title": "Booking ပယ်ဖျက်ရန်"
+    },
+    "noteModal": {
+      "tripCompleted": "ခရီးစဉ် ပြီးဆုံးပါပြီ!",
+      "addNoteOptional": "မှတ်ချက် ထည့်ရန် (မဖြစ်မနေမဟုတ်)"
+    },
+    "placeholders": {
+      "cancelReason": "ဥပမာ - ကားပျက်ခြင်း၊ အင်ဂျင်ပြဿနာ…",
+      "note": "ဥပမာ - လမ်းကြပ်ခြင်း၊ ဆီဖြည့်ပြီး…"
+    },
+    "validation": {
+      "reasonRequired": "အကြောင်းရင်း လိုအပ်ပါသည်။"
+    },
+    "messages": {
+      "failedTryAgain": "မအောင်မြင်ပါ။ ထပ်မံကြိုးစားပါ။",
+      "tripTimePassed": "ဤခရီးစဉ်အချိန် ကျော်လွန်ပြီးဖြစ်သောကြောင့် စတင်၍ မရတော့ပါ။",
+      "tripCompleted": "ခရီးစဉ် ပြီးဆုံးပြီး",
+      "loadingSchedule": "ဇယားကို ဖတ်နေသည်…"
+    },
+    "empty": {
+      "noCarAssigned": "ကား မသတ်မှတ်ရသေးပါ",
+      "contactHrCarAssigned": "ကားသတ်မှတ်ရန် HR ကို ဆက်သွယ်ပါ။",
+      "noTripDetails": "ခရီးစဉ်အသေးစိတ် မထည့်ရသေးပါ။",
+      "notesAfterTripEnds": "ခရီးစဉ်ပြီးဆုံးပြီးနောက် မှတ်ချက်များ ပေါ်လာပါမည်။",
+      "noBookingsOn": "Booking မရှိသောနေ့ -",
+      "freeOnThisDay": "ဤနေ့တွင် သင်အားလပ်ပါသည်။"
+    },
+    "units": {
+      "seats": "ထိုင်ခုံ"
+    }
+  },
+  "requirement": {
+    "common": {
+      "status": {
+        "pending": "စောင့်ဆိုင်းနေသည်",
+        "analyzing": "ခွဲခြမ်းစိတ်ဖြာနေသည်",
+        "completed": "ပြီးဆုံး",
+        "failed": "မအောင်မြင်"
+      },
+      "complexity": {
+        "simple": "ရိုးရှင်း",
+        "medium": "အလယ်အလတ်",
+        "complex": "ရှုပ်ထွေး",
+        "enterprise": "Enterprise"
+      }
+    },
+    "list": {
+      "pageTitle": "Requirement Analysis",
+      "hero": {
+        "eyebrow": "Requirement Analysis",
+        "title": "Premium AI requirement workspace",
+        "desc": "Requirement analysis များကို သန့်ရှင်းသော flow ဖြင့် ဖန်တီး၊ analyze၊ re-run နှင့် review လုပ်နိုင်သည်။"
+      },
+      "stats": {
+        "total": "စုစုပေါင်း",
+        "allAnalyses": "Analysis အားလုံး",
+        "waitingQueue": "စောင့်ဆိုင်းနေသည်",
+        "inProgress": "လုပ်ဆောင်နေသည်",
+        "readyToReview": "Review လုပ်ရန်အသင့်",
+        "needsRetry": "ပြန်လုပ်ရန်လိုအပ်"
+      },
+      "analysisDirectory": "Analysis စာရင်း",
+      "liveAnalysisList": "Live analysis list",
+      "labels": {
+        "feasibility": "ဖြစ်နိုင်ခြေ"
+      }
+    },
+    "modal": {
+      "title": "Requirement Analysis အသစ်",
+      "subtitle": "AI က အလိုအလျောက် analyze လုပ်ပြီး insights ပေးပါမည်။",
+      "steps": {
+        "clientInfo": "Client Info",
+        "projectDetails": "Project Details",
+        "requirements": "Requirements"
+      }
+    },
+    "fields": {
+      "companyName": "ကုမ္ပဏီအမည်",
+      "contactPerson": "ဆက်သွယ်ရန် ပုဂ္ဂိုလ်",
+      "industry": "လုပ်ငန်းနယ်ပယ်",
+      "email": "Email",
+      "phone": "ဖုန်း",
+      "projectTitle": "Project ခေါင်းစဉ်",
+      "projectDescription": "Project ဖော်ပြချက်",
+      "platform": "Platform",
+      "expectedUsers": "မျှော်မှန်း User အရေအတွက်",
+      "budgetRange": "Budget Range",
+      "expectedDeadline": "မျှော်မှန်း Deadline",
+      "coreFeatures": "Core Features",
+      "integrationNeeds": "Integration လိုအပ်ချက်များ",
+      "specialRequirements": "အထူးလိုအပ်ချက် / မှတ်ချက်"
+    },
+    "placeholders": {
+      "companyName": "Acme Corporation",
+      "contactPerson": "John Smith",
+      "industry": "ဥပမာ Healthcare, Finance",
+      "email": "john@company.com",
+      "phone": "+1 234 567 8900",
+      "projectTitle": "ဥပမာ Hospital Management System",
+      "projectDescription": "Client လိုအပ်ချက်ကို အသေးစိတ်ရေးပါ (အနည်းဆုံး 20 စာလုံး)...",
+      "selectPlatform": "Platform ရွေးပါ...",
+      "expectedUsers": "ဥပမာ 500",
+      "selectBudget": "Budget ရွေးပါ...",
+      "integrationNeeds": "ဥပမာ ERP, payment gateway, SMS service စသည်ဖြင့် ချိတ်ဆက်ရန်...",
+      "specialRequirements": "အခြားလိုအပ်ချက်၊ ကန့်သတ်ချက် သို့မဟုတ် မှတ်ချက်များ...",
+      "searchProjectClient": "Project သို့မဟုတ် client ဖြင့် ရှာရန်..."
+    },
+    "platforms": {
+      "web": "Web",
+      "mobile": "Mobile",
+      "both": "နှစ်မျိုးလုံး",
+      "desktop": "Desktop"
+    },
+    "features": {
+      "userAuthentication": "User Authentication",
+      "dashboardAnalytics": "Dashboard & Analytics",
+      "rolePermissions": "Role & Permissions",
+      "notifications": "Notifications",
+      "fileUpload": "File Upload",
+      "paymentIntegration": "Payment Integration",
+      "apiIntegration": "API Integration",
+      "reportingExport": "Reporting & Export",
+      "multiLanguage": "Multi-language",
+      "mobileResponsive": "Mobile Responsive",
+      "realTimeUpdates": "Real-time Updates",
+      "searchFilter": "Search & Filter"
+    },
+    "validation": {
+      "companyNameRequired": "ကုမ္ပဏီအမည် လိုအပ်သည်။",
+      "contactPersonRequired": "ဆက်သွယ်ရန် ပုဂ္ဂိုလ် လိုအပ်သည်။",
+      "validEmail": "မှန်ကန်သော email ထည့်ပါ။",
+      "projectTitleRequired": "Project ခေါင်းစဉ် လိုအပ်သည်။",
+      "projectDescriptionRequired": "Project ဖော်ပြချက် လိုအပ်သည်။",
+      "descriptionMin": "ဖော်ပြချက်သည် အနည်းဆုံး 20 စာလုံးရှိရမည်။",
+      "budgetRequired": "Budget range ရွေးပါ။",
+      "deadlineRequired": "Expected deadline သတ်မှတ်ပါ။",
+      "coreFeatureRequired": "အနည်းဆုံး core feature တစ်ခု ရွေးပါ။"
+    },
+    "actions": {
+      "newAnalysis": "Analysis အသစ်",
+      "cancel": "မလုပ်တော့ပါ",
+      "back": "နောက်သို့",
+      "next": "ရှေ့သို့",
+      "analyzing": "Analyze လုပ်နေသည်...",
+      "submitAnalyze": "Submit & Analyze",
+      "delete": "ဖျက်ရန်",
+      "view": "ကြည့်ရန်",
+      "rerun": "ပြန် run",
+      "reanalyze": "ပြန် analyze",
+      "generateProposal": "Proposal ဖန်တီးရန်",
+      "retryAnalysis": "Analysis ပြန်လုပ်ရန်"
+    },
+    "messages": {
+      "submitted": "Requirement ကို submit လုပ်ပြီး AI analysis စတင်ပါပြီ။",
+      "deleted": "အောင်မြင်စွာ ဖျက်ပြီးပါပြီ။"
+    },
+    "hints": {
+      "selectAtLeastOne": "(အနည်းဆုံး တစ်ခုရွေးပါ)"
+    },
+    "filters": {
+      "allStatus": "Status အားလုံး"
+    },
+    "labels": {
+      "result": "ရလဒ်",
+      "results": "ရလဒ်များ",
+      "found": "တွေ့ရှိသည်",
+      "duration": "ကြာချိန်"
+    },
+    "table": {
+      "project": "Project",
+      "client": "Client",
+      "platform": "Platform",
+      "complexity": "ရှုပ်ထွေးမှု",
+      "feasibility": "ဖြစ်နိုင်ခြေ",
+      "status": "အခြေအနေ",
+      "date": "ရက်စွဲ",
+      "actions": "လုပ်ဆောင်ချက်များ"
+    },
+    "empty": {
+      "noAnalyses": "Analysis မရှိသေးပါ",
+      "clickNewAnalysis": "စတင်ရန် Analysis အသစ်ကို နှိပ်ပါ။"
+    },
+    "confirm": {
+      "deleteAnalysis": "Analysis ကို ဖျက်မလား?",
+      "cannotBeUndone": "ဤလုပ်ဆောင်ချက်ကို ပြန်ပြင်၍ မရပါ။"
+    },
+    "detail": {
+      "pageTitle": "Requirement Detail",
+      "timeline": {
+        "feasible": "Feasible",
+        "tight": "Tight",
+        "unrealistic": "Unrealistic"
+      },
+      "budget": {
+        "under": "Under Budget",
+        "within": "Within Budget",
+        "over": "Over Budget"
+      },
+      "feasibility": {
+        "highlyFeasible": "Highly Feasible",
+        "moderatelyFeasible": "Moderately Feasible",
+        "challenging": "Challenging",
+        "score": "Feasibility Score"
+      },
+      "states": {
+        "aiAnalyzing": "AI is analyzing...",
+        "pleaseWait": "Please wait while we process the requirements.",
+        "analysisFailed": "Analysis failed",
+        "somethingWrong": "Something went wrong. Please try again.",
+        "pendingAnalysis": "Pending analysis",
+        "startShortly": "Analysis will start shortly."
+      },
+      "sections": {
+        "aiSummary": "AI Summary",
+        "coreModules": "Core Modules",
+        "projectTimeline": "Project Timeline",
+        "riskAssessment": "Risk Assessment",
+        "recommendations": "Recommendations",
+        "clarificationsNeeded": "Clarifications Needed",
+        "quickOverview": "Quick Overview",
+        "assessments": "Assessments",
+        "techStack": "Tech Stack",
+        "recommendedTeam": "Recommended Team",
+        "clientInfo": "Client Info"
+      },
+      "quick": {
+        "users": "Users",
+        "budget": "Budget",
+        "deadline": "Deadline",
+        "timeline": "Timeline"
+      }
+    }
+  },
+"documentTranslation": {
+    "pageTitle": "Document Translation",
+    "hero": {
+      "eyebrow": "Document Translation",
+      "title": "Professional Translation Workspace",
+      "desc": "တူညီသော logic flow၊ route၊ upload နှင့် folder action များကို မပြောင်းဘဲ light/dark mode နှစ်မျိုးလုံးတွင် အလုပ်လုပ်နိုင်သော professional UI အဖြစ် မြှင့်တင်ထားပါသည်။",
+      "demoMode": "API မချိတ်ဆက်ထားသေးသောကြောင့် ဤစာမျက်နှာသည် demo mode အဖြစ် ဆက်လက်ပြသနေပါသည်။"
+    },
+    "actions": {
+      "uploadDocument": "Document Upload တင်မည်",
+      "cancel": "မလုပ်တော့ပါ",
+      "deleting": "ဖျက်နေသည်...",
+      "yesDelete": "ဟုတ်ကဲ့၊ ဖျက်မည်",
+      "download": "Download",
+      "close": "ပိတ်မည်",
+      "delete": "ဖျက်မည်"
+    },
+    "stats": {
+      "totalFiles": "ဖိုင်စုစုပေါင်း",
+      "allUploadedDocuments": "Upload တင်ထားသော document အားလုံး",
+      "completed": "ပြီးဆုံးပြီး",
+      "readyToReview": "စစ်ဆေးရန် သို့မဟုတ် download လုပ်ရန် အသင့်ရှိ",
+      "translating": "ဘာသာပြန်နေသည်",
+      "jobsRunning": "လက်ရှိလုပ်ဆောင်နေသော jobs",
+      "failed": "မအောင်မြင်",
+      "needsReview": "ပြန်စစ်ရန် သို့မဟုတ် retry လုပ်ရန်လိုအပ်"
+    },
+    "labels": {
+      "allFiles": "ဖိုင်အားလုံး",
+      "uploadedBy": "တင်ထားသူ"
+    },
+    "loading": {
+      "files": "ဖိုင်များ ဖွင့်နေသည်",
+      "fetchingFolder": "Folder content များ ရယူနေသည်"
+    },
+    "messages": {
+      "unableLoadFolder": "Folder content များ မဖွင့်နိုင်ပါ။",
+      "unableRefreshFolder": "Folder content များ refresh မလုပ်နိုင်ပါ။",
+      "unableRefreshDocumentList": "Document list ကို refresh မလုပ်နိုင်ပါ။",
+      "folderDeleted": "Folder ကို အောင်မြင်စွာ ဖျက်ပြီးပါပြီ။",
+      "folderDeleteFailed": "Folder ဖျက်ခြင်း မအောင်မြင်ပါ။",
+      "documentDeleteFailed": "Document ဖျက်ခြင်း မအောင်မြင်ပါ။"
+    },
+    "delete": {
+      "dangerZone": "အန္တရာယ်ရှိသောနေရာ",
+      "deleteFolder": "Folder ဖျက်မည်",
+      "confirmTitle": "ဤ folder ကို ဖျက်မလား?",
+      "confirmPrefix": "သင် ဖယ်ရှားတော့မည့်အရာမှာ",
+      "confirmSuffix": "ဤ folder ထဲရှိ ဖိုင်များအားလုံးကိုလည်း အပြီးတိုင် ဖျက်ပါမည်။"
+    },
+    "upload": {
+      "eyebrow": "Document Translation",
+      "title": "Upload Workspace",
+      "fileIntake": "ဖိုင်လက်ခံခြင်း",
+      "dropBrowse": "ဖိုင်ကို drag & drop လုပ်ပါ သို့မဟုတ် browse လုပ်ပါ",
+      "acceptedTypes": "PDF, DOC, DOCX, TXT, PNG, JPG, JPEG",
+      "maxSize": "အများဆုံး 20MB",
+      "replaceHint": "ဖိုင်ပြောင်းရန် click လုပ်ပါ သို့မဟုတ် အခြားဖိုင်ကို drag လုပ်ပါ။",
+      "metadata": "Metadata",
+      "saveToFolder": "Folder ထဲသို့ သိမ်းမည်",
+      "rootNoFolder": "Root (Folder မရှိ)",
+      "tags": "Tags",
+      "tagsPlaceholder": "hr, report, 2026",
+      "languageDirection": "ဘာသာပြန် ဦးတည်ချက်",
+      "sourceLanguage": "မူရင်းဘာသာ",
+      "translateTo": "ဘာသာပြန်မည့်ဘာသာ",
+      "apiNotConfigured": "API မချိတ်ဆက်ထားပါ",
+      "imageCannotTranslate": "Image ဖိုင်များကို ဘာသာပြန်မရပါ။ TXT, DOC, DOCX, PDF ကဲ့သို့ text-based file များသာ support လုပ်ပါသည်။",
+      "visibilityTitle": "မြင်နိုင်မှု",
+      "apiDemoNotice": "Translation API မချိတ်ဆက်ထားသေးပါ။ လက်ရှိ flow အတိုင်း document ကို upload နှင့် store လုပ်နိုင်ပါသည်။",
+      "uploading": "Upload တင်နေသည်...",
+      "uploadDocument": "Document Upload တင်မည်",
+      "uploadFailed": "Upload မအောင်မြင်ပါ။ ထပ်မံကြိုးစားပါ။",
+      "visibility": {
+        "private": "Private",
+        "onlyYou": "သင်တစ်ဦးတည်း",
+        "branch": "My Branch",
+        "yourBranch": "သင့် branch",
+        "all": "All Branches",
+        "everyone": "အားလုံး"
+      },
+      "languages": {
+        "en": "English",
+        "ja": "Japanese",
+        "my": "Myanmar",
+        "km": "Khmer",
+        "vi": "Vietnamese",
+        "ko": "Korean"
+      }
+    },
+    "languages": {
+      "en": "English",
+      "ja": "Japanese",
+      "my": "Myanmar",
+      "km": "Khmer",
+      "vi": "Vietnamese",
+      "ko": "Korean"
+    },
+    "fileNotes": {
+      "portableDocument": "Portable document",
+      "editableDocument": "ပြင်ဆင်နိုင်သော document",
+      "plainText": "Plain text",
+      "imageFile": "Image file"
+    },
+    "status": {
+      "pending": "စောင့်ဆိုင်းနေသည်",
+      "translating": "ဘာသာပြန်နေသည်",
+      "completed": "ပြီးဆုံးပြီး",
+      "failed": "မအောင်မြင်"
+    },
+    "statusNotes": {
+      "waitingInQueue": "Queue ထဲတွင် စောင့်ဆိုင်းနေသည်",
+      "jobsRunning": "လက်ရှိလုပ်ဆောင်နေသော jobs",
+      "downloadsAvailable": "Download ရယူနိုင်ပါသည်",
+      "needsReview": "ပြန်စစ်ရန် သို့မဟုတ် retry လုပ်ရန်လိုအပ်"
+    },
+    "downloadModal": {
+      "eyebrow": "Downloads",
+      "title": "ဖိုင် version ရွေးချယ်ပါ",
+      "originalFile": "မူရင်းဖိုင်",
+      "translatedVersions": "ဘာသာပြန်ထားသော Versions",
+      "translated": "ဘာသာပြန်ပြီး"
+    },
+    "deleteDocument": {
+      "confirmTitle": "Document ကို ဖျက်မလား?",
+      "confirmPrefix": "ဤလုပ်ဆောင်ချက်သည်",
+      "confirmSuffix": "နှင့် ဆက်စပ်ထားသော translated versions အားလုံးကို ဖျက်ပါမည်။"
+    },
+    "filters": {
+      "allStatuses": "Status အားလုံး",
+      "allFileTypes": "ဖိုင်အမျိုးအစားအားလုံး"
+    },
+    "library": {
+      "eyebrow": "Document Library",
+      "visibleFile": "မြင်နိုင်သောဖိုင်",
+      "visibleFiles": "မြင်နိုင်သောဖိုင်များ",
+      "flowPreserved": "တူညီသော route/API flow ကို ထိန်းသိမ်းထားသည်"
+    },
+    "statsShort": {
+      "total": "စုစုပေါင်း",
+      "completed": "ပြီးဆုံး",
+      "running": "လုပ်ဆောင်နေ",
+      "failed": "မအောင်မြင်"
+    },
+    "placeholders": {
+      "searchDocuments": "Documents, uploader, tag များရှာရန်..."
+    },
+    "view": {
+      "grid": "Grid",
+      "list": "List"
+    },
+    "empty": {
+      "noDocumentsFound": "Document မတွေ့ပါ",
+      "tryAdjusting": "Search သို့မဟုတ် filters ကို ပြင်ကြည့်ပါ။"
+    },
+    "table": {
+      "document": "Document",
+      "status": "အခြေအနေ",
+      "languages": "ဘာသာစကားများ",
+      "created": "ဖန်တီးရက်",
+      "uploader": "တင်ထားသူ",
+      "tags": "Tags",
+      "actions": "လုပ်ဆောင်ချက်များ"
+    },
+    "folderModal": {
+      "header": {
+        "eyebrow": "Folder Workspace",
+        "editTitle": "Folder ပြင်မည်",
+        "createTitle": "Folder ဖန်တီးမည်",
+        "parent": "Parent",
+        "rootLevel": "Root level folder"
+      },
+      "fields": {
+        "folderName": "Folder အမည်",
+        "description": "ဖော်ပြချက်",
+        "visibility": "မြင်နိုင်မှု",
+        "folderColor": "Folder အရောင်",
+        "folderIcon": "Folder Icon"
+      },
+      "placeholders": {
+        "folderName": "Folder အမည် ရိုက်ထည့်ပါ",
+        "description": "Optional short description"
+      },
+      "visibility": {
+        "allBranches": "All Branches",
+        "allBranchesDesc": "Branch အားလုံးမြင်နိုင်သည်",
+        "myBranch": "My Branch",
+        "myBranchDesc": "သင့် branch သာ မြင်နိုင်သည်",
+        "private": "Private",
+        "privateDesc": "သင်တစ်ဦးတည်းသာ မြင်နိုင်သည်"
+      },
+      "actions": {
+        "saving": "သိမ်းနေသည်...",
+        "updateFolder": "Folder ပြင်မည်",
+        "createFolder": "Folder ဖန်တီးမည်"
+      },
+      "messages": {
+        "updateFailed": "Folder ပြင်ခြင်း မအောင်မြင်ပါ။",
+        "createFailed": "Folder ဖန်တီးခြင်း မအောင်မြင်ပါ။"
+      }
+    },
+    "folderTree": {
+      "actions": {
+        "more": "More",
+        "addSubfolder": "Subfolder ထည့်မည်",
+        "editFolder": "Folder ပြင်မည်",
+        "deleteFolder": "Folder ဖျက်မည်"
+      },
+      "library": "Library",
+      "smartFolders": "Smart folders",
+      "new": "+ အသစ်",
+      "searchPlaceholder": "Folder များ ရှာရန်...",
+      "browseEveryUploadedDocument": "Upload တင်ထားသော document အားလုံးကို ကြည့်ရှုပါ",
+      "empty": {
+        "noFoldersFound": "Folder မတွေ့ပါ",
+        "noFoldersYet": "Folder မရှိသေးပါ",
+        "tryAnotherKeyword": "အခြား keyword ဖြင့် စမ်းကြည့်ပါ။",
+        "createFirstFolderDesc": "Document organization ပိုကောင်းစေရန် ပထမဆုံး folder ဖန်တီးပါ။",
+        "createFirstFolder": "ပထမဆုံး folder ဖန်တီးမည်"
+      },
+      "units": {
+        "file": "ဖိုင်",
+        "files": "ဖိုင်များ",
+        "subfolder": "subfolder",
+        "subfolders": "subfolders",
+        "folder": "folder",
+        "folders": "folders",
+        "total": "စုစုပေါင်း"
+      },
+      "fileNotes": {
+        "portableDocument": "Portable document",
+        "editableDocument": "ပြင်ဆင်နိုင်သော document",
+        "plainText": "Plain text",
+        "imageFile": "Image file"
+      },
+      "status": {
+        "pending": "စောင့်ဆိုင်းနေသည်",
+        "translating": "ဘာသာပြန်နေသည်",
+        "completed": "ပြီးဆုံးပြီး",
+        "failed": "မအောင်မြင်"
+      },
+      "statusNotes": {
+        "waitingInQueue": "Queue ထဲတွင် စောင့်ဆိုင်းနေသည်",
+        "jobsRunning": "လက်ရှိလုပ်ဆောင်နေသော jobs",
+        "downloadsAvailable": "Download ရယူနိုင်ပါသည်",
+        "needsReviewOrRetry": "ပြန်စစ်ရန် သို့မဟုတ် retry လုပ်ရန်လိုအပ်"
+      }
+    }
+  },
+"proposalGenerator": {
+    "pageTitle": "အဆိုပြုလွှာ ဖန်တီးကိရိယာ",
+    "title": "ပရီမီယံ AI အဆိုပြုလွှာ လုပ်ငန်းခွင်",
+    "description": "တူညီသော အဆိုပြုလွှာ လမ်းကြောင်းများနှင့် API စီးဆင်းမှုများကို ထိန်းသိမ်းထားစဉ် RequirementAnalysis ၏ လင်းခြင်း/မှောင်ခြင်း စနစ် လုပ်ဆောင်ချက်နှင့် ကိုက်ညီအောင် ပြုလုပ်ထားသည်။",
+    "actions": {
+      "generateProposal": "အဆိုပြုလွှာ ဖန်တီးရန်",
+      "resetFilters": "စစ်ထုတ်မှုများကို ပြန်လည်သတ်မှတ်ရန်",
+      "cancel": "ပယ်ဖျက်ရန်",
+      "generating": "ဖန်တီးနေသည်...",
+      "deleting": "ဖျက်နေသည်...",
+      "yesDelete": "ဟုတ်ကဲ့၊ ဖျက်ပါ"
+    },
+    "status": {
+      "draft": "မူကြမ်း",
+      "sent": "ပေးပို့ပြီး",
+      "accepted": "လက်ခံပြီး",
+      "rejected": "ငြင်းပယ်ပြီး"
+    },
+    "languages": {
+      "english": "အင်္ဂလိပ်",
+      "myanmar": "မြန်မာ",
+      "khmer": "ခမာ",
+      "vietnamese": "ဗီယက်နမ်",
+      "korean": "ကိုရီးယား",
+      "japanese": "ဂျပန်"
+    },
+    "templates": {
+      "executive": { "label": "အမှုဆောင်", "desc": "ပရီမီယံ အမှောင်ရောင် ဇိမ်ခံဆန်သော ခခံစားမှု" },
+      "magazine": { "label": "မဂ္ဂဇင်း", "desc": "ရဲရင့်သော အယ်ဒီတာ့အာဘော် တင်ဆက်မှု" },
+      "minimal": { "label": "ရိုးရှင်းသော", "desc": "သပ်ရပ်သော ဆွစ်ဇာလန်စတိုင် အပြင်အဆင်" }
+    },
+    "stats": {
+      "total": "စုစုပေါင်း",
+      "draft": "မူကြမ်း",
+      "sent": "ပေးပို့ပြီး",
+      "accepted": "လက်ခံပြီး",
+      "rejected": "ငြင်းပယ်ပြီး",
+      "allGenerated": "ဖန်တီးထားသော အဆိုပြုလွှာအားလုံး",
+      "waitingNextAction": "နောက်ထပ် လုပ်ဆောင်ချက်ကို စောင့်ဆိုင်းနေသည်",
+      "sharedWithClients": "ဖောက်သည်များနှင့် မျှဝေထားသည်",
+      "readyToCelebrate": "အောင်ပွဲခံရန် အဆင်သင့်",
+      "needsRevision": "ပြန်လည်ပြင်ဆင်ရန် လိုအပ်သည်"
+    },
+    "placeholders": {
+      "search": "အဆိုပြုလွှာနံပါတ်၊ ပရောဂျက် သို့မဟုတ် ဖောက်သည်ဖြင့် ရှာဖွေရန်...",
+      "chooseAnalysis": "ပြီးပြည့်စုံသော ခွဲခြမ်းစိတ်ဖြာမှုကို ရွေးချယ်ပါ..."
+    },
+    "filters": {
+      "allStatus": "အခြေအနေအားလုံး"
+    },
+    "sections": {
+      "directory": "အဆိုပြုလွှာ လမ်းညွှန်"
+    },
+    "labels": {
+      "liveProposalList": "လက်ရှိ အဆိုပြုလွှာစာရင်း",
+      "clientProfileLinked": "လိုအပ်ချက် ခွဲခြမ်းစိတ်ဖြာမှုမှ ချိတ်ဆက်ထားသော ဖောက်သည် ပရိုဖိုင်",
+      "resultFound": "ရလဒ်တွေ့ရှိသည်",
+      "resultsFound": "ရလဒ်များတွေ့ရှိသည်"
+    },
+    "table": {
+      "proposalNo": "အဆိုပြုလွှာ #",
+      "project": "ပရောဂျက်",
+      "client": "ဖောက်သည်",
+      "language": "ဘာသာစကား",
+      "status": "အခြေအနေ",
+      "date": "ရက်စွဲ",
+      "actions": "လုပ်ဆောင်ချက်များ"
+    },
+    "empty": {
+      "noProposalsYet": "အဆိုပြုလွှာများ မရှိသေးပါ",
+      "clickGenerate": "စတင်ရန် 'အဆိုပြုလွှာ ဖန်တီးရန်' ကို နှိပ်ပါ။",
+      "noCompletedAnalyses": "ပြီးပြည့်စုံသော ခွဲခြမ်းစိတ်ဖြာမှုများ မရှိသေးပါ။"
+    },
+    "modal": {
+      "generateTitle": "အဆိုပြုလွှာ ဖန်တီးရန်",
+      "generateSubtitle": "တူညီသော လမ်းကြောင်းနှင့် API စီးဆင်းမှုဖြစ်ပြီး RequirementAnalysis အပြင်အဆင်စနစ်နှင့် ကိုက်ညီသည်။"
+    },
+    "fields": {
+      "selectProject": "ပရောဂျက်ကို ရွေးချယ်ရန်",
+      "templateStyle": "ပုံစံခွက် စတိုင်"
+    },
+    "messages": {
+      "generated": "အဆိုပြုလွှာကို အောင်မြင်စွာ ဖန်တီးပြီးပါပြီ။",
+      "deleted": "အဆိုပြုလွှာကို အောင်မြင်စွာ ဖျက်ပြီးပါပြီ။",
+      "deleteFailed": "အဆိုပြုလွှာကို ဖျက်၍မရပါ။",
+      "pdfCompatibility": "PDF အကောင်းဆုံး ကိုက်ညီမှုရှိစေရန် အဆိုပြုလွှာများကို အင်္ဂလိပ်ဘာသာဖြင့် ဖန်တီးထားပါသည်။"
+    },
+    "validation": {
+      "selectAnalysis": "ကျေးဇူးပြု၍ ပရောဂျက် ခွဲခြမ်းစိတ်ဖြာမှုကို အရင်ရွေးချယ်ပေးပါ။"
+    },
+    "confirm": {
+      "title": "ဖျက်ရန် အတည်ပြုပါ",
+      "subtitle": "အန္တရာယ်ရှိသော ဇုန်",
+      "deleteTitle": "အဆိုပြုလွှာကို ဖျက်မလား?",
+      "deleteMessage": "ဖျက်ရန် သေချာပါသလား",
+      "thisProposal": "ဤအဆိုပြုလွှာ",
+      "cannotUndo": "ဤလုပ်ဆောင်ချက်ကို ပြန်ပြင်၍မရပါ။"
+    },
+    "common": {
+      "unknown": "မသိရ",
+      "unknownClient": "မသိရသော ဖောက်သည်",
+      "untitledProject": "ခေါင်းစဉ်မရှိသော ပရောဂျက်",
+      "investmentNotAvailable": "ရင်းနှီးမြှုပ်နှံမှု မရနိုင်ပါ"
+    }
+  },
+  "proposalDetail": {
+    "pageTitle": "အဆိုပြုလွှာ အသေးစိတ်",
+    "description": "တူညီသော နောက်ကွယ်လမ်းကြောင်းများနှင့် ယုတ္တိဗေဒများကို ထိန်းသိမ်းထားစဉ် ပုံစံခွက်ပြောင်းလဲခြင်း၊ အစမ်းကြည့်ရှုခြင်း၊ PDF ထုတ်ယူခြင်း၊ အခြေအနေ အပ်ဒိတ်လုပ်ခြင်းနှင့် ပြန်လည်ဖန်တီးခြင်းတို့ ပါဝင်သည့် ပရီမီယံ အဆိုပြုလွှာ ပြန်လည်သုံးသပ်ရေး လုပ်ငန်းခွင် ဖြစ်သည်။",
+    "actions": {
+      "back": "နောက်သို့",
+      "regenerate": "ပြန်လည်ဖန်တီးရန်",
+      "regenerating": "ပြန်လည်ဖန်တီးနေသည်...",
+      "downloadPdf": "PDF ဒေါင်းလုဒ်လုပ်ရန်",
+      "updating": "အပ်ဒိတ်လုပ်နေသည်...",
+      "minimize": "ချုံ့ရန်",
+      "maximize": "ချဲ့ရန်",
+      "markAccepted": "လက်ခံပြီးအဖြစ် မှတ်သားရန်"
+    },
+    "status": {
+      "draft": "မူကြမ်း",
+      "sent": "ပေးပို့ပြီး",
+      "accepted": "လက်ခံပြီး",
+      "rejected": "ငြင်းပယ်ပြီး"
+    },
+    "languages": {
+      "english": "အင်္ဂလိပ်",
+      "myanmar": "မြန်မာ",
+      "khmer": "ခမာ",
+      "vietnamese": "ဗီယက်နမ်",
+      "korean": "ကိုရီးယား",
+      "japanese": "ဂျပန်"
+    },
+    "templates": {
+      "executive": { "label": "အမှုဆောင်", "desc": "အမှောင်ရောင် ဇိမ်ခံဆန်သော" },
+      "magazine": { "label": "မဂ္ဂဇင်း", "desc": "ရဲရင့်သော အယ်ဒီတာ့အာဘော်" },
+      "minimal": { "label": "ရိုးရှင်းသော", "desc": "ဆွစ်ဇာလန် ဂရစ်ကွက်" }
+    },
+    "preview": {
+      "livePreview": "အဆိုပြုလွှာ တိုက်ရိုက်အစမ်းကြည့်ရှုမှု"
+    },
+    "sections": {
+      "proposalStatus": "အဆိုပြုလွှာ အခြေအနေ",
+      "clientSummary": "ဖောက်သည် အကျဉ်းချုပ်",
+      "proposalInsights": "အဆိုပြုလွှာ အတွင်းသိအမြင်များ",
+      "readyDelivery": "နောက်ဆုံး ပေးပို့ရန် အဆင်သင့်ဖြစ်ပြီလား?"
+    },
+    "labels": {
+      "template": "ပုံစံခွက်"
+    },
+    "fields": {
+      "company": "ကုမ္ပဏီ",
+      "industry": "လုပ်ငန်းအမျိုးအစား",
+      "email": "အီးမေးလ်",
+      "project": "ပရောဂျက်",
+      "language": "ဘာသာစကား",
+      "investment": "ရင်းနှီးမြှုပ်နှံမှု",
+      "validity": "သက်တမ်း"
+    },
+    "messages": {
+      "readyDeliveryDesc": "ရွေးချယ်ထားသော ပုံစံခွက်အစမ်းကြည့်ရှုမှုကို ပြန်လည်သုံးသပ်ပါ၊ ဖောက်သည်အသေးစိတ်အချက်အလက်များကို အတည်ပြုပါ၊ ထို့နောက် အခြေအနေကို အပ်ဒိတ်လုပ်ပါ သို့မဟုတ် နောက်ဆုံး PDF ကို ဒေါင်းလုဒ်လုပ်ပါ။"
+    },
+    "common": {
+      "notSpecified": "သတ်မှတ်မထားပါ",
+      "na": "မရှိပါ",
+      "unknownClient": "မသိရသော ဖောက်သည်",
+      "untitledProject": "ခေါင်းစဉ်မရှိသော ပရောဂျက်"
+    }
+  },
+  "projects": {
+    "appTitle": "စီမံကိန်း စီမံခန့်ခွဲမှု",
+    "status": {
+      "all": "အားလုံး",
+      "active": "လုပ်ဆောင်ဆဲ",
+      "upcoming": "လာမည့်",
+      "completed": "ပြီးစီး",
+      "cancelled": "ပယ်ဖျက်လိုက်သည်"
+    },
+    "modal": {
+      "newProject": "စီမံကိန်းအသစ်",
+      "editProject": "စီမံကိန်း ပြင်ဆင်ရန်",
+      "deleteProject": "စီမံကိန်း ဖျက်ရန်",
+      "cannotBeUndone": "ဤလုပ်ဆောင်ချက်ကို ပြန်ပြင်၍မရနိုင်ပါ"
+    },
+    "actions": {
+      "cancel": "ပယ်ဖျက်ရန်",
+      "create": "စီမံကိန်း ဖန်တီးရန်",
+      "update": "စီမံကိန်း မွမ်းမံရန်",
+      "createProject": "+ စီမံကိန်းအသစ်",
+      "yesDelete": "ဟုတ်ကဲ့၊ ဖျက်ပါ"
+    },
+    "loading": {
+      "creating": "ဖန်တီးနေသည်…",
+      "updating": "မွမ်းမံနေသည်…",
+      "deleting": "ဖျက်နေသည်…"
+    },
+    "fields": {
+      "projectName": "စီမံကိန်း အမည်",
+      "description": "အသေးစိတ်ဖော်ပြချက်",
+      "status": "အခြေအနေ",
+      "startDate": "စတင်မည့် ရက်စွဲ",
+      "endDate": "ပြီးဆုံးမည့် ရက်စွဲ",
+      "client": "အပ်နှံသူ",
+      "contractValue": "စာချုပ်တန်ဖိုး",
+      "currency": "ငွေကြေးအမျိုးအစား",
+      "teamSize": "အဖွဲ့ဝင် အရေအတွက်"
+    },
+    "sections": {
+      "contractBudget": "စာချုပ်နှင့် ဘတ်ဂျက်"
+    },
+    "client": {
+      "noClient": "— အပ်နှံသူ မရှိပါ —"
+    },
+    "labels": {
+      "orTypeManually": "သို့မဟုတ် ကိုယ်တိုင်ရိုက်ထည့်ပါ"
+    },
+    "placeholders": {
+      "projectName": "ဥပမာ - CRM System v2",
+      "description": "အကျဉ်းချုပ် ဖော်ပြချက်...",
+      "selectClient": "ရှိပြီးသား အပ်နှံသူကို ရွေးချယ်ပါ...",
+      "clientNameManual": "သို့မဟုတ် အပ်နှံသူအမည်ကို ကိုယ်တိုင်ရိုက်ထည့်ပါ...",
+      "teamSize": "ဥပမာ - ၄",
+      "searchProjects": "စီမံကိန်းအမည်ဖြင့် ရှာဖွေရန်..."
+    },
+    "validation": {
+      "required": "ဖြည့်စွက်ရန် လိုအပ်သည်",
+      "clientRequired": "ကျေးဇူးပြု၍ အပ်နှံသူအမည်ကို ရွေးချယ်ပါ သို့မဟုတ် ရိုက်ထည့်ပါ",
+      "endDateAfterStart": "စတင်မည့် ရက်စွဲထက် နောက်ကျရမည်",
+      "validNumber": "မှန်ကန်သော ကိန်းဂဏန်း ဖြစ်ရမည်"
+    },
+    "stats": {
+      "totalProjects": "စုစုပေါင်း စီမံကိန်း",
+      "totalContractValue": "စုစုပေါင်း စာချုပ်တန်ဖိုး"
+    },
+    "table": {
+      "project": "စီမံကိန်း",
+      "client": "အပ်နှံသူ",
+      "contractValue": "စာချုပ်တန်ဖိုး",
+      "timeline": "အချိန်ဇယား",
+      "team": "အဖွဲ့",
+      "status": "အခြေအနေ",
+      "actions": "လုပ်ဆောင်ချက်များ"
+    },
+    "confirm": {
+      "deleteQuestion": "ဖျက်ရန် သေချာပါသလား"
+    },
+    "empty": {
+      "noProjectsMatch": "ရှာဖွေမှုနှင့် ကိုက်ညီသော စီမံကိန်းမရှိပါ။",
+      "noProjectsYet": "စီမံကိန်းများ မရှိသေးပါ — သင်၏ ပထမဆုံး စီမံကိန်းကို ဖန်တီးပါ။"
+    },
+    "units": {
+      "person": "ဦး"
+    }
+  },
+  "plReport": {
+    "pageTitle": "အမြတ်/အရှုံး အစီရင်ခံစာ",
+    "header": {
+      "title": "အမြတ်နှင့် အရှုံး Dashboard",
+      "subtitle": "ဝင်ငွေ · ပရောဂျက်ကုန်ကျစရိတ် · အထွေထွေကုန်ကျစရိတ် · အသားတင်အမြတ်"
+    },
+    "filters": {
+      "from": "မှ",
+      "to": "အထိ"
+    },
+    "actions": {
+      "applyFilter": "Filter အသုံးပြုမည်",
+      "back": "ပြန်သွားရန်"
+    },
+    "kpi": {
+      "totalRevenue": "ဝင်ငွေစုစုပေါင်း",
+      "projectCost": "ပရောဂျက်ကုန်ကျစရိတ်",
+      "overheadCost": "အထွေထွေကုန်ကျစရိတ်",
+      "grossProfit": "စုစုပေါင်းအမြတ်",
+      "netProfit": "အသားတင်အမြတ်",
+      "outstanding": "ကျန်ရှိငွေ"
+    },
+    "labels": {
+      "margin": "အမြတ်ရာခိုင်နှုန်း",
+      "of": "၏",
+      "contract": "စာချုပ်",
+      "beforeOverhead": "အထွေထွေကုန်ကျစရိတ် မပါမီ",
+      "totalOverhead": "အထွေထွေကုန်ကျစရိတ် စုစုပေါင်း",
+      "cost": "ကုန်ကျစရိတ်",
+      "total": "စုစုပေါင်း"
+    },
+    "cards": {
+      "operatingIncomeTitle": "လုပ်ငန်းဝင်ငွေနှင့် ကုန်ကျစရိတ်များ",
+      "operatingIncomeSub": "ဝင်ငွေ · ကုန်ကျစရိတ်စုစုပေါင်း · အသားတင်အမြတ်ရာခိုင်နှုန်း — လအလိုက်",
+      "periodComparisonTitle": "ကာလနှိုင်းယှဉ်မှု",
+      "periodComparisonSub": "ဤကာလနှင့် ယခင်ကာလ",
+      "grossProfitTrendTitle": "စုစုပေါင်းအမြတ် ပြောင်းလဲမှု",
+      "grossProfitTrendSub": "စုစုပေါင်းအမြတ် · စုစုပေါင်းအမြတ်ရာခိုင်နှုန်း — လအလိုက်",
+      "expenseBreakdownTitle": "ကုန်ကျစရိတ်ခွဲခြမ်းစိတ်ဖြာမှု",
+      "expenseBreakdownSub": "လစာ · OT · ခွင့် · အထွေထွေကုန်ကျစရိတ်",
+      "revenueByProjectTitle": "ပရောဂျက်အလိုက် ဝင်ငွေ",
+      "revenueByProjectSub": "အသေးစိတ် breakdown ကြည့်ရန် ပရောဂျက်ကို နှိပ်ပါ",
+      "overheadByDepartmentTitle": "ဌာနအလိုက် အထွေထွေကုန်ကျစရိတ်",
+      "overheadByDepartmentSub": "ဤကာလအတွင်း project မဟုတ်သော ဝန်ထမ်းလစာကုန်ကျစရိတ်"
+    },
+    "chart": {
+      "revenue": "ဝင်ငွေ",
+      "totalCost": "ကုန်ကျစရိတ်စုစုပေါင်း",
+      "netMarginPercent": "အသားတင်အမြတ်ရာခိုင်နှုန်း",
+      "grossProfit": "စုစုပေါင်းအမြတ်",
+      "marginPercent": "အမြတ်ရာခိုင်နှုန်း",
+      "grossMarginPercent": "စုစုပေါင်းအမြတ်ရာခိုင်နှုန်း",
+      "cost": "ကုန်ကျစရိတ်",
+      "profit": "အမြတ်"
+    },
+    "expense": {
+      "salary": "လစာ",
+      "overhead": "အထွေထွေကုန်ကျစရိတ်",
+      "ot": "OT",
+      "leave": "ခွင့်"
+    },
+    "empty": {
+      "noPayrollData": "အတည်ပြုပြီးသော payroll data မရှိပါ။ Payroll records များကို အရင်အတည်ပြုပါ။",
+      "noDataAvailable": "Data မရှိပါ",
+      "noProjects": "ပရောဂျက် မရှိပါ",
+      "noOverheadData": "အထွေထွေကုန်ကျစရိတ် data မရှိပါ"
+    },
+    "units": {
+      "member": "ဦး",
+      "members": "ဦး",
+      "day": "ရက်",
+      "days": "ရက်"
+    },
+    "months": {
+      "full": {
+        "1": "ဇန်နဝါရီ",
+        "2": "ဖေဖော်ဝါရီ",
+        "3": "မတ်",
+        "4": "ဧပြီ",
+        "5": "မေ",
+        "6": "ဇွန်",
+        "7": "ဇူလိုင်",
+        "8": "ဩဂုတ်",
+        "9": "စက်တင်ဘာ",
+        "10": "အောက်တိုဘာ",
+        "11": "နိုဝင်ဘာ",
+        "12": "ဒီဇင်ဘာ"
+      },
+      "short": {
+        "1": "ဇန်",
+        "2": "ဖေ",
+        "3": "မတ်",
+        "4": "ဧ",
+        "5": "မေ",
+        "6": "ဇွန်",
+        "7": "ဇူ",
+        "8": "ဩ",
+        "9": "စက်",
+        "10": "အောက်",
+        "11": "နို",
+        "12": "ဒီ"
+      }
+    },
+    "status": {
+      "active": "လုပ်ဆောင်နေ",
+      "upcoming": "လာမည့်",
+      "completed": "ပြီးဆုံး"
+    },
+    "departments": {
+      "HR": "HR",
+      "IT": "IT",
+      "BPO": "BPO",
+      "SST": "SST",
+      "Driver": "ယာဉ်မောင်း",
+      "Other": "အခြား"
+    },
+    "show": {
+      "ongoing": "ဆက်လက်လုပ်ဆောင်နေ",
+      "contract": "စာချုပ်",
+      "confirmedMonth": "အတည်ပြုပြီးလ",
+      "confirmedMonths": "အတည်ပြုပြီးလများ",
+      "monthlyBreakdown": "လအလိုက် ခွဲခြမ်းစိတ်ဖြာမှု",
+      "revenueCostTrend": "ဝင်ငွေနှင့် ကုန်ကျစရိတ် ပြောင်းလဲမှု",
+      "memberCost": "အဖွဲ့ဝင်ကုန်ကျစရိတ်",
+      "kpi": {
+        "salaryCost": "လစာကုန်ကျစရိတ်",
+        "otCost": "OT ကုန်ကျစရိတ်",
+        "leaveCost": "ခွင့်ကုန်ကျစရိတ်",
+        "netLoss": "အသားတင်အရှုံး"
+      },
+      "table": {
+        "month": "လ"
+      },
+      "empty": {
+        "projectNotFound": "ပရောဂျက် မတွေ့ပါ။",
+        "noProjectPayrollData": "ဤပရောဂျက်အတွက် အတည်ပြုပြီးသော payroll data မရှိသေးပါ။",
+        "noMemberData": "ဤလအတွက် member data မရှိပါ။"
+      }
+    }
+  },
+  "aiChat": {
+    "pageTitle": "AI Chat",
+    "common": {
+      "you": "သင်"
+    },
+    "languages": {
+      "en": "အင်္ဂလိပ်",
+      "ja": "ဂျပန်",
+      "my": "မြန်မာ",
+      "km": "ခမာ",
+      "vi": "ဗီယက်နမ်",
+      "ko": "ကိုရီးယား"
+    },
+    "actions": {
+      "react": "React",
+      "translate": "ဘာသာပြန်",
+      "translating": "ဘာသာပြန်နေသည်...",
+      "translatingEllipsis": "ဘာသာပြန်နေသည်…",
+      "reply": "ပြန်စာ",
+      "edit": "ပြင်ရန်",
+      "delete": "ဖျက်ရန်",
+      "back": "← နောက်သို့",
+      "cancel": "မလုပ်တော့ပါ",
+      "startChat": "Chat စရန်",
+      "createGroup": "Group ဖန်တီးရန်",
+      "startChatting": "Chat စတင်ရန်",
+      "newConversation": "New Conversation",
+      "unblockUser": "User unblock လုပ်ရန်",
+      "blockUser": "User block လုပ်ရန်",
+      "deleteConversation": "Conversation ဖျက်ရန်",
+      "previous": "Previous",
+      "next": "Next",
+      "tapToRetry": "ပြန်ကြိုးစားရန် နှိပ်ပါ",
+      "unblock": "Unblock",
+      "saving": "သိမ်းနေသည်...",
+      "saveChanges": "အပြောင်းအလဲ သိမ်းရန်",
+      "leave": "ထွက်ရန်",
+      "remove": "ဖယ်ရှားရန်",
+      "add": "ထည့်ရန်",
+      "yesDelete": "ဟုတ်ကဲ့၊ ဖျက်မည်"
+    },
+    "tabs": {
+      "all": "အားလုံး",
+      "unread": "မဖတ်ရသေး",
+      "direct": "Direct",
+      "group": "Group"
+    },
+    "placeholders": {
+      "searchConversations": "Conversation ရှာရန်...",
+      "groupName": "Group အမည်...",
+      "searchUsers": "User ရှာရန်...",
+      "searchInConversation": "Conversation ထဲတွင် ရှာရန်...",
+      "editMessage": "Message ပြင်ရန်...",
+      "messageName": "{name} သို့ message...",
+      "searchUsersToAdd": "ထည့်ရန် user ရှာပါ..."
+    },
+    "empty": {
+      "noMessagesYet": "Message မရှိသေးပါ",
+      "noConversationsYet": "Conversation မရှိသေးပါ",
+      "zeroResults": "ရလဒ် 0",
+      "startConversation": "Conversation စလိုက်ပါ!",
+      "sayHiTo": "{name} ကို hi ပြောပါ",
+      "selectConversation": "Conversation ရွေးပါ",
+      "chooseChat": "Chat ရွေးပါ သို့မဟုတ် အသစ်စပါ",
+      "noImagesYet": "Image မရှိသေးပါ",
+      "noVideosYet": "Video မရှိသေးပါ",
+      "noAudioYet": "Audio မရှိသေးပါ",
+      "noFilesYet": "File မရှိသေးပါ",
+      "allUsersInGroup": "User အားလုံး group ထဲတွင် ရှိပြီးသားပါ",
+      "noUsersFound": "User မတွေ့ပါ"
+    },
+    "status": {
+      "online": "● Online",
+      "onlinePlain": "Online",
+      "typing": "စာရိုက်နေသည်...",
+      "loadingMessages": "Message များ loading..."
+    },
+    "labels": {
+      "members": "members",
+      "edited": "ပြင်ပြီး",
+      "editingMessage": "Message ပြင်နေသည်",
+      "replyingTo": "{name} ကို reply ပြန်နေသည်"
+    },
+    "tooltips": {
+      "clickToRemove": "Click to remove",
+      "recordVoice": "Voice message record လုပ်ရန်",
+      "stop": "ရပ်ရန်",
+      "editGroupInfo": "Group info ပြင်ရန်",
+      "searchMessages": "Message ရှာရန်",
+      "attachFile": "File တွဲရန်",
+      "sendSticker": "Sticker ပို့ရန်"
+    },
+    "modal": {
+      "newConversation": "Conversation အသစ်"
+    },
+    "media": {
+      "title": "Media & Files",
+      "images": "Images",
+      "videos": "Videos",
+      "audio": "Audio",
+      "files": "Files"
+    },
+    "group": {
+      "clickChangePhoto": "Photo ပြောင်းရန် နှိပ်ပါ",
+      "groupName": "Group အမည်",
+      "members": "Members",
+      "addMembers": "Member ထည့်ရန်",
+      "transferAdminToLeave": "ထွက်ရန် admin ကို လွှဲပေးပါ"
+    },
+    "block": {
+      "youBlockedUser": "သင် ဒီ user ကို block လုပ်ထားသည်",
+      "youHaveBeenBlocked": "သင် block ခံထားရသည်",
+      "unblockToSend": "Message ပြန်ပို့ရန် unblock လုပ်ပါ။",
+      "cannotSend": "ဒီသူကို message ပို့လို့မရပါ။"
+    },
+    "confirm": {
+      "deleteQuestion": "ဤ conversation ကို ဖျက်ရန် သေချာပါသလား",
+      "deleteWarning": "ဤ conversation ထဲရှိ messages, files, media အားလုံး permanent ဖျက်မည်။ ပြန်ပြင်၍မရပါ။"
+    },
+    "alerts": {
+      "microphoneDenied": "Microphone access denied"
+    }
+  },
+  "smartMail": {
+    "pageTitle": "စမတ်မေးလ်",
+    "labels": {
+      "mail": "မေးလ်",
+      "demoMode": "ဒီမိုမုဒ်",
+      "unread": "မဖတ်ရသေးသော",
+      "noSubject": "(အကြောင်းအရာမရှိပါ)",
+      "to": "သို့",
+      "cc": "CC",
+      "bcc": "BCC",
+      "subject": "အကြောင်းအရာ",
+      "unknown": "မသိရှိပါ",
+      "noContent": "(စာသားမရှိပါ)",
+      "attachments": "ပူးတွဲဖိုင်များ",
+      "demoNoApiKey": "ဒီမိုမုဒ် — API ကီးမရှိပါ"
+    },
+    "actions": {
+      "mailSettings": "မေးလ်ဆက်တင်များ",
+      "dismiss": "ပိတ်ရန်",
+      "viewMail": "မေးလ်ကြည့်ရှုရန်",
+      "compose": "အသစ်ရေးရန်",
+      "syncing": "ချိတ်ဆက်လုပ်ဆောင်နေသည်...",
+      "syncInbox": "ဝင်စာပုံးကို ချိတ်ဆက်ရန်",
+      "loading": "တင်နေသည်...",
+      "loadMore": "ထပ်မံတင်ရန်",
+      "cancel": "ပယ်ဖျက်ရန်",
+      "delete": "ဖျက်ရန်",
+      "star": "ကြယ်ပွင့်ပြရန်",
+      "unstar": "ကြယ်ပွင့်ဖြုတ်ရန်",
+      "reply": "ပြန်ကြားရန်",
+      "forward": "ထပ်ဆင့်ပေးပို့ရန်",
+      "translate": "ဘာသာပြန်ရန်",
+      "translating": "ဘာသာပြန်နေသည်...",
+      "original": "မူရင်း",
+      "download": "ဒေါင်းလုဒ်လုပ်ရန်",
+      "testConnection": "ချိတ်ဆက်မှုကို စမ်းသပ်ရန်",
+      "testing": "စမ်းသပ်နေသည်...",
+      "saveSettings": "ဆက်တင်များကို သိမ်းဆည်းရန်",
+      "saving": "သိမ်းဆည်းနေသည်...",
+      "minimize": "ချုံ့ရန်",
+      "maximize": "ချဲ့ရန်",
+      "writing": "ရေးသားနေသည်...",
+      "improving": "မွမ်းမံနေသည်...",
+      "preview": "အစမ်းကြည့်ရှုရန်"
+    },
+    "notifications": {
+      "newMail": "မေးလ်အသစ်"
+    },
+    "sidebar": {
+      "mailbox": "စာတိုက်သေတ္တာ",
+      "inbox": "ဝင်စာ",
+      "sent": "ပေးပို့ပြီး",
+      "starred": "ကြယ်ပွင့်ပြထားသော",
+      "connectedAccount": "ချိတ်ဆက်ထားသောအကောင့်",
+      "synced": "ချိတ်ဆက်ပြီး"
+    },
+    "status": {
+      "connected": "ချိတ်ဆက်ထားသည်",
+      "notConnected": "ချိတ်ဆက်မထားပါ"
+    },
+    "empty": {
+      "inboxEmpty": "သင်၏ဝင်စာပုံးသည် အလွတ်ဖြစ်နေသည်",
+      "inboxSub": "မေးလ်အသစ်များ ဤနေရာတွင် ပေါ်လာပါမည်",
+      "sentEmpty": "ပေးပို့ထားသော မေးလ်များ မရှိသေးပါ",
+      "sentSub": "ပေးပို့ပြီး မေးလ်များ ဤနေရာတွင် ပေါ်လာပါမည်",
+      "starredEmpty": "ကြယ်ပွင့်ပြထားသော မေးလ်များ မရှိပါ",
+      "starredSub": "အရေးကြီးသော မေးလ်များကို ဤနေရာတွင် ရှာဖွေနိုင်ရန် ကြယ်ပွင့်ပြထားပါ",
+      "noTemplatesAvailable": "အသုံးပြုနိုင်သော ပုံစံခွက်များ မရှိပါ"
+    },
+    "messages": {
+      "mailDeleted": "မေးလ်ကို ဖျက်ပြီးပါပြီ။",
+      "connectionFailed": "ချိတ်ဆက်မှု မအောင်မြင်ပါ။ သင်၏ အထောက်အထားများကို စစ်ဆေးပါ။",
+      "networkError": "ကွန်ရက်ချို့ယွင်းချက်ရှိပါသည်။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ။",
+      "accountUpdated": "မေးလ်အကောင့်ကို အောင်မြင်စွာ အပ်ဒိတ်လုပ်ပြီးပါပြီ။",
+      "accountConnected": "မေးလ်အကောင့်ကို အောင်မြင်စွာ ချိတ်ဆက်ပြီးပါပြီ။",
+      "connectionSuccessful": "ချိတ်ဆက်မှု အောင်မြင်ပါသည်!",
+      "demoTranslation": "ဒီမိုမုဒ် — အစစ်အမှန်ဘာသာပြန်ဆိုရန်အတွက် API ကို ပြင်ဆင်သတ်မှတ်ပါ",
+      "translationFailed": "ဘာသာပြန်ဆိုမှု မအောင်မြင်ပါ။",
+      "mailSent": "မေးလ်ကို အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ။ ✉️",
+      "failedToSend": "ပေးပို့ရန် မအောင်မြင်ပါ။"
+    },
+    "confirm": {
+      "deleteMailTitle": "ဤမေးလ်ကို ဖျက်မလား။",
+      "cannotBeUndone": "ဤလုပ်ဆောင်ချက်ကို ပြန်ဖျက်၍မရပါ။"
+    },
+    "placeholders": {
+      "searchMails": "မေးလ်များ ရှာဖွေရန်...",
+      "selectLeaveType": "ခွင့်အမျိုးအစားကို ရွေးချယ်ရန်...",
+      "selectSession": "အချိန်ပိုင်းကို ရွေးချယ်ရန်...",
+      "enterField": "{field} ကို ထည့်သွင်းရန်...",
+      "typeEmailSearch": "အီးမေးလ် ရိုက်ထည့်ပြီး Enter နှိပ်ပါ သို့မဟုတ် ရှာဖွေရန်...",
+      "emailSubject": "အီးမေးလ် အကြောင်းအရာ...",
+      "describeEmail": "ရေးသားလိုသည်ကို ဖော်ပြရန်...",
+      "writeMessage": "သင်၏စာကို ရေးသားရန်..."
+    },
+    "validation": {
+      "validEmailExample": "ကျေးဇူးပြု၍ တရားဝင်သော အီးမေးလ်လိပ်စာတစ်ခု ထည့်သွင်းပါ (ဥပမာ - you@gmail.com)",
+      "appPasswordRequired": "မစမ်းသပ်မီ ကျေးဇူးပြု၍ သင်၏ App Password ကို ထည့်သွင်းပါ။",
+      "recipientRequired": "ကျေးဇူးပြု၍ လက်ခံသူ အနည်းဆုံး တစ်ဦး ထည့်သွင်းပါ။"
+    },
+    "setup": {
+      "title": "မေးလ် တည်ဆောက်မှု",
+      "updateAccount": "မေးလ်အကောင့်ကို အပ်ဒိတ်လုပ်ရန်",
+      "connectEmail": "သင်၏ အီးမေးလ်ကို ချိတ်ဆက်ရန်",
+      "subtitle": "Smart HR မှ မေးလ်များကို တိုက်ရိုက် ပေးပို့နိုင်၊ လက်ခံနိုင်ရန် သင်၏ အီးမေးလ်ကို ချိတ်ဆက်ပါ",
+      "chooseProvider": "ဝန်ဆောင်မှုပေးသူကို ရွေးချယ်ရန်",
+      "generateAppPassword": "App Password ထုတ်ယူရန်",
+      "smtpSend": "SMTP (ပေးပို့ရန်)",
+      "imapReceive": "IMAP (လက်ခံရန်)",
+      "serverConfiguration": "ဆာဗာ ဖွဲ့စည်းမှုပုံစံ",
+      "securityNote": "သင်၏ စကားဝှက်ကို AES-256 ဖြင့် ကုဒ်ဝှက်ထားပြီး လုံခြုံစွာ သိမ်းဆည်းထားသည်။ သင်၏ အထောက်အထားများကို ကျွန်ုပ်တို့ မည်သည့်အခါမျှ မျှဝေမည်မဟုတ်ပါ။",
+      "help": {
+        "gmail": "Gmail အတွက် App Password လိုအပ်ပါသည်။ အဆင့်နှစ်ဆင့်ဖြင့် အတည်ပြုခြင်း (2FA) ကို အရင်ဖွင့်ပါ၊ ထို့နောက် တစ်ခုထုတ်ယူပါ။",
+        "outlook": "သင်၏ Outlook စကားဝှက် သို့မဟုတ် 2FA ဖွင့်ထားပါက App Password ကို အသုံးပြုပါ။",
+        "yahoo": "Yahoo အတွက် App Password လိုအပ်ပါသည်။ သင်၏ အကောင့်လုံခြုံရေးဆက်တင်များတွင် တစ်ခုထုတ်ယူပါ။",
+        "other": "သင်၏ မေးလ်ဆာဗာအသေးစိတ်အချက်အလက်များကို ကိုယ်တိုင်ထည့်သွင်းပါ။"
+      }
+    },
+    "fields": {
+      "displayName": "ပြသရမည့်အမည်",
+      "emailAddress": "အီးမေးလ်လိပ်စာ",
+      "appPassword": "App Password",
+      "smtpHost": "SMTP Host",
+      "imapHost": "IMAP Host",
+      "port": "Port (ပေါ့တ်)"
+    },
+    "hints": {
+      "leaveBlankKeepCurrent": "လက်ရှိအတိုင်း ထားရှိရန် ကွက်လပ်ထားခဲ့ပါ"
+    },
+    "view": {
+      "selectMail": "ဖတ်ရှုရန် မေးလ်တစ်ခုကို ရွေးချယ်ပါ",
+      "clickMailFromList": "စာရင်းထဲမှ မေးလ်တစ်ခုခုကို နှိပ်ပါ",
+      "translatedLabel": "{language} ဖြင့် ဘာသာပြန်ဆိုထားသည်",
+      "showingTranslation": "{language} ဘာသာပြန်ဆိုချက်ကို ပြသနေသည်"
+    },
+    "languages": {
+      "en": "အင်္ဂလိပ်",
+      "ja": "ဂျပန်",
+      "my": "မြန်မာ",
+      "km": "ခမာ",
+      "vi": "ဗီယက်နမ်",
+      "ko": "ကိုရီးယား"
+    },
+    "compose": {
+      "newMessage": "စာစောင်အသစ်",
+      "templates": "ပုံစံခွက်များ",
+      "template": "ပုံစံခွက်",
+      "applyTemplate": "ပုံစံခွက်ကို အသုံးပြုရန်",
+      "applyToBody": "စာကိုယ်ထဲသို့ ထည့်သွင်းရန်",
+      "toolbar": {
+        "bold": "စာလုံးကြီး",
+        "italic": "စာလုံးစောင်း",
+        "underline": "စာသားအောက်လိုင်း",
+        "strike": "စာသားဖြတ်လိုင်း",
+        "bulletList": "အမှတ်အသားစာရင်း",
+        "numbered": "နံပါတ်စဉ်",
+        "left": "ဘယ်ညှိ",
+        "center": "အလယ်ညှိ",
+        "right": "ညာညှိ",
+        "bulletListShort": "• စာရင်း",
+        "numberedListShort": "1. စာရင်း"
+      },
+      "fontSizes": {
+        "1": "သေးငယ်သော",
+        "3": "ပုံမှန်",
+        "5": "ကြီးမားသော",
+        "7": "အလွန်ကြီးမားသော"
+      },
+      "ai": {
+        "write": "ရေးသားရန်",
+        "improve": "မွမ်းမံရန်",
+        "translate": "ဘာသာပြန်ရန်",
+        "improveContent": "ပါဝင်သည့်အကြောင်းအရာကို မွမ်းမံရန်",
+        "improveHint": "သင်၏ လက်ရှိမူကြမ်းကို လုပ်ငန်းသုံးပုံစံဖြင့် ပြန်လည်ရေးသားပေးပါသည်"
+      },
+      "tones": {
+        "professional": "လုပ်ငန်းသုံး/ကျွမ်းကျင်",
+        "friendly": "ရင်းနှီးသော",
+        "formal": "တရားဝင်",
+        "casual": "ရိုးရိုး/ပေါ့ပေါ့ပါးပါး",
+        "persuasive": "ဆွဲဆောင်မှုရှိသော"
+      },
+      "vars": {
+        "date": "ရက်စွဲ",
+        "from_date": "စတင်မည့်ရက်စွဲ",
+        "to_date": "ပြီးဆုံးမည့်ရက်စွဲ",
+        "deadline": "နောက်ဆုံးရက်စွဲ",
+        "effective_date": "အကျိုးသက်ရောက်မည့်ရက်စွဲ",
+        "start_date": "စတင်မည့်ရက်စွဲ",
+        "leave_type": "ခွင့်အမျိုးအစား",
+        "session": "အချိန်ပိုင်း"
+      }
+    }
+  },
+    "common": {
+    "actions": "လုပ်ဆောင်ချက်များ",
+    "active": "အသုံးပြုနေဆဲ",
+    "cancel": "ပယ်ဖျက်ရန်",
+    "day": "နေ့",
+    "delete": "ဖျက်ရန်",
+    "disabled": "ပိတ်ထားသည်",
+    "edit": "ပြင်ဆင်ရန်",
+    "hour": "နာရီ",
+    "inactive": "အသုံးမပြုပါ",
+    "minute": "မိနစ်",
+    "required": "လိုအပ်သည်",
+    "select": "ရွေးချယ်ရန်...",
+    "selectTime": "အချိန်ရွေးချယ်ရန်...",
+    "status": "အခြေအနေ",
+    "thisActionCannotBeUndone": "ဤလုပ်ဆောင်ချက်ကို ပြန်ဖျက်၍မရပါ။",
+    "type": "အမျိုးအစား",
+    "update": "မွမ်းမံရန်",
+    "value": "တန်ဖိုး",
+    "yesDelete": "ဟုတ်ကဲ့၊ ဖျက်ပါ",
+    "deleting": "ဖျက်နေသည်...",
+    "no": "မဟုတ်ပါ",
+    "saving": "သိမ်းဆည်းနေသည်...",
+    "night": "ည"
+  },
+  "hrPolicy": {
+    "allowance": {
+      "allowanceName": "စရိတ်အမည်",
+      "allowanceType": "စရိတ်အမျိုးအစား",
+      "deleteAllowance": "စရိတ်ဖျက်ရန်",
+      "editAllowance": "စရိတ်ပြင်ဆင်ရန်",
+      "quickSelect": "အမြန်ရွေးချယ်ရန်",
+      "addAllowance": "စရိတ် ထည့်ရန်",
+      "amount": "ပမာဏ",
+      "allowanceNamePlaceholder": "ဥပမာ - အိမ်စရိတ်၊ သယ်ယူပို့ဆောင်ရေးစရိတ်...",
+      "createFirstAllowance": "ပထမဆုံး စရိတ် ထည့်ရန် အောက်ပါခလုတ်ကို နှိပ်ပါ",
+      "noAllowancesYet": "စရိတ်များ မသတ်မှတ်ရသေးပါ",
+      "ratePercent": "နှုန်း (%)",
+      "updateAllowance": "စရိတ် မွမ်းမံရန်"
+    },
+    "delete": {
+      "areYouSureDelete": "ဖျက်ရန် သေချာပါသလား"
+    },
+    "bonus": {
+      "addBonusType": "ဘောနပ်စ်အမျိုးအစား ထည့်ရန်",
+      "bonusName": "ဘောနပ်စ်အမည်",
+      "bonusSchedules": "ဘောနပ်စ် အစီအစဉ်များ",
+      "calculationType": "တွက်ချက်မှု အမျိုးအစား",
+      "deleteBonusType": "ဘောနပ်စ်အမျိုးအစား ဖျက်ရန်",
+      "editBonusType": "ဘောနပ်စ်အမျိုးအစား ပြင်ဆင်ရန်",
+      "frequency": {
+        "_self": "အကြိမ်ရေ",
+        "once": "တစ်ကြိမ်",
+        "quarterly": "သုံးလတစ်ကြိမ်",
+        "yearly": "တစ်နှစ်တစ်ကြိမ်"
+      },
+      "notes": "မှတ်စုများ",
+      "bonusNamePlaceholder": "ဥပမာ - နှစ်စဉ်ဘောနပ်စ်၊ စွမ်းဆောင်ရည်ဘောနပ်စ်",
+      "percentOfSalary": "လစာ၏ ရာခိုင်နှုန်း",
+      "fixedAmount": "သတ်မှတ်ငွေပမာဏ",
+      "updateBonusType": "ဘောနပ်စ်အမျိုးအစား မွမ်းမံရန်",
+      "noBonusTypesYet": "ဘောနပ်စ်အမျိုးအစားများ မသတ်မှတ်ရသေးပါ",
+      "createFirstBonusType": "ပထမဆုံး ဘောနပ်စ်အမျိုးအစား ထည့်ရန် အောက်ပါခလုတ်ကို နှိပ်ပါ"
+    },
+    "common": {
+      "flat": "ပုံသေ",
+      "flatLower": "ပုံသေ",
+      "percentageLower": "ရာခိုင်နှုန်း",
+      "percentage": "ရာခိုင်နှုန်း"
+    },
+    "currency": {
+      "currencyName": "ငွေကြေးအမည်",
+      "deleteCurrency": "ငွေကြေးဖျက်ရန်",
+      "editCurrency": "ငွေကြေးပြင်ဆင်ရန်",
+      "addCurrency": "ငွေကြေး ထည့်ရန်",
+      "addNewCurrency": "ငွေကြေးအသစ် ထည့်ရန်",
+      "createFirstCurrency": "ပထမဆုံး ငွေကြေး ထည့်ရန် အောက်ပါခလုတ်ကို နှိပ်ပါ",
+      "currencyCode": "ငွေကြေးကုဒ်",
+      "currencyCodePlaceholder": "ဥပမာ - USD, KHR, MMK",
+      "currencyCodeShort": "ကုဒ်",
+      "currencyNamePlaceholder": "ဥပမာ - US Dollar, Cambodian Riel",
+      "noCurrenciesConfigured": "ငွေကြေး မသတ်မှတ်ရသေးပါ",
+      "updateCurrency": "ငွေကြေး မွမ်းမံရန်"
+    },
+    "deduction": {
+      "addDeduction": "နုတ်ယူမှု ထည့်ရန်",
+      "deductionName": "နုတ်ယူမှုအမည်",
+      "deleteDeduction": "နုတ်ယူမှု ဖျက်ရန်",
+      "editDeduction": "နုတ်ယူမှု ပြင်ဆင်ရန်",
+      "rateAmount": "နှုန်းထား / ပမာဏ",
+      "addDeductionRule": "နုတ်ယူမှု စည်းမျဉ်း ထည့်ရန်",
+      "createFirstDeduction": "ပထမဆုံး နုတ်ယူမှု စည်းမျဉ်း ထည့်ရန် အောက်ပါခလုတ်ကို နှိပ်ပါ",
+      "deductionNamePlaceholder": "ဥပမာ - ဝင်ငွေခွန်၊ NSSF၊ စိတ်ကြိုက်နုတ်ယူမှု...",
+      "deductionType": "နုတ်ယူမှု အမျိုးအစား",
+      "noDeductionsYet": "နုတ်ယူမှုများ မသတ်မှတ်ရသေးပါ",
+      "quickSelectPreset": "Preset အမြန်ရွေးချယ်ရန်",
+      "rate": "နှုန်း",
+      "ratePercent": "နှုန်း (%)",
+      "updateDeduction": "နုတ်ယူမှု မွမ်းမံရန်"
+    },
+    "holiday": {
+      "addHoliday": "ရုံးပိတ်ရက် ထည့်ရန်",
+      "date": "ရက်စွဲ",
+      "deleteHoliday": "ရုံးပိတ်ရက် ဖျက်ရန်",
+      "editHoliday": "ရုံးပိတ်ရက် ပြင်ဆင်ရန်",
+      "holidayName": "ရုံးပိတ်ရက်အမည်",
+      "recurring": "ထပ်ခါတလဲလဲဖြစ်သော",
+      "clickAddHoliday": "စတင်ရန် ရုံးပိတ်ရက် ထည့်ရန် ကိုနှိပ်ပါ",
+      "holidayNamePlaceholder": "ဥပမာ - Khmer New Year, National Day",
+      "holidaysIn": "ရုံးပိတ်ရက်များ -",
+      "noPublicHolidaysFor": "ဤနှစ်အတွက် အများပြည်သူ ရုံးပိတ်ရက် မရှိပါ -",
+      "oneTime": "တစ်ကြိမ်သာ",
+      "recurringAnnually": "နှစ်စဉ် ထပ်ဖြစ်မည်",
+      "repeatsEveryYear": "နှစ်တိုင်း ထပ်ဖြစ်မည်",
+      "updateHoliday": "ရုံးပိတ်ရက် မွမ်းမံရန်"
+    },
+    "leave": {
+      "leaveType": "ခွင့်အမျိုးအစား",
+      "paidLeave": "လစာရခွင့်",
+      "requiresDocument": "စာရွက်စာတမ်း လိုအပ်သည်",
+      "addLeavePolicy": "ခွင့်အမျိုးအစား ထည့်ရန်",
+      "allGenders": "အားလုံး",
+      "applicableGender": "သက်ဆိုင်သည့် ကျား/မ",
+      "carryOver": "နောက်နှစ်သို့ သယ်ဆောင်ရန်",
+      "carryOverDays": "နောက်နှစ်သို့ သယ်ဆောင်ခွင့်ရက်များ",
+      "createFirstLeaveType": "သင်၏ ပထမဆုံး ခွင့်အမျိုးအစားကို ထည့်ရန် အောက်ပါအတိုင်း နှိပ်ပါ",
+      "daysPerYear": "တစ်နှစ်လျှင် ခွင့်ရက်",
+      "daysPerYearShort": "ရက်/နှစ်",
+      "deleteLeavePolicy": "ခွင့်အမျိုးအစား ဖျက်ရန်",
+      "document": "စာရွက်စာတမ်း",
+      "editLeavePolicy": "ခွင့်အမျိုးအစား ပြင်ဆင်ရန်",
+      "female": "မ",
+      "gender": "ကျား/မ",
+      "leaveTypePlaceholder": "ဥပမာ - နှစ်ပတ်လည်ခွင့်၊ ဆေးခွင့်၊ မီးဖွားခွင့်",
+      "male": "ကျား",
+      "noLeavePoliciesYet": "ခွင့်အမျိုးအစားများ မသတ်မှတ်ရသေးပါ",
+      "paid": "လစာရ",
+      "selectGender": "ကျား/မ ရွေးချယ်ရန်...",
+      "unpaid": "လစာမဲ့",
+      "updateLeaveType": "ခွင့်အမျိုးအစားကို မွမ်းမံရန်"
+    },
+    "overtime": {
+      "multiplier": "မြှောက်ဖော်ကိန်း",
+      "publicHoliday": "အများပြည်သူ ရုံးပိတ်ရက်",
+      "rateType": "နှုန်းထားအမျိုးအစား",
+      "weekday": "ရုံးဖွင့်ရက်",
+      "weekend": "ရုံးပိတ်ရက်",
+      "addOtRate": "OT နှုန်း ထည့်မည်",
+      "allDay": "တစ်နေ့လုံး",
+      "allFiveConfigured": "OT အမျိုးအစား ၅ ခုလုံး သတ်မှတ်ပြီးပါပြီ",
+      "allFiveConfiguredShort": "၅ ခုလုံး သတ်မှတ်ပြီးပါပြီ!",
+      "appliesTo": "သက်ဆိုင်သည့်နေ့",
+      "deleteOtRate": "OT နှုန်း ဖျက်မည်",
+      "editOtRate": "OT နှုန်း ပြင်မည်",
+      "editRatesHint": "အပေါ်က Edit ခလုတ်ဖြင့် တစ်ခုချင်းစီနှုန်း ပြင်နိုင်ပါသည်။",
+      "flatAmount": "သတ်မှတ်ငွေပမာဏ",
+      "multiplierValue": "မြှောက်ကိန်းတန်ဖိုး",
+      "noRatesConfigured": "OT နှုန်းများ မသတ်မှတ်ရသေးပါ",
+      "rate": "နှုန်း",
+      "remaining": "ခု ကျန်",
+      "selectOtType": "OT အမျိုးအစား ရွေးပါ",
+      "selectStandardTypes": "အောက်ပါ standard OT အမျိုးအစား ၅ ခုထဲမှ ရွေးပါ",
+      "shift": "ဆိုင်း",
+      "title": "ခေါင်းစဉ်",
+      "updateOtRate": "OT နှုန်း ပြင်မည်"
+    },
+    "pageTitle": "HR မူဝါဒ သတ်မှတ်ခြင်း",
+    "presets": {
+      "13th_Month_Salary": "၁၃ လမြောက် လစာ",
+      "Absence_Deduction": "ပျက်ကွက်မှုအတွက် နုတ်ယူခြင်း",
+      "Annual_Bonus": "နှစ်ပတ်လည် ဘောနပ်စ်",
+      "Annual_Leave": "နှစ်ပတ်လည် ခွင့်",
+      "Bereavement_Leave": "နာရေးခွင့်",
+      "Cambodian_Riel": "ကမ္ဘောဒီးယား ရီးယဲလ်",
+      "Compensation_Leave": "အလှည့်ကျ အစားထိုးခွင့်",
+      "Day_Weekday_OT": "နေ့ခင်း ရုံးဖွင့်ရက် အချိန်ပို",
+      "Day_Weekend_OT": "နေ့ခင်း ရုံးပိတ်ရက် အချိန်ပို",
+      "Emergency_Leave": "အရေးပေါ်ခွင့်",
+      "Festival_Bonus": "ပွဲတော် ဘောနပ်စ်",
+      "Hardship_Allowance": "ပင်ပန်းဆင်းရဲမှု စရိတ်",
+      "Health_Insurance": "ကျန်းမာရေး အာမခံ",
+      "Housing_Allowance": "အိမ်ငှားစရိတ်",
+      "Income_Tax": "ဝင်ငွေခွန်",
+      "Japanese_Yen": "ဂျပန် ယန်း",
+      "Korean_Won": "ကိုရီးယား ဝမ်",
+      "Marriage_Leave": "မင်္ဂလာဆောင်ခွင့်",
+      "Maternity_Leave": "မီးဖွားခွင့်",
+      "Meal_Allowance": "စားစရိတ်",
+      "Medical_Allowance": "ဆေးဝါးစရိတ်",
+      "Myanmar_Kyat": "မြန်မာကျပ်ငွေ",
+      "NSSF": "NSSF",
+      "Night_Weekday_OT": "ညပိုင်း ရုံးဖွင့်ရက် အချိန်ပို",
+      "Night_Weekend_OT": "ညပိုင်း ရုံးပိတ်ရက် အချိန်ပို",
+      "Overtime_Allowance": "အချိန်ပိုစရိတ်",
+      "Paternity_Leave": "ဖခင်ဖြစ်မှုခွင့်",
+      "Pension_Fund": "ပင်စင်ရန်ပုံငွေ",
+      "Performance_Bonus": "လုပ်ဆောင်ရည် ဘောနပ်စ်",
+      "Phone_Allowance": "ဖုန်းဘေလ်စရိတ်",
+      "Public_Holiday": "အများပြည်သူ ရုံးပိတ်ရက်",
+      "Public_Holiday_OT": "အများပြည်သူ ရုံးပိတ်ရက် အချိန်ပို",
+      "Retention_Bonus": "ဝန်ထမ်းထိန်းသိမ်းမှု ဘောနပ်စ်",
+      "SSB": "SSB (လူမှုဖူလုံရေး)",
+      "Sick_Leave": "ဆေးခွင့်",
+      "Social_Security": "လူမှုဖူလုံရေး",
+      "Transport_Allowance": "သယ်ယူပို့ဆောင်ရေးစရိတ်",
+      "US_Dollar": "အမေရိကန် ဒေါ်လာ",
+      "Union_Fee": "အလုပ်သမားသမဂ္ဂ ကြေး",
+      "Unpaid_Leave": "လစာမဲ့ခွင့်",
+      "Vietnamese_Dong": "ဗီယက်နမ် ဒေါင်",
+      "Year_End_Bonus": "နှစ်ချုပ် ဘောနပ်စ်"
+    },
+    "salary": {
+      "bank": "ဘဏ်",
+      "currency": "ငွေကြေး",
+      "dailyRate": "နေ့တွက်နှုန်းထား",
+      "dayShift": "နေ့ဆိုင်း",
+      "everyMonth": "လစဉ်",
+      "everyTenDays": "၁၀ ရက်တစ်ကြိမ်",
+      "everyThreeMonths": "၃ လတစ်ကြိမ်",
+      "hourlyRate": "နာရီတွက်နှုန်းထား",
+      "lateDeduction": "နောက်ကျခြင်းအတွက် နုတ်ယူခြင်း",
+      "lunchBreak": "နေ့လယ်စာစားချိန်",
+      "monthly": "လစဉ်",
+      "nightShift": "ညဆိုင်း",
+      "onceAMonth": "တစ်လတစ်ကြိမ်",
+      "onceAYear": "တစ်နှစ်တစ်ကြိမ်",
+      "otBase": "အချိန်ပို အခြေခံ",
+      "payCycle": "လစာပေးချေမှု သံသရာ",
+      "probation": "အစမ်းခန့် ကာလ",
+      "semiMonthly": "၁၅ ရက်တစ်ကြိမ်",
+      "specialBonus": "အထူးဘောနပ်စ်",
+      "tenDay": "၁၀ ရက်",
+      "threePeriodsMonth": "တစ်လလျှင် ၃ ကြိမ်",
+      "twiceAMonth": "တစ်လနှစ်ကြိမ်",
+      "twoPeriodsMonth": "တစ်လလျှင် ၂ ကြိမ်",
+      "workHours": "အလုပ်လုပ်ချိန်"
+    },
+    "saved": "သိမ်းဆည်းပြီး",
+    "sections": {
+      "allowance": "စရိတ်များ",
+      "bonus": "ဘောနပ်စ်",
+      "currency": "ငွေကြေး သတ်မှတ်ခြင်း",
+      "deduction": "နုတ်ယူမှု စည်းမျဉ်းများ",
+      "holiday": "အများပြည်သူ ရုံးပိတ်ရက်များ",
+      "leave": "ခွင့်မူဝါဒ",
+      "overtime": "အချိန်ပိုမူဝါဒ",
+      "salary": "လစာစည်းမျဉ်းများ"
+    },
+    "summaries": {
+      "allowance": "အိမ်စရိတ် · သယ်ယူပို့ဆောင်ရေး · စားစရိတ် · စိတ်ကြိုက်",
+      "bonus": "ဘောနပ်စ်အမျိုးအစားများ · အစီအစဉ်များ · ပေးချေမည့်အချိန်",
+      "currency": "ငွေကြေးကုဒ် · သင်္ကေတ · ဒဿမပုံစံ",
+      "deduction": "အခွန် · လူမှုဖူလုံရေး · ပြောင်းလဲနိုင်သောအတန်းများ",
+      "holiday": "နိုင်ငံတော်ရုံးပိတ်ရက် · ထပ်ခါတလဲလဲဖြစ်သော · နှစ်အလိုက်စစ်ထုတ်မှု",
+      "leave": "ခွင့်အမျိုးအစားများ · လစာရ/လစာမဲ့ · နောက်နှစ်သို့သယ်ဆောင်ခြင်း",
+      "overtime": "ရုံးဖွင့်ရက် · ရုံးပိတ်ရက် · ပိတ်ရက်နှုန်းထားများ",
+      "salary": "လစာပေးချေမှုသံသရာ · နောက်ဆုံးရက် · အလှည့်ကျဆိုင်းစည်းမျဉ်းများ"
+    },
+    "validation": {
+      "allowanceNameRequired": "စရိတ်အမည် လိုအပ်ပါသည်။",
+      "bonusNameRequired": "ဘောနပ်စ်အမည် လိုအပ်ပါသည်။",
+      "carryOverRequired": "နောက်နှစ်သို့ သယ်ဆောင်ခွင့်ရက်များ လိုအပ်ပါသည်။",
+      "currencyCodeRequired": "ငွေကြေးကုဒ် လိုအပ်ပါသည်။",
+      "currencyNameRequired": "ငွေကြေးအမည် လိုအပ်ပါသည်။",
+      "dateRequired": "ရက်စွဲ လိုအပ်ပါသည်။",
+      "daysPerYearRequired": "တစ်နှစ်လျှင်ရှိသော ခွင့်ရက် လိုအပ်ပါသည်။",
+      "deductionNameRequired": "နုတ်ယူမှုအမည် လိုအပ်ပါသည်။",
+      "holidayNameRequired": "ရုံးပိတ်ရက်အမည် လိုအပ်ပါသည်။",
+      "leaveTypeRequired": "ခွင့်အမျိုးအစားအမည် လိုအပ်ပါသည်။",
+      "maxTenCharacters": "အများဆုံး ၁၀ လုံးသာ။",
+      "mustBeAtLeastOneDay": "အနည်းဆုံး ၁ ရက် ဖြစ်ရမည်။",
+      "mustBeZeroOrGreater": "၀ သို့မဟုတ် ထိုထက်ကြီးရမည်။",
+      "rateAmountRequired": "နှုန်းထား / ပမာဏ လိုအပ်ပါသည်။",
+      "rateRequired": "နှုန်းထား လိုအပ်ပါသည်။",
+      "selectOtType": "ကျေးဇူးပြု၍ အချိန်ပို (OT) အမျိုးအစားကို ရွေးချယ်ပါ။",
+      "validNumber": "မှန်ကန်သော ဂဏန်းကို ထည့်ပါ။",
+      "valueRequired": "တန်ဖိုး လိုအပ်ပါသည်။"
+    },
+    "setupDescription": "သင်၏ အဖွဲ့အစည်းအတွက် ခွင့်၊ အချိန်ပို၊ လစာပေးချေမှုစည်းမျဉ်းများနှင့် အခြားအရာများကို သတ်မှတ်ပါ",
+    "completed": "ပြီးစီးသည်",
+    "country": "နိုင်ငံ",
+    "notConfigured": "သတ်မှတ်မထားပါ",
+    "step": "အဆင့်",
+    "of": "၏"
   }
 }

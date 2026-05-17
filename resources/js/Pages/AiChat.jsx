@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { usePage } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ── Theme System ───────────────────────────────────────────────
 function useReactiveTheme() {
@@ -197,7 +198,7 @@ function Avatar({ name = '', size = 36, online = false, photo = null }) {
 }
 
 // ── ConvItem ───────────────────────────────────────────────────
-function ConvItem({ conv, active, onClick, authId, t }) {
+function ConvItem({ conv, active, onClick, authId, t, tr }) {
     const unread = conv.unread_count || 0;
     const last   = conv.last_message;
     const isMine = last?.sender_id === authId;
@@ -214,7 +215,7 @@ function ConvItem({ conv, active, onClick, authId, t }) {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 11, color: unread ? t.textSecondary : t.textMute, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }}>
-                        {last ? (isMine ? `You: ${last.body || `[${last.type}]`}` : (last.body || `[${last.type}]`)) : 'No messages yet'}
+                        {last ? (isMine ? `${tr('aiChat.common.you')}: ${last.body || `[${last.type}]`}` : (last.body || `[${last.type}]`)) : tr('aiChat.empty.noMessagesYet')}
                     </span>
                     {unread > 0 && (
                         <span style={{ minWidth: 20, height: 20, borderRadius: 99, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px', flexShrink: 0, boxShadow: '0 2px 8px rgba(99,102,241,0.4)' }}>{unread > 99 ? '99+' : unread}</span>
@@ -238,7 +239,7 @@ function MItem({ icon, label, onClick, highlight = false, danger = false, t }) {
 }
 
 // ── MessageBubble ──────────────────────────────────────────────
-function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTranslate, showAvatar, openMenuId, setOpenMenuId, highlight = '', t }) {
+function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTranslate, showAvatar, openMenuId, setOpenMenuId, highlight = '', t, tr }) {
     const [translation, setTranslation]         = useState(null);
     const [showLangPicker, setShowLangPicker]   = useState(false);
     const [translating, setTranslating]         = useState(false);
@@ -291,16 +292,16 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
                         <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', ...(menuDir === 'down' ? { top: '110%' } : { bottom: '110%' }), [isMine ? 'right' : 'left']: 0, background: t.menuBg, border: `1px solid ${t.menuBorder}`, borderRadius: 14, padding: '6px', zIndex: 9999, boxShadow: t.shadow, minWidth: 160, animation: 'fadeIn 0.15s ease' }}>
                             {!showEmojiPicker && !showLangPicker && (
                                 <div>
-                                    {!isMine && <MItem icon={myReaction || '😊'} label="React" onClick={e => { e.stopPropagation(); setShowEmojiPicker(true); }} highlight={!!myReaction} t={t} />}
-                                    {!isMine && <MItem icon="🌐" label={translating ? 'Translating…' : 'Translate'} onClick={e => { e.stopPropagation(); setShowLangPicker(true); }} t={t} />}
-                                    <MItem icon="↩️" label="Reply" onClick={e => { e.stopPropagation(); onReply(msg); setOpenMenuId(null); }} t={t} />
-                                    {isMine && msg.type === 'text' && <MItem icon="✏️" label="Edit" onClick={e => { e.stopPropagation(); onEdit(msg); setOpenMenuId(null); }} t={t} />}
-                                    {isMine && <MItem icon="🗑️" label="Delete" onClick={e => { e.stopPropagation(); onDelete(msg.id); setOpenMenuId(null); }} danger t={t} />}
+                                    {!isMine && <MItem icon={myReaction || '😊'} label={tr('aiChat.actions.react')} onClick={e => { e.stopPropagation(); setShowEmojiPicker(true); }} highlight={!!myReaction} t={t} />}
+                                    {!isMine && <MItem icon="🌐" label={translating ? tr('aiChat.actions.translatingEllipsis') : tr('aiChat.actions.translate')} onClick={e => { e.stopPropagation(); setShowLangPicker(true); }} t={t} />}
+                                    <MItem icon="↩️" label={tr('aiChat.actions.reply')} onClick={e => { e.stopPropagation(); onReply(msg); setOpenMenuId(null); }} t={t} />
+                                    {isMine && msg.type === 'text' && <MItem icon="✏️" label={tr('aiChat.actions.edit')} onClick={e => { e.stopPropagation(); onEdit(msg); setOpenMenuId(null); }} t={t} />}
+                                    {isMine && <MItem icon="🗑️" label={tr('aiChat.actions.delete')} onClick={e => { e.stopPropagation(); onDelete(msg.id); setOpenMenuId(null); }} danger t={t} />}
                                 </div>
                             )}
                             {showEmojiPicker && (
                                 <div>
-                                    <button onClick={e => { e.stopPropagation(); setShowEmojiPicker(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMute, fontSize: 11, padding: '2px 6px 6px', display: 'flex', alignItems: 'center', gap: 4 }}>← Back</button>
+                                    <button onClick={e => { e.stopPropagation(); setShowEmojiPicker(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMute, fontSize: 11, padding: '2px 6px 6px', display: 'flex', alignItems: 'center', gap: 4 }}>{tr('aiChat.actions.back')}</button>
                                     <div style={{ display: 'flex', gap: 4, padding: '4px 2px' }}>
                                         {EMOJIS.map(e => (
                                             <button key={e} onClick={ev => handleReactClick(ev, e)} style={{ background: myReaction === e ? 'rgba(99,102,241,0.1)' : t.surfaceSoft, border: myReaction === e ? '1px solid #6366f1' : `1px solid ${t.border}`, cursor: 'pointer', fontSize: 20, padding: '5px 4px', borderRadius: 8, transition: 'all 0.1s', flex: 1, lineHeight: 1 }}
@@ -313,14 +314,14 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
                             )}
                             {showLangPicker && (
                                 <div>
-                                    <button onClick={e => { e.stopPropagation(); setShowLangPicker(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMute, fontSize: 11, padding: '2px 6px 6px', display: 'flex', alignItems: 'center', gap: 4 }}>← Back</button>
+                                    <button onClick={e => { e.stopPropagation(); setShowLangPicker(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMute, fontSize: 11, padding: '2px 6px 6px', display: 'flex', alignItems: 'center', gap: 4 }}>{tr('aiChat.actions.back')}</button>
                                     {Object.entries(LANG_LABELS).map(([code, label]) => (
                                         <button key={code} onClick={e => { e.stopPropagation(); handleTranslate(code); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '7px 10px', background: 'none', border: 'none', cursor: 'pointer', color: t.textSoft, fontSize: 12, borderRadius: 8, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                                             onMouseEnter={e => e.currentTarget.style.background = t.surfaceSoft}
                                             onMouseLeave={e => e.currentTarget.style.background = 'none'}
                                         >
                                             <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0, borderRadius: 2, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}>{FLAG_SVGS[code]}</span>
-                                            {label}
+                                            {tr(`aiChat.languages.${code}`, {}, label)}
                                         </button>
                                     ))}
                                 </div>
@@ -364,7 +365,7 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
                                 )
                                 : msg.body
                             }
-                            {msg.is_edited && <span style={{ fontSize: 10, opacity: 0.5, marginLeft: 6 }}>(edited)</span>}
+                            {msg.is_edited && <span style={{ fontSize: 10, opacity: 0.5, marginLeft: 6 }}>({tr('aiChat.labels.edited')})</span>}
                         </p>
                     )}
                     {msg.type === 'image' && <img src={msg.file_url} alt={msg.file_name} style={{ maxWidth: 260, maxHeight: 200, borderRadius: 12, display: 'block', cursor: 'pointer' }} onClick={() => window.open(msg.file_url, '_blank')} />}
@@ -390,7 +391,7 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
                         borderRadius: 10, fontSize: 12,
                         color: '#6366f1',
                     }}>
-                        <span style={{ opacity: 0.7 }}>Translating...</span>
+                        <span style={{ opacity: 0.7 }}>{tr('aiChat.actions.translating')}</span>
                     </div>
                 )}
 
@@ -410,7 +411,7 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
                     <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
                         {msg.reactions.filter(r => r.count > 0).map((r, i) => (
                             <div key={`${r.emoji}-${i}`} style={{ position: 'relative' }} className="react-badge-wrap">
-                                <button onClick={handleRemoveReact} style={{ padding: '2px 8px', borderRadius: 99, background: r.reacted_by_me ? 'rgba(99,102,241,0.1)' : t.reactionBg, border: `1px solid ${r.reacted_by_me ? '#6366f1' : t.reactionBorder}`, cursor: r.reacted_by_me ? 'pointer' : 'default', fontSize: 12, color: t.textSoft, display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.15s' }} title={r.reacted_by_me ? 'Click to remove' : ''}>
+                                <button onClick={handleRemoveReact} style={{ padding: '2px 8px', borderRadius: 99, background: r.reacted_by_me ? 'rgba(99,102,241,0.1)' : t.reactionBg, border: `1px solid ${r.reacted_by_me ? '#6366f1' : t.reactionBorder}`, cursor: r.reacted_by_me ? 'pointer' : 'default', fontSize: 12, color: t.textSoft, display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.15s' }} title={r.reacted_by_me ? tr('aiChat.tooltips.clickToRemove') : ''}>
                                     {r.emoji}
                                     <span style={{ fontSize: 10, fontWeight: 700 }}>{r.count}</span>
                                 </button>
@@ -439,7 +440,7 @@ function MessageBubble({ msg, isMine, onReact, onReply, onEdit, onDelete, onTran
 }
 
 // ── NewConvModal ───────────────────────────────────────────────
-function NewConvModal({ open, onClose, users, onCreate, t }) {
+function NewConvModal({ open, onClose, users, onCreate, t, tr }) {
     const [mode, setMode]           = useState('private');
     const [search, setSearch]       = useState('');
     const [selected, setSelected]   = useState([]);
@@ -459,16 +460,16 @@ function NewConvModal({ open, onClose, users, onCreate, t }) {
             <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(8px)' }} />
             <div style={{ position: 'relative', background: t.modalBg, border: `1px solid ${t.modalBorder}`, borderRadius: 20, width: '100%', maxWidth: 440, boxShadow: t.shadow, overflow: 'hidden' }}>
                 <div style={{ padding: '20px 24px 16px', borderBottom: `1px solid ${t.borderSoft}` }}>
-                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: t.text, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>New Conversation</h3>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: t.text, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{tr('aiChat.modal.newConversation')}</h3>
                     <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                         {['private', 'group'].map(m => (
-                            <button key={m} onClick={() => { setMode(m); setSelected([]); }} style={{ padding: '6px 16px', borderRadius: 99, border: `1px solid ${mode === m ? '#6366f1' : t.border}`, background: mode === m ? 'rgba(99,102,241,0.08)' : 'transparent', color: mode === m ? '#6366f1' : t.textMute, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{m === 'private' ? '👤 Direct' : '👥 Group'}</button>
+                            <button key={m} onClick={() => { setMode(m); setSelected([]); }} style={{ padding: '6px 16px', borderRadius: 99, border: `1px solid ${mode === m ? '#6366f1' : t.border}`, background: mode === m ? 'rgba(99,102,241,0.08)' : 'transparent', color: mode === m ? '#6366f1' : t.textMute, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{m === 'private' ? `👤 ${tr('aiChat.tabs.direct')}` : `👥 ${tr('aiChat.tabs.group')}`}</button>
                         ))}
                     </div>
                 </div>
                 <div style={{ padding: '16px 24px', maxHeight: 420, overflowY: 'auto' }}>
                     {mode === 'group' && (
-                        <input value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="Group name..." style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: `1px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 13, outline: 'none', marginBottom: 12, boxSizing: 'border-box' }} />
+                        <input value={groupName} onChange={e => setGroupName(e.target.value)} placeholder={tr('aiChat.placeholders.groupName')} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: `1px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 13, outline: 'none', marginBottom: 12, boxSizing: 'border-box' }} />
                     )}
                     {selected.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
@@ -481,7 +482,7 @@ function NewConvModal({ open, onClose, users, onCreate, t }) {
                         </div>
                     )}
                     <div style={{ position: 'relative', marginBottom: 10 }}>
-                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users..." style={{ width: '100%', padding: '9px 14px 9px 36px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={tr('aiChat.placeholders.searchUsers')} style={{ width: '100%', padding: '9px 14px 9px 36px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
                         <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13 }}>🔍</span>
                     </div>
                     {filtered.map(u => {
@@ -502,8 +503,8 @@ function NewConvModal({ open, onClose, users, onCreate, t }) {
                     })}
                 </div>
                 <div style={{ padding: '12px 24px 20px', borderTop: `1px solid ${t.borderSoft}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                    <button onClick={onClose} style={{ padding: '9px 20px', borderRadius: 10, border: `1px solid ${t.border}`, background: 'transparent', color: t.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                    <button onClick={handleCreate} disabled={mode === 'private' ? selected.length !== 1 : selected.length < 2 || !groupName} style={{ padding: '9px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: (mode === 'private' ? selected.length !== 1 : selected.length < 2 || !groupName) ? 0.4 : 1 }}>{mode === 'private' ? '💬 Start Chat' : '👥 Create Group'}</button>
+                    <button onClick={onClose} style={{ padding: '9px 20px', borderRadius: 10, border: `1px solid ${t.border}`, background: 'transparent', color: t.textSecondary, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{tr('aiChat.actions.cancel')}</button>
+                    <button onClick={handleCreate} disabled={mode === 'private' ? selected.length !== 1 : selected.length < 2 || !groupName} style={{ padding: '9px 24px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: (mode === 'private' ? selected.length !== 1 : selected.length < 2 || !groupName) ? 0.4 : 1 }}>{mode === 'private' ? `💬 ${tr('aiChat.actions.startChat')}` : `👥 ${tr('aiChat.actions.createGroup')}`}</button>
                 </div>
             </div>
         </div>
@@ -511,7 +512,7 @@ function NewConvModal({ open, onClose, users, onCreate, t }) {
 }
 
 // ── VoiceRecorder ──────────────────────────────────────────────
-function VoiceRecorder({ activeConv, authUser, csrf, onSent, t }) {
+function VoiceRecorder({ activeConv, authUser, csrf, onSent, t, tr }) {
     const [recording, setRecording] = useState(false);
     const [seconds, setSeconds]     = useState(0);
     const stateRef = useRef({ mr: null, stream: null, chunks: [], timer: null, sent: false });
@@ -540,11 +541,11 @@ function VoiceRecorder({ activeConv, authUser, csrf, onSent, t }) {
             };
             mr.start(100); setRecording(true); setSeconds(0);
             s.timer = setInterval(() => setSeconds(p => p + 1), 1000);
-        } catch { alert('Microphone access denied'); }
+        } catch { alert(tr('aiChat.alerts.microphoneDenied')); }
     };
 
     return (
-        <button onClick={handleClick} title={recording ? `Stop (${fmtT(seconds)})` : 'Record voice message'} style={{ width: 36, height: 36, borderRadius: 10, cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: recording ? 'rgba(239,68,68,0.1)' : t.surfaceSoft, border: `1px solid ${recording ? 'rgba(239,68,68,0.3)' : t.border}`, position: 'relative', overflow: 'visible', transition: 'all 0.15s' }}>
+        <button onClick={handleClick} title={recording ? `${tr('aiChat.tooltips.stop')} (${fmtT(seconds)})` : tr('aiChat.tooltips.recordVoice')} style={{ width: 36, height: 36, borderRadius: 10, cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: recording ? 'rgba(239,68,68,0.1)' : t.surfaceSoft, border: `1px solid ${recording ? 'rgba(239,68,68,0.3)' : t.border}`, position: 'relative', overflow: 'visible', transition: 'all 0.15s' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <rect x="9" y="2" width="6" height="12" rx="3" fill={recording ? '#ef4444' : t.textMute} style={recording ? { animation: 'pulse 1s infinite' } : {}} />
                 <path d="M5 11a7 7 0 0 0 14 0" stroke={recording ? '#ef4444' : t.textMute} strokeWidth="1.8" strokeLinecap="round" fill="none"/>
@@ -570,6 +571,7 @@ function HeaderBtn({ icon, title, onClick, active = false, t }) {
 
 // ── Main Page ──────────────────────────────────────────────────
 export default function AiChat({ conversations: initConvs = [], users = [] }) {
+    const { t: tr } = useTranslation();
     // authUser — usePage() live + WS avatar override
     const { auth } = usePage().props;
     const baseAuthUser = auth?.user;
@@ -941,7 +943,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
     const otherMember    = activeConv?.type === 'private' ? activeConv.members?.find(m => m.id !== authUser?.id) : null;
 
     return (
-        <AppLayout title="AI Chat" hideWidget={true}>
+        <AppLayout title={tr('aiChat.pageTitle')} hideWidget={true}>
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
                 .vibeme-chat * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -963,14 +965,14 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                         {/* Search + New Conversation — same row */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                             <div style={{ position: 'relative', flex: 1 }}>
-                                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search conversations..." 
+                                <input value={search} onChange={e => setSearch(e.target.value)} placeholder={tr('aiChat.placeholders.searchConversations')} 
                                     style={{ width: '100%', padding: '8px 12px 8px 32px', borderRadius: 9, border: `1px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
                                     onFocus={e => e.target.style.borderColor='#6366f1'} 
                                     onBlur={e => e.target.style.borderColor=t.border} />
                                 <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: t.textMute }}>🔍</span>
                             </div>
 
-                            <button onClick={() => setShowNewConv(true)} title="New Conversation" 
+                            <button onClick={() => setShowNewConv(true)} title={tr('aiChat.modal.newConversation')} 
                                 style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0, boxShadow: '0 3px 10px rgba(99,102,241,0.35)', transition: 'transform 0.15s' }}
                                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
                                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
@@ -980,7 +982,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
 
                         {/* Tabs */}
                         <div style={{ display: 'flex', gap: 6 }}>
-                            {[['all','All'],['unread','Unread']].map(([k,l]) => (
+                            {[['all', tr('aiChat.tabs.all')], ['unread', tr('aiChat.tabs.unread')]].map(([k,l]) => (
                                 <button key={k} onClick={() => setTab(k)} style={{ padding: '4px 12px', borderRadius: 7, border: `1px solid ${tab===k ? 'rgba(99,102,241,0.3)' : t.border}`, background: tab===k ? 'rgba(99,102,241,0.08)' : 'transparent', color: tab===k ? '#6366f1' : t.textMute, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{l}</button>
                             ))}
                         </div>
@@ -991,11 +993,11 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                         {filteredConvs.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '40px 20px', color: t.textMute }}>
                                 <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
-                                <div style={{ fontSize: 12, fontWeight: 600 }}>No conversations yet</div>
-                                <button onClick={() => setShowNewConv(true)} style={{ marginTop: 10, padding: '6px 16px', borderRadius: 9, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Start chatting</button>
+                                <div style={{ fontSize: 12, fontWeight: 600 }}>{tr('aiChat.empty.noConversationsYet')}</div>
+                                <button onClick={() => setShowNewConv(true)} style={{ marginTop: 10, padding: '6px 16px', borderRadius: 9, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{tr('aiChat.actions.startChatting')}</button>
                             </div>
                         ) : filteredConvs.map(conv => (
-                            <ConvItem key={conv.id} conv={conv} active={activeConv?.id === conv.id} onClick={() => setActiveConv(conv)} authId={authUser?.id} tick={tick} t={t} />
+                            <ConvItem key={conv.id} conv={conv} active={activeConv?.id === conv.id} onClick={() => setActiveConv(conv)} authId={authUser?.id} tick={tick} t={t} tr={tr} />
                         ))}
                     </div>
 
@@ -1003,7 +1005,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                         <Avatar name={authUser?.name || '?'} size={32} online photo={authUser?.avatar_url || authUser?.avatar || null} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 11, fontWeight: 700, color: t.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{authUser?.name}</div>
-                            <div style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>● Online</div>
+                            <div style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>{tr('aiChat.status.online')}</div>
                         </div>
                     </div>
                 </div>
@@ -1023,25 +1025,25 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                     <div style={{ fontSize: 13, fontWeight: 800, color: t.text }}>{activeConv.name}</div>
                                     <div style={{ fontSize: 11, color: t.textMute }}>
                                         {activeConv.type === 'group'
-                                            ? <span onClick={() => { setShowMembersPanel(true); setMembersPanelTab('members'); setAddMemberSearch(''); }} style={{ cursor: 'pointer', color: '#6366f1', fontWeight: 700, padding: '1px 8px', borderRadius: 99, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', transition: 'all 0.15s', display: 'inline-block' }} onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.15)'} onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.08)'}>{activeConv.members?.length || 0} members</span>
-                                            : (typing && typing.userId !== authUser?.id) ? <span style={{ color: '#6366f1', animation: 'pulse 1s infinite' }}>typing...</span> : 'Online'}
+                                            ? <span onClick={() => { setShowMembersPanel(true); setMembersPanelTab('members'); setAddMemberSearch(''); }} style={{ cursor: 'pointer', color: '#6366f1', fontWeight: 700, padding: '1px 8px', borderRadius: 99, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', transition: 'all 0.15s', display: 'inline-block' }} onMouseEnter={e => e.currentTarget.style.background='rgba(99,102,241,0.15)'} onMouseLeave={e => e.currentTarget.style.background='rgba(99,102,241,0.08)'}>{activeConv.members?.length || 0} {tr('aiChat.labels.members')}</span>
+                                            : (typing && typing.userId !== authUser?.id) ? <span style={{ color: '#6366f1', animation: 'pulse 1s infinite' }}>{tr('aiChat.status.typing')}</span> : tr('aiChat.status.onlinePlain')}
                                     </div>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                <HeaderBtn icon="🔍" title="Search messages" onClick={() => setShowMsgSearch(p => !p)} active={showMsgSearch} t={t} />
-                                <HeaderBtn icon="🖼️" title="Media & Files" onClick={loadMedia} t={t} />
+                                <HeaderBtn icon="🔍" title={tr('aiChat.tooltips.searchMessages')} onClick={() => setShowMsgSearch(p => !p)} active={showMsgSearch} t={t} />
+                                <HeaderBtn icon="🖼️" title={tr('aiChat.media.title')} onClick={loadMedia} t={t} />
                                 <div style={{ position: 'relative' }}>
                                     <button onClick={(e) => { e.stopPropagation(); setShowConvMenu(p => !p); }} style={{ width: 34, height: 34, borderRadius: 10, background: showConvMenu ? 'rgba(99,102,241,0.1)' : t.surfaceSoft, border: `1px solid ${showConvMenu ? 'rgba(99,102,241,0.3)' : t.border}`, cursor: 'pointer', fontSize: 18, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', color: showConvMenu ? '#6366f1' : t.textMute, transition: 'all 0.15s' }}>⋮</button>
                                     {showConvMenu && (
                                         <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: '110%', right: 0, background: t.menuBg, border: `1px solid ${t.menuBorder}`, borderRadius: 14, padding: '6px', zIndex: 500, boxShadow: t.shadow, minWidth: 180, animation: 'fadeIn 0.15s ease' }}>
                                             {activeConv.type === 'private' && otherMember && (
                                                 <button onClick={async () => { const iBlocked = activeConv.i_blocked_them; const url = iBlocked ? '/ai-chat/unblock' : '/ai-chat/block'; await api(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: otherMember.id }) }); setConversations(prev => prev.map(c => c.id === activeConv.id ? { ...c, i_blocked_them: !iBlocked } : c)); setActiveConv(prev => ({ ...prev, i_blocked_them: !iBlocked })); setShowConvMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer', color: activeConv.i_blocked_them ? '#6366f1' : '#ef4444', fontSize: 12, borderRadius: 8, transition: 'background 0.1s', textAlign: 'left' }} onMouseEnter={e => e.currentTarget.style.background = activeConv.i_blocked_them ? 'rgba(99,102,241,0.06)' : 'rgba(239,68,68,0.06)'} onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                                                    <span style={{ fontSize: 15 }}>{activeConv.i_blocked_them ? '✅' : '🚫'}</span>{activeConv.i_blocked_them ? 'Unblock User' : 'Block User'}
+                                                    <span style={{ fontSize: 15 }}>{activeConv.i_blocked_them ? '✅' : '🚫'}</span>{activeConv.i_blocked_them ? tr('aiChat.actions.unblockUser') : tr('aiChat.actions.blockUser')}
                                                 </button>
                                             )}
                                             <button onClick={() => { setShowDeleteConfirm(true); setShowConvMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 12, borderRadius: 8, transition: 'background 0.1s', textAlign: 'left' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'} onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                                                <span style={{ fontSize: 15 }}>🗑️</span> Delete Conversation
+                                                <span style={{ fontSize: 15 }}>🗑️</span> {tr('aiChat.actions.deleteConversation')}
                                             </button>
                                         </div>
                                     )}
@@ -1054,7 +1056,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                             <div onClick={e => e.stopPropagation()} style={{ padding: '8px 16px', background: t.headerBg, borderBottom: `1px solid ${t.borderSoft}`, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                                 <div style={{ flex: 1, position: 'relative' }}>
                                     <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: t.textMute }}>🔍</span>
-                                    <input ref={msgSearchRef} value={msgSearch} onChange={e => { setMsgSearch(e.target.value); setSearchIdx(0); }} placeholder="Search in conversation..." autoFocus style={{ width: '100%', padding: '7px 12px 7px 30px', borderRadius: 9, border: '1px solid rgba(99,102,241,0.3)', background: t.inputBg, color: t.text, fontSize: 12, outline: 'none' }} />
+                                    <input ref={msgSearchRef} value={msgSearch} onChange={e => { setMsgSearch(e.target.value); setSearchIdx(0); }} placeholder={tr('aiChat.placeholders.searchInConversation')} autoFocus style={{ width: '100%', padding: '7px 12px 7px 30px', borderRadius: 9, border: '1px solid rgba(99,102,241,0.3)', background: t.inputBg, color: t.text, fontSize: 12, outline: 'none' }} />
                                 </div>
                                 {msgSearch && (() => {
                                     const matched = messages.map((m, i) => ({ m, i })).filter(({ m }) => m.body?.toLowerCase().includes(msgSearch.toLowerCase()));
@@ -1062,9 +1064,9 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                     const cur   = total > 0 ? searchIdx % total : 0;
                                     return (
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
-                                            <span style={{ fontSize: 11, color: '#6366f1', fontWeight: 700 }}>{total > 0 ? `${cur + 1} / ${total}` : '0 results'}</span>
-                                            <button disabled={total === 0} onClick={() => { if (total === 0) return; const prev2 = ((searchIdx - 1) % total + total) % total; setSearchIdx(prev2); const m2 = messages.map((m,i)=>({m,i})).filter(({m})=>m.body?.toLowerCase().includes(msgSearch.toLowerCase())); const tgt = m2[prev2]; if (tgt) document.getElementById(`msg-${tgt.m.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} style={{ background: 'none', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 6, cursor: total===0?'not-allowed':'pointer', color: '#6366f1', width: 24, height: 24, display:'flex',alignItems:'center',justifyContent:'center', padding:0, fontSize: 11 }} title="Previous">▲</button>
-                                            <button disabled={total === 0} onClick={() => { if (total === 0) return; const next = (searchIdx + 1) % total; setSearchIdx(next); const m2 = messages.map((m,i)=>({m,i})).filter(({m})=>m.body?.toLowerCase().includes(msgSearch.toLowerCase())); const tgt = m2[next]; if (tgt) document.getElementById(`msg-${tgt.m.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} style={{ background: 'none', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 6, cursor: total===0?'not-allowed':'pointer', color: '#6366f1', width: 24, height: 24, display:'flex',alignItems:'center',justifyContent:'center', padding:0, fontSize: 11 }} title="Next">▼</button>
+                                            <span style={{ fontSize: 11, color: '#6366f1', fontWeight: 700 }}>{total > 0 ? `${cur + 1} / ${total}` : tr('aiChat.empty.zeroResults')}</span>
+                                            <button disabled={total === 0} onClick={() => { if (total === 0) return; const prev2 = ((searchIdx - 1) % total + total) % total; setSearchIdx(prev2); const m2 = messages.map((m,i)=>({m,i})).filter(({m})=>m.body?.toLowerCase().includes(msgSearch.toLowerCase())); const tgt = m2[prev2]; if (tgt) document.getElementById(`msg-${tgt.m.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} style={{ background: 'none', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 6, cursor: total===0?'not-allowed':'pointer', color: '#6366f1', width: 24, height: 24, display:'flex',alignItems:'center',justifyContent:'center', padding:0, fontSize: 11 }} title={tr('aiChat.actions.previous')}>▲</button>
+                                            <button disabled={total === 0} onClick={() => { if (total === 0) return; const next = (searchIdx + 1) % total; setSearchIdx(next); const m2 = messages.map((m,i)=>({m,i})).filter(({m})=>m.body?.toLowerCase().includes(msgSearch.toLowerCase())); const tgt = m2[next]; if (tgt) document.getElementById(`msg-${tgt.m.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} style={{ background: 'none', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 6, cursor: total===0?'not-allowed':'pointer', color: '#6366f1', width: 24, height: 24, display:'flex',alignItems:'center',justifyContent:'center', padding:0, fontSize: 11 }} title={tr('aiChat.actions.next')}>▼</button>
                                         </div>
                                     );
                                 })()}
@@ -1075,9 +1077,9 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                         {/* Messages */}
                         <div style={{ flex: 1, overflowY: 'auto', paddingTop: 12, paddingBottom: 8 }}>
                             {loading ? (
-                                <div style={{ textAlign: 'center', padding: 40, color: t.textMute }}><div style={{ fontSize: 24, marginBottom: 8 }}>💬</div><div style={{ fontSize: 12 }}>Loading messages...</div></div>
+                                <div style={{ textAlign: 'center', padding: 40, color: t.textMute }}><div style={{ fontSize: 24, marginBottom: 8 }}>💬</div><div style={{ fontSize: 12 }}>{tr('aiChat.status.loadingMessages')}</div></div>
                             ) : messages.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '60px 20px' }}><div style={{ fontSize: 48, marginBottom: 12 }}>👋</div><div style={{ fontSize: 14, fontWeight: 700, color: t.text }}>Start the conversation!</div><div style={{ fontSize: 12, marginTop: 6, color: t.textMute }}>Say hi to {activeConv.name}</div></div>
+                                <div style={{ textAlign: 'center', padding: '60px 20px' }}><div style={{ fontSize: 48, marginBottom: 12 }}>👋</div><div style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{tr('aiChat.empty.startConversation')}</div><div style={{ fontSize: 12, marginTop: 6, color: t.textMute }}>{tr('aiChat.empty.sayHiTo', { name: activeConv.name })}</div></div>
                             ) : Object.entries(groupedMessages).map(([date, msgs]) => (
                                 <div key={date}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 20px', margin: '6px 0' }}>
@@ -1097,10 +1099,10 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                         const isCurrent = isMatch && matchedList[cur2]?.m.id === msg.id;
                                         return (
                                             <div key={msg.id} id={`msg-${msg.id}`} className="msg-anim" style={isCurrent ? { background: 'rgba(99,102,241,0.08)', borderRadius: 12, margin: '2px 8px', boxShadow: '0 0 0 2px rgba(99,102,241,0.3)' } : isMatch ? { background: 'rgba(99,102,241,0.04)', borderRadius: 12, margin: '2px 8px' } : {}}>
-                                                <MessageBubble msg={msg} isMine={isMine} showAvatar={showAvatar} onReact={handleReact} onReply={setReplyTo} onEdit={(m) => { setEditMsg(m); setInput(m.body); inputRef.current?.focus(); }} onDelete={handleDelete} onTranslate={handleTranslate} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} highlight={msgSearch} t={t} />
+                                                <MessageBubble msg={msg} isMine={isMine} showAvatar={showAvatar} onReact={handleReact} onReply={setReplyTo} onEdit={(m) => { setEditMsg(m); setInput(m.body); inputRef.current?.focus(); }} onDelete={handleDelete} onTranslate={handleTranslate} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId} highlight={msgSearch} t={t} tr={tr} />
                                                 {isFailed && (
                                                     <div style={{ textAlign: 'right', paddingRight: 20, marginTop: -4, marginBottom: 6 }}>
-                                                        <button onClick={() => handleRetry(msg)} style={{ fontSize: 11, color: '#f59e0b', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 8, padding: '3px 10px', cursor: 'pointer', fontWeight: 600 }}>🔄 Tap to retry</button>
+                                                        <button onClick={() => handleRetry(msg)} style={{ fontSize: 11, color: '#f59e0b', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 8, padding: '3px 10px', cursor: 'pointer', fontWeight: 600 }}>🔄 {tr('aiChat.actions.tapToRetry')}</button>
                                                     </div>
                                                 )}
                                             </div>
@@ -1115,7 +1117,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                         {(replyTo || editMsg) && (
                             <div style={{ padding: '8px 18px', background: 'rgba(99,102,241,0.05)', borderTop: '1px solid rgba(99,102,241,0.15)', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                                 <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', marginBottom: 2 }}>{editMsg ? '✏️ Editing message' : `↩️ Replying to ${replyTo?.sender?.name}`}</div>
+                                    <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', marginBottom: 2 }}>{editMsg ? `✏️ ${tr('aiChat.labels.editingMessage')}` : `↩️ ${tr('aiChat.labels.replyingTo', { name: replyTo?.sender?.name })}`}</div>
                                     <div style={{ fontSize: 12, color: t.textMute, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{editMsg?.body || replyTo?.body || `[${replyTo?.type}]`}</div>
                                 </div>
                                 <button onClick={() => { setReplyTo(null); setEditMsg(null); setInput(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMute, fontSize: 18 }}>×</button>
@@ -1154,23 +1156,23 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                     <div style={{ padding: '14px 20px', borderTop: `1px solid ${t.bannerBlockBorder}`, background: t.bannerBlockBg, display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0, animation: 'fadeIn 0.2s ease' }}>
                                         <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🚫</div>
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: 13, fontWeight: 800, color: '#ef4444', marginBottom: 2 }}>{iBlocked ? 'You have blocked this user' : 'You have been blocked'}</div>
-                                            <div style={{ fontSize: 11, color: '#f87171' }}>{iBlocked ? 'Unblock them to send messages again.' : 'You cannot send messages to this person.'}</div>
+                                            <div style={{ fontSize: 13, fontWeight: 800, color: '#ef4444', marginBottom: 2 }}>{iBlocked ? tr('aiChat.block.youBlockedUser') : tr('aiChat.block.youHaveBeenBlocked')}</div>
+                                            <div style={{ fontSize: 11, color: '#f87171' }}>{iBlocked ? tr('aiChat.block.unblockToSend') : tr('aiChat.block.cannotSend')}</div>
                                         </div>
                                         {iBlocked && (
-                                            <button onClick={async () => { const data = await api('/ai-chat/unblock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: otherMember?.id }) }); if (data.success) { const upd = { i_blocked_them: false }; setConversations(prev => prev.map(c => c.id === activeConv.id ? { ...c, ...upd } : c)); setActiveConv(prev => ({ ...prev, ...upd })); } }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', flexShrink: 0, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 10px rgba(99,102,241,0.3)', transition: 'all 0.15s' }} onMouseEnter={e => e.currentTarget.style.opacity='0.9'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>✅ Unblock</button>
+                                            <button onClick={async () => { const data = await api('/ai-chat/unblock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: otherMember?.id }) }); if (data.success) { const upd = { i_blocked_them: false }; setConversations(prev => prev.map(c => c.id === activeConv.id ? { ...c, ...upd } : c)); setActiveConv(prev => ({ ...prev, ...upd })); } }} style={{ padding: '8px 16px', borderRadius: 10, border: 'none', flexShrink: 0, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 10px rgba(99,102,241,0.3)', transition: 'all 0.15s' }} onMouseEnter={e => e.currentTarget.style.opacity='0.9'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>✅ {tr('aiChat.actions.unblock')}</button>
                                         )}
                                     </div>
                                 );
                             }
                             return (
                                 <div style={{ padding: '10px 14px', borderTop: `1px solid ${t.borderSoft}`, background: t.headerBg, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                                    <button onClick={() => fileInputRef.current?.click()} title="Attach file" style={{ background: t.surfaceSoft, border: `1px solid ${t.border}`, width: 34, height: 34, borderRadius: 9, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.textMute, flexShrink: 0 }}>📎</button>
+                                    <button onClick={() => fileInputRef.current?.click()} title={tr('aiChat.tooltips.attachFile')} style={{ background: t.surfaceSoft, border: `1px solid ${t.border}`, width: 34, height: 34, borderRadius: 9, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.textMute, flexShrink: 0 }}>📎</button>
                                     <input ref={fileInputRef} type="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xlsx,.zip" style={{ display: 'none' }} onChange={handleFileSelect} />
 
-                                    <VoiceRecorder activeConv={activeConv} authUser={authUser} csrf={csrf} onSent={(msg) => { setMessages(prev => [...prev, { ...msg, status: 'sent' }]); updateConvLastMessage(msg); }} t={t} />
+                                    <VoiceRecorder activeConv={activeConv} authUser={authUser} csrf={csrf} onSent={(msg) => { setMessages(prev => [...prev, { ...msg, status: 'sent' }]); updateConvLastMessage(msg); }} t={t} tr={tr} />
 
-                                    <button onClick={(e) => { e.stopPropagation(); setShowStickerPicker(p => !p); }} title="Send sticker" style={{ background: showStickerPicker ? 'rgba(99,102,241,0.1)' : t.surfaceSoft, border: `1px solid ${showStickerPicker ? 'rgba(99,102,241,0.3)' : t.border}`, width: 34, height: 34, borderRadius: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0 }}>
+                                    <button onClick={(e) => { e.stopPropagation(); setShowStickerPicker(p => !p); }} title={tr('aiChat.tooltips.sendSticker')} style={{ background: showStickerPicker ? 'rgba(99,102,241,0.1)' : t.surfaceSoft, border: `1px solid ${showStickerPicker ? 'rgba(99,102,241,0.3)' : t.border}`, width: 34, height: 34, borderRadius: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0 }}>
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                                             <circle cx="12" cy="12" r="10" stroke={showStickerPicker ? '#6366f1' : t.textMute} strokeWidth="1.8"/>
                                             <circle cx="9" cy="10" r="1.2" fill={showStickerPicker ? '#6366f1' : t.textMute}/>
@@ -1182,7 +1184,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
 
                                     <input ref={inputRef} value={input} onChange={e => { setInput(e.target.value); handleTyping(); }}
                                         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                                        placeholder={editMsg ? 'Edit message...' : `Message ${activeConv.name}...`}
+                                        placeholder={editMsg ? tr('aiChat.placeholders.editMessage') : tr('aiChat.placeholders.messageName', { name: activeConv.name })}
                                         style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: `1px solid ${t.inputBorder}`, background: t.inputBg, color: t.text, fontSize: 13, outline: 'none', transition: 'border-color 0.15s' }}
                                         onFocus={e => e.target.style.borderColor = '#6366f1'}
                                         onBlur={e => e.target.style.borderColor = t.inputBorder}
@@ -1202,9 +1204,9 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg }}>
                         <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: 56, marginBottom: 14, opacity: 0.3 }}>💬</div>
-                            <h3 style={{ fontSize: 17, fontWeight: 800, color: t.text, marginBottom: 6 }}>Select a conversation</h3>
-                            <p style={{ fontSize: 13, color: t.textMute, marginBottom: 18 }}>Choose a chat or start a new one</p>
-                            <button onClick={() => setShowNewConv(true)} style={{ padding: '9px 22px', borderRadius: 11, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }}>✏️ New Conversation</button>
+                            <h3 style={{ fontSize: 17, fontWeight: 800, color: t.text, marginBottom: 6 }}>{tr('aiChat.empty.selectConversation')}</h3>
+                            <p style={{ fontSize: 13, color: t.textMute, marginBottom: 18 }}>{tr('aiChat.empty.chooseChat')}</p>
+                            <button onClick={() => setShowNewConv(true)} style={{ padding: '9px 22px', borderRadius: 11, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }}>✏️ {tr('aiChat.modal.newConversation')}</button>
                         </div>
                     </div>
                 )}
@@ -1214,20 +1216,20 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                     <div style={{ width: 260, flexShrink: 0, background: t.sidebarBg, borderLeft: `1px solid ${t.sidebarBorder}`, display: 'flex', flexDirection: 'column' }}>
                         <div style={{ padding: '12px 12px 0', borderBottom: `1px solid ${t.borderSoft}` }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                <span style={{ fontSize: 12, fontWeight: 800, color: t.text }}>🖼️ Media & Files</span>
+                                <span style={{ fontSize: 12, fontWeight: 800, color: t.text }}>🖼️ {tr('aiChat.media.title')}</span>
                                 <button onClick={() => setShowMedia(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textMute, fontSize: 18, lineHeight: 1 }}>×</button>
                             </div>
                             <div style={{ display: 'flex' }}>
-                                {[['image','Images'],['video','Videos'],['audio','Audio'],['file','Files']].map(([type, label]) => (
+                                {[['image', tr('aiChat.media.images')], ['video', tr('aiChat.media.videos')], ['audio', tr('aiChat.media.audio')], ['file', tr('aiChat.media.files')]].map(([type, label]) => (
                                     <button key={type} onClick={() => setMediaTab(type)} style={{ flex: 1, padding: '6px 2px', background: 'none', border: 'none', borderBottom: `2px solid ${mediaTab === type ? '#6366f1' : 'transparent'}`, color: mediaTab === type ? '#6366f1' : t.textMute, fontSize: 10, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>{label}</button>
                                 ))}
                             </div>
                         </div>
                         <div style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
-                            {mediaTab === 'image' && (mediaFiles.filter(m => m.type === 'image').length === 0 ? <div style={{ textAlign: 'center', padding: '40px 0', color: t.textMute, fontSize: 12 }}>No images yet</div> : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>{mediaFiles.filter(m => m.type === 'image').map(m => <img key={m.id} src={m.file_url} alt={m.file_name} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(m.file_url, '_blank')} />)}</div>)}
-                            {mediaTab === 'video' && (mediaFiles.filter(m => m.type === 'video').length === 0 ? <div style={{ textAlign: 'center', padding: '40px 0', color: t.textMute, fontSize: 12 }}>No videos yet</div> : mediaFiles.filter(m => m.type === 'video').map(m => <div key={m.id} style={{ marginBottom: 8, borderRadius: 10, overflow: 'hidden', background: t.fileCardBg, border: `1px solid ${t.fileCardBorder}` }}><video controls style={{ width: '100%', display: 'block' }}><source src={m.file_url} /></video><div style={{ padding: '5px 8px', fontSize: 10, color: t.textMute }}>{m.file_name}</div></div>))}
-                            {mediaTab === 'audio' && (mediaFiles.filter(m => m.type === 'audio').length === 0 ? <div style={{ textAlign: 'center', padding: '40px 0', color: t.textMute, fontSize: 12 }}>No audio yet</div> : mediaFiles.filter(m => m.type === 'audio').map(m => <div key={m.id} style={{ marginBottom: 8, padding: '8px 10px', borderRadius: 10, background: t.fileCardBg, border: `1px solid ${t.fileCardBorder}` }}><audio controls style={{ width: '100%', height: 32 }}><source src={m.file_url} /></audio><div style={{ fontSize: 10, color: t.textMute, marginTop: 4 }}>{m.file_name}</div></div>))}
-                            {mediaTab === 'file' && (mediaFiles.filter(m => m.type === 'file').length === 0 ? <div style={{ textAlign: 'center', padding: '40px 0', color: t.textMute, fontSize: 12 }}>No files yet</div> : mediaFiles.filter(m => m.type === 'file').map(m => <a key={m.id} href={m.file_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px', borderRadius: 10, background: t.fileCardBg, border: `1px solid ${t.fileCardBorder}`, marginBottom: 6, textDecoration: 'none' }}><span style={{ fontSize: 18 }}>📎</span><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 600, color: t.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.file_name}</div><div style={{ fontSize: 10, color: t.textMute }}>{m.created_at}</div></div></a>))}
+                            {mediaTab === 'image' && (mediaFiles.filter(m => m.type === 'image').length === 0 ? <div style={{ textAlign: 'center', padding: '40px 0', color: t.textMute, fontSize: 12 }}>{tr('aiChat.empty.noImagesYet')}</div> : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>{mediaFiles.filter(m => m.type === 'image').map(m => <img key={m.id} src={m.file_url} alt={m.file_name} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(m.file_url, '_blank')} />)}</div>)}
+                            {mediaTab === 'video' && (mediaFiles.filter(m => m.type === 'video').length === 0 ? <div style={{ textAlign: 'center', padding: '40px 0', color: t.textMute, fontSize: 12 }}>{tr('aiChat.empty.noVideosYet')}</div> : mediaFiles.filter(m => m.type === 'video').map(m => <div key={m.id} style={{ marginBottom: 8, borderRadius: 10, overflow: 'hidden', background: t.fileCardBg, border: `1px solid ${t.fileCardBorder}` }}><video controls style={{ width: '100%', display: 'block' }}><source src={m.file_url} /></video><div style={{ padding: '5px 8px', fontSize: 10, color: t.textMute }}>{m.file_name}</div></div>))}
+                            {mediaTab === 'audio' && (mediaFiles.filter(m => m.type === 'audio').length === 0 ? <div style={{ textAlign: 'center', padding: '40px 0', color: t.textMute, fontSize: 12 }}>{tr('aiChat.empty.noAudioYet')}</div> : mediaFiles.filter(m => m.type === 'audio').map(m => <div key={m.id} style={{ marginBottom: 8, padding: '8px 10px', borderRadius: 10, background: t.fileCardBg, border: `1px solid ${t.fileCardBorder}` }}><audio controls style={{ width: '100%', height: 32 }}><source src={m.file_url} /></audio><div style={{ fontSize: 10, color: t.textMute, marginTop: 4 }}>{m.file_name}</div></div>))}
+                            {mediaTab === 'file' && (mediaFiles.filter(m => m.type === 'file').length === 0 ? <div style={{ textAlign: 'center', padding: '40px 0', color: t.textMute, fontSize: 12 }}>{tr('aiChat.empty.noFilesYet')}</div> : mediaFiles.filter(m => m.type === 'file').map(m => <a key={m.id} href={m.file_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px', borderRadius: 10, background: t.fileCardBg, border: `1px solid ${t.fileCardBorder}`, marginBottom: 6, textDecoration: 'none' }}><span style={{ fontSize: 18 }}>📎</span><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 600, color: t.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.file_name}</div><div style={{ fontSize: 10, color: t.textMute }}>{m.created_at}</div></div></a>))}
                         </div>
                     </div>
                 )}
@@ -1252,15 +1254,15 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                 <div style={{ position: 'absolute', bottom: 4, right: 4, width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', border: `2px solid ${t.modalBg}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>✎</div>
                             </div>
                             <input ref={groupEditFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (!f) return; setGroupEditFile(f); const reader = new FileReader(); reader.onload = ev => setGroupEditPreview(ev.target.result); reader.readAsDataURL(f); }} />
-                            <div style={{ marginTop: 8, fontSize: 11, color: t.textMute }}>Click to change photo</div>
+                            <div style={{ marginTop: 8, fontSize: 11, color: t.textMute }}>{tr('aiChat.group.clickChangePhoto')}</div>
                         </div>
                         <div style={{ padding: '16px 24px 24px' }}>
-                            <label style={{ fontSize: 11, fontWeight: 700, color: t.textSecondary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Group Name</label>
+                            <label style={{ fontSize: 11, fontWeight: 700, color: t.textSecondary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{tr('aiChat.group.groupName')}</label>
                             <input value={groupEditName} onChange={e => setGroupEditName(e.target.value)} placeholder={activeConv.name} style={{ width: '100%', marginTop: 6, padding: '10px 14px', borderRadius: 10, border: `1.5px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 13, fontWeight: 600, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s' }} onFocus={e => e.target.style.borderColor='#6366f1'} onBlur={e => e.target.style.borderColor=t.border} onKeyDown={e => e.key === 'Enter' && handleGroupEdit()} />
                             <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-                                <button onClick={() => { setShowGroupEdit(false); setGroupEditFile(null); setGroupEditPreview(null); setGroupEditName(''); }} style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${t.border}`, background: t.surfaceSoft, color: t.textSecondary, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                                <button onClick={() => { setShowGroupEdit(false); setGroupEditFile(null); setGroupEditPreview(null); setGroupEditName(''); }} style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${t.border}`, background: t.surfaceSoft, color: t.textSecondary, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{tr('aiChat.actions.cancel')}</button>
                                 <button onClick={handleGroupEdit} disabled={groupEditLoading || (!groupEditName.trim() && !groupEditFile)} style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: (groupEditLoading || (!groupEditName.trim() && !groupEditFile)) ? t.surfaceSofter : 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: (groupEditLoading || (!groupEditName.trim() && !groupEditFile)) ? t.textMute : '#fff', fontSize: 13, fontWeight: 700, cursor: (groupEditLoading || (!groupEditName.trim() && !groupEditFile)) ? 'not-allowed' : 'pointer', boxShadow: (groupEditLoading || (!groupEditName.trim() && !groupEditFile)) ? 'none' : '0 4px 12px rgba(99,102,241,0.35)', transition: 'all 0.15s' }}>
-                                    {groupEditLoading ? '⏳ Saving...' : '✅ Save Changes'}
+                                    {groupEditLoading ? `⏳ ${tr('aiChat.actions.saving')}` : `✅ ${tr('aiChat.actions.saveChanges')}`}
                                 </button>
                             </div>
                         </div>
@@ -1279,7 +1281,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                     <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👥</div>
                                     <div>
                                         <div style={{ fontSize: 15, fontWeight: 800, color: t.text }}>{activeConv.name}</div>
-                                        <div style={{ fontSize: 11, color: t.textMute }}>{activeConv.members?.length || 0} members</div>
+                                        <div style={{ fontSize: 11, color: t.textMute }}>{activeConv.members?.length || 0} {tr('aiChat.labels.members')}</div>
                                     </div>
                                 </div>
                                 <button onClick={() => setShowMembersPanel(false)} style={{ background: t.surfaceSoft, border: 'none', cursor: 'pointer', color: t.textMute, fontSize: 18, width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
@@ -1288,7 +1290,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                 const isAdmin = activeConv.members?.find(m => m.id === authUser?.id)?.role === 'admin';
                                 return isAdmin ? (
                                     <div style={{ display: 'flex', gap: 0, background: t.surfaceSoft, borderRadius: 10, padding: 3, marginBottom: 16 }}>
-                                        {[['members','👥 Members'],['add','➕ Add Members']].map(([tab2, label]) => (
+                                        {[['members', `👥 ${tr('aiChat.group.members')}`], ['add', `➕ ${tr('aiChat.group.addMembers')}`]].map(([tab2, label]) => (
                                             <button key={tab2} onClick={() => setMembersPanelTab(tab2)} style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: membersPanelTab === tab2 ? t.surface : 'transparent', color: membersPanelTab === tab2 ? '#6366f1' : t.textMute, fontSize: 12, fontWeight: 700, boxShadow: membersPanelTab === tab2 ? t.shadowSm : 'none', transition: 'all 0.15s' }}>{label}</button>
                                         ))}
                                     </div>
@@ -1311,14 +1313,14 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                                     <Avatar name={member.name || '?'} size={40} photo={member.avatar_url || null} />
                                                     <div style={{ flex: 1, minWidth: 0 }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                                            <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{member.name}{isSelf ? ' (You)' : ''}</span>
+                                                            <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{member.name}{isSelf ? ` (${tr('aiChat.common.you')})` : ''}</span>
                                                             {member.role === 'admin' && (<span style={{ fontSize: 10, fontWeight: 800, color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: 99, padding: '1px 7px' }}>ADMIN</span>)}
                                                         </div>
-                                                        {isOnlyAdmin && isSelf && (<div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>Transfer admin to leave</div>)}
+                                                        {isOnlyAdmin && isSelf && (<div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>{tr('aiChat.group.transferAdminToLeave')}</div>)}
                                                     </div>
                                                     <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                                                        {canLeave && (<button onClick={() => handleRemoveMember(member.id)} style={{ padding: '5px 12px', borderRadius: 8, border: `1px solid ${t.border}`, background: t.surfaceSoft, color: t.textSecondary, fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background=t.surfaceSofter; }} onMouseLeave={e => { e.currentTarget.style.background=t.surfaceSoft; }}>Leave</button>)}
-                                                        {canRemove && (<button onClick={() => handleRemoveMember(member.id)} style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.05)', color: '#ef4444', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background='rgba(239,68,68,0.12)'; }} onMouseLeave={e => { e.currentTarget.style.background='rgba(239,68,68,0.05)'; }}>Remove</button>)}
+                                                        {canLeave && (<button onClick={() => handleRemoveMember(member.id)} style={{ padding: '5px 12px', borderRadius: 8, border: `1px solid ${t.border}`, background: t.surfaceSoft, color: t.textSecondary, fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background=t.surfaceSofter; }} onMouseLeave={e => { e.currentTarget.style.background=t.surfaceSoft; }}>{tr('aiChat.actions.leave')}</button>)}
+                                                        {canRemove && (<button onClick={() => handleRemoveMember(member.id)} style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.05)', color: '#ef4444', fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background='rgba(239,68,68,0.12)'; }} onMouseLeave={e => { e.currentTarget.style.background='rgba(239,68,68,0.05)'; }}>{tr('aiChat.actions.remove')}</button>)}
                                                     </div>
                                                 </div>
                                             );
@@ -1334,10 +1336,10 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                     <div>
                                         <div style={{ position: 'relative', marginBottom: 12 }}>
                                             <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: t.textMute }}>🔍</span>
-                                            <input value={addMemberSearch} onChange={e => setAddMemberSearch(e.target.value)} placeholder="Search users to add..." style={{ width: '100%', padding: '9px 12px 9px 32px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 12, outline: 'none', boxSizing: 'border-box' }} onFocus={e => e.target.style.borderColor='#6366f1'} onBlur={e => e.target.style.borderColor=t.border} />
+                                            <input value={addMemberSearch} onChange={e => setAddMemberSearch(e.target.value)} placeholder={tr('aiChat.placeholders.searchUsersToAdd')} style={{ width: '100%', padding: '9px 12px 9px 32px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.inputBg, color: t.text, fontSize: 12, outline: 'none', boxSizing: 'border-box' }} onFocus={e => e.target.style.borderColor='#6366f1'} onBlur={e => e.target.style.borderColor=t.border} />
                                         </div>
                                         {filtered2.length === 0 ? (
-                                            <div style={{ textAlign: 'center', padding: '30px 0', color: t.textMute, fontSize: 12 }}>{available.length === 0 ? '✅ All users are already in this group' : 'No users found'}</div>
+                                            <div style={{ textAlign: 'center', padding: '30px 0', color: t.textMute, fontSize: 12 }}>{available.length === 0 ? tr('aiChat.empty.allUsersInGroup') : tr('aiChat.empty.noUsersFound')}</div>
                                         ) : filtered2.map(u => (
                                             <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: `1px solid ${t.borderSoft}` }}>
                                                 <Avatar name={u.name} size={38} photo={u.avatar_url || null} />
@@ -1345,7 +1347,7 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                                                     <div style={{ fontSize: 13, fontWeight: 600, color: t.text }}>{u.name}</div>
                                                     <div style={{ fontSize: 11, color: t.textMute }}>{u.email}</div>
                                                 </div>
-                                                <button onClick={async () => { await handleAddMember(u.id); setMembersPanelTab('members'); setAddMemberSearch(''); }} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)', transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => e.currentTarget.style.opacity='0.9'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>+ Add</button>
+                                                <button onClick={async () => { await handleAddMember(u.id); setMembersPanelTab('members'); setAddMemberSearch(''); }} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)', transition: 'all 0.15s', flexShrink: 0 }} onMouseEnter={e => e.currentTarget.style.opacity='0.9'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>+ {tr('aiChat.actions.add')}</button>
                                             </div>
                                         ))}
                                     </div>
@@ -1362,18 +1364,18 @@ export default function AiChat({ conversations: initConvs = [], users = [] }) {
                     <div onClick={() => setShowDeleteConfirm(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(8px)' }} />
                     <div style={{ position: 'relative', background: t.modalBg, borderRadius: 20, width: '100%', maxWidth: 400, padding: '28px 28px 24px', boxShadow: t.shadow, border: `1px solid ${t.bannerBlockBorder}`, animation: 'fadeIn 0.2s ease' }}>
                         <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, marginBottom: 16 }}>🗑️</div>
-                        <h3 style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 800, color: t.text }}>Delete Conversation</h3>
-                        <p style={{ margin: '0 0 6px', fontSize: 13, color: t.textSecondary, lineHeight: 1.6 }}>Are you sure you want to delete your conversation with <strong style={{ color: t.text }}>{activeConv?.name}</strong>?</p>
-                        <p style={{ margin: '0 0 24px', fontSize: 12, color: '#ef4444', lineHeight: 1.5, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 10, padding: '8px 12px' }}>⚠️ This will permanently delete all messages, files, and media in this conversation. This action cannot be undone.</p>
+                        <h3 style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 800, color: t.text }}>{tr('aiChat.actions.deleteConversation')}</h3>
+                        <p style={{ margin: '0 0 6px', fontSize: 13, color: t.textSecondary, lineHeight: 1.6 }}>{tr('aiChat.confirm.deleteQuestion')} <strong style={{ color: t.text }}>{activeConv?.name}</strong>?</p>
+                        <p style={{ margin: '0 0 24px', fontSize: 12, color: '#ef4444', lineHeight: 1.5, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 10, padding: '8px 12px' }}>⚠️ {tr('aiChat.confirm.deleteWarning')}</p>
                         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                            <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: '10px 22px', borderRadius: 11, border: `1px solid ${t.border}`, background: t.surfaceSoft, color: t.textSecondary, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background=t.surfaceSofter; }} onMouseLeave={e => { e.currentTarget.style.background=t.surfaceSoft; }}>Cancel</button>
-                            <button onClick={async () => { setShowDeleteConfirm(false); await api(`/ai-chat/conversations/${activeConv.id}`, { method: 'DELETE' }); setConversations(prev => prev.filter(c => c.id !== activeConv.id)); setActiveConv(null); }} style={{ padding: '10px 22px', borderRadius: 11, border: 'none', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(239,68,68,0.35)', transition: 'all 0.15s' }} onMouseEnter={e => e.currentTarget.style.opacity='0.9'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>🗑️ Yes, Delete</button>
+                            <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: '10px 22px', borderRadius: 11, border: `1px solid ${t.border}`, background: t.surfaceSoft, color: t.textSecondary, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background=t.surfaceSofter; }} onMouseLeave={e => { e.currentTarget.style.background=t.surfaceSoft; }}>{tr('aiChat.actions.cancel')}</button>
+                            <button onClick={async () => { setShowDeleteConfirm(false); await api(`/ai-chat/conversations/${activeConv.id}`, { method: 'DELETE' }); setConversations(prev => prev.filter(c => c.id !== activeConv.id)); setActiveConv(null); }} style={{ padding: '10px 22px', borderRadius: 11, border: 'none', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(239,68,68,0.35)', transition: 'all 0.15s' }} onMouseEnter={e => e.currentTarget.style.opacity='0.9'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>🗑️ {tr('aiChat.actions.yesDelete')}</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            <NewConvModal open={showNewConv} onClose={() => setShowNewConv(false)} users={users} onCreate={handleNewConv} t={t} />
+            <NewConvModal open={showNewConv} onClose={() => setShowNewConv(false)} users={users} onCreate={handleNewConv} t={t} tr={tr} />
         </AppLayout>
     );
 }

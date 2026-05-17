@@ -1,8 +1,10 @@
 // resources/js/Pages/Surveys/Public.jsx — v2
 import { useState, useRef } from 'react';
 import { Head } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 export default function SurveyPublic({ survey, already_responded }) {
+    const { t: tr } = useTranslation();
     const [answers,   setAnswers]   = useState({});
     const [submitted, setSubmitted] = useState(false);
     const [loading,   setLoading]   = useState(false);
@@ -49,7 +51,7 @@ export default function SurveyPublic({ survey, already_responded }) {
             if (!q.is_required) return;
             const a = answers[q.id];
             if (a === undefined || a === '' || (Array.isArray(a) && a.length === 0)) {
-                e[q.id] = 'This question is required.';
+                e[q.id] = tr('surveys.public.validation.questionRequired');
             }
         });
         setErrors(e);
@@ -69,9 +71,9 @@ export default function SurveyPublic({ survey, already_responded }) {
             });
             const data = await res.json();
             if (data.success) setSubmitted(true);
-            else setError(data.error || 'Something went wrong.');
+            else setError(data.error || tr('surveys.public.errors.somethingWentWrong'));
         } catch {
-            setError('Connection error. Please try again.');
+            setError(tr('surveys.public.errors.connectionError'));
         } finally {
             setLoading(false);
         }
@@ -105,17 +107,17 @@ export default function SurveyPublic({ survey, already_responded }) {
                         </div>
 
                         <h2 style={{ fontSize:22, fontWeight:900, color:'#0f172a', margin:'0 0 10px', letterSpacing:'-0.3px' }}>
-                            Already Submitted
+                            {tr('surveys.public.alreadySubmitted')}
                         </h2>
                         <p style={{ fontSize:14, color:'#64748b', lineHeight:1.65, margin:'0 0 24px' }}>
-                            You've already shared your feedback for <strong style={{ color:'#0f172a' }}>{survey.title}</strong>. Each person can only respond once.
+                            {tr('surveys.public.alreadySharedPrefix')} <strong style={{ color:'#0f172a' }}>{survey.title}</strong>. {tr('surveys.public.onlyOnce')}
                         </p>
 
                         {/* Info pill */}
                         <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:99, background:'#f3e8ff', border:'1px solid #ddd6fe' }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             <span style={{ fontSize:12, fontWeight:600, color:'#7c3aed' }}>
-                                {survey.is_anonymous ? 'Your anonymous response was recorded.' : 'Your response has been saved.'}
+                                {survey.is_anonymous ? tr('surveys.public.anonymousRecorded') : tr('surveys.public.responseSaved')}
                             </span>
                         </div>
                     </div>
@@ -123,7 +125,7 @@ export default function SurveyPublic({ survey, already_responded }) {
 
                 {/* Subtext */}
                 <p style={{ textAlign:'center', fontSize:12, color:'#a78bfa', marginTop:16 }}>
-                    Thank you for participating 💜
+                    {tr('surveys.public.thankYouParticipating')}
                 </p>
             </div>
         </div>
@@ -133,16 +135,16 @@ export default function SurveyPublic({ survey, already_responded }) {
     // ── Submitted ────────────────────────────────────────────────
     if (submitted) return (
         <>
-        <Head title="Thank You!"/>
+        <Head title={tr('surveys.public.thankYouTitle')}/>
         <style>{`body{margin:0;background:#f5f3ff;font-family:'Segoe UI',system-ui,sans-serif;}`}</style>
         <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
             <div style={{ background:'#fff', borderRadius:24, padding:'52px 40px', maxWidth:440, width:'100%', textAlign:'center', boxShadow:'0 8px 40px rgba(124,58,237,0.12)', border:'1px solid #ede9fe' }}>
                 <div style={{ fontSize:64, marginBottom:16, lineHeight:1 }}>🎉</div>
-                <h2 style={{ fontSize:22, fontWeight:900, color:'#0f172a', margin:'0 0 10px', letterSpacing:'-0.3px' }}>Response Recorded!</h2>
-                <p style={{ fontSize:14, color:'#64748b', lineHeight:1.65, margin:'0 0 20px' }}>Your feedback has been submitted. We appreciate your time and input — it helps us improve.</p>
+                <h2 style={{ fontSize:22, fontWeight:900, color:'#0f172a', margin:'0 0 10px', letterSpacing:'-0.3px' }}>{tr('surveys.public.responseRecorded')}</h2>
+                <p style={{ fontSize:14, color:'#64748b', lineHeight:1.65, margin:'0 0 20px' }}>{tr('surveys.public.feedbackSubmitted')}</p>
                 {survey.is_anonymous && (
                     <div style={{ padding:'10px 16px', borderRadius:12, background:'#f0fdf4', border:'1px solid #86efac', fontSize:12, color:'#166534', display:'inline-flex', alignItems:'center', gap:6 }}>
-                        🔒 Submitted anonymously — your identity is protected.
+                        🔒 {tr('surveys.public.submittedAnonymously')}
                     </div>
                 )}
             </div>
@@ -176,7 +178,7 @@ export default function SurveyPublic({ survey, already_responded }) {
                     <div style={{ position:'absolute', bottom:-50, left:-10, width:100, height:100, borderRadius:'50%', background:'rgba(255,255,255,0.04)' }}/>
                     <div style={{ position:'relative' }}>
                         <div style={{ fontSize:10, fontWeight:800, letterSpacing:'.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:6 }}>
-                            📋 Employee Survey
+                            📋 {tr('surveys.public.employeeSurvey')}
                         </div>
                         <h1 style={{ fontSize:20, fontWeight:900, color:'#fff', margin:'0 0 6px', letterSpacing:'-0.2px', lineHeight:1.2 }}>
                             {survey.title}
@@ -189,16 +191,16 @@ export default function SurveyPublic({ survey, already_responded }) {
                         <div style={{ display:'flex', gap:7, flexWrap:'wrap' }}>
                             {survey.is_anonymous && (
                                 <span style={{ fontSize:10, fontWeight:700, padding:'3px 9px', borderRadius:99, background:'rgba(255,255,255,0.18)', color:'rgba(255,255,255,0.9)' }}>
-                                    🔒 Anonymous
+                                    🔒 {tr('surveys.labels.anonymous')}
                                 </span>
                             )}
                             {survey.closes_at && (
                                 <span style={{ fontSize:10, padding:'3px 9px', borderRadius:99, background:'rgba(255,255,255,0.13)', color:'rgba(255,255,255,0.8)' }}>
-                                    📅 Closes {survey.closes_at}
+                                    📅 {tr('surveys.labels.closes')} {survey.closes_at}
                                 </span>
                             )}
                             <span style={{ fontSize:10, padding:'3px 9px', borderRadius:99, background:'rgba(255,255,255,0.13)', color:'rgba(255,255,255,0.8)' }}>
-                                {totalVisible} questions
+                                {totalVisible} {tr('surveys.labels.questionsLower')}
                             </span>
                         </div>
                     </div>
@@ -208,7 +210,7 @@ export default function SurveyPublic({ survey, already_responded }) {
                 <div style={{ background:'#fff', borderRadius:14, padding:'12px 16px', marginBottom:14, boxShadow:'0 1px 6px rgba(124,58,237,0.08)', border:'1px solid #ede9fe' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7 }}>
                         <span style={{ fontSize:12, fontWeight:600, color:'#64748b' }}>
-                            {answered === totalVisible && totalVisible > 0 ? '✓ All questions answered' : `${answered} of ${totalVisible} answered`}
+                            {answered === totalVisible && totalVisible > 0 ? tr('surveys.public.allQuestionsAnswered') : `${answered} ${tr('surveys.public.of')} ${totalVisible} ${tr('surveys.public.answered')}`}
                         </span>
                         <span style={{ fontSize:12, fontWeight:800, color:P }}>{progressPct}%</span>
                     </div>
@@ -339,8 +341,8 @@ export default function SurveyPublic({ survey, already_responded }) {
                                                 )}
                                             </div>
                                             <div style={{ display:'flex', justifyContent:'space-between', padding:'0 6px', marginTop:4 }}>
-                                                <span style={{ fontSize:10, color:'#94a3b8' }}>Poor</span>
-                                                <span style={{ fontSize:10, color:'#94a3b8' }}>Excellent</span>
+                                                <span style={{ fontSize:10, color:'#94a3b8' }}>{tr('surveys.public.poor')}</span>
+                                                <span style={{ fontSize:10, color:'#94a3b8' }}>{tr('surveys.public.excellent')}</span>
                                             </div>
                                         </div>
                                     )}
@@ -350,7 +352,7 @@ export default function SurveyPublic({ survey, already_responded }) {
                                         <textarea
                                             value={answers[q.id]||''}
                                             onChange={e=>handleAnswer(q.id, e.target.value)}
-                                            placeholder="Share your thoughts here..."
+                                            placeholder={tr('surveys.public.shareThoughts')}
                                             rows={3}
                                             style={{
                                                 width:'100%', padding:'11px 14px', borderRadius:10,
@@ -397,11 +399,11 @@ export default function SurveyPublic({ survey, already_responded }) {
                         {loading ? (
                             <>
                                 <span style={{ width:16, height:16, border:'2.5px solid rgba(255,255,255,0.3)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'sv-spin .7s linear infinite' }}/>
-                                Submitting your response...
+                                {tr('surveys.public.submittingResponse')}
                             </>
                         ) : (
                             <>
-                                Send Feedback
+                                {tr('surveys.public.sendFeedback')}
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                     <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                                 </svg>
@@ -409,7 +411,7 @@ export default function SurveyPublic({ survey, already_responded }) {
                         )}
                     </button>
                     <div style={{ textAlign:'center', marginTop:10, fontSize:11, color:'#94a3b8' }}>
-                        {survey.is_anonymous ? '🔒 Your response is anonymous and confidential.' : '📋 Your name will be recorded with your response.'}
+                        {survey.is_anonymous ? `🔒 ${tr('surveys.public.anonymousConfidential')}` : `📋 ${tr('surveys.public.nameRecorded')}`}
                     </div>
                 </div>
 

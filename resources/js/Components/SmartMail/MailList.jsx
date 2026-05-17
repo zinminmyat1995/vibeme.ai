@@ -7,6 +7,7 @@ export default function MailList({
     mails = [], activeTab, selectedMail,
     onSelectMail, onShowToast, onDeleteMail, onStarMail,
     theme, darkMode = false,
+    tr = (key, vars = {}, fallback = '') => fallback || key,
 }) {
     const [search, setSearch]           = useState('');
     const [hoveredId, setHoveredId]     = useState(null);
@@ -34,7 +35,7 @@ export default function MailList({
         await router.delete(`/smart-mail/${deleteTarget.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                onShowToast('Mail deleted.', 'success');
+                onShowToast(tr('smartMail.messages.mailDeleted'), 'success');
                 onDeleteMail?.(deleteTarget.id);
             },
         });
@@ -89,9 +90,9 @@ export default function MailList({
     };
 
     const tabMeta = {
-        inbox:   { label: 'Inbox',   emptyIcon: '📭', emptyText: 'Your inbox is empty',   emptySub: 'New mails will appear here' },
-        sent:    { label: 'Sent',    emptyIcon: '📤', emptyText: 'No sent mails yet',      emptySub: 'Sent mails will appear here' },
-        starred: { label: 'Starred', emptyIcon: '⭐', emptyText: 'No starred mails',       emptySub: 'Star important mails to find them here' },
+        inbox:   { label: tr('smartMail.sidebar.inbox'),   emptyIcon: '📭', emptyText: tr('smartMail.empty.inboxEmpty'),   emptySub: tr('smartMail.empty.inboxSub') },
+        sent:    { label: tr('smartMail.sidebar.sent'),    emptyIcon: '📤', emptyText: tr('smartMail.empty.sentEmpty'),      emptySub: tr('smartMail.empty.sentSub') },
+        starred: { label: tr('smartMail.sidebar.starred'), emptyIcon: '⭐', emptyText: tr('smartMail.empty.starredEmpty'),       emptySub: tr('smartMail.empty.starredSub') },
     };
     const meta = tabMeta[activeTab] || tabMeta.inbox;
 
@@ -136,10 +137,10 @@ export default function MailList({
                     </div>
 
                     <h3 style={{ fontSize: 18, fontWeight: 900, color: theme.text, margin: '0 0 8px' }}>
-                        Delete this mail?
+                        {tr('smartMail.confirm.deleteMailTitle')}
                     </h3>
                     <p style={{ fontSize: 13, color: theme.textMute, margin: '0 0 24px', lineHeight: 1.6 }}>
-                        This action cannot be undone.
+                        {tr('smartMail.confirm.cannotBeUndone')}
                     </p>
 
                     <div style={{ display: 'flex', gap: 10 }}>
@@ -229,7 +230,7 @@ export default function MailList({
                     <input
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Search mails..."
+                        placeholder={tr('smartMail.placeholders.searchMails')}
                         style={{
                             background: 'transparent', border: 'none', outline: 'none',
                             fontSize: 12, color: theme.text, flex: 1,
@@ -267,8 +268,8 @@ export default function MailList({
                     const isHovered  = hoveredId === mail.id;
 
                     const senderLabel = mail.type === 'sent'
-                        ? `To: ${mail.to_addresses?.[0] || 'Unknown'}`
-                        : (mail.from_name || mail.from_address || 'Unknown');
+                        ? `${tr('smartMail.labels.to')}: ${mail.to_addresses?.[0] || tr('smartMail.labels.unknown')}`
+                        : (mail.from_name || mail.from_address || tr('smartMail.labels.unknown'));
 
                     const avatarColor = getAvatarColor(mail.from_name || mail.from_address || '');
                     const avatarChar  = getInitial(mail.from_name, mail.from_address);
@@ -332,7 +333,7 @@ export default function MailList({
                                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                                         marginBottom: 3,
                                     }}>
-                                        {typeof mail.subject === 'string' ? (mail.subject || '(No Subject)') : '(No Subject)'}
+                                        {typeof mail.subject === 'string' ? (mail.subject || tr('smartMail.labels.noSubject')) : tr('smartMail.labels.noSubject')}
                                     </div>
 
                                     {/* Preview */}
@@ -383,7 +384,7 @@ export default function MailList({
                                     {/* Star */}
                                     <button
                                         onClick={e => handleStar(e, mail)}
-                                        title={mail.is_starred ? 'Unstar' : 'Star'}
+                                        title={mail.is_starred ? tr('smartMail.actions.unstar') : tr('smartMail.actions.star')}
                                         style={{
                                             width: 28, height: 28, borderRadius: 9,
                                             border: `1px solid ${theme.border}`,
@@ -404,7 +405,7 @@ export default function MailList({
                                     {/* Delete */}
                                     <button
                                         onClick={e => handleDeleteClick(e, mail)}
-                                        title="Delete"
+                                        title={tr('smartMail.actions.delete')}
                                         style={{
                                             width: 28, height: 28, borderRadius: 9,
                                             border: `1px solid ${theme.border}`,

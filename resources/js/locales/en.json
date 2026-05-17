@@ -56,5 +56,3996 @@
     "vi": "Tiếng Việt",
     "ko": "한국어",
     "ja": "日本語"
+  },
+  "dash": {
+      "announcement": "Announcement",
+      "by": "By",
+      "deleteAnnouncement": "Delete announcement",
+      "announcementDeleted": "Announcement deleted.",
+      "failedToDelete": "Failed to delete.",
+      "networkError": "Network error.",
+      "seeLess": "See less",
+      "seeMore": "See more",
+      "attachment": "Attachment",
+      "download": "Download",
+      "link": "Link",
+      "newAnnouncement": "New Announcement",
+      "title": "Title",
+      "content": "Content",
+      "announcementTitlePlaceholder": "Announcement title...",
+      "announcementContentPlaceholder": "Write your announcement...",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "attachmentsOptional": "Attachments (optional)",
+      "attachFilePlaceholder": "Attach File (PDF, Word, Excel, Image, ZIP — max 20MB)",
+      "linkPlaceholder": "Or paste a link (https://...)",
+      "cancel": "Cancel",
+      "publish": "Publish",
+      "publishing": "Publishing...",
+      "announcementPublished": "Announcement published!",
+      "failed": "Failed.",
+      "required": "Required",
+      "typeLeave": "LEAVE",
+      "typeOT": "OT",
+      "typeAttendance": "ATTENDANCE",
+      "typeExpense": "EXPENSE",
+      "total": "total",
+      "timeNotRecorded": "Time not recorded",
+      "attendanceCorrection": "Attendance correction",
+      "approve": "Approve",
+      "reject": "Reject",
+      "leaveRequest": "Leave Request",
+      "overtimeRequest": "Overtime Request",
+      "attendanceRequest": "Attendance Request",
+      "expenseRequest": "Expense Request",
+      "request": "Request",
+      "leaveType": "Leave type",
+      "totalDays": "Total days",
+      "days": "day(s)",
+      "note": "Note",
+      "document": "Document",
+      "date": "Date",
+      "workHours": "Work hours",
+      "checkIn": "Check in",
+      "checkOut": "Check out",
+      "late": "Late",
+      "amount": "Amount",
+      "category": "Category",
+      "expenseDate": "Expense date",
+      "description": "Description",
+      "attachments": "Attachments",
+      "noteOptional": "Note (optional)",
+      "noteForEmployee": "Add a note for the employee…",
+      "rejectionReason": "Rejection reason",
+      "rejectionReasonPlaceholder": "Why is this being rejected?…",
+      "rejectionReasonRequired": "Rejection reason is required",
+      "confirmApproval": "Confirm Approval",
+      "confirmRejection": "Confirm Rejection",
+      "requestedBy": "Requested by",
+      "requestDetails": "Request Details",
+      "processing": "Processing…",
+      "segmentsAdjust": "Segments — adjust approved hours",
+      "req": "req",
+      "hrs": "hrs",
+      "totalApproved": "Total approved",
+      "pendingApprovals": "Pending approvals",
+      "all": "All",
+      "leave": "Leave",
+      "ot": "OT",
+      "attendance": "Attendance",
+      "expense": "Expense",
+      "allCaughtUp": "All caught up!",
+      "noPendingApprovals": "No pending approvals right now.",
+      "unknownRequestType": "Unknown request type.",
+      "actionFailed": "Action failed.",
+      "noLeaveData": "No leave data this month",
+      "noOTData": "No OT project data this month",
+      "noPayrollData": "No payroll data",
+      "latest": "Latest",
+      "weekday": "Weekday",
+      "today": "Today",
+      "weekend": "Weekend",
+      "noLateArrivals": "No late arrivals this month",
+      "kpi": {
+        "headcount": "Headcount",
+        "presentToday": "Present today",
+        "onLeaveToday": "On leave today",
+        "allPending": "All pending",
+        "otHoursMonth": "OT hours / month",
+        "leaveRate": "Leave rate",
+        "ofWorkingDays": "of working days",
+        "turnoverQ": "Turnover Q",
+        "countries": "Countries",
+        "allOffices": "All offices"
+    },
+    "approved": "Approved",
+    "resigned": "resigned",
+    "leaveUsageThisMonth": "Leave usage this month",
+    "top20ByDays": "Top 20 employees by days taken",
+    "otByProject": "OT by active project",
+    "top10OTHours": "Top 10 · hours approved this month",
+    "monthlyAttendance": "Monthly attendance",
+    "dailyPresentCount": "daily present count",
+    "payrollTrend": "Payroll trend",
+    "last6Months": "Last 6 months · net salary total",
+    "employmentMix": "Employment mix",
+    "byTypeActive": "By type — active employees",
+    "permanent": "Permanent",
+    "probation": "Probation",
+    "contract": "Contract",
+    "departmentHeadcount": "Department headcount",
+    "noData": "No data",
+    "lateCheckIn": "Late check-in frequency",
+    "lateCheckInSubtitle": "This month · sorted by count desc · top 20",
+    "probationEndingSoon": "Probation ending soon",
+    "within10Days": "Within 10 days",
+    "contractExpiring": "Contract expiring",
+    "within30Days": "Within 30 days",
+    "noAlerts": "No alerts",
+    "birthdaysThisWeek": "Birthdays this week",
+    "noBirthdays": "No birthdays this week",
+    "checkBackNextWeek": "Check back next week!",
+    "onLeaveToday": "On leave today",
+    "employeesOnLeave": "employees on approved leave",
+    "approvedLeaveCoveringToday": "Approved leave covering today",
+    "upcomingHolidays": "Upcoming holidays",
+    "noUpcomingHolidays": "No upcoming holidays",
+    "noOneOnLeave": "No one on leave today",
+    "showLess": "▲ Show less",
+    "showMore": "▼ Show {{count}} more",
+    "importAttendance": "Import attendance",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "personal": "personal",
+    "dashboard": "dashboard",
+    "pending": "Pending",
+    "present": "Present",
+    "staff": "Staff",
+    "checkedIn": "Checked in",
+    "notCheckedIn": "Not checked in yet",
+    "out": "Out",
+    "currentlyAtWork": "Currently at work",
+    "todayIsWorkingDay": "Today is a working day",
+    "warning": "Warning",
+    "daysAbsent": "days absent",
+    "absenceWarning": "Absence Warning",
+    "lateArrivalWarning": "Late Arrival Warning",
+    "markAsRead": "Mark as read",
+    "marking": "Marking…",
+    "emp": {
+      "presentDays": "Present days",
+      "otThisMonth": "OT this month",
+      "pendingLeave": "Pending leave",
+      "absentDays": "Absent days",
+      "lateArrivals": "Late arrivals"
+    },
+    "thisMonth": "This month",
+    "awaitingApproval": "Awaiting approval",
+    "submitted": "Submitted",
+    "myPendingRequests": "My pending requests",
+    "waitingForApproval": "Waiting for approval",
+    "latestPayslip": "Latest payslip",
+    "hideAmounts": "Hide amounts",
+    "showAmounts": "Show amounts",
+    "netSalary": "Net salary",
+    "baseSalary": "Base salary",
+    "otPay": "OT pay",
+    "allowances": "Allowances",
+    "deductions": "Deductions",
+    "leaveBalances": "Leave balances",
+    "remainingDays": "Remaining days",
+    "myWeeklyAttendance": "My weekly attendance",
+    "workHoursPerDay": "Work hours per day"
+  },
+  "profile": {
+    "pageTitle": "My Profile",
+    "sections": {
+      "personalInformation": "Personal Information",
+      "workInformation": "Work Information",
+      "salaryInformation": "Salary Information"
+    },
+    "fields": {
+      "fullName": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "dateOfBirth": "Date of Birth",
+      "country": "Country",
+      "position": "Position",
+      "department": "Department",
+      "joinDate": "Join Date",
+      "employment": "Employment",
+      "contractEnd": "Contract End",
+      "role": "Role",
+      "baseSalary": "Base Salary",
+      "bank": "Bank",
+      "accountName": "Account Name",
+      "accountNo": "Account No.",
+      "branch": "Branch",
+      "effectiveDate": "Effective Date",
+      "allowances": "Allowances"
+    },
+    "actions": {
+      "show": "Show",
+      "hide": "Hide"
+    },
+    "status": {
+      "active": "Active"
+    },
+    "employmentTypes": {
+      "probation": "Probation",
+      "permanent": "Permanent",
+      "contract": "Contract"
+    },
+    "countries": {
+      "myanmar": "Myanmar",
+      "vietnam": "Vietnam",
+      "korea": "Korea",
+      "cambodia": "Cambodia",
+      "japan": "Japan"
+    },
+    "tenure": {
+      "year": "Year",
+      "month": "Month",
+      "day": "Day",
+      "today": "Today"
+    },
+    "messages": {
+      "revealSalary": "Reveal salary to see allowance values",
+      "noPayrollProfile": "No payroll profile assigned yet. Contact HR for details."
+    },
+    "fallback": {
+      "employee": "Employee"
+    }
+  },
+  "attendance": {
+    "pageTitle": "Attendance",
+    "selectEmployee": "Select Employee",
+    "addAttendance": "Add Attendance",
+    "editAttendance": "Edit Attendance",
+    "updateAttendanceRecord": "Update attendance record",
+    "recordEmployeeAttendance": "Record employee attendance",
+    "addRecord": "Add Record",
+    "monthlySummary": "Monthly Summary",
+    "workingDays": "Working Days",
+    "workingDaysLower": "working days",
+    "present": "Present",
+    "absent": "Absent",
+    "lateDays": "Late Days",
+    "otHours": "OT Hours",
+    "leaveDays": "Leave Days",
+    "totalLate": "Total Late",
+    "workHours": "Work Hours",
+    "holidays": "Holidays",
+    "employee": "Employee",
+    "status": "Status",
+    "checkIn": "Check In",
+    "checkOut": "Check Out",
+    "shortHours": "Short Hours",
+    "late": "Late",
+    "overtimeDetail": "OVERTIME DETAIL",
+    "note": "NOTE",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteAttendance": "Delete Attendance?",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "yesDelete": "Yes, Delete",
+    "save": "Save",
+    "saving": "Saving...",
+    "date": "Date",
+    "lateMin": "Late (min)",
+    "auto": "AUTO",
+    "lunch": "Lunch",
+    "start": "Start",
+    "requiredNote": "Required note...",
+    "weekend": "Weekend",
+    "publicHoliday": "Public Holiday",
+    "noAttendanceRequired": "No attendance required",
+    "futureDate": "Future date",
+    "absentNoRecord": "Absent — No record",
+    "clickDayDetails": "Click a day to view details",
+    "exceedsStandard": "Exceeds :hours h standard. Consider OT request.",
+    "mustBeLater": "Must be :time or later",
+    "mustBeEarlier": "Must be :time or earlier",
+    "amHalfLeaveCheckIn": "AM Half Leave — check-in must be :time or later",
+    "pmHalfLeaveCheckIn": "PM Half Leave — check-in must be before :time",
+    "pmHalfLeaveCheckOut": "PM Half Leave — check-out must be :time or earlier",
+    "actions": {
+      "addAttendance": "Add Attendance",
+      "addRecord": "Add Record",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "deleting": "Deleting...",
+      "yesDelete": "Yes, Delete",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "stats": {
+      "workingDays": "Working Days",
+      "present": "Present",
+      "absent": "Absent",
+      "lateDays": "Late Days",
+      "otHours": "OT Hours",
+      "leaveDays": "Leave Days",
+      "totalLate": "Total Late",
+      "workHours": "Work Hours",
+      "holidays": "Holidays"
+    },
+    "fields": {
+      "employee": "Employee",
+      "status": "Status",
+      "checkIn": "Check In",
+      "checkOut": "Check Out",
+      "checkInTime": "Check In",
+      "checkOutTime": "Check Out",
+      "workHours": "Work Hours",
+      "shortHours": "Short Hours",
+      "late": "Late",
+      "otHours": "OT Hours",
+      "date": "Date",
+      "lateMin": "Late (min)",
+      "note": "Note"
+    },
+    "labels": {
+      "weekend": "Weekend",
+      "publicHoliday": "Public Holiday",
+      "overtimeDetail": "OVERTIME DETAIL",
+      "note": "NOTE",
+      "auto": "AUTO",
+      "lunch": "Lunch",
+      "start": "Start"
+    },
+    "summary": {
+      "monthlySummary": "Monthly Summary"
+    },
+    "placeholders": {
+      "select": "Select...",
+      "selectEmployee": "Select Employee",
+      "auto": "AUTO",
+      "requiredNote": "Required note..."
+    },
+    "validation": {
+      "employeeRequired": "Employee is required",
+      "dateRequired": "Date is required",
+      "checkInRequired": "Check In is required",
+      "checkOutRequired": "Check Out is required",
+      "workHoursRequired": "Work Hours is required",
+      "lateMinutesRequired": "Late minutes is required",
+      "noteRequired": "Note is required",
+      "hhmmFormat": "Time must match HH:MM format",
+      "amHalfCheckIn": "AM Half Leave — check-in must be :time or later",
+      "pmHalfCheckIn": "PM Half Leave — check-in must be before :time",
+      "pmHalfCheckOut": "PM Half Leave — check-out must be :time or earlier"
+    },
+    "errors": {
+      "somethingWrong": "Something went wrong.",
+      "employeeRequired": "Employee is required",
+      "dateRequired": "Date is required",
+      "checkInRequired": "Check In is required",
+      "checkOutRequired": "Check Out is required",
+      "workHoursRequired": "Work Hours is required",
+      "lateMinutesRequired": "Late minutes is required",
+      "noteRequired": "Note is required"
+    },
+    "modal": {
+      "addTitle": "Add Attendance",
+      "editTitle": "Edit Attendance",
+      "recordSubtitle": "Record employee attendance",
+      "updateSubtitle": "Update attendance record"
+    },
+    "deleteConfirm": {
+      "title": "Delete Attendance?"
+    },
+    "units": {
+      "short": "short",
+      "min": "min"
+    },
+    "messages": {
+      "somethingWentWrong": "Something went wrong.",
+      "exceedsStandard": "Exceeds :hours h standard. Consider OT request.",
+      "noAttendanceRequired": "No attendance required",
+      "futureDate": "Future date",
+      "absentNoRecord": "Absent — No record",
+      "clickDayDetails": "Click a day to view details"
+    },
+    "hints": {
+      "mustBeOrLater": "Must be :time or later",
+      "mustBeOrEarlier": "Must be :time or earlier"
+    },
+    "months": {
+      "January": "January",
+      "February": "February",
+      "March": "March",
+      "April": "April",
+      "May": "May",
+      "June": "June",
+      "July": "July",
+      "August": "August",
+      "September": "September",
+      "October": "October",
+      "November": "November",
+      "December": "December",
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "days": {
+      "Sun": "Sun",
+      "Mon": "Mon",
+      "Tue": "Tue",
+      "Wed": "Wed",
+      "Thu": "Thu",
+      "Fri": "Fri",
+      "Sat": "Sat",
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "leaveTypes": {
+      "annual": "Annual Leave",
+      "medical": "Medical Leave",
+      "emergency": "Emergency Leave",
+      "unpaid": "Unpaid Leave",
+      "maternity": "Maternity Leave",
+      "paternity": "Paternity Leave",
+      "leave": "Leave",
+      "amHalf": "AM Half",
+      "pmHalf": "PM Half",
+      "fullDay": "Full Day",
+      "amHalfDay": "AM Half Day",
+      "pmHalfDay": "PM Half Day",
+      "fullDayLeave": "Full Day Leave",
+      "halfDayLeave": ":type Leave"
+    },
+    "leaveDayTypes": {
+      "amHalf": "AM Half",
+      "pmHalf": "PM Half",
+      "fullDay": "Full Day",
+      "amHalfDay": "AM Half Day",
+      "pmHalfDay": "PM Half Day"
+    },
+    "table": {
+      "in": "In",
+      "out": "Out",
+      "wh": "WH",
+      "ot": "OT",
+      "short": "Short"
+    },
+    "shortLabels": {
+      "in": "In",
+      "out": "Out",
+      "wh": "WH",
+      "leave": "Leave",
+      "ot": "OT",
+      "late": "Late",
+      "short": "Short"
+    },
+    "statusLabels": {
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late",
+      "halfDay": "Half Day",
+      "otOnly": "OT Only"
+    },
+    "status": {
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late",
+      "halfDay": "Half Day",
+      "otOnly": "OT Only"
+    }
+  },
+  "attendanceRequest": {
+    "pageTitle": "Check In/Out Request",
+    "modal": {
+      "badge": "Attendance Request"
+    },
+    "fields": {
+      "date": "Date",
+      "approver": "Approver",
+      "requestType": "Request Type",
+      "requestedCheckIn": "Requested Check In",
+      "requestedCheckOut": "Requested Check Out",
+      "reason": "Reason"
+    },
+    "placeholders": {
+      "selectApprover": "Select approver",
+      "reason": "Why are you requesting this check in/out update?"
+    },
+    "requestTypes": {
+      "checkInOnly": "Check In Only",
+      "checkOutOnly": "Check Out Only",
+      "both": "Both In/Out",
+      "bothShort": "Both",
+      "inOnly": "In Only",
+      "outOnly": "Out Only"
+    },
+    "preview": {
+      "workSchedule": "Work Schedule",
+      "lunchBreak": "Lunch Break",
+      "autoPreview": "Auto Preview"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "submitRequest": "Submit Request",
+      "submitting": "Submitting...",
+      "requestCheckInOut": "Request Check In/Out",
+      "approve": "Approve",
+      "approving": "Approving...",
+      "reject": "Reject",
+      "rejecting": "Rejecting...",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "deleteRequest": "Delete request"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "autoApproved": "Auto Approved"
+    },
+    "filters": {
+      "allStatus": "All Status"
+    },
+    "tabs": {
+      "myRequests": "My Requests",
+      "pendingApprovals": "Pending Approvals",
+      "allRequests": "All Requests"
+    },
+    "empty": {
+      "noPendingApprovals": "No pending approvals",
+      "noRequestsFound": "No check in/out requests found",
+      "allCaughtUp": "All caught up!",
+      "clickToSubmit": "Click \"Request Check In/Out\" to submit a new request."
+    },
+    "confirm": {
+      "deleteTitle": "Delete Request",
+      "approveTitle": "Approve Request",
+      "rejectTitle": "Reject Request",
+      "deleteSubtext": "This action cannot be undone",
+      "notifySubtext": "Employee will be notified",
+      "yourRequest": "Your request"
+    },
+    "labels": {
+      "awaiting": "Awaiting",
+      "approvedBy": "Approved by",
+      "rejectedBy": "Rejected by",
+      "late": "Late"
+    },
+    "shortLabels": {
+      "in": "IN",
+      "out": "OUT",
+      "wh": "WH"
+    },
+    "validation": {
+      "dateRequired": "Date is required",
+      "checkInRequired": "Check In is required",
+      "checkOutRequired": "Check Out is required",
+      "checkOutLater": "Check Out must be later than Check In",
+      "reasonRequired": "Reason is required",
+      "approverRequired": "Approver is required",
+      "validationError": "Validation error"
+    },
+    "messages": {
+      "requestNoLongerExists": "Request no longer exists. It may have been deleted by the requester.",
+      "requestDeleteFailed": "Request no longer exists or could not be deleted."
+    },
+    "months": {
+      "January": "January",
+      "February": "February",
+      "March": "March",
+      "April": "April",
+      "May": "May",
+      "June": "June",
+      "July": "July",
+      "August": "August",
+      "September": "September",
+      "October": "October",
+      "November": "November",
+      "December": "December"
+    }
+  },
+ "overtime": {
+    "pageTitle": "Overtime Request",
+    "headTitle": "Overtime",
+    "titleShort": "Overtime",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "labels": {
+      "publicHoliday": "Public Holiday",
+      "weekend": "Weekend",
+      "weekday": "Weekday",
+      "day": "Day",
+      "night": "Night",
+      "all": "All",
+      "shift": "shift",
+      "awaiting": "Awaiting",
+      "approvedBy": "Approved by",
+      "rejectedBy": "Rejected by",
+      "project": "Project",
+      "date": "Date",
+      "time": "Time",
+      "total": "Total",
+      "reason": "Reason",
+      "approver": "Approver",
+      "req": "req",
+      "totalApproved": "Total approved:"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "deleteRequest": "Delete request",
+      "requestOvertime": "Request Overtime",
+      "cancel": "Cancel",
+      "submitting": "Submitting...",
+      "submitRequest": "Submit Request",
+      "deleting": "Deleting...",
+      "delete": "Delete",
+      "approving": "Approving…",
+      "approveWithIcon": "✓ Approve",
+      "rejecting": "Rejecting…",
+      "rejectWithIcon": "✕ Reject"
+    },
+    "filters": {
+      "allStatus": "All Status"
+    },
+    "tabs": {
+      "myRequests": "My Requests",
+      "pendingApprovals": "Pending Approvals",
+      "allRequests": "All Requests"
+    },
+    "empty": {
+      "noPendingApprovals": "No pending approvals",
+      "noOvertimeRequestsFound": "No overtime requests found",
+      "allCaughtUp": "All caught up!",
+      "clickRequestOvertime": "Click \"Request Overtime\" to submit a new request.",
+      "noActiveProjectsAssigned": "No active projects assigned to you",
+      "noApproverAvailable": "No approver available",
+      "noApproverFound": "No approver found for your branch. Please contact HR."
+    },
+    "messages": {
+      "requestCouldNotBeDeleted": "Request could not be deleted.",
+      "adminAutoApproved": "As admin, this request will be auto-approved.",
+      "requestNoLongerExists": "Request no longer exists. It may have been deleted."
+    },
+    "modal": {
+      "overtimeManagement": "Overtime Management"
+    },
+    "fields": {
+      "startDate": "Start date",
+      "startTime": "Start time",
+      "endDate": "End date",
+      "endTime": "End time"
+    },
+    "validation": {
+      "startDateRequired": "Start date is required.",
+      "startTimeRequired": "Start time is required.",
+      "endDateRequired": "End date is required.",
+      "endTimeRequired": "End time is required.",
+      "reasonRequired": "Reason is required.",
+      "selectApprover": "Please select an approver.",
+      "selectProjectForOT": "Please select a project for this OT.",
+      "endAfterStart": "End must be after start.",
+      "endTimeAfterStartTime": "End time must be after start time."
+    },
+    "summary": {
+      "multiDay": "Multi-day · {{days}} days",
+      "sameDayOT": "Same-day OT",
+      "totalHours": "{{hrs}} total",
+      "autoSplitPerShift": "Auto-split per shift"
+    },
+    "placeholders": {
+      "selectApprover": "Select approver",
+      "pleaseSelectProject": "— Please select a project —",
+      "selectProject": "Select project...",
+      "describeReason": "Describe the reason for overtime..."
+    },
+    "confirm": {
+      "deleteOvertimeRequest": "Delete Overtime Request",
+      "approveOvertime": "Approve Overtime",
+      "rejectOvertime": "Reject Overtime",
+      "actionCannotBeUndone": "This action cannot be undone",
+      "adjustApprovedHours": "Adjust approved hours per segment if needed",
+      "employeeWillBeNotified": "Employee will be notified",
+      "yourRequest": "Your request",
+      "segmentsAdjustHours": "Segments — adjust hours if needed"
+    },
+    "units": {
+      "hrs": "hrs"
+    },
+    "policyTitles": {
+      "Day_Weekday_OT": "Day Weekday OT",
+      "Night_Weekday_OT": "Night Weekday OT",
+      "Day_Weekend_OT": "Day Weekend OT",
+      "Night_Weekend_OT": "Night Weekend OT",
+      "Public_Holiday_OT": "Public Holiday OT"
+    },
+    "months": {
+      "January": "January",
+      "February": "February",
+      "March": "March",
+      "April": "April",
+      "May": "May",
+      "June": "June",
+      "July": "July",
+      "August": "August",
+      "September": "September",
+      "October": "October",
+      "November": "November",
+      "December": "December"
+    }
+  },
+"leaveRequest": {
+  "pageTitle": "Leave Request",
+  "months": {
+    "January": "January",
+    "February": "February",
+    "March": "March",
+    "April": "April",
+    "May": "May",
+    "June": "June",
+    "July": "July",
+    "August": "August",
+    "September": "September",
+    "October": "October",
+    "November": "November",
+    "December": "December"
+  },
+  "modal": {
+    "badge": "Leave Management"
+  },
+  "actions": {
+    "requestLeave": "Request Leave",
+    "submitRequest": "Submit Request",
+    "submitting": "Submitting...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "deleteRequest": "Delete request",
+    "approve": "Approve",
+    "approving": "Approving...",
+    "reject": "Reject",
+    "rejecting": "Rejecting..."
+  },
+  "fields": {
+    "employee": "Employee",
+    "leaveType": "Leave Type",
+    "dayType": "Day Type",
+    "date": "Date",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "reason": "Reason",
+    "approver": "Approver",
+    "supportingDocument": "Supporting Document"
+  },
+  "placeholders": {
+    "selectApprover": "Select approver",
+    "reason": "Enter reason..."
+  },
+  "filters": {
+    "allStatus": "All Status"
+  },
+  "tabs": {
+    "myRequests": "My Requests",
+    "pendingApprovals": "Pending Approvals",
+    "allRequests": "All Requests"
+  },
+  "status": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "dayTypes": {
+    "full_day": "Full Day",
+    "half_day_am": "AM Half Day",
+    "half_day_pm": "PM Half Day"
+  },
+  "empty": {
+    "noRequestsFound": "No leave requests found",
+    "noPendingApprovals": "No pending approvals",
+    "allCaughtUp": "All caught up!",
+    "clickToSubmit": "Click \"Request Leave\" to submit a new request."
+  },
+  "labels": {
+    "used": "used",
+    "total": "total",
+    "availableBalance": "Available Balance",
+    "approvedBy": "Approved by",
+    "rejectedBy": "Rejected by",
+    "awaiting": "Awaiting",
+    "from": "From",
+    "to": "To",
+    "days": "Days",
+    "downloadDocument": "Download Document",
+    "required": "Required",
+    "optional": "Optional",
+    "doc": "DOC",
+    "absent": "Absent",
+    "unpaid": "unpaid"
+  },
+  "units": {
+    "day": "day",
+    "days": "days",
+    "daysShort": "day(s)",
+    "half": "half",
+    "halfDay": "half day"
+  },
+  "preview": {
+    "totalLeaveDays": "Total leave days:"
+  },
+  "upload": {
+    "dropToUpload": "Drop to upload",
+    "dropFileHereOr": "Drop file here or",
+    "browse": "browse",
+    "fileHint": "PDF, JPG, PNG · max 5MB",
+    "ready": "Ready"
+  },
+  "confirm": {
+    "deleteTitle": "Delete Leave Request",
+    "approveTitle": "Approve Leave Request",
+    "rejectTitle": "Reject Leave Request",
+    "deleteSubtext": "This action cannot be undone",
+    "notifySubtext": "Employee will be notified"
+  },
+  "validation": {
+    "leaveTypeRequired": "Leave type is required",
+    "startDateRequired": "Start date is required",
+    "endDateRequired": "End date is required",
+    "reasonRequired": "Reason is required",
+    "approverRequired": "Please select an approver",
+    "endDateAfterStart": "End date must be after start date",
+    "documentRequired": "Supporting document is required for this leave type.",
+    "fileType": "Only PDF, JPG, PNG allowed.",
+    "fileSize": "File must be under 5MB.",
+    "validationError": "Validation error"
+  },
+  "messages": {
+    "noLeaveTypes": "No leave types configured. Please contact HR.",
+    "balanceExceeded": "Balance exceeded — will be split automatically",
+    "noBalance": "No :type balance remaining",
+    "requestNoLongerExists": "Request no longer exists. It may have been deleted.",
+    "requestDeleteFailed": "Request could not be deleted."
+  }
+},
+  "employeeSalary": {
+    "pageTitle": "Employee Salary",
+    "employment": {
+      "probation": "Probation",
+      "permanent": "Permanent",
+      "contract": "Contract"
+    },
+    "fields": {
+      "employee": "Employee",
+      "position": "Position",
+      "department": "Department",
+      "employment": "Employment",
+      "joined": "Joined",
+      "baseSalary": "Base Salary",
+      "allowances": "Allowances",
+      "bankInformation": "Bank Information",
+      "bank": "Bank",
+      "accountHolderName": "Account Holder Name",
+      "accountNumber": "Account Number",
+      "salary": "Salary",
+      "actions": "Actions"
+    },
+    "stats": {
+      "total": "Total",
+      "withBank": "With Bank",
+      "missingBank": "Missing Bank"
+    },
+    "actions": {
+      "addProfile": "Add Profile",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "saveProfile": "Save Profile",
+      "updateProfile": "Update Profile",
+      "removing": "Removing…",
+      "removeProfile": "Remove Profile"
+    },
+    "placeholders": {
+      "selectEmployeeDash": "— Select employee —",
+      "searchEmployee": "Search employee…",
+      "fullName": "Full name",
+      "accountNumber": "Account number"
+    },
+    "validation": {
+      "selectEmployee": "Please select an employee.",
+      "validSalaryAmount": "Please enter a valid salary amount."
+    },
+    "messages": {
+      "salaryProfileUpdated": "Salary profile updated.",
+      "salaryProfileSaved": "Salary profile saved.",
+      "somethingWentWrong": "Something went wrong.",
+      "selectAllowancesApply": "Select allowances that apply to this employee.",
+      "salaryProfileRemoved": "Salary profile removed.",
+      "failedToRemoveProfile": "Failed to remove profile."
+    },
+    "empty": {
+      "noEmployeesFound": "No employees found",
+      "noResultsFound": "No results found",
+      "noSalaryProfilesYet": "No salary profiles yet",
+      "tryDifferentSearchTerm": "Try a different search term.",
+      "clickAddProfile": "Click \"Add Profile\" to assign a salary."
+    },
+    "labels": {
+      "optionalDash": "— optional",
+      "notSet": "Not set"
+    },
+    "modal": {
+      "addSalaryProfile": "Add Salary Profile",
+      "setupSalaryAllowancesBank": "Set up salary, allowances and bank info.",
+      "editSalaryProfile": "Edit Salary Profile",
+      "updateSalaryAllowancesBank": "Update salary, allowances or bank info.",
+      "removeProfile": "Remove Profile",
+      "deactivateSalaryProfile": "This will deactivate the salary profile."
+    },
+    "confirm": {
+      "deactivateProfileWarning": "This will deactivate the salary profile. Past payroll records will remain intact."
+    }
+  },
+ "expense": {
+    "stats": {
+      "total": "Total",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "unreimbursed": "Unreimbursed",
+      "unreimbursedSub": "All-time · approved, not paid"
+    },
+    "tabs": {
+      "my": "My Requests",
+      "approvals": "Pending Approvals",
+      "all": "All Requests"
+    },
+    "filters": {
+      "allStatus": "All Status"
+    },
+    "btn": {
+      "submit": "Submit Expense",
+      "cancel": "Cancel",
+      "submitRequest": "Submit Request",
+      "submitting": "Submitting…",
+      "approve": "Approve",
+      "reject": "Reject",
+      "delete": "Delete Request",
+      "processing": "Processing…"
+    },
+    "row": {
+      "awaiting": "Awaiting",
+      "approvedBy": "Approved by",
+      "rejectedBy": "Rejected by",
+      "date": "Date",
+      "amount": "Amount",
+      "note": "Note",
+      "rejected": "Rejected",
+      "reimbursed": "✓ Reimbursed",
+      "noApprover": "HR"
+    },
+    "empty": {
+      "noPendingApprovals": "No pending approvals",
+      "allCaughtUp": "All caught up!",
+      "noExpenses": "No expense requests found",
+      "noExpensesSub": "Click \"Submit Expense\" to add a new request."
+    },
+    "modal": {
+      "header": "Expense Request",
+      "title": "Submit Expense",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Client dinner, Taxi to airport…",
+      "amountLabel": "Amount",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "Select…",
+      "expenseDateLabel": "Expense Date",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Additional details about this expense…",
+      "attachmentsLabel": "Attachments",
+      "attachmentsSub": "— receipts, invoices, docs (max 5)",
+      "attachmentsClick": "Click to upload files",
+      "approverHr": "HR (Approver)",
+      "approverAdmin": "Admin (Approver)",
+      "approverPlaceholder": "— Select approver —",
+      "approverNone": "No {role} users found in your country.",
+      "autoApprove": "✓ As Admin, this request will be auto-approved instantly.",
+      "optional": "(optional)"
+    },
+    "confirm": {
+      "deleteTitle": "Delete Request",
+      "deleteBody": "This cannot be undone.",
+      "approveTitle": "Approve Expense",
+      "approveBody": "Employee will be notified.",
+      "rejectTitle": "Reject Expense",
+      "rejectBody": "Provide a reason for rejection.",
+      "noteLabel": "Note",
+      "noteOptional": "(optional)",
+      "notePlaceholder": "Add a note for the employee…",
+      "reasonLabel": "Rejection Reason",
+      "reasonPlaceholder": "Why is this being rejected?…",
+      "confirmDelete": "🗑 Delete",
+      "confirmApprove": "✓ Approve",
+      "confirmReject": "✕ Reject"
+    },
+    "category": {
+      "transport": "Transport",
+      "meal": "Meal",
+      "accommodation": "Accommodation",
+      "equipment": "Equipment",
+      "medical": "Medical",
+      "training": "Training",
+      "communication": "Communication",
+      "other": "Other"
+    },
+    "validation": {
+      "titleRequired": "Title is required.",
+      "amountInvalid": "Enter a valid amount.",
+      "dateRequired": "Expense date is required.",
+      "categoryRequired": "Category is required.",
+      "approverRequired": "Please select an approver."
+    },
+    "noApproversAvailable": "No approvers available",
+    "networkError": "Network error. Please try again.",
+    "deleteError": "Could not delete.",
+    "actionError": "Something went wrong.",
+    "months": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ]
+  },
+  "payslip": {
+    "pageTitle": "Payslip",
+    "fields": {
+      "employee": "Employee",
+      "payPeriod": "Pay Period",
+      "netSalary": "Net Salary",
+      "detail": "Detail",
+      "download": "Download"
+    },
+    "filters": {
+      "allMonths": "All Months",
+      "allPeriods": "All Periods"
+    },
+    "cycles": {
+      "semiMonthly": "Semi-Monthly",
+      "tenDay": "10-Day",
+      "monthly": "Monthly"
+    },
+    "stats": {
+      "payslips": "Payslips",
+      "totalNet": "Total Net",
+      "employees": "Employees",
+      "avgNet": "Avg Net",
+      "highest": "Highest",
+      "total": "Total"
+    },
+    "actions": {
+      "loading": "Loading…",
+      "refreshIcon": "🔄",
+      "refresh": "Refresh",
+      "preparing": "Preparing…",
+      "allPdfsZipIcon": "📦",
+      "allPdfsZip": "All PDFs (ZIP)",
+      "allExcelIcon": "📊",
+      "allExcel": "All Excel",
+      "pdf": "PDF",
+      "excel": "Excel"
+    },
+    "labels": {
+      "details": "DETAILS",
+      "payslip": "Payslip",
+      "payslips": "Payslips",
+      "period": "Period",
+      "missing": "Missing",
+      "late": "Late",
+      "ofBaseSalary": "of base salary",
+      "fixedAmount": "Fixed amount"
+    },
+    "shortLabels": {
+      "in": "In",
+      "out": "Out"
+    },
+    "status": {
+      "paid": "Paid",
+      "confirmed": "Confirmed"
+    },
+    "placeholders": {
+      "searchEmployee": "Search employee…"
+    },
+    "messages": {
+      "downloadedSuccessfully": "Payslip downloaded successfully",
+      "downloadFailed": "Download failed",
+      "failedToLoadDetail": "Failed to load detail",
+      "failedToLoadPayslips": "Failed to load payslips",
+      "loadingPayslips": "Loading payslips…"
+    },
+    "empty": {
+      "noShortRecords": "No short records.",
+      "noLateRecords": "No late records.",
+      "noRecords": "No records.",
+      "noOTRecords": "No OT records.",
+      "noAllowanceDetails": "No allowance details.",
+      "noBonusDetails": "No bonus details.",
+      "noExpenseDetails": "No expense details.",
+      "noResultsFor": "No results for",
+      "noConfirmedPayslips": "No confirmed payslips found",
+      "tryAdjustingPeriod": "Try adjusting the period filter above."
+    },
+    "detail": {
+      "insufficientHours": "Insufficient Hours",
+      "workingHours": "Working Hours",
+      "lateArrival": "Late Arrival",
+      "attendance": "Attendance",
+      "workingDays": "Working Days",
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late",
+      "paidLeave": "Paid Leave",
+      "unpaidLeave": "Unpaid Leave",
+      "overtime": "Overtime",
+      "earnings": "Earnings",
+      "baseSalary": "Base Salary",
+      "allowances": "Allowances",
+      "overtimePay": "Overtime Pay",
+      "bonus": "Bonus",
+      "bonuses": "Bonuses",
+      "expenseReimbursement": "Expense Reimbursement",
+      "totalBeforeDeductions": "Total Before Deductions",
+      "deductions": "Deductions",
+      "totalDeductions": "Total Deductions",
+      "netSalary": "NET SALARY",
+      "leaveRecords": "Leave Records",
+      "otRecords": "OT Records",
+      "otPayThisPeriod": "OT Pay (this period)",
+      "breakdown": "Breakdown",
+      "totalAllowances": "Total Allowances",
+      "totalBonus": "Total Bonus",
+      "approvedExpenses": "Approved Expenses",
+      "totalReimbursement": "Total Reimbursement",
+      "salaryDetail": "Salary Detail"
+    },
+    "dayTypes": {
+      "fullDay": "Full Day",
+      "amHalf": "AM Half",
+      "pmHalf": "PM Half",
+      "halfDay": "Half Day"
+    },
+    "units": {
+      "days": "days",
+      "min": "min"
+    },
+    "months": {
+      "January": "January",
+      "February": "February",
+      "March": "March",
+      "April": "April",
+      "May": "May",
+      "June": "June",
+      "July": "July",
+      "August": "August",
+      "September": "September",
+      "October": "October",
+      "November": "November",
+      "December": "December"
+    }
+  },
+"bankExport": {
+  "payPeriodFilter": "Pay Period Filter",
+  "year": "Year",
+  "month": "Month",
+  "period": "Period",
+  "employee": "Employee",
+  "allEmployees": "All Employees",
+  "loading": "Loading…",
+  "refresh": "Refresh",
+  "record": "Record",
+  "records": "Records",
+  "readyForTransfer": "ready for transfer",
+  "noConfirmedRecords": "No confirmed records found",
+  "exporting": "Exporting…",
+  "generating": "Generating…",
+  "sendToBank": "Send to Bank",
+  "saving": "Saving…",
+  "markAllPaid": "Mark All Paid",
+  "loadingRecords": "Loading records…",
+  "noConfirmedPayroll": "No confirmed payroll records",
+  "emptyStateDesc": "Payroll records must be <strong>confirmed</strong> before they appear here.<br />Go to Payroll → Preview &amp; Approve to confirm records.",
+  "colEmployee": "Employee",
+  "colBank": "Bank",
+  "colAccount": "Account No",
+  "colDept": "Dept",
+  "colStatus": "Status",
+  "colNetSalary": "Net Salary",
+  "notSet": "Not set",
+  "statusPaid": "Paid",
+  "statusConfirmed": "Confirmed",
+  "paid": "Paid",
+  "infoNote": "Only <strong>confirmed</strong> payroll records are included. Bank account details come from Employee Salary profiles. Employees with missing bank info are marked with ⚠.",
+  "bankTransfer": "BANK TRANSFER",
+  "sendPdfToBank": "Send PDF to Bank",
+  "modalDesc1": "The Bank Transfer PDF for",
+  "modalDesc2": "will be sent as an email attachment.",
+  "total": "Total",
+  "employees": "employees",
+  "bankEmailLabel": "Bank Email Address",
+  "bankEmailPlaceholder": "e.g. finance@ababank.com",
+  "cancel": "Cancel",
+  "sending": "Sending…",
+  "sendPdf": "Send PDF",
+  "failedToLoad": "Failed to load preview",
+  "downloadFailed": "Download failed",
+  "downloadedSuccess": "downloaded successfully!",
+  "failed": "Failed",
+  "markedAsPaid": "Marked as paid",
+  "recordsMarkedPaid": "records marked as paid",
+  "failedToSend": "Failed to send",
+  "sentSuccess": "PDF sent to bank successfully! ✉️"
+},
+ "payroll": {
+    "steps": {
+      "attendance": {
+        "label": "Attendance Import",
+        "summary": "Download template · fill check-in/out · upload"
+      },
+      "calculate": {
+        "label": "Salary Calculation",
+        "summary": "Calculate based on attendance, leave, OT & HR policy"
+      },
+      "preview": {
+        "label": "Preview & Approve",
+        "summary": "Review salary breakdown · add bonus · approve"
+      }
+    },
+    "sidebar": {
+      "workflow": "Workflow",
+      "stepsDone": "steps done",
+      "completed": "Completed",
+      "inProgress": "In progress..."
+    },
+    "period": {
+      "payPeriod": "Pay Period",
+      "period": "Period",
+      "semiMonthly": "SEMI-MONTHLY",
+      "tenDay": "10-DAY",
+      "monthly": "MONTHLY"
+    },
+    "status": {
+      "draft": "Draft",
+      "calculated": "Calculated",
+      "approved": "Approved",
+      "confirmed": "Confirmed",
+      "paid": "Paid"
+    },
+    "btn": {
+      "downloadTemplate": "Download Template",
+      "downloading": "Downloading...",
+      "uploadSave": "Upload & Save",
+      "uploading": "Uploading...",
+      "refresh": "Refresh",
+      "approveAll": "Approve All",
+      "approving": "Approving...",
+      "confirmFinalize": "Confirm & Finalize",
+      "confirming": "Confirming...",
+      "approve": "Approve",
+      "detail": "Detail",
+      "close": "Close",
+      "cancel": "Cancel",
+      "calculate": "Calculate",
+      "calculating": "Calculating...",
+      "calculateAll": "Calculate All",
+      "continue": "Continue"
+    },
+    "attendance": {
+      "stepDownload": "Download",
+      "stepDownloadDesc": "Get the Excel template pre-filled with employees & dates",
+      "stepFill": "Fill In/Out",
+      "stepFillDesc": "Type or select times (HH:MM). Skip weekends.",
+      "stepUpload": "Upload",
+      "stepUploadDesc": "Work hours & late minutes auto-calculated on save",
+      "downloaded": "Template downloaded.",
+      "saved": "Saved",
+      "skipped": "Skipped"
+    },
+    "calculate": {
+      "allEmployees": "All Employees",
+      "singleEmployee": "Single Employee",
+      "selectEmployee": "Select Employee",
+      "selectEmployeeFirst": "Select an employee first.",
+      "calculated": "calculated",
+      "employees": "employees",
+      "done": "done",
+      "stopped": "Stopped.",
+      "allDone": "All employees calculated:",
+      "noPeriodWarning": "No payroll period configured. Go to HR Policy → General Settings."
+    },
+    "preview": {
+      "loading": "Loading records...",
+      "noRecords": "No records yet. Calculate salary first (Step 2).",
+      "loadFailed": "Failed to load records",
+      "approved": "approved"
+    },
+    "table": {
+      "employee": "Employee",
+      "presentWd": "Present / WD",
+      "leave": "Leave",
+      "late": "Late",
+      "ot": "OT",
+      "base": "Base",
+      "allowances": "Allowances",
+      "deductions": "Deductions",
+      "bonus": "Bonus",
+      "netSalary": "Net Salary",
+      "status": "Status"
+    },
+    "confirm": {
+      "approveAllTitle": "Approve All Payroll Records",
+      "finalizeTitle": "Confirm & Finalize Payroll",
+      "approveOneTitle": "Approve Employee Salary",
+      "approveAllMsg": "Are you sure you want to approve all",
+      "finalizeMsg": "This will lock all",
+      "approveOneMsg": "Are you sure you want to approve salary for",
+      "recordsFor": "payroll records for",
+      "yesApproveAll": "Yes, Approve All",
+      "yesConfirmLock": "🔒 Yes, Confirm & Lock",
+      "yesApprove": "Yes, Approve"
+    },
+    "detail": {
+      "salaryDetail": "Salary Detail",
+      "attendance": "Attendance",
+      "workingDays": "Working Days",
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late",
+      "days": "days",
+      "paidLeave": "Paid Leave",
+      "unpaidLeave": "Unpaid Leave",
+      "overtime": "Overtime",
+      "earnings": "Earnings",
+      "baseSalary": "Base Salary",
+      "allowances": "Allowances",
+      "overtimePay": "Overtime Pay",
+      "bonus": "Bonus",
+      "expenseReimbursement": "Expense Reimbursement",
+      "totalBeforeDeductions": "Total Before Deductions",
+      "deductions": "Deductions",
+      "insufficientHours": "Insufficient Hours",
+      "lateArrival": "Late Arrival",
+      "totalDeductions": "Total Deductions",
+      "netSalary": "NET SALARY",
+      "workingHours": "Working Hours",
+      "in": "In",
+      "out": "Out",
+      "missing": "Missing",
+      "noShortRecords": "No short records.",
+      "noLateRecords": "No late records.",
+      "leaveRecords": "Leave Records",
+      "noRecords": "No records.",
+      "otRecords": "OT Records",
+      "noOtRecords": "No OT records.",
+      "otPayPeriod": "OT Pay (this period)",
+      "breakdown": "Breakdown",
+      "noAllowanceDetails": "No allowance details.",
+      "totalAllowances": "Total Allowances",
+      "bonuses": "Bonuses",
+      "noBonusDetails": "No bonus details.",
+      "totalBonus": "Total Bonus",
+      "approvedExpenses": "Approved Expenses",
+      "noExpenseDetails": "No expense details.",
+      "totalReimbursement": "Total Reimbursement"
+    },
+    "dayType": {
+      "fullDay": "Full Day",
+      "halfDayAm": "AM Half",
+      "halfDayPm": "PM Half",
+      "halfDay": "Half Day"
+    }
+  },
+  "hrAlerts": {
+    "pageTitle": "HR Alerts",
+    "description": "AI-generated warning letters for attendance violations",
+    "status": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "dismissed": "Dismissed",
+      "all": "All"
+    },
+    "types": {
+      "lateAlert": "Late Alert",
+      "absentAlert": "Absent Alert"
+    },
+    "summary": {
+      "pendingAlerts": "Pending Alerts",
+      "lateWarnings": "Late Warnings",
+      "absentWarnings": "Absent Warnings",
+      "warningsSent": "Warnings Sent",
+      "dismissed": "Dismissed"
+    },
+    "labels": {
+      "late": "late",
+      "absent": "absent",
+      "sentBy": "Sent by",
+      "period": "Period",
+      "warningLetter": "Warning Letter"
+    },
+    "actions": {
+      "sendWarning": "Send Warning",
+      "dismiss": "Dismiss",
+      "hideLetter": "Hide Letter",
+      "viewLetter": "View Letter",
+      "cancel": "Cancel",
+      "sending": "Sending...",
+      "dismissing": "Dismissing...",
+      "checking": "Checking...",
+      "runCheckNow": "Run Check Now"
+    },
+    "modal": {
+      "sendWarningLetter": "Send Warning Letter",
+      "editWarningLetter": "Edit Warning Letter",
+      "aiDraftNote": "AI-generated draft — review before sending",
+      "dismissAlert": "Dismiss Alert",
+      "noWarningWillBeSent": "No warning will be sent"
+    },
+    "empty": {
+      "noPendingAlerts": "No pending alerts",
+      "noAlertsFound": "No alerts found",
+      "allAttendanceWithinThresholds": "All attendance within thresholds!",
+      "tryDifferentFilter": "Try a different filter."
+    },
+    "units": {
+      "days": "days"
+    },
+    "monthsShort": {
+      "Jan": "Jan",
+      "Feb": "Feb",
+      "Mar": "Mar",
+      "Apr": "Apr",
+      "May": "May",
+      "Jun": "Jun",
+      "Jul": "Jul",
+      "Aug": "Aug",
+      "Sep": "Sep",
+      "Oct": "Oct",
+      "Nov": "Nov",
+      "Dec": "Dec"
+    }
+  },
+"projectAssignments": {
+  "pageTitle": "Project Assignments",
+  "actions": { "allProjects": "All Projects" },
+  "sections": { "activeUpcoming": "Active & Upcoming" },
+  "placeholders": { "searchMembers": "Search members…" },
+  "filters": {
+    "all": "All",
+    "twoHours": "2h",
+    "fourHours": "4h",
+    "sixHours": "6h"
+  },
+  "workload": {
+    "free": "Free",
+    "light": "Light",
+    "moderate": "Moderate",
+    "heavy": "Heavy",
+    "full": "Full"
+  },
+  "status": {
+    "active": "Active",
+    "upcoming": "Upcoming",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "stats": {
+    "totalMembers": "Total Members",
+    "activeEmployees": "Active employees",
+    "available": "Available",
+    "zeroAssignedToday": "0h assigned today",
+    "utilization": "Utilization",
+    "activeProjects": "Active Projects",
+    "currentlyRunning": "Currently running"
+  },
+  "labels": {
+    "teamMembers": "Team Members",
+    "team": "Team",
+    "open": "open",
+    "openSlot": "Open slot",
+    "assignments": "Assignments",
+    "dailyCapacity": "Daily capacity",
+    "used": "used",
+    "dueToday": "Due today",
+    "noEndDate": "No end date"
+  },
+  "empty": {
+    "noMembersFound": "No members found",
+    "noMembersYet": "No members yet",
+    "noAssignmentsYet": "No assignments yet",
+    "noActiveUpcomingProjects": "No active or upcoming projects"
+  },
+  "units": {
+    "member": "member",
+    "members": "members",
+    "perDay": "per day",
+    "today": "today",
+    "daysLeftSuffix": "d left"
+  }
+},
+"bookings": {
+  "heroSubtitle": "Resource Booking",
+  "heroTitle": "Meeting Rooms & Cars",
+  "heroDesc": "Book meeting rooms and company cars for your work needs.",
+  "today": "Today",
+  "rooms": "Rooms",
+  "cars": "Cars",
+  "tabCalendar": "Calendar",
+  "tabMyBookings": "My Bookings",
+  "tabMyInvitations": "My Invitations",
+  "tabDriverNotes": "Driver Notes",
+  "tabManageResources": "Manage Resources",
+  "bookRoom": "Book Room",
+  "bookCar": "Book Car",
+  "loadingSchedule": "Loading schedule…",
+  "free": "Free",
+  "floor": "Floor",
+  "seats": "Seats",
+  "capacity": "Capacity",
+  "passengers": "passengers",
+  "driver": "Driver",
+  "location": "Location",
+  "rules": "Rules",
+  "noRoomsYet": "No meeting rooms registered yet",
+  "noCarsYet": "No cars registered yet",
+  "goToManage": "Go to Manage Resources to add one",
+  "openEnded": "open-ended",
+  "onTheWay": "On The Way",
+  "returning": "Returning",
+  "requestCar": "Request Company Car",
+  "reserveRoom": "Reserve Meeting Room",
+  "step1": "Step 1 — Set Date & Time",
+  "step2": "Step 2 — Select Resource",
+  "step3": "Step 3 — Confirm & Submit",
+  "date": "Date",
+  "startTime": "Start Time",
+  "endTime": "End Time",
+  "returnUnknown": "Return time unknown",
+  "openEndedDesc": "Open-ended — join the waitlist if the car is out",
+  "waitlistWarning": "If another booking exists without a return time, your request will be added to the waitlist.",
+  "numAttendees": "Number of Attendees",
+  "attendeesHint": "optional — filters by seat capacity",
+  "continueAvailable": "Continue — View Available",
+  "back": "Back",
+  "checkingAvailability": "Checking availability…",
+  "noResourcesFound": "No {{type}} found.",
+  "selected": "Selected",
+  "available": "Available",
+  "currentlyOut": "Currently out",
+  "freeFrom": "Free from",
+  "unavailable": "Unavailable",
+  "continueDetails": "Continue — Add Details",
+  "attendees": "attendees",
+  "tripType": "Trip Type",
+  "oneWay": "One Way",
+  "oneWayDesc": "A to B, no return",
+  "multiStop": "Multi Stop",
+  "multiStopDesc": "Multiple destinations",
+  "pickupDrop": "Pickup / Drop",
+  "pickupDropDesc": "Driver picks up or drops off",
+  "departureLocation": "Departure Location",
+  "departurePlaceholder": "e.g. Office Lobby, Building A",
+  "destination": "Destination",
+  "destinationPlaceholder": "e.g. Airport, Hotel",
+  "officeLobbyPlaceholder": "e.g. Office Lobby",
+  "stops": "Stops",
+  "addStop": "Add Stop",
+  "stop": "Stop",
+  "returnToDeparture": "Return to departure",
+  "returnToDepartureDesc": "Driver returns to starting point after last stop",
+  "returnTimeEstimated": "Return Time (estimated)",
+  "pickupPoint": "Pickup / Departure Point",
+  "pickupPlaceholder": "e.g. Home address, Hotel lobby",
+  "pickupDestPlaceholder": "e.g. Office, Airport, Client site",
+  "driverWaitsReturns": "Driver waits & returns",
+  "driverWaitsDesc": "Driver stays at destination and brings you back",
+  "expectedReturnTime": "Expected Return Time",
+  "participants": "Participants",
+  "purposeLabel": "Purpose / Reason *",
+  "purposeCarPlaceholder": "e.g. Airport pickup, Client site visit, Errands…",
+  "purposeRoomPlaceholder": "e.g. Weekly team standup, Client presentation, Workshop…",
+  "confirming": "Confirming…",
+  "joinWaitlist": "Join Waitlist",
+  "confirmBooking": "Confirm Booking",
+  "nameRequired": "Name *",
+  "roomNamePlaceholder": "e.g. Meeting Room A, Boardroom",
+  "carNamePlaceholder": "e.g. Toyota Camry 2023",
+  "floorLocation": "Floor / Location",
+  "parkingLocation": "Parking Location",
+  "floorPlaceholder": "e.g. Floor 2",
+  "parkingPlaceholder": "e.g. Parking B1",
+  "seatCapacity": "Seat Capacity",
+  "passengerCapacity": "Passenger Capacity",
+  "plateRequired": "Plate Number *",
+  "assignedDriver": "Assigned Driver *",
+  "selectDriver": "Select driver…",
+  "roomRules": "Room Rules",
+  "usageNotes": "Usage Notes",
+  "roomRulesPlaceholder": "e.g. No food allowed, Max 2 hours per booking",
+  "usageNotesPlaceholder": "e.g. Return with full fuel, Clean interior after use",
+  "active": "Active",
+  "activeDesc": "Inactive resources are hidden from bookings",
+  "inactive": "Inactive",
+  "reactivate": "Reactivate",
+  "cancel": "Cancel",
+  "saving": "Saving…",
+  "saveChanges": "Save Changes",
+  "registerResource": "Register Resource",
+  "registerNewResource": "Register New Resource",
+  "resourceManagement": "Resource Management",
+  "meetingRoom": "Meeting Room",
+  "companyCar": "Company Car",
+  "edit": "Edit",
+  "room": "Room",
+  "car": "Car",
+  "reasonRequired": "A reason is required.",
+  "bookingRejected": "Booking rejected.",
+  "failedToReject": "Failed to reject.",
+  "rejectBooking": "Reject Booking",
+  "hrAction": "HR Action",
+  "rejectingDesc": "Rejecting",
+  "bookingFor": "booking for",
+  "reasonForRejection": "Reason for Rejection *",
+  "rejectReasonPlaceholder": "Explain why this booking cannot be approved…",
+  "rejecting": "Rejecting…",
+  "reason": "Reason",
+  "rejected": "Rejected",
+  "cancelNote": "Cancel Note",
+  "approve": "Approve",
+  "reject": "Reject",
+  "markReturned": "Mark Returned",
+  "cancelBooking": "Cancel booking",
+  "failedToApprove": "Failed to approve.",
+  "confirmCancellation": "Confirm Cancellation",
+  "cancelThisBooking": "Cancel this booking?",
+  "cancelWarning": "This booking will be cancelled and cannot be undone.",
+  "keepBooking": "Keep Booking",
+  "cancelling": "Cancelling…",
+  "yesCancel": "Yes, Cancel",
+  "failedToCancel": "Failed to cancel.",
+  "bookingDetail": "Booking Detail",
+  "bookingInfo": "Booking Info",
+  "time": "Time",
+  "purpose": "Purpose",
+  "tripInfo": "Trip Info",
+  "type": "Type",
+  "from": "From",
+  "return": "Return",
+  "yesTBD": "Yes (TBD)",
+  "carInfo": "Car Info",
+  "plate": "Plate",
+  "parking": "Parking",
+  "roomInfo": "Room Info",
+  "people": "People",
+  "organizer": "Organizer",
+  "loading": "Loading…",
+  "failedToLoad": "Failed to load.",
+  "statusPending": "Pending",
+  "statusApproved": "Approved",
+  "statusRejected": "Rejected",
+  "statusCancelled": "Cancelled",
+  "statusWaitlisted": "Waitlisted",
+  "statusCompleted": "Completed",
+  "busy": "busy",
+  "scheduleConflict": "Schedule Conflict",
+  "checkingSchedule": "Checking schedule…",
+  "searchByNameEmail": "Search by name or email…",
+  "noPendingApprovals": "No pending approvals",
+  "allCaughtUp": "All caught up!",
+  "noUpcoming": "No upcoming {{type}} bookings",
+  "clickToStart": "Click \"{{type}}\" to get started.",
+  "noInvitationsOn": "No invitations on",
+  "selectDateForInvitations": "Select a date from the calendar to view invitations.",
+  "noDriverNotesOn": "No driver notes on",
+  "notesAppearAfterTrips": "Notes will appear here after your trips are completed.",
+  "leftANote": "left a note",
+  "noRoomsYetManage": "No meeting rooms yet — click + Register Resource to add one",
+  "noCarsYetManage": "No cars yet — click + Register Resource to add one",
+  "meetingRooms": "Meeting Rooms",
+  "companyCars": "Company Cars",
+  "confirmDelete": "Confirm Delete",
+  "deleteResource": "Delete",
+  "deleteResourceWarning": "This will permanently delete",
+  "deleteResourceWarning2": "and all its data. Consider making it Inactive instead to preserve booking history.",
+  "deletePermanently": "Delete Permanently",
+  "failedToDelete": "Failed to delete.",
+  "failedToSave": "Failed to save resource.",
+  "carMarkedReturned": "Car marked as returned.",
+  "myRoomBooking": "My Room Booking",
+  "myCarBooking": "My Car Booking",
+  "errorPurpose": "Please describe the purpose",
+  "errorResource": "Please select a resource",
+  "errorPickup": "Pickup point is required",
+  "errorDeparture": "Departure location is required",
+  "errorDestination": "Destination is required",
+  "errorStops": "All stop locations are required",
+  "errorStopsMin": "At least one stop is required",
+  "errorEndTime": "End time must be later than start time.",
+  "errorName": "Name is required",
+  "errorPlate": "Plate number is required",
+  "errorDriver": "Please assign a driver",
+  "errorCapacity": "Capacity must be at least 1",
+  "submitFailed": "Failed to submit. Please try again."
+},
+"performance": {
+    "pageTitle": "Performance Review",
+    "labels": {
+      "metrics": "Metrics",
+      "analysisResults": "Analysis Results",
+      "employeeMetrics": "Employee Metrics",
+      "employees": "employees"
+    },
+    "metrics": {
+      "late": "Late",
+      "absent": "Absent",
+      "leave": "Leave",
+      "overtime": "Overtime"
+    },
+    "ratings": {
+      "Excellent": "Excellent",
+      "Good": "Good",
+      "Average": "Average",
+      "NeedsImprovement": "Needs Improvement",
+      "Poor": "Poor"
+    },
+    "placeholders": {
+      "year": "Year",
+      "country": "Country"
+    },
+    "actions": {
+      "exportPdf": "Export PDF",
+      "analyzing": "Analyzing",
+      "aiAnalysis": "AI Analysis"
+    },
+    "kpis": {
+      "totalEmployees": "Total Employees",
+      "avgLateDays": "Avg Late Days",
+      "avgAbsentDays": "Avg Absent Days",
+      "avgLeaveDays": "Avg Leave Days",
+      "avgOTHours": "Avg OT Hours"
+    },
+    "table": {
+      "employee": "Employee",
+      "dept": "Dept",
+      "attendance": "Attendance",
+      "lateDays": "Late Days",
+      "absent": "Absent",
+      "leaveDays": "Leave Days",
+      "leave": "Leave",
+      "otHours": "OT Hours",
+      "otHrs": "OT Hrs",
+      "rating": "Rating",
+      "remark": "Remark",
+      "score": "Score",
+      "aiRemark": "AI Remark"
+    },
+    "empty": {
+      "noEmployeeData": "No employee data found for the selected filters."
+    },
+    "pdf": {
+      "hrPerformanceReport": "HR Performance Report",
+      "annualPerformanceReview": "Annual Performance Review",
+      "ratingDistribution": "Rating Distribution",
+      "confidentialHrDocument": "Confidential HR Document",
+      "generatedBySmartHr": "Generated by Smart HR",
+      "printSavePdf": "Print / Save as PDF"
+    }
+  },
+"projects": {
+  "pageTitle": "Projects",
+  "appTitle": "Project Assignments",
+  "actions": {
+    "backToAssignments": "Back to Assignments",
+    "createProject": "Create Project",
+    "update": "Update",
+    "create": "Create Project",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "view": "View",
+    "yesUpdate": "Yes, Update"
+  },
+  "modal": {
+    "newProject": "New Project",
+    "editProject": "Edit Project",
+    "confirmUpdate": "Confirm Update",
+    "deleteProject": "Delete Project?",
+    "updateSubtitle": "Update the project details below",
+    "createSubtitle": "Fill in the project details below",
+    "confirmUpdateMessage": "Are you sure you want to update",
+    "deleteMessage": "will be permanently deleted along with all its assignments.",
+    "cannotBeUndone": "This action cannot be undone."
+  },
+  "fields": {
+    "projectName": "Project Name",
+    "description": "Description",
+    "status": "Status",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "optional": "optional"
+  },
+  "placeholders": {
+    "projectName": "e.g. CRM System v2",
+    "description": "Brief project description…",
+    "searchProjects": "Search projects…"
+  },
+  "status": {
+    "all": "All",
+    "active": "Active",
+    "upcoming": "Upcoming",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "table": {
+    "project": "Project",
+    "status": "Status",
+    "duration": "Duration",
+    "members": "Members",
+    "daysLeft": "Days Left",
+    "actions": "Actions",
+    "from": "FROM",
+    "to": "TO"
+  },
+  "empty": {
+    "noProjectsFound": "No projects found",
+    "tryDifferentSearch": "Try a different search term"
+  },
+  "pagination": {
+    "prev": "Prev",
+    "next": "Next"
+  },
+  "validation": {
+    "required": "Required",
+    "endDateAfterStart": "Must be after start date"
+  },
+  "messages": {
+    "created": "Project created successfully!",
+    "updated": "Project updated successfully!",
+    "deleted": "Project deleted successfully.",
+    "createFailed": "Failed to create project. Please try again.",
+    "updateFailed": "Failed to update project. Please try again.",
+    "deleteFailed": "Failed to delete project."
+  },
+  "loading": {
+    "creating": "Creating…",
+    "updating": "Updating…",
+    "deleting": "Deleting…"
+  },
+  "units": {
+    "project": "project",
+    "projects": "projects",
+    "dayOverdue": "d overdue",
+    "dueToday": "Due today",
+    "dayLeft": "d left",
+    "daysLeft": "days left"
+  }
+},
+"surveys": {
+    "actions": {
+      "back": "Back",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "labels": {
+      "anonymous": "Anonymous",
+      "questions": "Questions",
+      "questionsLower": "questions",
+      "responses": "Responses",
+      "responsesLower": "responses",
+      "closes": "Closes",
+      "by": "by"
+    },
+    "status": {
+      "all": "All",
+      "draft": "Draft",
+      "active": "Active",
+      "closed": "Closed"
+    },
+    "questionTypes": {
+      "single": "Single",
+      "multiple": "Multiple",
+      "yesNo": "Yes/No",
+      "rating": "Rating",
+      "text": "Text",
+      "singleChoice": "Single Choice",
+      "multiChoice": "Multi Choice",
+      "textAnswer": "Text Answer"
+    },
+    "closed": {
+      "headTitle": "Survey Closed",
+      "title": "Survey Closed",
+      "message": "This survey is no longer accepting responses. The submission window has ended.",
+      "responsesNoLongerCollected": "Responses are no longer being collected",
+      "contactHr": "Contact HR if you have any questions 💜"
+    },
+    "create": {
+      "createSurvey": "Create Survey",
+      "editSurvey": "Edit Survey",
+      "newSurvey": "New Survey",
+      "surveyBuilder": "Survey Builder",
+      "createSubtitle": "Build a survey with conditional logic, multiple question types, and smart settings.",
+      "editSubtitle": "Update your survey content, questions, and settings.",
+      "surveyDetails": "Survey Details",
+      "settings": "Settings",
+      "summary": "Summary",
+      "fields": {
+        "question": "Question",
+        "type": "Type",
+        "titleRequired": "Title *",
+        "description": "Description",
+        "closeDate": "Close Date",
+        "title": "Title"
+      },
+      "placeholders": {
+        "question": "Type your question here...",
+        "option": "Option",
+        "selectAnswer": "Select answer...",
+        "title": "e.g. Q2 Employee Satisfaction Survey",
+        "description": "Optional — briefly describe what this survey is about."
+      },
+      "labels": {
+        "conditionalLogic": "Conditional Logic",
+        "showIf": "Show if",
+        "alwaysShow": "Always show",
+        "emptyQuestion": "(empty)",
+        "answerIs": "answer is",
+        "questionShowsOnlyWhen": "This question shows only when",
+        "required": "Required",
+        "optional": "Optional",
+        "conditional": "Conditional"
+      },
+      "actions": {
+        "addOption": "+ Add Option",
+        "addQuestion": "Add Question",
+        "saveAsDraft": "Save as Draft",
+        "saving": "Saving...",
+        "publishSurvey": "Publish Survey"
+      },
+      "validation": {
+        "titleRequired": "Survey title is required.",
+        "addQuestion": "Add at least one question.",
+        "required": "required",
+        "needTwoOptions": "Need at least 2 options"
+      },
+      "anonymousOn": "Responses collected without names. HR cannot see who answered.",
+      "anonymousOff": "Respondent names are recorded. HR can see who answered."
+    },
+    "index": {
+      "pageTitle": "Surveys",
+      "copySurveyLink": "Copy survey link",
+      "copied": "Copied!",
+      "copyLink": "Copy Link",
+      "results": "Results",
+      "activate": "Activate",
+      "close": "Close",
+      "createSurvey": "Create Survey",
+      "noSurveysFound": "No surveys found",
+      "createFirstSurvey": "Click \"Create Survey\" to create your first survey.",
+      "stats": {
+        "totalSurveys": "Total Surveys",
+        "totalResponses": "Total Responses"
+      }
+    },
+    "public": {
+      "validation": {
+        "questionRequired": "This question is required."
+      },
+      "errors": {
+        "somethingWentWrong": "Something went wrong.",
+        "connectionError": "Connection error. Please try again."
+      },
+      "alreadySubmitted": "Already Submitted",
+      "alreadySharedPrefix": "You've already shared your feedback for",
+      "onlyOnce": "Each person can only respond once.",
+      "anonymousRecorded": "Your anonymous response was recorded.",
+      "responseSaved": "Your response has been saved.",
+      "thankYouParticipating": "Thank you for participating 💜",
+      "thankYouTitle": "Thank You!",
+      "responseRecorded": "Response Recorded!",
+      "feedbackSubmitted": "Your feedback has been submitted. We appreciate your time and input — it helps us improve.",
+      "submittedAnonymously": "Submitted anonymously — your identity is protected.",
+      "employeeSurvey": "Employee Survey",
+      "allQuestionsAnswered": "✓ All questions answered",
+      "of": "of",
+      "answered": "answered",
+      "poor": "Poor",
+      "excellent": "Excellent",
+      "shareThoughts": "Share your thoughts here...",
+      "submittingResponse": "Submitting your response...",
+      "sendFeedback": "Send Feedback",
+      "anonymousConfidential": "Your response is anonymous and confidential.",
+      "nameRecorded": "Your name will be recorded with your response.",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "results": {
+      "pageTitle": "Survey Results",
+      "avg": "Avg",
+      "noTextAnswersYet": "No text answers yet.",
+      "unknown": "Unknown",
+      "avgCompletion": "Avg Completion",
+      "exportCsv": "Export CSV",
+      "questionResults": "Question Results",
+      "individualResponses": "Individual Responses",
+      "aiInsight": "AI Insight",
+      "noResponsesYet": "No responses yet.",
+      "aiAnalysis": "AI Analysis",
+      "generated": "Generated",
+      "analyzing": "Analyzing...",
+      "regenerate": "Regenerate",
+      "generateInsight": "Generate Insight",
+      "noInsightGeneratedYet": "No insight generated yet",
+      "collectResponsesBeforeInsights": "Collect responses before generating AI insights.",
+      "clickGenerateInsight": "Click \"Generate Insight\" to analyze all responses with AI."
+    }
+  },
+"projectShow": {
+  "appTitle": "Project Assignments",
+  "actions": {
+    "backToProjects": "Back to Projects",
+    "assignMember": "Assign Member",
+    "assigning": "Assigning...",
+    "assignAnyway": "Assign Anyway",
+    "updateHours": "Update Hours",
+    "cancel": "Cancel",
+    "update": "Update",
+    "updating": "Updating...",
+    "removing": "Removing...",
+    "yesRemove": "Yes, Remove"
+  },
+  "status": {
+    "active": "Active",
+    "upcoming": "Upcoming",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "removed": "Removed"
+  },
+  "stats": {
+    "totalMembers": "Total Members",
+    "active": "Active",
+    "upcoming": "Upcoming",
+    "estimatedHours": "Est. Hours"
+  },
+  "tabs": {
+    "members": "Members",
+    "activityLog": "Activity Log"
+  },
+  "table": {
+    "member": "Member",
+    "period": "Period",
+    "hoursPerDay": "Hours/Day",
+    "status": "Status",
+    "assignedBy": "Assigned By",
+    "notes": "Notes",
+    "actions": "Actions"
+  },
+  "fields": {
+    "member": "Member",
+    "project": "Project",
+    "priority": "Priority",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "hoursPerDay": "Hours per Day",
+    "status": "Status",
+    "notes": "Notes"
+  },
+  "labels": {
+    "from": "FROM",
+    "to": "TO",
+    "createdBy": "Created by",
+    "timeline": "Timeline",
+    "available": "Available",
+    "current": "Current",
+    "submittingWillAdd": "Submitting will add",
+    "total": "total",
+    "already": "already",
+    "used": "used",
+    "on": "On",
+    "activeProjects": "active project(s)",
+    "dailyLimit": "daily limit",
+    "optional": "optional",
+    "priorityOrder": "Priority Order",
+    "priority": "Priority",
+    "thisProject": "this project"
+  },
+  "modal": {
+    "assignTitle": "Assign Member",
+    "assignSubtitle": "Add a member to",
+    "editAssignmentTitle": "Edit Assignment"
+  },
+  "confirm": {
+    "removeTitle": "Remove Member?",
+    "removeMessage": "Remove",
+    "cannotUndo": "This action cannot be undone."
+  },
+  "empty": {
+    "noMembersAssigned": "No members assigned yet",
+    "noActivityYet": "No Activity yet"
+  },
+  "placeholders": {
+    "selectMember": "Select a member...",
+    "optionalNotes": "Optional notes..."
+  },
+  "messages": {
+    "alreadyAssigned": "Already assigned to this project",
+    "capacityOk": "Capacity OK",
+    "overCapacity": "Over capacity",
+    "exceedsDailyLimit": "Exceeds daily limit",
+    "noOtherAssignments": "No other assignments",
+    "thisWillBe": "this will be",
+    "selectHoursAbove": "Select hours above",
+    "priorityHint": "P1 = morning session. Higher priority = assigned time slot comes later in the day."
+  },
+  "validation": {
+    "selectMember": "Please select a member",
+    "selectHoursPerDay": "Please select hours per day",
+    "startDateRequired": "Start date is required",
+    "endDateRequired": "End date is required",
+    "endDateAfterStart": "End date must be after start date"
+  },
+  "logs": {
+    "assigned": "assigned",
+    "editedAssignmentOf": "edited assignment of",
+    "removed": "removed"
+  },
+  "units": {
+    "hoursPerDay": "h/day",
+    "perDay": "per day"
+  }
+},
+"recruitment": {
+  "actions": {
+    "add": "Add",
+    "applyToAll": "Apply To All",
+    "cancel": "Cancel",
+    "createJobPosting": "Create Job Posting",
+    "delete": "Delete",
+    "deletePermanently": "Delete Permanently",
+    "deletePosting": "Delete Posting",
+    "deleting": "Deleting",
+    "edit": "Edit",
+    "newPosting": "New Posting",
+    "reschedule": "Reschedule",
+    "rescheduleSendEmail": "Reschedule Send Email",
+    "saveChanges": "Save Changes",
+    "saveScore": "Save Score",
+    "saving": "Saving",
+    "scheduleSendEmail": "Schedule Send Email",
+    "scheduling": "Scheduling",
+    "update": "Update",
+    "updating": "Updating"
+  },
+  "delete": {
+    "allDataRemoved": "All Data Removed",
+    "applicationRecord": "Application Record",
+    "applicationWarning": "Application Warning",
+    "areYouSure": "Are You Sure",
+    "cannotBeUndone": "Cannot Be Undone",
+    "interviewRecord": "Interview Record",
+    "noApplicationsSafe": "No Applications Safe",
+    "uploadedCv": "Uploaded Cv",
+    "willAlsoBeDeleted": "Will Also Be Deleted",
+    "willBeDeleted": "Will Be Deleted"
+  },
+  "empty": {
+    "applicationsWillAppear": "Applications Will Appear",
+    "createFirstJobPosting": "Create First Job Posting",
+    "noApplicationsYet": "No Applications Yet",
+    "noJobPostings": "No Job Postings"
+  },
+  "fields": {
+    "applicationDeadline": "Application Deadline",
+    "areasForImprovement": "Areas For Improvement",
+    "companyOffice": "Company Office",
+    "dateTime": "Date Time",
+    "department": "Department",
+    "description": "Description",
+    "hrNote": "Hr Note",
+    "internalNote": "Internal Note",
+    "interviewType": "Interview Type",
+    "interviewerName": "Interviewer Name",
+    "jobTitle": "Job Title",
+    "jobType": "Job Type",
+    "location": "Location",
+    "meetingLink": "Meeting Link",
+    "noteToCandidate": "Note To Candidate",
+    "platform": "Platform",
+    "positions": "Positions",
+    "postingStatus": "Posting Status",
+    "recommendation": "Recommendation",
+    "requirements": "Requirements",
+    "responsibilities": "Responsibilities",
+    "salaryRange": "Salary Range",
+    "setStatusTo": "Set Status To",
+    "strengths": "Strengths"
+  },
+  "filters": {
+    "allCountries": "All Countries",
+    "allStatus": "All Status"
+  },
+  "labels": {
+    "applicant": "Applicant",
+    "applicants": "Applicants",
+    "application": "Application",
+    "applications": "Applications",
+    "applied": "Applied",
+    "autoSelected": "Auto Selected",
+    "interview": "Interview",
+    "link": "Link",
+    "negotiable": "Negotiable",
+    "note": "Note",
+    "online": "Online",
+    "onsite": "Onsite",
+    "position": "Position",
+    "positions": "Positions",
+    "score": "Score",
+    "viewOnly": "View Only"
+  },
+  "messages": {
+    "invitationEmailSent": "Invitation Email Sent"
+  },
+  "modal": {
+    "application": "Application",
+    "bulkAction": "Bulk Action",
+    "deleteApplication": "Delete Application",
+    "deleteJobPosting": "Delete Job Posting",
+    "editPosting": "Edit Posting",
+    "interviewScore": "Interview Score",
+    "jobRecruitment": "Job Recruitment",
+    "newJobPosting": "New Job Posting",
+    "rescheduleInterview": "Reschedule Interview",
+    "scheduleInterview": "Schedule Interview"
+  },
+  "pageTitle": "Recruitment",
+  "placeholders": {
+    "addItem": "Add Item",
+    "department": "Department",
+    "descriptionPoint": "Description Point",
+    "hrNote": "Hr Note",
+    "internalNote": "Internal Note",
+    "interviewerName": "Interviewer Name",
+    "jobTitle": "Job Title",
+    "location": "Location",
+    "noteToCandidate": "Note To Candidate",
+    "requirementPoint": "Requirement Point",
+    "responsibilityPoint": "Responsibility Point",
+    "salaryRange": "Salary Range",
+    "searchJobs": "Search Jobs",
+    "selectOffice": "Select Office",
+    "strengths": "Strengths",
+    "weaknesses": "Weaknesses"
+  },
+  "recommendations": {
+    "hold": "Hold",
+    "proceed": "Proceed",
+    "reject": "Reject"
+  },
+  "score": {
+    "average": "Average",
+    "excellent": "Excellent",
+    "poor": "Poor"
+  },
+  "sort": {
+    "byScore": "By Score",
+    "latestFirst": "Latest First",
+    "nameAZ": "Name A Z"
+  },
+  "stats": {
+    "newUnread": "New Unread",
+    "openPositions": "Open Positions",
+    "totalApplicants": "Total Applicants",
+    "totalPostings": "Total Postings"
+  },
+  "status": {
+    "all": "All"
+  },
+  "table": {
+    "actions": "Actions",
+    "applicants": "Applicants",
+    "company": "Company",
+    "deadline": "Deadline",
+    "position": "Position",
+    "slots": "Slots",
+    "status": "Status",
+    "type": "Type"
+  },
+  "tabs": {
+    "applications": "Applications",
+    "jobPostings": "Job Postings"
+  },
+  "validation": {
+    "atLeastOnePosition": "At Least One Position",
+    "descriptionPoint": "Description Point",
+    "interviewFuture": "Interview Future",
+    "jobTitleRequired": "Job Title Required",
+    "requirementPoint": "Requirement Point",
+    "salaryOrNegotiable": "Salary Or Negotiable",
+    "selectCompanyOffice": "Select Company Office",
+    "selectDateTime": "Select Date Time",
+    "selectJobType": "Select Job Type"
+  },
+    "jobTypes": {
+    "fullTime": "Full Time",
+    "partTime": "Part Time",
+    "contract": "Contract",
+    "internship": "Internship"
+  },
+  "jobStatus": {
+    "open": "Open",
+    "paused": "Paused",
+    "closed": "Closed"
+  },
+  "appStatus": {
+    "new": "New",
+    "reviewing": "Reviewing",
+    "interview": "Interview",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  },
+  "platforms": {
+    "zoom": "Zoom",
+    "google_meet": "Google Meet",
+    "teams": "Microsoft Teams",
+    "physical": "Physical / Onsite",
+    "other": "Other"
+  }
+},
+  "userRoles": {
+    "pageTitle": "User & Roles",
+    "hero": {
+      "eyebrow": "User Management",
+      "title": "Premium workspace overview",
+      "desc": "Same flow and same logic, upgraded with a cleaner, more professional interface."
+    },
+    "stats": {
+      "members": "Members",
+      "totalRegisteredUsers": "Total registered users",
+      "active": "active"
+    },
+    "filters": {
+      "allCountries": "All Countries",
+      "allRoles": "All Roles"
+    },
+    "placeholders": {
+      "searchByNameOrEmail": "Search by name or email...",
+      "selectRole": "Select role...",
+      "selectCountry": "Select country...",
+      "fullName": "John Doe",
+      "email": "john@vibeme.ai",
+      "department": "Engineering",
+      "position": "Senior Developer"
+    },
+    "actions": {
+      "addNewUser": "Add New User",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "createUser": "Create User",
+      "updateUser": "Update User",
+      "deleting": "Deleting...",
+      "yesDelete": "Yes, Delete"
+    },
+    "labels": {
+      "result": "result",
+      "results": "results",
+      "found": "found",
+      "liveDirectory": "Live directory",
+      "autoAssigned": "Auto-assigned"
+    },
+    "table": {
+      "teamMembers": "Team members",
+      "user": "User",
+      "country": "Country",
+      "role": "Role",
+      "department": "Department",
+      "position": "Position",
+      "phone": "Phone",
+      "dateOfBirth": "Date of Birth",
+      "employment": "Employment",
+      "joined": "Joined",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "fields": {
+      "fullName": "Full Name",
+      "emailAddress": "Email Address",
+      "dateOfBirth": "Date of Birth",
+      "country": "Country",
+      "newPassword": "New Password",
+      "password": "Password",
+      "role": "Role",
+      "department": "Department",
+      "position": "Position",
+      "phone": "Phone",
+      "joinedDate": "Joined Date",
+      "employmentType": "Employment Type",
+      "contractEndDate": "Contract End Date",
+      "profilePhoto": "Profile Photo",
+      "activeStatus": "Active Status"
+    },
+    "empty": {
+      "noUsersFound": "No users found",
+      "tryAdjusting": "Try adjusting search or filters."
+    },
+    "modal": {
+      "addNewUser": "Add New User",
+      "userManagement": "User Management",
+      "editUser": "Edit User",
+      "updateProfile": "Update Profile",
+      "confirmDelete": "Confirm Delete",
+      "dangerZone": "Danger Zone"
+    },
+    "confirm": {
+      "deleteUser": "Delete User?",
+      "areYouSureDeletePrefix": "Are you sure you want to delete",
+      "cannotBeUndone": "This action cannot be undone."
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "driverSchedule": {
+    "pageTitle": "Trip Schedule",
+    "driverStatus": {
+      "start": "Not Started",
+      "onTheWay": "On The Way",
+      "returned": "Returning",
+      "ended": "Completed"
+    },
+    "bookingStatus": {
+      "approved": "Approved",
+      "waitlisted": "Waitlisted",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "tripTypes": {
+      "oneWay": "One Way",
+      "multiStop": "Multi Stop",
+      "pickup": "Pickup / Drop",
+      "roundTrip": "Round Trip",
+      "waitReturn": "Wait & Return"
+    },
+    "stats": {
+      "total": "Total",
+      "active": "Active",
+      "done": "Done"
+    },
+    "tabs": {
+      "tripInfo": "Trip Info",
+      "passengers": "Passengers",
+      "notes": "Notes"
+    },
+    "labels": {
+      "type": "Type",
+      "from": "From",
+      "return": "Return",
+      "stops": "Stops",
+      "cancelReason": "Cancel Reason",
+      "organizer": "Organizer",
+      "passenger": "Passenger",
+      "todayUpper": "TODAY"
+    },
+    "fields": {
+      "reasonRequired": "Reason *"
+    },
+    "actions": {
+      "back": "Back",
+      "confirmCancel": "Confirm Cancel",
+      "cancelling": "Cancelling…",
+      "skip": "Skip",
+      "saving": "Saving…",
+      "saveNote": "Save Note",
+      "cancelTrip": "Cancel Trip",
+      "startTrip": "Start Trip",
+      "markReturning": "Mark Returning",
+      "endTrip": "End Trip",
+      "today": "Today"
+    },
+    "cancelModal": {
+      "title": "Cancel Booking"
+    },
+    "noteModal": {
+      "tripCompleted": "Trip Completed!",
+      "addNoteOptional": "Add a note (optional)"
+    },
+    "placeholders": {
+      "cancelReason": "e.g. Car breakdown, engine issue…",
+      "note": "e.g. Traffic delay, fuel refilled…"
+    },
+    "validation": {
+      "reasonRequired": "Reason is required."
+    },
+    "messages": {
+      "failedTryAgain": "Failed. Try again.",
+      "tripTimePassed": "This trip time has already passed. You can no longer start this trip.",
+      "tripCompleted": "Trip completed",
+      "loadingSchedule": "Loading schedule…"
+    },
+    "empty": {
+      "noCarAssigned": "No Car Assigned",
+      "contactHrCarAssigned": "Contact HR to get a car assigned to you.",
+      "noTripDetails": "No trip details added.",
+      "notesAfterTripEnds": "Notes appear after trip ends.",
+      "noBookingsOn": "No bookings on",
+      "freeOnThisDay": "You're free on this day."
+    },
+    "units": {
+      "seats": "seats"
+    }
+  },
+  "requirement": {
+    "common": {
+      "status": {
+        "pending": "Pending",
+        "analyzing": "Analyzing",
+        "completed": "Completed",
+        "failed": "Failed"
+      },
+      "complexity": {
+        "simple": "Simple",
+        "medium": "Medium",
+        "complex": "Complex",
+        "enterprise": "Enterprise"
+      }
+    },
+    "list": {
+      "pageTitle": "Requirement Analysis",
+      "hero": {
+        "eyebrow": "Requirement Analysis",
+        "title": "Premium AI requirement workspace",
+        "desc": "Create, analyze, re-run and review requirement analysis with a clean premium flow across light and dark mode."
+      },
+      "stats": {
+        "total": "Total",
+        "allAnalyses": "All analyses",
+        "waitingQueue": "Waiting queue",
+        "inProgress": "In progress",
+        "readyToReview": "Ready to review",
+        "needsRetry": "Needs retry"
+      },
+      "analysisDirectory": "Analysis directory",
+      "liveAnalysisList": "Live analysis list",
+      "labels": {
+        "feasibility": "Feasibility"
+      }
+    },
+    "modal": {
+      "title": "New Requirement Analysis",
+      "subtitle": "AI will analyze and provide insights automatically.",
+      "steps": {
+        "clientInfo": "Client Info",
+        "projectDetails": "Project Details",
+        "requirements": "Requirements"
+      }
+    },
+    "fields": {
+      "companyName": "Company Name",
+      "contactPerson": "Contact Person",
+      "industry": "Industry",
+      "email": "Email",
+      "phone": "Phone",
+      "projectTitle": "Project Title",
+      "projectDescription": "Project Description",
+      "platform": "Platform",
+      "expectedUsers": "Expected Users",
+      "budgetRange": "Budget Range",
+      "expectedDeadline": "Expected Deadline",
+      "coreFeatures": "Core Features",
+      "integrationNeeds": "Integration Needs",
+      "specialRequirements": "Special Requirements / Notes"
+    },
+    "placeholders": {
+      "companyName": "Acme Corporation",
+      "contactPerson": "John Smith",
+      "industry": "e.g. Healthcare, Finance",
+      "email": "john@company.com",
+      "phone": "+1 234 567 8900",
+      "projectTitle": "e.g. Hospital Management System",
+      "projectDescription": "Describe what the client needs in detail (min. 20 characters)...",
+      "selectPlatform": "Select platform...",
+      "expectedUsers": "e.g. 500",
+      "selectBudget": "Select budget...",
+      "integrationNeeds": "e.g. Integrate with existing ERP, payment gateway, SMS service...",
+      "specialRequirements": "Any other specific requirements, constraints, or notes...",
+      "searchProjectClient": "Search by project or client..."
+    },
+    "platforms": {
+      "web": "Web",
+      "mobile": "Mobile",
+      "both": "Both",
+      "desktop": "Desktop"
+    },
+    "features": {
+      "userAuthentication": "User Authentication",
+      "dashboardAnalytics": "Dashboard & Analytics",
+      "rolePermissions": "Role & Permissions",
+      "notifications": "Notifications",
+      "fileUpload": "File Upload",
+      "paymentIntegration": "Payment Integration",
+      "apiIntegration": "API Integration",
+      "reportingExport": "Reporting & Export",
+      "multiLanguage": "Multi-language",
+      "mobileResponsive": "Mobile Responsive",
+      "realTimeUpdates": "Real-time Updates",
+      "searchFilter": "Search & Filter"
+    },
+    "validation": {
+      "companyNameRequired": "Company name is required.",
+      "contactPersonRequired": "Contact person is required.",
+      "validEmail": "Please enter a valid email address.",
+      "projectTitleRequired": "Project title is required.",
+      "projectDescriptionRequired": "Project description is required.",
+      "descriptionMin": "Description must be at least 20 characters.",
+      "budgetRequired": "Please select a budget range.",
+      "deadlineRequired": "Please set an expected deadline.",
+      "coreFeatureRequired": "Please select at least one core feature."
+    },
+    "actions": {
+      "newAnalysis": "New Analysis",
+      "cancel": "Cancel",
+      "back": "Back",
+      "next": "Next",
+      "analyzing": "Analyzing...",
+      "submitAnalyze": "Submit & Analyze",
+      "delete": "Delete",
+      "view": "View",
+      "rerun": "Re-run",
+      "reanalyze": "Re-analyze",
+      "generateProposal": "Generate Proposal",
+      "retryAnalysis": "Retry Analysis"
+    },
+    "messages": {
+      "submitted": "Requirement submitted and AI analysis started.",
+      "deleted": "Deleted successfully"
+    },
+    "hints": {
+      "selectAtLeastOne": "(select at least one)"
+    },
+    "filters": {
+      "allStatus": "All Status"
+    },
+    "labels": {
+      "result": "result",
+      "results": "results",
+      "found": "found",
+      "duration": "Duration"
+    },
+    "table": {
+      "project": "Project",
+      "client": "Client",
+      "platform": "Platform",
+      "complexity": "Complexity",
+      "feasibility": "Feasibility",
+      "status": "Status",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "empty": {
+      "noAnalyses": "No analyses yet",
+      "clickNewAnalysis": "Click New Analysis to get started."
+    },
+    "confirm": {
+      "deleteAnalysis": "Delete Analysis?",
+      "cannotBeUndone": "This action cannot be undone."
+    },
+    "detail": {
+      "pageTitle": "Requirement Detail",
+      "timeline": {
+        "feasible": "Feasible",
+        "tight": "Tight",
+        "unrealistic": "Unrealistic"
+      },
+      "budget": {
+        "under": "Under Budget",
+        "within": "Within Budget",
+        "over": "Over Budget"
+      },
+      "feasibility": {
+        "highlyFeasible": "Highly Feasible",
+        "moderatelyFeasible": "Moderately Feasible",
+        "challenging": "Challenging",
+        "score": "Feasibility Score"
+      },
+      "states": {
+        "aiAnalyzing": "AI is analyzing...",
+        "pleaseWait": "Please wait while we process the requirements.",
+        "analysisFailed": "Analysis failed",
+        "somethingWrong": "Something went wrong. Please try again.",
+        "pendingAnalysis": "Pending analysis",
+        "startShortly": "Analysis will start shortly."
+      },
+      "sections": {
+        "aiSummary": "AI Summary",
+        "coreModules": "Core Modules",
+        "projectTimeline": "Project Timeline",
+        "riskAssessment": "Risk Assessment",
+        "recommendations": "Recommendations",
+        "clarificationsNeeded": "Clarifications Needed",
+        "quickOverview": "Quick Overview",
+        "assessments": "Assessments",
+        "techStack": "Tech Stack",
+        "recommendedTeam": "Recommended Team",
+        "clientInfo": "Client Info"
+      },
+      "quick": {
+        "users": "Users",
+        "budget": "Budget",
+        "deadline": "Deadline",
+        "timeline": "Timeline"
+      }
+    }
+  },
+  "documentTranslation": {
+      "pageTitle": "Document Translation",
+      "hero": {
+        "eyebrow": "Document Translation",
+        "title": "Premium translation workspace",
+        "desc": "Same logic flow, same routes, same upload and folder actions. Upgraded into a cleaner professional UI that works well in both light and dark mode.",
+        "demoMode": "API is not configured right now, so the page stays in demo mode."
+      },
+      "actions": {
+        "uploadDocument": "Upload Document",
+        "cancel": "Cancel",
+        "deleting": "Deleting...",
+        "yesDelete": "Yes, Delete",
+        "download": "Download",
+        "close": "Close",
+        "delete": "Delete"
+      },
+      "stats": {
+        "totalFiles": "Total Files",
+        "allUploadedDocuments": "All uploaded documents",
+        "completed": "Completed",
+        "readyToReview": "Ready to review or download",
+        "translating": "Translating",
+        "jobsRunning": "Jobs currently running",
+        "failed": "Failed",
+        "needsReview": "Needs review or retry"
+      },
+      "labels": {
+        "allFiles": "All Files",
+        "uploadedBy": "Uploaded by"
+      },
+      "loading": {
+        "files": "Loading files",
+        "fetchingFolder": "Fetching folder contents"
+      },
+      "messages": {
+        "unableLoadFolder": "Unable to load folder contents.",
+        "unableRefreshFolder": "Unable to refresh folder contents.",
+        "unableRefreshDocumentList": "Unable to refresh document list.",
+        "folderDeleted": "Folder deleted successfully.",
+        "folderDeleteFailed": "Failed to delete folder.",
+        "documentDeleteFailed": "Failed to delete document."
+      },
+      "delete": {
+        "dangerZone": "Danger Zone",
+        "deleteFolder": "Delete folder",
+        "confirmTitle": "Delete this folder?",
+        "confirmPrefix": "You are about to remove",
+        "confirmSuffix": "All files inside this folder will also be permanently deleted."
+      },
+      "upload": {
+        "eyebrow": "Document Translation",
+        "title": "Upload workspace",
+        "fileIntake": "File Intake",
+        "dropBrowse": "Drop file here or browse",
+        "acceptedTypes": "PDF, DOC, DOCX, TXT, PNG, JPG, JPEG",
+        "maxSize": "Max 20MB",
+        "replaceHint": "Click to replace or drag another file here.",
+        "metadata": "Metadata",
+        "saveToFolder": "Save to folder",
+        "rootNoFolder": "Root (No folder)",
+        "tags": "Tags",
+        "tagsPlaceholder": "hr, report, 2026",
+        "languageDirection": "Language Direction",
+        "sourceLanguage": "Source language",
+        "translateTo": "Translate to",
+        "apiNotConfigured": "API not configured",
+        "imageCannotTranslate": "Image files cannot be translated. Only text-based files (TXT, DOC, DOCX, PDF) are supported.",
+        "visibilityTitle": "Visibility",
+        "apiDemoNotice": "Translation API is not configured. The document can still be uploaded and stored using the current flow.",
+        "uploading": "Uploading...",
+        "uploadDocument": "Upload document",
+        "uploadFailed": "Upload failed. Please try again.",
+        "visibility": {
+          "private": "Private",
+          "onlyYou": "Only you",
+          "branch": "My Branch",
+          "yourBranch": "Your branch",
+          "all": "All Branches",
+          "everyone": "Everyone"
+        },
+        "languages": {
+          "en": "English",
+          "ja": "Japanese",
+          "my": "Myanmar",
+          "km": "Khmer",
+          "vi": "Vietnamese",
+          "ko": "Korean"
+        }
+      },
+      "languages": {
+        "en": "English",
+        "ja": "Japanese",
+        "my": "Myanmar",
+        "km": "Khmer",
+        "vi": "Vietnamese",
+        "ko": "Korean"
+      },
+      "fileNotes": {
+        "portableDocument": "Portable document",
+        "editableDocument": "Editable document",
+        "plainText": "Plain text",
+        "imageFile": "Image file"
+      },
+      "status": {
+        "pending": "Pending",
+        "translating": "Translating",
+        "completed": "Completed",
+        "failed": "Failed"
+      },
+      "statusNotes": {
+        "waitingInQueue": "Waiting in queue",
+        "jobsRunning": "Jobs currently running",
+        "downloadsAvailable": "Downloads available",
+        "needsReview": "Needs review or retry"
+      },
+      "downloadModal": {
+        "eyebrow": "Downloads",
+        "title": "Choose file version",
+        "originalFile": "Original file",
+        "translatedVersions": "Translated Versions",
+        "translated": "Translated"
+      },
+      "deleteDocument": {
+        "confirmTitle": "Delete document?",
+        "confirmPrefix": "This will remove",
+        "confirmSuffix": "and all translated versions linked to it."
+      },
+      "filters": {
+        "allStatuses": "All statuses",
+        "allFileTypes": "All file types"
+      },
+      "library": {
+        "eyebrow": "Document Library",
+        "visibleFile": "visible file",
+        "visibleFiles": "visible files",
+        "flowPreserved": "Same route/API flow preserved"
+      },
+      "statsShort": {
+        "total": "Total",
+        "completed": "Completed",
+        "running": "Running",
+        "failed": "Failed"
+      },
+      "placeholders": {
+        "searchDocuments": "Search documents, uploader, tag..."
+      },
+      "view": {
+        "grid": "Grid",
+        "list": "List"
+      },
+      "empty": {
+        "noDocumentsFound": "No documents found",
+        "tryAdjusting": "Try adjusting search or filters."
+      },
+      "table": {
+        "document": "Document",
+        "status": "Status",
+        "languages": "Languages",
+        "created": "Created",
+        "uploader": "Uploader",
+        "tags": "Tags",
+        "actions": "Actions"
+      },
+      "folderModal": {
+        "header": {
+          "eyebrow": "Folder Workspace",
+          "editTitle": "Edit Folder",
+          "createTitle": "Create Folder",
+          "parent": "Parent",
+          "rootLevel": "Root level folder"
+        },
+        "fields": {
+          "folderName": "Folder Name",
+          "description": "Description",
+          "visibility": "Visibility",
+          "folderColor": "Folder Color",
+          "folderIcon": "Folder Icon"
+        },
+        "placeholders": {
+          "folderName": "Enter folder name",
+          "description": "Optional short description"
+        },
+        "visibility": {
+          "allBranches": "All Branches",
+          "allBranchesDesc": "Visible to all branches",
+          "myBranch": "My Branch",
+          "myBranchDesc": "Visible to your branch only",
+          "private": "Private",
+          "privateDesc": "Only visible to you"
+        },
+        "actions": {
+          "saving": "Saving...",
+          "updateFolder": "Update Folder",
+          "createFolder": "Create Folder"
+        },
+        "messages": {
+          "updateFailed": "Failed to update folder.",
+          "createFailed": "Failed to create folder."
+        }
+      },
+      "folderTree": {
+        "actions": {
+          "more": "More",
+          "addSubfolder": "Add subfolder",
+          "editFolder": "Edit folder",
+          "deleteFolder": "Delete folder"
+        },
+        "library": "Library",
+        "smartFolders": "Smart folders",
+        "new": "+ New",
+        "searchPlaceholder": "Search folders...",
+        "browseEveryUploadedDocument": "Browse every uploaded document",
+        "empty": {
+          "noFoldersFound": "No folders found",
+          "noFoldersYet": "No folders yet",
+          "tryAnotherKeyword": "Try another keyword.",
+          "createFirstFolderDesc": "Create the first folder for cleaner document organization.",
+          "createFirstFolder": "Create first folder"
+        },
+        "units": {
+          "file": "file",
+          "files": "files",
+          "subfolder": "subfolder",
+          "subfolders": "subfolders",
+          "folder": "folder",
+          "folders": "folders",
+          "total": "total"
+        },
+        "fileNotes": {
+          "portableDocument": "Portable document",
+          "editableDocument": "Editable document",
+          "plainText": "Plain text",
+          "imageFile": "Image file"
+        },
+        "status": {
+          "pending": "Pending",
+          "translating": "Translating",
+          "completed": "Completed",
+          "failed": "Failed"
+        },
+        "statusNotes": {
+          "waitingInQueue": "Waiting in queue",
+          "jobsRunning": "Jobs currently running",
+          "downloadsAvailable": "Downloads available",
+          "needsReviewOrRetry": "Needs review or retry"
+        }
+      }
+  },
+"proposalGenerator": {
+  "pageTitle": "Proposal Generator",
+  "title": "Premium AI proposal workspace",
+  "description": "Matched to RequirementAnalysis light and dark mode behavior, while keeping the same proposal routes and API flow.",
+  "actions": {
+    "generateProposal": "Generate Proposal",
+    "resetFilters": "Reset Filters",
+    "cancel": "Cancel",
+    "generating": "Generating...",
+    "deleting": "Deleting...",
+    "yesDelete": "Yes, Delete"
+  },
+  "status": {
+    "draft": "Draft",
+    "sent": "Sent",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  },
+  "languages": {
+    "english": "English",
+    "myanmar": "Myanmar",
+    "khmer": "Khmer",
+    "vietnamese": "Vietnamese",
+    "korean": "Korean",
+    "japanese": "Japanese"
+  },
+  "templates": {
+    "executive": { "label": "Executive", "desc": "Premium dark luxury feel" },
+    "magazine": { "label": "Magazine", "desc": "Bold editorial presentation" },
+    "minimal": { "label": "Minimal", "desc": "Clean Swiss-inspired layout" }
+  },
+  "stats": {
+    "total": "Total",
+    "draft": "Draft",
+    "sent": "Sent",
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "allGenerated": "All generated proposals",
+    "waitingNextAction": "Waiting next action",
+    "sharedWithClients": "Shared with clients",
+    "readyToCelebrate": "Ready to celebrate",
+    "needsRevision": "Needs revision"
+  },
+  "placeholders": {
+    "search": "Search by proposal number, project or client...",
+    "chooseAnalysis": "Choose a completed analysis..."
+  },
+  "filters": {
+    "allStatus": "All Status"
+  },
+  "sections": {
+    "directory": "Proposal directory"
+  },
+  "labels": {
+    "liveProposalList": "Live proposal list",
+    "clientProfileLinked": "Client profile linked from requirement analysis",
+    "resultFound": "result found",
+    "resultsFound": "results found"
+  },
+  "table": {
+    "proposalNo": "Proposal #",
+    "project": "Project",
+    "client": "Client",
+    "language": "Language",
+    "status": "Status",
+    "date": "Date",
+    "actions": "Actions"
+  },
+  "empty": {
+    "noProposalsYet": "No proposals yet",
+    "clickGenerate": "Click Generate Proposal to get started.",
+    "noCompletedAnalyses": "No completed analyses available yet."
+  },
+  "modal": {
+    "generateTitle": "Generate Proposal",
+    "generateSubtitle": "Same route and API flow, matched to RequirementAnalysis theme system."
+  },
+  "fields": {
+    "selectProject": "Select Project",
+    "templateStyle": "Template Style"
+  },
+  "messages": {
+    "generated": "Proposal generated successfully.",
+    "deleted": "Proposal deleted successfully.",
+    "deleteFailed": "Unable to delete proposal.",
+    "pdfCompatibility": "Proposals are generated in English for best PDF compatibility."
+  },
+  "validation": {
+    "selectAnalysis": "Please select a project analysis first."
+  },
+  "confirm": {
+    "title": "Confirm Delete",
+    "subtitle": "Danger Zone",
+    "deleteTitle": "Delete Proposal?",
+    "deleteMessage": "Are you sure you want to delete",
+    "thisProposal": "this proposal",
+    "cannotUndo": "This action cannot be undone."
+  },
+  "common": {
+    "unknown": "Unknown",
+    "unknownClient": "Unknown Client",
+    "untitledProject": "Untitled Project",
+    "investmentNotAvailable": "Investment not available"
+  }
+},
+"proposalDetail": {
+  "pageTitle": "Proposal Detail",
+  "description": "Premium proposal review workspace with template switching, preview, PDF export, status updates, and regeneration while keeping the same backend routes and logic.",
+  "actions": {
+    "back": "Back",
+    "regenerate": "Regenerate",
+    "regenerating": "Regenerating...",
+    "downloadPdf": "Download PDF",
+    "updating": "Updating...",
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "markAccepted": "Mark Accepted"
+  },
+  "status": {
+    "draft": "Draft",
+    "sent": "Sent",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  },
+  "languages": {
+    "english": "English",
+    "myanmar": "Myanmar",
+    "khmer": "Khmer",
+    "vietnamese": "Vietnamese",
+    "korean": "Korean",
+    "japanese": "Japanese"
+  },
+  "templates": {
+    "executive": { "label": "Executive", "desc": "Dark Luxury" },
+    "magazine": { "label": "Magazine", "desc": "Bold Editorial" },
+    "minimal": { "label": "Minimal", "desc": "Swiss Grid" }
+  },
+  "preview": {
+    "livePreview": "Proposal Live Preview"
+  },
+  "sections": {
+    "proposalStatus": "Proposal Status",
+    "clientSummary": "Client Summary",
+    "proposalInsights": "Proposal Insights",
+    "readyDelivery": "Ready for final delivery?"
+  },
+  "labels": {
+    "template": "Template"
+  },
+  "fields": {
+    "company": "Company",
+    "industry": "Industry",
+    "email": "Email",
+    "project": "Project",
+    "language": "Language",
+    "investment": "Investment",
+    "validity": "Validity"
+  },
+  "messages": {
+    "readyDeliveryDesc": "Review the selected template preview, confirm client details, then update the status or download the final PDF."
+  },
+  "common": {
+    "notSpecified": "Not specified",
+    "na": "N/A",
+    "unknownClient": "Unknown Client",
+    "untitledProject": "Untitled Project"
+  }
+},
+"projects": {
+    "appTitle": "Project Management",
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "upcoming": "Upcoming",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "modal": {
+      "newProject": "New Project",
+      "editProject": "Edit Project",
+      "deleteProject": "Delete Project",
+      "cannotBeUndone": "This cannot be undone"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "create": "Create Project",
+      "update": "Update Project",
+      "createProject": "+ New Project",
+      "yesDelete": "Yes, Delete"
+    },
+    "loading": {
+      "creating": "Creating…",
+      "updating": "Updating…",
+      "deleting": "Deleting…"
+    },
+    "fields": {
+      "projectName": "Project Name",
+      "description": "Description",
+      "status": "Status",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "client": "Client",
+      "contractValue": "Contract Value",
+      "currency": "Currency",
+      "teamSize": "Team Size"
+    },
+    "sections": {
+      "contractBudget": "Contract & Budget"
+    },
+    "client": {
+      "noClient": "— No client —"
+    },
+    "labels": {
+      "orTypeManually": "OR TYPE MANUALLY"
+    },
+    "placeholders": {
+      "projectName": "e.g. CRM System v2",
+      "description": "Brief description...",
+      "selectClient": "Select existing client...",
+      "clientNameManual": "Or type client name manually...",
+      "teamSize": "e.g. 4",
+      "searchProjects": "Search by project name..."
+    },
+    "validation": {
+      "required": "Required",
+      "clientRequired": "Please select or type a client name",
+      "endDateAfterStart": "Must be after start date",
+      "validNumber": "Must be a valid number"
+    },
+    "stats": {
+      "totalProjects": "Total Projects",
+      "totalContractValue": "Total Contract Value"
+    },
+    "table": {
+      "project": "Project",
+      "client": "Client",
+      "contractValue": "Contract Value",
+      "timeline": "Timeline",
+      "team": "Team",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "confirm": {
+      "deleteQuestion": "Are you sure you want to delete"
+    },
+    "empty": {
+      "noProjectsMatch": "No projects match your filters.",
+      "noProjectsYet": "No projects yet — create your first project."
+    },
+    "units": {
+      "person": "person"
+    }
+  },
+  "plReport": {
+    "pageTitle": "Profit & Loss Report",
+    "header": {
+      "title": "Profit & Loss Dashboard",
+      "subtitle": "Revenue · Project Cost · Overhead · Net Profit"
+    },
+    "filters": {
+      "from": "From",
+      "to": "To"
+    },
+    "actions": {
+      "applyFilter": "Apply Filter",
+      "back": "Back"
+    },
+    "kpi": {
+      "totalRevenue": "Total Revenue",
+      "projectCost": "Project Cost",
+      "overheadCost": "Overhead Cost",
+      "grossProfit": "Gross Profit",
+      "netProfit": "Net Profit",
+      "outstanding": "Outstanding"
+    },
+    "labels": {
+      "margin": "Margin",
+      "of": "of",
+      "contract": "Contract",
+      "beforeOverhead": "Before overhead",
+      "totalOverhead": "Total overhead",
+      "cost": "Cost",
+      "total": "Total"
+    },
+    "cards": {
+      "operatingIncomeTitle": "Operating income & expenses",
+      "operatingIncomeSub": "Revenue · Total cost · Net margin % — by month",
+      "periodComparisonTitle": "Period comparison",
+      "periodComparisonSub": "This period vs previous",
+      "grossProfitTrendTitle": "Gross profit trend",
+      "grossProfitTrendSub": "Gross profit · Gross margin % — by month",
+      "expenseBreakdownTitle": "Expense breakdown",
+      "expenseBreakdownSub": "Salary · OT · Leave · Overhead",
+      "revenueByProjectTitle": "Revenue by project",
+      "revenueByProjectSub": "Click any project to view full detail breakdown",
+      "overheadByDepartmentTitle": "Overhead by department",
+      "overheadByDepartmentSub": "Non-project staff salary cost this period"
+    },
+    "chart": {
+      "revenue": "Revenue",
+      "totalCost": "Total cost",
+      "netMarginPercent": "Net margin %",
+      "grossProfit": "Gross Profit",
+      "marginPercent": "Margin %",
+      "grossMarginPercent": "Gross margin %",
+      "cost": "Cost",
+      "profit": "Profit"
+    },
+    "expense": {
+      "salary": "Salary",
+      "overhead": "Overhead",
+      "ot": "OT",
+      "leave": "Leave"
+    },
+    "empty": {
+      "noPayrollData": "No confirmed payroll data. Please confirm payroll records first.",
+      "noDataAvailable": "No data available",
+      "noProjects": "No projects",
+      "noOverheadData": "No overhead data"
+    },
+    "units": {
+      "member": "member",
+      "members": "members",
+      "day": "day",
+      "days": "days"
+    },
+    "status": {
+      "active": "Active",
+      "upcoming": "Upcoming",
+      "completed": "Completed"
+    },
+    "departments": {
+      "HR": "HR",
+      "IT": "IT",
+      "BPO": "BPO",
+      "SST": "SST",
+      "Driver": "Driver",
+      "Other": "Other"
+    },
+    "show": {
+      "ongoing": "Ongoing",
+      "contract": "Contract",
+      "confirmedMonth": "confirmed month",
+      "confirmedMonths": "confirmed months",
+      "monthlyBreakdown": "Monthly breakdown",
+      "revenueCostTrend": "Revenue vs cost trend",
+      "memberCost": "Member cost",
+      "kpi": {
+        "salaryCost": "Salary Cost",
+        "otCost": "OT Cost",
+        "leaveCost": "Leave Cost",
+        "netLoss": "Net Loss"
+      },
+      "table": {
+        "month": "Month"
+      },
+      "empty": {
+        "projectNotFound": "Project not found.",
+        "noProjectPayrollData": "No confirmed payroll data yet for this project.",
+        "noMemberData": "No member data for this month."
+      }
+    },
+    "months": {
+      "full": {
+        "1": "January",
+        "2": "February",
+        "3": "March",
+        "4": "April",
+        "5": "May",
+        "6": "June",
+        "7": "July",
+        "8": "August",
+        "9": "September",
+        "10": "October",
+        "11": "November",
+        "12": "December"
+      },
+      "short": {
+        "1": "Jan",
+        "2": "Feb",
+        "3": "Mar",
+        "4": "Apr",
+        "5": "May",
+        "6": "Jun",
+        "7": "Jul",
+        "8": "Aug",
+        "9": "Sep",
+        "10": "Oct",
+        "11": "Nov",
+        "12": "Dec"
+      }
+    }
+  },
+  "aiChat": {
+    "pageTitle": "AI Chat",
+    "common": {
+      "you": "You"
+    },
+    "languages": {
+      "en": "English",
+      "ja": "Japanese",
+      "my": "Burmese",
+      "km": "Khmer",
+      "vi": "Vietnamese",
+      "ko": "Korean"
+    },
+    "actions": {
+      "react": "React",
+      "translate": "Translate",
+      "translating": "Translating...",
+      "translatingEllipsis": "Translating…",
+      "reply": "Reply",
+      "edit": "Edit",
+      "delete": "Delete",
+      "back": "← Back",
+      "cancel": "Cancel",
+      "startChat": "Start Chat",
+      "createGroup": "Create Group",
+      "startChatting": "Start chatting",
+      "newConversation": "New Conversation",
+      "unblockUser": "Unblock User",
+      "blockUser": "Block User",
+      "deleteConversation": "Delete Conversation",
+      "previous": "Previous",
+      "next": "Next",
+      "tapToRetry": "Tap to retry",
+      "unblock": "Unblock",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "leave": "Leave",
+      "remove": "Remove",
+      "add": "Add",
+      "yesDelete": "Yes, Delete"
+    },
+    "tabs": {
+      "all": "All",
+      "unread": "Unread",
+      "direct": "Direct",
+      "group": "Group"
+    },
+    "placeholders": {
+      "searchConversations": "Search conversations...",
+      "groupName": "Group name...",
+      "searchUsers": "Search users...",
+      "searchInConversation": "Search in conversation...",
+      "editMessage": "Edit message...",
+      "messageName": "Message {name}...",
+      "searchUsersToAdd": "Search users to add..."
+    },
+    "empty": {
+      "noMessagesYet": "No messages yet",
+      "noConversationsYet": "No conversations yet",
+      "zeroResults": "0 results",
+      "startConversation": "Start the conversation!",
+      "sayHiTo": "Say hi to {name}",
+      "selectConversation": "Select a conversation",
+      "chooseChat": "Choose a chat or start a new one",
+      "noImagesYet": "No images yet",
+      "noVideosYet": "No videos yet",
+      "noAudioYet": "No audio yet",
+      "noFilesYet": "No files yet",
+      "allUsersInGroup": "All users are already in this group",
+      "noUsersFound": "No users found"
+    },
+    "status": {
+      "online": "● Online",
+      "onlinePlain": "Online",
+      "typing": "typing...",
+      "loadingMessages": "Loading messages..."
+    },
+    "labels": {
+      "members": "members",
+      "edited": "edited",
+      "editingMessage": "Editing message",
+      "replyingTo": "Replying to {name}"
+    },
+    "tooltips": {
+      "clickToRemove": "Click to remove",
+      "recordVoice": "Record voice message",
+      "stop": "Stop",
+      "editGroupInfo": "Edit group info",
+      "searchMessages": "Search messages",
+      "attachFile": "Attach file",
+      "sendSticker": "Send sticker"
+    },
+    "modal": {
+      "newConversation": "New Conversation"
+    },
+    "media": {
+      "title": "Media & Files",
+      "images": "Images",
+      "videos": "Videos",
+      "audio": "Audio",
+      "files": "Files"
+    },
+    "group": {
+      "clickChangePhoto": "Click to change photo",
+      "groupName": "Group Name",
+      "members": "Members",
+      "addMembers": "Add Members",
+      "transferAdminToLeave": "Transfer admin to leave"
+    },
+    "block": {
+      "youBlockedUser": "You have blocked this user",
+      "youHaveBeenBlocked": "You have been blocked",
+      "unblockToSend": "Unblock them to send messages again.",
+      "cannotSend": "You cannot send messages to this person."
+    },
+    "confirm": {
+      "deleteQuestion": "Are you sure you want to delete your conversation with",
+      "deleteWarning": "This will permanently delete all messages, files, and media in this conversation. This action cannot be undone."
+    },
+    "alerts": {
+      "microphoneDenied": "Microphone access denied"
+    }
+  },
+  "smartMail": {
+    "pageTitle": "Smart Mail",
+    "labels": {
+      "mail": "Mail",
+      "demoMode": "Demo Mode",
+      "unread": "unread",
+      "noSubject": "(No Subject)",
+      "to": "To",
+      "cc": "CC",
+      "bcc": "BCC",
+      "subject": "Subject",
+      "unknown": "Unknown",
+      "noContent": "(No content)",
+      "attachments": "Attachments",
+      "demoNoApiKey": "Demo mode — no API key"
+    },
+    "actions": {
+      "mailSettings": "Mail Settings",
+      "dismiss": "Dismiss",
+      "viewMail": "View Mail",
+      "compose": "Compose",
+      "syncing": "Syncing...",
+      "syncInbox": "Sync Inbox",
+      "loading": "Loading...",
+      "loadMore": "Load More",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "star": "Star",
+      "unstar": "Unstar",
+      "reply": "Reply",
+      "forward": "Forward",
+      "translate": "Translate",
+      "translating": "Translating...",
+      "original": "Original",
+      "download": "Download",
+      "testConnection": "Test Connection",
+      "testing": "Testing...",
+      "saveSettings": "Save Settings",
+      "saving": "Saving...",
+      "minimize": "Minimize",
+      "maximize": "Maximize",
+      "writing": "Writing...",
+      "improving": "Improving...",
+      "preview": "Preview"
+    },
+    "notifications": {
+      "newMail": "New Mail"
+    },
+    "sidebar": {
+      "mailbox": "Mailbox",
+      "inbox": "Inbox",
+      "sent": "Sent",
+      "starred": "Starred",
+      "connectedAccount": "Connected Account",
+      "synced": "Synced"
+    },
+    "status": {
+      "connected": "Connected",
+      "notConnected": "Not connected"
+    },
+    "empty": {
+      "inboxEmpty": "Your inbox is empty",
+      "inboxSub": "New mails will appear here",
+      "sentEmpty": "No sent mails yet",
+      "sentSub": "Sent mails will appear here",
+      "starredEmpty": "No starred mails",
+      "starredSub": "Star important mails to find them here",
+      "noTemplatesAvailable": "No templates available"
+    },
+    "messages": {
+      "mailDeleted": "Mail deleted.",
+      "connectionFailed": "Connection failed. Check your credentials.",
+      "networkError": "Network error. Please try again.",
+      "accountUpdated": "Mail account updated successfully!",
+      "accountConnected": "Mail account connected successfully!",
+      "connectionSuccessful": "Connection successful!",
+      "demoTranslation": "Demo mode — configure API for real translation",
+      "translationFailed": "Translation failed.",
+      "mailSent": "Mail sent successfully! ✉️",
+      "failedToSend": "Failed to send."
+    },
+    "confirm": {
+      "deleteMailTitle": "Delete this mail?",
+      "cannotBeUndone": "This action cannot be undone."
+    },
+    "placeholders": {
+      "searchMails": "Search mails...",
+      "selectLeaveType": "Select leave type...",
+      "selectSession": "Select session...",
+      "enterField": "Enter {field}...",
+      "typeEmailSearch": "Type email + Enter, or search...",
+      "emailSubject": "Email subject...",
+      "describeEmail": "Describe what to write...",
+      "writeMessage": "Write your message..."
+    },
+    "validation": {
+      "validEmailExample": "Please enter a valid email address (e.g. you@gmail.com)",
+      "appPasswordRequired": "Please enter your App Password before testing.",
+      "recipientRequired": "Please add at least one recipient."
+    },
+    "setup": {
+      "title": "Mail Setup",
+      "updateAccount": "Update Mail Account",
+      "connectEmail": "Connect Your Email",
+      "subtitle": "Connect your email to send and receive mail directly from Smart HR",
+      "chooseProvider": "Choose Provider",
+      "generateAppPassword": "Generate App Password",
+      "smtpSend": "SMTP (Send)",
+      "imapReceive": "IMAP (Receive)",
+      "serverConfiguration": "Server Configuration",
+      "securityNote": "Your password is encrypted with AES-256 and stored securely. We never share your credentials.",
+      "help": {
+        "gmail": "Gmail requires an App Password. Enable 2FA first, then generate one.",
+        "outlook": "Use your Outlook password or App Password if 2FA is enabled.",
+        "yahoo": "Yahoo requires an App Password. Generate one in your account security settings.",
+        "other": "Enter your mail server details manually."
+      }
+    },
+    "fields": {
+      "displayName": "Display Name",
+      "emailAddress": "Email Address",
+      "appPassword": "App Password",
+      "smtpHost": "SMTP Host",
+      "imapHost": "IMAP Host",
+      "port": "Port"
+    },
+    "hints": {
+      "leaveBlankKeepCurrent": "leave blank to keep current"
+    },
+    "view": {
+      "selectMail": "Select a mail to read",
+      "clickMailFromList": "Click any mail from the list",
+      "translatedLabel": "{language} Translated",
+      "showingTranslation": "Showing {language} translation"
+    },
+    "languages": {
+      "en": "English",
+      "ja": "Japanese",
+      "my": "Myanmar",
+      "km": "Khmer",
+      "vi": "Vietnamese",
+      "ko": "Korean"
+    },
+    "compose": {
+      "newMessage": "New Message",
+      "templates": "Templates",
+      "template": "Template",
+      "applyTemplate": "Apply Template",
+      "applyToBody": "Apply to Body",
+      "toolbar": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "underline": "Underline",
+        "strike": "Strike",
+        "bulletList": "Bullet List",
+        "numbered": "Numbered",
+        "left": "Left",
+        "center": "Center",
+        "right": "Right",
+        "bulletListShort": "• List",
+        "numberedListShort": "1. List"
+      },
+      "fontSizes": {
+        "1": "Small",
+        "3": "Normal",
+        "5": "Large",
+        "7": "X-Large"
+      },
+      "ai": {
+        "write": "Write",
+        "improve": "Improve",
+        "translate": "Translate",
+        "improveContent": "Improve Content",
+        "improveHint": "Rewrites your current draft professionally"
+      },
+      "tones": {
+        "professional": "Professional",
+        "friendly": "Friendly",
+        "formal": "Formal",
+        "casual": "Casual",
+        "persuasive": "Persuasive"
+      },
+      "vars": {
+        "date": "Date",
+        "from_date": "From Date",
+        "to_date": "To Date",
+        "deadline": "Deadline",
+        "effective_date": "Effective Date",
+        "start_date": "Start Date",
+        "leave_type": "Leave Type",
+        "session": "Session"
+      }
+    }
+  },
+   "common": {
+    "actions": "Actions",
+    "active": "Active",
+    "cancel": "Cancel",
+    "day": "Day",
+    "delete": "Delete",
+    "disabled": "Disabled",
+    "edit": "Edit",
+    "hour": "Hour",
+    "inactive": "Inactive",
+    "minute": "Minute",
+    "required": "Required",
+    "select": "Select...",
+    "selectTime": "Select time...",
+    "status": "Status",
+    "thisActionCannotBeUndone": "This action cannot be undone.",
+    "type": "Type",
+    "update": "Update",
+    "value": "Value",
+    "yesDelete": "Yes, Delete",
+    "deleting": "Deleting...",
+    "no": "No",
+    "saving": "Saving...",
+    "night": "Night"
+  },
+  "hrPolicy": {
+    "allowance": {
+      "allowanceName": "Allowance Name",
+      "allowanceType": "Allowance Type",
+      "deleteAllowance": "Delete Allowance",
+      "editAllowance": "Edit Allowance",
+      "quickSelect": "Quick Select",
+      "addAllowance": "Add Allowance",
+      "amount": "Amount",
+      "allowanceNamePlaceholder": "e.g. Housing Allowance, Transportation Allowance...",
+      "createFirstAllowance": "Click the button below to create your first allowance",
+      "noAllowancesYet": "No allowances configured yet",
+      "ratePercent": "Rate (%)",
+      "updateAllowance": "Update Allowance"
+    },
+    "delete": {
+      "areYouSureDelete": "Are you sure you want to delete"
+    },
+    "bonus": {
+      "addBonusType": "Add Bonus Type",
+      "bonusName": "Bonus Name",
+      "bonusSchedules": "Bonus Schedules",
+      "calculationType": "Calculation Type",
+      "deleteBonusType": "Delete Bonus Type",
+      "editBonusType": "Edit Bonus Type",
+      "frequency": {
+        "_self": "Frequency",
+        "once": "Once",
+        "quarterly": "Quarterly",
+        "yearly": "Yearly"
+      },
+      "notes": "Notes",
+      "bonusNamePlaceholder": "e.g. Annual Bonus, Performance Bonus",
+      "percentOfSalary": "Percentage of Salary",
+      "fixedAmount": "Fixed Amount",
+      "updateBonusType": "Update Bonus Type",
+      "noBonusTypesYet": "No bonus types configured yet",
+      "createFirstBonusType": "Click the button below to create your first bonus type"
+    },
+    "common": {
+      "flat": "Flat",
+      "flatLower": "flat",
+      "percentageLower": "percentage",
+      "percentage": "Percentage"
+    },
+    "currency": {
+      "currencyName": "Currency Name",
+      "deleteCurrency": "Delete Currency",
+      "editCurrency": "Edit Currency",
+      "addCurrency": "Add Currency",
+      "addNewCurrency": "Add New Currency",
+      "createFirstCurrency": "Click the button below to create your first currency",
+      "currencyCode": "Currency Code",
+      "currencyCodePlaceholder": "e.g. USD, KHR, MMK",
+      "currencyCodeShort": "Code",
+      "currencyNamePlaceholder": "e.g. US Dollar, Cambodian Riel",
+      "noCurrenciesConfigured": "No currencies configured yet",
+      "updateCurrency": "Update Currency"
+    },
+    "deduction": {
+      "addDeduction": "Add Deduction",
+      "deductionName": "Deduction Name",
+      "deleteDeduction": "Delete Deduction",
+      "editDeduction": "Edit Deduction",
+      "rateAmount": "Rate Amount",
+       "addDeductionRule": "Add Deduction Rule",
+      "createFirstDeduction": "Click the button below to create your first deduction rule",
+      "deductionNamePlaceholder": "e.g. Income Tax, NSSF, Custom Deduction...",
+      "deductionType": "Deduction Type",
+      "noDeductionsYet": "No deductions configured yet",
+      "quickSelectPreset": "Quick Select Preset",
+      "rate": "Rate",
+      "ratePercent": "Rate (%)",
+      "updateDeduction": "Update Deduction"
+    },
+    "holiday": {
+      "addHoliday": "Add Holiday",
+      "date": "Date",
+      "deleteHoliday": "Delete Holiday",
+      "editHoliday": "Edit Holiday",
+      "holidayName": "Holiday Name",
+      "recurring": "Recurring",
+      "clickAddHoliday": "Click Add Holiday to get started",
+      "holidayNamePlaceholder": "e.g. Khmer New Year, National Day",
+      "holidaysIn": "Holidays in",
+      "noPublicHolidaysFor": "No public holidays for this year -",
+      "oneTime": "One Time",
+      "recurringAnnually": "Recurring Annually",
+      "repeatsEveryYear": "Repeats every year",
+      "updateHoliday": "Update Holiday"
+    },
+    "leave": {
+      "leaveType": "Leave Type",
+      "paidLeave": "Paid Leave",
+      "requiresDocument": "Requires Document",
+      "addLeavePolicy": "Add Leave Type",
+      "allGenders": "All",
+      "applicableGender": "Applicable Gender",
+      "carryOver": "Carry Over",
+      "carryOverDays": "Carry Over Days",
+      "createFirstLeaveType": "Click below to add your first leave type",
+      "daysPerYear": "Days Per Year",
+      "daysPerYearShort": "Days/Yr",
+      "deleteLeavePolicy": "Delete Leave Type",
+      "document": "Document",
+      "editLeavePolicy": "Edit Leave Type",
+      "female": "Female",
+      "gender": "Gender",
+      "leaveTypePlaceholder": "e.g. Annual, Sick, Maternity",
+      "male": "Male",
+      "noLeavePoliciesYet": "No leave types configured yet",
+      "paid": "Paid",
+      "selectGender": "Select gender...",
+      "unpaid": "Unpaid",
+      "updateLeaveType": "Update Leave Type"
+    },
+    "overtime": {
+      "multiplier": "Multiplier",
+      "publicHoliday": "Public Holiday",
+      "rateType": "Rate Type",
+      "weekday": "Weekday",
+      "weekend": "Weekend",
+       "addOtRate": "Add OT Rate",
+      "allDay": "All Day",
+      "allFiveConfigured": "All 5 OT types have been configured",
+      "allFiveConfiguredShort": "All 5 configured!",
+      "appliesTo": "Applies To",
+      "deleteOtRate": "Delete OT Rate",
+      "editOtRate": "Edit OT Rate",
+      "editRatesHint": "You can edit each rate individually using the Edit button above.",
+      "flatAmount": "Flat Amount",
+      "multiplierValue": "Multiplier Value",
+      "noRatesConfigured": "No OT rates configured yet",
+      "rate": "Rate",
+      "remaining": "remaining",
+      "selectOtType": "Select OT Type",
+      "selectStandardTypes": "Select from the 5 standard OT types below",
+      "shift": "Shift",
+      "title": "Title",
+      "updateOtRate": "Update OT Rate"
+    },
+    "pageTitle": "HR Policy Setup",
+    "presets": {
+      "13th_Month_Salary": "13th Month Salary",
+      "Absence_Deduction": "Absence Deduction",
+      "Annual_Bonus": "Annual Bonus",
+      "Annual_Leave": "Annual Leave",
+      "Bereavement_Leave": "Bereavement Leave",
+      "Cambodian_Riel": "Cambodian Riel",
+      "Compensation_Leave": "Compensation Leave",
+      "Day_Weekday_OT": "Day Weekday OT",
+      "Day_Weekend_OT": "Day Weekend OT",
+      "Emergency_Leave": "Emergency Leave",
+      "Festival_Bonus": "Festival Bonus",
+      "Hardship_Allowance": "Hardship Allowance",
+      "Health_Insurance": "Health Insurance",
+      "Housing_Allowance": "Housing Allowance",
+      "Income_Tax": "Income Tax",
+      "Japanese_Yen": "Japanese Yen",
+      "Korean_Won": "Korean Won",
+      "Marriage_Leave": "Marriage Leave",
+      "Maternity_Leave": "Maternity Leave",
+      "Meal_Allowance": "Meal Allowance",
+      "Medical_Allowance": "Medical Allowance",
+      "Myanmar_Kyat": "Myanmar Kyat",
+      "NSSF": "NSSF",
+      "Night_Weekday_OT": "Night Weekday OT",
+      "Night_Weekend_OT": "Night Weekend OT",
+      "Overtime_Allowance": "Overtime Allowance",
+      "Paternity_Leave": "Paternity Leave",
+      "Pension_Fund": "Pension Fund",
+      "Performance_Bonus": "Performance Bonus",
+      "Phone_Allowance": "Phone Allowance",
+      "Public_Holiday": "Public Holiday",
+      "Public_Holiday_OT": "Public Holiday OT",
+      "Retention_Bonus": "Retention Bonus",
+      "SSB": "SSB",
+      "Sick_Leave": "Sick Leave",
+      "Social_Security": "Social Security",
+      "Transport_Allowance": "Transport Allowance",
+      "US_Dollar": "US Dollar",
+      "Union_Fee": "Union Fee",
+      "Unpaid_Leave": "Unpaid Leave",
+      "Vietnamese_Dong": "Vietnamese Dong",
+      "Year_End_Bonus": "Year-End Bonus"
+    },
+    "salary": {
+      "bank": "Bank",
+      "currency": "Currency",
+      "dailyRate": "Daily Rate",
+      "dayShift": "Day Shift",
+      "everyMonth": "Every Month",
+      "everyTenDays": "Every Ten Days",
+      "everyThreeMonths": "Every Three Months",
+      "hourlyRate": "Hourly Rate",
+      "lateDeduction": "Late Deduction",
+      "lunchBreak": "Lunch Break",
+      "monthly": "Monthly",
+      "nightShift": "Night Shift",
+      "onceAMonth": "Once AMonth",
+      "onceAYear": "Once AYear",
+      "otBase": "Ot Base",
+      "payCycle": "Pay Cycle",
+      "probation": "Probation",
+      "semiMonthly": "Semi Monthly",
+      "specialBonus": "Special Bonus",
+      "tenDay": "Ten Day",
+      "threePeriodsMonth": "Three Periods Month",
+      "twiceAMonth": "Twice AMonth",
+      "twoPeriodsMonth": "Two Periods Month",
+      "workHours": "Work Hours"
+    },
+    "saved": "Saved",
+    "sections": {
+      "allowance": "Allowance",
+      "bonus": "Bonus",
+      "currency": "Currency Setup",
+      "deduction": "Deduction Rules",
+      "holiday": "Public Holidays",
+      "leave": "Leave Policy",
+      "overtime": "Overtime Policy",
+      "salary": "Salary Rules"
+    },
+    "summaries": {
+      "allowance": "Housing · Transport · Meal · Custom",
+      "bonus": "Bonus types · Schedules · Pay when",
+      "currency": "Code · Symbol · Decimal format",
+      "deduction": "Tax · Social security · Dynamic rows",
+      "holiday": "National · Recurring · Year filter",
+      "leave": "Leave types · Paid/Unpaid · Carry over",
+      "overtime": "Weekday · Weekend · Holiday rates",
+      "salary": "Pay cycle · Cutoff · Shift rules"
+    },
+    "validation": {
+      "allowanceNameRequired": "Allowance name is required.",
+      "bonusNameRequired": "Bonus name is required.",
+      "carryOverRequired": "Carry over days is required.",
+      "currencyCodeRequired": "Currency code is required.",
+      "currencyNameRequired": "Currency name is required.",
+      "dateRequired": "Date is required.",
+      "daysPerYearRequired": "Days per year is required.",
+      "deductionNameRequired": "Deduction name is required.",
+      "holidayNameRequired": "Holiday name is required.",
+      "leaveTypeRequired": "Leave type name is required.",
+      "maxTenCharacters": "Max 10 characters.",
+      "mustBeAtLeastOneDay": "Must be at least 1 day.",
+      "mustBeZeroOrGreater": "Must be 0 or greater.",
+      "rateAmountRequired": "Rate / Amount is required.",
+      "rateRequired": "Rate is required.",
+      "selectOtType": "Please select an OT type.",
+      "validNumber": "Enter a valid number.",
+      "valueRequired": "Value is required."
+    },
+    "setupDescription": "Set up leave, overtime, payroll rules and more for your organization",
+    "completed": "completed",
+    "country": "Country",
+    "notConfigured": "Not configured",
+    "step": "Step",
+    "of": "of"
   }
 }

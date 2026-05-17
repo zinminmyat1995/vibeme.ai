@@ -1,28 +1,29 @@
 import { useEffect, useMemo,useRef , useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
+import { useTranslation } from '@/Contexts/LanguageContext';
 import { useForm, usePage, router } from '@inertiajs/react';
 import { createPortal } from 'react-dom';
 
 const STATUS_MAP = {
-    draft: { label: 'Draft', color: '#6b7280', bg: '#f3f4f6', dot: '#9ca3af' },
-    sent: { label: 'Sent', color: '#2563eb', bg: '#dbeafe', dot: '#3b82f6' },
-    accepted: { label: 'Accepted', color: '#059669', bg: '#d1fae5', dot: '#10b981' },
-    rejected: { label: 'Rejected', color: '#dc2626', bg: '#fee2e2', dot: '#ef4444' },
+    draft: { label: 'proposalGenerator.status.draft', color: '#6b7280', bg: '#f3f4f6', dot: '#9ca3af' },
+    sent: { label: 'proposalGenerator.status.sent', color: '#2563eb', bg: '#dbeafe', dot: '#3b82f6' },
+    accepted: { label: 'proposalGenerator.status.accepted', color: '#059669', bg: '#d1fae5', dot: '#10b981' },
+    rejected: { label: 'proposalGenerator.status.rejected', color: '#dc2626', bg: '#fee2e2', dot: '#ef4444' },
 };
 
 const LANGUAGES = [
-    { value: 'english', label: 'English' },
-    { value: 'myanmar', label: 'Myanmar' },
-    { value: 'khmer', label: 'Khmer' },
-    { value: 'vietnamese', label: 'Vietnamese' },
-    { value: 'korean', label: 'Korean' },
-    { value: 'japanese', label: 'Japanese' },
+    { value: 'english', label: 'proposalGenerator.languages.english' },
+    { value: 'myanmar', label: 'proposalGenerator.languages.myanmar' },
+    { value: 'khmer', label: 'proposalGenerator.languages.khmer' },
+    { value: 'vietnamese', label: 'proposalGenerator.languages.vietnamese' },
+    { value: 'korean', label: 'proposalGenerator.languages.korean' },
+    { value: 'japanese', label: 'proposalGenerator.languages.japanese' },
 ];
 
 const TEMPLATES = [
-    { value: 'executive', label: 'Executive', desc: 'Premium dark luxury feel' },
-    { value: 'magazine', label: 'Magazine', desc: 'Bold editorial presentation' },
-    { value: 'minimal', label: 'Minimal', desc: 'Clean Swiss-inspired layout' },
+    { value: 'executive', label: 'proposalGenerator.templates.executive.label', desc: 'proposalGenerator.templates.executive.desc' },
+    { value: 'magazine', label: 'proposalGenerator.templates.magazine.label', desc: 'proposalGenerator.templates.magazine.desc' },
+    { value: 'minimal', label: 'proposalGenerator.templates.minimal.label', desc: 'proposalGenerator.templates.minimal.desc' },
 ];
 
 const FLAGS = {
@@ -355,7 +356,7 @@ function ActionGlyph({ type, color }) {
 
     return null;
 }
-function StatusBadge({ status, darkMode = false }) {
+function StatusBadge({ status, darkMode = false, tr }) {
     const s = STATUS_MAP[status] || STATUS_MAP.draft;
 
     const darkMap = {
@@ -383,12 +384,12 @@ function StatusBadge({ status, darkMode = false }) {
             boxShadow: darkMode ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.7)',
         }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: styleSet.dot, display: 'inline-block' }} />
-            {s.label}
+            {tr ? tr(s.label) : s.label}
         </span>
     );
 }
 
-function LanguageBadge({ language, darkMode = false }) {
+function LanguageBadge({ language, darkMode = false, tr }) {
     const theme = getTheme(darkMode);
     const lang = LANGUAGES.find((item) => item.value === language);
 
@@ -407,7 +408,7 @@ function LanguageBadge({ language, darkMode = false }) {
             color: theme.textSoft,
         }}>
             <span style={{ display: 'inline-flex', borderRadius: 4, overflow: 'hidden' }}>{FLAGS[language]}</span>
-            {lang?.label || 'Unknown'}
+            {lang ? tr(lang.label) : tr('proposalGenerator.common.unknown')}
         </span>
     );
 }
@@ -805,7 +806,7 @@ function Modal({ open, onClose, title, subtitle, children, darkMode = false }) {
         </div>
     );
 }
-function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
+function GenerateModal({ analyses, onClose, onSuccess, darkMode = false, tr }) {
     const theme = getTheme(darkMode);
     const [errors, setErrors] = useState({});
     const form = useForm({
@@ -816,7 +817,7 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
 
     const validate = () => {
         const next = {};
-        if (!form.data.requirement_analysis_id) next.requirement_analysis_id = 'Please select a project analysis first.';
+        if (!form.data.requirement_analysis_id) next.requirement_analysis_id = tr('proposalGenerator.validation.selectAnalysis');
         return next;
     };
 
@@ -829,7 +830,7 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
         form.post('/proposals', {
             preserveScroll: true,
             onSuccess: () => {
-                onSuccess('Proposal generated successfully.');
+                onSuccess(tr('proposalGenerator.messages.generated'));
                 onClose();
             },
         });
@@ -846,11 +847,11 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
     };
 
     const projectOptions = [
-        { value: '', label: 'Choose a completed analysis...', disabled: true },
+        { value: '', label: tr('proposalGenerator.placeholders.chooseAnalysis'), disabled: true },
         ...analyses.map((analysis) => ({
             value: analysis.id,
             label: analysis.project_title,
-            sublabel: analysis.client?.company_name || 'Unknown Client',
+            sublabel: analysis.client?.company_name || tr('proposalGenerator.common.unknownClient'),
         })),
     ];
 
@@ -887,10 +888,10 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
                         <div>
                             <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.03em' }}>
-                                Generate Proposal
+                                {tr('proposalGenerator.modal.generateTitle')}
                             </h2>
                             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', margin: '5px 0 0' }}>
-                                Same route and API flow, matched to RequirementAnalysis theme system.
+                                {tr('proposalGenerator.modal.generateSubtitle')}
                             </p>
                         </div>
                         <button
@@ -930,9 +931,9 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                     }}>
                         <style>{`.gen-scroll::-webkit-scrollbar{display:none}`}</style>
 
-                        {/* Select Project */}
+                        {/* {tr('proposalGenerator.fields.selectProject')} */}
                         <div style={{ position: 'relative', zIndex: 250 }}>
-                            <label style={lbl}>Select Project <span style={{ color: theme.danger }}>*</span></label>
+                            <label style={lbl}>{tr('proposalGenerator.fields.selectProject')} <span style={{ color: theme.danger }}>*</span></label>
                             <PremiumSelect
                                 options={projectOptions}
                                 value={form.data.requirement_analysis_id}
@@ -940,7 +941,7 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                                     form.setData('requirement_analysis_id', val);
                                     setErrors((prev) => ({ ...prev, requirement_analysis_id: '' }));
                                 }}
-                                placeholder="Choose a completed analysis..."
+                                placeholder={tr('proposalGenerator.placeholders.chooseAnalysis')}
                                 theme={theme}
                                 darkMode={darkMode}
                                 minWidth={0}
@@ -962,14 +963,14 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                             <FieldError msg={errors.requirement_analysis_id} darkMode={darkMode} />
                             {analyses.length === 0 && (
                                 <div style={{ fontSize: 12, color: theme.textMute, marginTop: 8 }}>
-                                    No completed analyses available yet.
+                                    {tr('proposalGenerator.empty.noCompletedAnalyses')}
                                 </div>
                             )}
                         </div>
 
-                        {/* Template Style */}
+                        {/* {tr('proposalGenerator.fields.templateStyle')} */}
                         <div>
-                            <label style={lbl}>Template Style</label>
+                            <label style={lbl}>{tr('proposalGenerator.fields.templateStyle')}</label>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                                 {TEMPLATES.map((template) => {
                                     const active = form.data.template === template.value;
@@ -978,8 +979,8 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                                             key={template.value}
                                             active={active}
                                             onClick={() => form.setData('template', template.value)}
-                                            title={template.label}
-                                            desc={template.desc}
+                                            title={tr(template.label)}
+                                            desc={tr(template.desc)}
                                             darkMode={darkMode}
                                         />
                                     );
@@ -997,7 +998,7 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                             color: theme.primary,
                             fontWeight: 600,
                         }}>
-                            🌐 Proposals are generated in English for best PDF compatibility.
+                            🌐 {tr('proposalGenerator.messages.pdfCompatibility')}
                         </div>
                     </div>
 
@@ -1009,7 +1010,7 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                         alignItems: 'center',
                         background: theme.panelSoft,
                     }}>
-                        <UIButton type="button" onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
+                        <UIButton type="button" onClick={onClose} variant="ghost" theme={theme}>{tr('proposalGenerator.actions.cancel')}</UIButton>
                         <UIButton type="submit" disabled={form.processing} variant="primary" theme={theme}>
                             {form.processing && (
                                 <span style={{
@@ -1021,7 +1022,7 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
                                     animation: 'spin 0.7s linear infinite',
                                 }} />
                             )}
-                            {form.processing ? 'Generating...' : 'Generate Proposal'}
+                            {form.processing ? tr('proposalGenerator.actions.generating') : tr('proposalGenerator.actions.generateProposal')}
                         </UIButton>
                     </div>
                 </form>
@@ -1030,7 +1031,7 @@ function GenerateModal({ analyses, onClose, onSuccess, darkMode = false }) {
     );
 }
 
-function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) {
+function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false, tr }) {
     const theme = getTheme(darkMode);
 
     return (
@@ -1062,7 +1063,7 @@ function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) 
                     marginBottom: 10,
                 }}
             >
-                Delete Proposal?
+                {tr('proposalGenerator.confirm.deleteTitle')}
             </h4>
 
      
@@ -1074,12 +1075,12 @@ function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) 
                     lineHeight: 1.7,
                 }}
             >
-                Are you sure you want to delete{' '}
+                {tr('proposalGenerator.confirm.deleteMessage')}{' '}
                 <strong style={{ color: theme.text }}>
-                    this proposal
+                    {tr('proposalGenerator.confirm.thisProposal')}
                 </strong>
                 ?<br />
-                This action cannot be undone.
+                {tr('proposalGenerator.confirm.cannotUndo')}
             </p>
 
             {/* ACTION BUTTONS */}
@@ -1107,7 +1108,7 @@ function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) 
                         background: 'linear-gradient(135deg, #ef4444, #dc2626)',
                     }}
                 >
-                    {loading ? 'Deleting...' : 'Yes, Delete'}
+                    {loading ? tr('proposalGenerator.actions.deleting') : tr('proposalGenerator.actions.yesDelete')}
                 </UIButton>
             </div>
         </div>
@@ -1115,6 +1116,7 @@ function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) 
 }
 
 export default function ProposalGenerator({ proposals = [], analyses = [], stats = {} }) {
+    const { t: tr } = useTranslation();
     const { flash } = usePage().props;
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
@@ -1147,11 +1149,11 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
         router.delete(`/proposals/${id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                setToast({ msg: 'Proposal deleted successfully.', type: 'success' });
+                setToast({ msg: tr('proposalGenerator.messages.deleted'), type: 'success' });
                 setDeleteId(null);
             },
             onError: () => {
-                setToast({ msg: 'Unable to delete proposal.', type: 'error' });
+                setToast({ msg: tr('proposalGenerator.messages.deleteFailed'), type: 'error' });
             },
             onFinish: () => {
                 setIsDeleting(false);
@@ -1160,15 +1162,15 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
     };
 
     const statCards = [
-        { label: 'Total', value: stats.total ?? 0, color: theme.text, bg: theme.metricCard, line: 'All generated proposals' },
-        { label: 'Draft', value: stats.draft ?? 0, color: theme.warning, bg: theme.warningSoft, line: 'Waiting next action' },
-        { label: 'Sent', value: stats.sent ?? 0, color: theme.secondary, bg: theme.secondarySoft, line: 'Shared with clients' },
-        { label: 'Accepted', value: stats.accepted ?? 0, color: theme.success, bg: theme.successSoft, line: 'Ready to celebrate' },
-        { label: 'Rejected', value: stats.rejected ?? 0, color: theme.danger, bg: theme.dangerSoft, line: 'Needs revision' },
+        { label: tr('proposalGenerator.stats.total'), value: stats.total ?? 0, color: theme.text, bg: theme.metricCard, line: tr('proposalGenerator.stats.allGenerated') },
+        { label: tr('proposalGenerator.stats.draft'), value: stats.draft ?? 0, color: theme.warning, bg: theme.warningSoft, line: tr('proposalGenerator.stats.waitingNextAction') },
+        { label: tr('proposalGenerator.stats.sent'), value: stats.sent ?? 0, color: theme.secondary, bg: theme.secondarySoft, line: tr('proposalGenerator.stats.sharedWithClients') },
+        { label: tr('proposalGenerator.stats.accepted'), value: stats.accepted ?? 0, color: theme.success, bg: theme.successSoft, line: tr('proposalGenerator.stats.readyToCelebrate') },
+        { label: tr('proposalGenerator.stats.rejected'), value: stats.rejected ?? 0, color: theme.danger, bg: theme.dangerSoft, line: tr('proposalGenerator.stats.needsRevision') },
     ];
 
     return (
-        <AppLayout title="Proposal Generator">
+        <AppLayout title={tr('proposalGenerator.pageTitle')}>
             <style>{`
                 @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes popIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
@@ -1196,14 +1198,14 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
                     <div style={{ position: 'absolute', inset: 0, background: theme.glass, pointerEvents: 'none' }} />
                     <div style={{ position: 'relative' }}>
                         <SectionTitle
-                            eyebrow="Proposal Generator"
-                            title="Premium AI proposal workspace"
-                            desc="Matched to RequirementAnalysis light and dark mode behavior, while keeping the same proposal routes and API flow."
+                            eyebrow={tr('proposalGenerator.pageTitle')}
+                            title={tr('proposalGenerator.title')}
+                            desc={tr('proposalGenerator.description')}
                             theme={theme}
                             action={
                                 <UIButton onClick={() => setShowGenerate(true)} variant="primary" theme={theme}>
                                     <span>✨</span>
-                                    Generate Proposal
+                                    {tr('proposalGenerator.actions.generateProposal')}
                                 </UIButton>
                             }
                         />
@@ -1236,7 +1238,7 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search by proposal number, project or client..."
+                            placeholder={tr('proposalGenerator.placeholders.search')}
                             style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: theme.text, flex: 1 }}
                         />
 
@@ -1253,13 +1255,13 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
                             onChange={(e) => setFilterStatus(e.target.value)}
                             style={{ ...inputStyle(theme), minWidth: 180, width: 180, padding: '13px 15px' }}
                         >
-                            <option value="">All Status</option>
+                            <option value="">{tr('proposalGenerator.filters.allStatus')}</option>
                             {Object.entries(STATUS_MAP).map(([key, item]) => (
-                                <option key={key} value={key}>{item.label}</option>
+                                <option key={key} value={key}>{tr(item.label)}</option>
                             ))}
                         </select>
 
-                        <UIButton onClick={() => { setSearch(''); setFilterStatus(''); }} variant="ghost" theme={theme}>Reset Filters</UIButton>
+                        <UIButton onClick={() => { setSearch(''); setFilterStatus(''); }} variant="ghost" theme={theme}>{tr('proposalGenerator.actions.resetFilters')}</UIButton>
                     </div>
                 </div>
 
@@ -1274,9 +1276,9 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
                         flexWrap: 'wrap',
                     }}>
                         <div>
-                            <div style={{ fontSize: 16, fontWeight: 900, color: theme.text }}>Proposal directory</div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: theme.text }}>{tr('proposalGenerator.sections.directory')}</div>
                             <div style={{ marginTop: 4, fontSize: 12, color: theme.textMute }}>
-                                {filtered.length} result{filtered.length !== 1 ? 's' : ''} found
+                                {filtered.length} {filtered.length !== 1 ? tr('proposalGenerator.labels.resultsFound') : tr('proposalGenerator.labels.resultFound')}
                             </div>
                         </div>
                         <div style={{
@@ -1291,7 +1293,7 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
                             fontWeight: 900,
                             boxShadow: theme.chipShadow,
                         }}>
-                            Live proposal list
+                            {tr('proposalGenerator.labels.liveProposalList')}
                         </div>
                     </div>
 
@@ -1299,7 +1301,7 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
-                                    {['Proposal #', 'Project', 'Client', 'Language', 'Status', 'Date', 'Actions'].map((h) => (
+                                    {[tr('proposalGenerator.table.proposalNo'), tr('proposalGenerator.table.project'), tr('proposalGenerator.table.client'), tr('proposalGenerator.table.language'), tr('proposalGenerator.table.status'), tr('proposalGenerator.table.date'), tr('proposalGenerator.table.actions')].map((h) => (
                                         <th
                                             key={h}
                                             style={{
@@ -1336,8 +1338,8 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
                                             }}>
                                                 📄
                                             </div>
-                                            <div style={{ fontSize: 15, color: theme.text, fontWeight: 900 }}>No proposals yet</div>
-                                            <div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>Click Generate Proposal to get started.</div>
+                                            <div style={{ fontSize: 15, color: theme.text, fontWeight: 900 }}>{tr('proposalGenerator.empty.noProposalsYet')}</div>
+                                            <div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>{tr('proposalGenerator.empty.clickGenerate')}</div>
                                         </td>
                                     </tr>
                                 ) : filtered.map((proposal, i) => (
@@ -1371,28 +1373,28 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
 
                                         <td style={{ padding: '16px 18px' }}>
                                             <div style={{ fontSize: 13.5, fontWeight: 900, color: theme.text, marginBottom: 4 }}>
-                                                {proposal.requirement_analysis?.project_title || 'Untitled Project'}
+                                                {proposal.requirement_analysis?.project_title || tr('proposalGenerator.common.untitledProject')}
                                             </div>
                                             <div style={{ fontSize: 11, color: theme.textMute }}>
-                                                {proposal.content?.total_investment || 'Investment not available'}
+                                                {proposal.content?.total_investment || tr('proposalGenerator.common.investmentNotAvailable')}
                                             </div>
                                         </td>
 
                                         <td style={{ padding: '16px 18px' }}>
                                             <div style={{ fontSize: 13, fontWeight: 700, color: theme.textSoft }}>
-                                                {proposal.requirement_analysis?.client?.company_name || 'Unknown Client'}
+                                                {proposal.requirement_analysis?.client?.company_name || tr('proposalGenerator.common.unknownClient')}
                                             </div>
                                             <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>
-                                                Client profile linked from requirement analysis
+                                                {tr('proposalGenerator.labels.clientProfileLinked')}
                                             </div>
                                         </td>
 
                                         <td style={{ padding: '16px 18px' }}>
-                                            <LanguageBadge language={proposal.language} darkMode={darkMode} />
+                                            <LanguageBadge language={proposal.language} darkMode={darkMode} tr={tr} />
                                         </td>
 
                                         <td style={{ padding: '16px 18px' }}>
-                                            <StatusBadge status={proposal.status} darkMode={darkMode} />
+                                            <StatusBadge status={proposal.status} darkMode={darkMode} tr={tr} />
                                         </td>
 
                                         <td style={{ padding: '16px 18px', fontSize: 12, color: theme.textMute, whiteSpace: 'nowrap' }}>
@@ -1455,14 +1457,15 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
                     onClose={() => setShowGenerate(false)}
                     onSuccess={(msg) => setToast({ msg, type: 'success' })}
                     darkMode={darkMode}
+                    tr={tr}
                 />
             )}
 
         <Modal
             open={!!deleteId}
             onClose={() => setDeleteId(null)}
-            title="Confirm Delete"
-            subtitle="Danger Zone"
+            title={tr('proposalGenerator.confirm.title')}
+            subtitle={tr('proposalGenerator.confirm.subtitle')}
             darkMode={darkMode}
         >
             <DeleteConfirm
@@ -1473,6 +1476,7 @@ export default function ProposalGenerator({ proposals = [], analyses = [], stats
                 }}
                 loading={isDeleting}
                 darkMode={darkMode}
+                tr={tr}
             />
         </Modal>
         </AppLayout>

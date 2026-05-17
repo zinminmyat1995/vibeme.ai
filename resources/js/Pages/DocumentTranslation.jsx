@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePage, router } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 import AppLayout from '@/Layouts/AppLayout';
 import FolderTree from '@/Components/DocumentTranslation/FolderTree';
 import DocumentList from '@/Components/DocumentTranslation/DocumentList';
@@ -212,7 +213,7 @@ function StatCard({ item, theme }) {
     );
 }
 
-function DeleteFolderConfirm({ folder, onClose, onConfirm, loading, darkMode = false }) {
+function DeleteFolderConfirm({ folder, onClose, onConfirm, loading, darkMode = false, tr }) {
     if (!folder) return null;
     const theme = getTheme(darkMode);
 
@@ -224,10 +225,10 @@ function DeleteFolderConfirm({ folder, onClose, onConfirm, loading, darkMode = f
                     <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 34%), radial-gradient(circle at bottom right, rgba(255,255,255,0.10), transparent 28%)', pointerEvents: 'none' }} />
                     <div style={{ position: 'relative' }}>
                         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.82)', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 10 }}>
-                            Danger Zone
+                            {tr('documentTranslation.delete.dangerZone')}
                         </div>
                         <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>
-                            Delete folder
+                            {tr('documentTranslation.delete.deleteFolder')}
                         </div>
                     </div>
                 </div>
@@ -242,16 +243,16 @@ function DeleteFolderConfirm({ folder, onClose, onConfirm, loading, darkMode = f
                             <path d="M14 11v6" />
                         </svg>
                     </div>
-                    <div style={{ fontSize: 20, fontWeight: 900, color: theme.text }}>Delete this folder?</div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: theme.text }}>{tr('documentTranslation.delete.confirmTitle')}</div>
                     <div style={{ marginTop: 10, fontSize: 13, color: theme.textMute, lineHeight: 1.75 }}>
-                        You are about to remove <strong style={{ color: theme.text }}>{folder.icon} {folder.name}</strong>.<br />
-                        All files inside this folder will also be permanently deleted.
+                        {tr('documentTranslation.delete.confirmPrefix')} <strong style={{ color: theme.text }}>{folder.icon} {folder.name}</strong>.<br />
+                        {tr('documentTranslation.delete.confirmSuffix')}
                     </div>
 
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 26 }}>
-                        <UIButton onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
+                        <UIButton onClick={onClose} variant="ghost" theme={theme}>{tr('documentTranslation.actions.cancel')}</UIButton>
                         <UIButton onClick={onConfirm} disabled={loading} variant="danger" theme={theme}>
-                            {loading ? 'Deleting...' : 'Yes, Delete'}
+                            {loading ? tr('documentTranslation.actions.deleting') : tr('documentTranslation.actions.yesDelete')}
                         </UIButton>
                     </div>
                 </div>
@@ -267,6 +268,7 @@ export default function DocumentTranslation({
     hasApi = false,
 }) {
     const { flash } = usePage().props;
+    const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
@@ -303,12 +305,12 @@ export default function DocumentTranslation({
             })
             .catch(() => {
                 setLoadingFolder(false);
-                showToast('Unable to load folder contents.', 'error');
+                showToast(tr('documentTranslation.messages.unableLoadFolder'), 'error');
             });
     };
     const [documentsState, setDocumentsState] = useState(documents);
     const currentDocs = selectedFolder ? (folderDocs || []) : documentsState;
-    const currentFolderName = selectedFolder ? `${selectedFolder.icon} ${selectedFolder.name}` : 'All Files';
+    const currentFolderName = selectedFolder ? `${selectedFolder.icon} ${selectedFolder.name}` : tr('documentTranslation.labels.allFiles');
 
     useEffect(() => {
         setDocumentsState(documents || []);
@@ -332,7 +334,7 @@ export default function DocumentTranslation({
         setDeletingFolder(true);
         router.delete(`/folders/${deleteFolderTarget.id}`, {
             onSuccess: () => {
-                showToast('Folder deleted successfully.');
+                showToast(tr('documentTranslation.messages.folderDeleted')); 
                 if (selectedFolder?.id === deleteFolderTarget.id) {
                     setSelectedFolder(null);
                     setFolderDocs(null);
@@ -341,7 +343,7 @@ export default function DocumentTranslation({
                 setDeletingFolder(false);
             },
             onError: () => {
-                showToast('Failed to delete folder.', 'error');
+                showToast(tr('documentTranslation.messages.folderDeleteFailed'), 'error');
                 setDeletingFolder(false);
             },
         });
@@ -349,11 +351,11 @@ export default function DocumentTranslation({
 
     const statCards = [
         {
-            label: 'Total Files',
+            label: tr('documentTranslation.stats.totalFiles'),
             value: stats.total || 0,
             color: theme.primary,
             soft: theme.primarySoft,
-            note: 'All uploaded documents',
+            note: tr('documentTranslation.stats.allUploadedDocuments'),
             icon: (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -362,11 +364,11 @@ export default function DocumentTranslation({
             ),
         },
         {
-            label: 'Completed',
+            label: tr('documentTranslation.stats.completed'),
             value: stats.completed || 0,
             color: theme.success,
             soft: theme.successSoft,
-            note: 'Ready to review or download',
+            note: tr('documentTranslation.stats.readyToReview'),
             icon: (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 6L9 17l-5-5" />
@@ -374,11 +376,11 @@ export default function DocumentTranslation({
             ),
         },
         {
-            label: 'Translating',
+            label: tr('documentTranslation.stats.translating'),
             value: stats.translating || 0,
             color: theme.secondary,
             soft: theme.secondarySoft,
-            note: 'Jobs currently running',
+            note: tr('documentTranslation.stats.jobsRunning'),
             icon: (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M23 4v6h-6" />
@@ -389,11 +391,11 @@ export default function DocumentTranslation({
             ),
         },
         {
-            label: 'Failed',
+            label: tr('documentTranslation.stats.failed'),
             value: stats.failed || 0,
             color: theme.danger,
             soft: theme.dangerSoft,
-            note: 'Needs review or retry',
+            note: tr('documentTranslation.stats.needsReview'),
             icon: (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
@@ -413,7 +415,7 @@ export default function DocumentTranslation({
                 fetch(`/folders/${selectedFolder.id}/contents`)
                     .then((r) => r.json())
                     .then((data) => setFolderDocs(data.documents || []))
-                    .catch(() => showToast('Unable to refresh folder contents.', 'error'))
+                    .catch(() => showToast(tr('documentTranslation.messages.unableRefreshFolder'), 'error'))
                     .finally(() => setLoadingFolder(false));
             }
             return;
@@ -432,7 +434,7 @@ export default function DocumentTranslation({
                 setDocumentsState(page.props.documents || []);
             },
             onError: () => {
-                showToast('Unable to refresh document list.', 'error');
+                showToast(tr('documentTranslation.messages.unableRefreshDocumentList'), 'error');
             },
         });
     };
@@ -448,7 +450,7 @@ export default function DocumentTranslation({
     };
 
     return (
-        <AppLayout title="Document Translation">
+        <AppLayout title={tr('documentTranslation.pageTitle')}>
             <style>{`
                 @keyframes spin {
                     to { transform: rotate(360deg); }
@@ -460,9 +462,9 @@ export default function DocumentTranslation({
                     <div style={{ position: 'absolute', inset: 0, background: theme.glass, pointerEvents: 'none' }} />
                     <div style={{ position: 'relative', display: 'grid', gap: 22 }}>
                         <SectionTitle
-                            eyebrow="Document Translation"
-                            title="Premium translation workspace"
-                            desc={`Same logic flow, same routes, same upload and folder actions. Upgraded into a cleaner professional UI that works well in both light and dark mode.${!hasApi ? ' API is not configured right now, so the page stays in demo mode.' : ''}`}
+                            eyebrow={tr('documentTranslation.hero.eyebrow')}
+                            title={tr('documentTranslation.hero.title')}
+                            desc={`${tr('documentTranslation.hero.desc')}${!hasApi ? ` ${tr('documentTranslation.hero.demoMode')}` : ''}`}
                             theme={theme}
                             action={
                                 <UIButton onClick={() => setShowUpload(true)} variant="primary" theme={theme}>
@@ -471,7 +473,7 @@ export default function DocumentTranslation({
                                         <polyline points="17 8 12 3 7 8" />
                                         <line x1="12" y1="3" x2="12" y2="15" />
                                     </svg>
-                                    Upload Document
+                                    {tr('documentTranslation.actions.uploadDocument')}
                                 </UIButton>
                             }
                         />
@@ -512,8 +514,8 @@ export default function DocumentTranslation({
                                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.panel }}>
                                     <div style={{ textAlign: 'center' }}>
                                         <div style={{ width: 42, height: 42, border: `3px solid ${theme.primarySoft}`, borderTopColor: theme.primary, borderRadius: '50%', animation: 'spin 0.7s linear infinite', margin: '0 auto 14px' }} />
-                                        <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Loading files</div>
-                                        <div style={{ marginTop: 4, fontSize: 12, color: theme.textMute }}>Fetching folder contents from /folders/{selectedFolder?.id || 'id'}/contents</div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{tr('documentTranslation.loading.files')}</div>
+                                        <div style={{ marginTop: 4, fontSize: 12, color: theme.textMute }}>{tr('documentTranslation.loading.fetchingFolder')}</div>
                                     </div>
                                 </div>
                             ) : (
@@ -552,6 +554,7 @@ export default function DocumentTranslation({
                 onConfirm={confirmDeleteFolder}
                 loading={deletingFolder}
                 darkMode={darkMode}
+                tr={tr}
             />
         </AppLayout>
     );

@@ -1,5 +1,7 @@
 import { useForm, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/Contexts/LanguageContext';
+const trPresetName = (tr, value) => tr(`hrPolicy.presets.${String(value || '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '')}`) || value;
 
 // ── Theme hook ─────────────────────────────────────────────────
 function useTheme() {
@@ -104,8 +106,27 @@ function PHSpinner() {
 
 // ── Main ───────────────────────────────────────────────────────
 export default function PublicHolidaySection({ publicHolidays = [] }) {
+    const { t: tr } = useTranslation();
     const dark = useTheme();
     const T    = getTheme(dark);
+
+    const PRESET_HOLIDAY_NAMES = [
+        'Khmer New Year',
+        'National Day',
+        'Independence Day',
+        'International New Year',
+        'Water Festival',
+        'Pchum Ben',
+        'Labour Day',
+        'King Birthday',
+        'Constitution Day',
+    ];
+
+    const isPresetHoliday = (value) =>
+        PRESET_HOLIDAY_NAMES.some(name => name === value);
+
+    const displayHolidayName = (value) =>
+        isPresetHoliday(value) ? trPresetName(tr, value) : value;
 
     const currentYear = new Date().getFullYear();
     const [yearFilter, setYearFilter] = useState(currentYear);
@@ -129,8 +150,8 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
 
     const validate = () => {
         const e = {};
-        if (!data.name.trim()) e.name = 'Holiday name is required.';
-        if (!data.date)        e.date = 'Date is required.';
+        if (!data.name.trim()) e.name = tr('hrPolicy.validation.holidayNameRequired');
+        if (!data.date)        e.date = tr('hrPolicy.validation.dateRequired');
         setErrors(e);
         return Object.keys(e).length === 0;
     };
@@ -204,17 +225,17 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                     <div onClick={() => !deleting && setDeleteTarget(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}/>
                     <div className="ph-animate" style={{ position: 'relative', background: T.panelSolid, border: `1px solid ${T.border}`, borderRadius: 20, width: '100%', maxWidth: 400, padding: '28px 28px 24px', boxShadow: T.shadow }}>
                         <div style={{ width: 52, height: 52, borderRadius: 16, background: T.dangerSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24 }}>🗑️</div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>Delete Holiday</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{deleteTarget.name}"</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>{tr('hrPolicy.holiday.deleteHoliday')}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{displayHolidayName(deleteTarget.name)}"</div>
                         <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>{formatDate(deleteTarget.date.substring(0,10))}</div>
                         <div style={{ display: 'flex', gap: 10 }}>
                             <button onClick={() => !deleting && setDeleteTarget(null)} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                                Cancel
+                                {tr('common.cancel')}
                             </button>
                             <button onClick={handleDeleteConfirm} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1, boxShadow: '0 4px 14px rgba(239,68,68,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                                {deleting ? <><PHSpinner/> Deleting...</> : 'Yes, Delete'}
+                                {deleting ? <><PHSpinner/> {tr('common.deleting')}</> : tr('common.yesDelete')}
                             </button>
                         </div>
                     </div>
@@ -244,7 +265,7 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 99, background: T.panelSoft, border: `1px solid ${T.border}` }}>
                     <span style={{ fontSize: 14 }}>🎌</span>
                     <span style={{ fontSize: 12, fontWeight: 800, color: T.primary }}>{filtered.length}</span>
-                    <span style={{ fontSize: 12, color: T.textMute, fontWeight: 500 }}>holidays in {yearFilter}</span>
+                    <span style={{ fontSize: 12, color: T.textMute, fontWeight: 500 }}>{tr('hrPolicy.holiday.holidaysIn')} {yearFilter}</span>
                 </div>
             </div>
 
@@ -254,7 +275,7 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                         <thead>
                             <tr style={{ background: T.tableHead, borderBottom: `1px solid ${T.divider}` }}>
-                                {['Holiday Name','Date','Day','Recurring','Actions'].map((h, i) => (
+                                {[tr('hrPolicy.holiday.holidayName'),tr('hrPolicy.holiday.date'),tr('common.day'),tr('hrPolicy.holiday.recurring'),tr('common.actions')].map((h, i) => (
                                     <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, whiteSpace: 'nowrap', textAlign: i === 0 ? 'left' : 'center' }}>{h}</th>
                                 ))}
                             </tr>
@@ -267,7 +288,7 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                                         <td style={{ padding: '12px 14px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 <div style={{ width: 32, height: 32, borderRadius: 10, background: T.dangerSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>🎌</div>
-                                                <span style={{ fontWeight: 700, color: T.text }}>{h.name}</span>
+                                                <span style={{ fontWeight: 700, color: T.text }}>{displayHolidayName(h.name)}</span>
                                             </div>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -280,7 +301,7 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                             <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: h.is_recurring ? T.successSoft : T.panelSoft, color: h.is_recurring ? T.success : T.textMute }}>
-                                                {h.is_recurring ? '↻ Recurring' : 'One-time'}
+                                                {h.is_recurring ? `↻ ${tr('hrPolicy.holiday.recurring')}` : tr('hrPolicy.holiday.oneTime')}
                                             </span>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -289,7 +310,7 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                                                     style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textSoft, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                     onMouseEnter={e => { e.currentTarget.style.background = T.panelSofter; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.background = T.panelSoft;   e.currentTarget.style.transform = 'translateY(0)'; }}
-                                                    title="Edit">
+                                                    title={tr('common.edit')}>
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
                                                     </svg>
@@ -298,7 +319,7 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                                                     style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.dangerSoft, color: T.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.75'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)';   e.currentTarget.style.opacity = '1'; }}
-                                                    title="Delete">
+                                                    title={tr('common.delete')}>
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                                                         <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
@@ -315,8 +336,8 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 16, border: `1.5px dashed ${T.emptyBorder}`, background: T.panelSoft, padding: '40px 24px', gap: 8 }}>
                     <div style={{ fontSize: 32, marginBottom: 4 }}>🎌</div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: T.textSoft, margin: 0 }}>No public holidays for {yearFilter}</p>
-                    <p style={{ fontSize: 12, color: T.textMute, margin: 0 }}>Click "Add Holiday" to get started</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: T.textSoft, margin: 0 }}>{tr('hrPolicy.holiday.noPublicHolidaysFor')} {yearFilter}</p>
+                    <p style={{ fontSize: 12, color: T.textMute, margin: 0 }}>{tr('hrPolicy.holiday.clickAddHoliday')}</p>
                 </div>
             )}
 
@@ -328,7 +349,7 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{ width: 32, height: 32, borderRadius: 10, background: T.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{editingId ? '✏️' : '➕'}</div>
-                            <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>{editingId ? 'Edit Holiday' : 'Add Public Holiday'}</div>
+                            <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>{editingId ? tr('hrPolicy.holiday.editHoliday') : tr('hrPolicy.holiday.addHoliday')}</div>
                         </div>
                         <button type="button" onClick={() => { reset(); setErrors({}); setShowForm(false); setEditingId(null); }}
                             style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✕</button>
@@ -339,11 +360,11 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                         {/* Name — full width */}
                         <div style={{ gridColumn: '1 / -1' }}>
                             <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                Holiday Name <span style={{ color: T.danger }}>*</span>
+                                {tr('hrPolicy.holiday.holidayName')} <span style={{ color: T.danger }}>*</span>
                             </label>
                             <input className="ph-inp" type="text" value={data.name} disabled={processing}
                                 onChange={e => { setData('name', e.target.value); setErrors(v => ({...v, name:''})); }}
-                                placeholder="e.g. Khmer New Year, National Day"
+                                placeholder={tr('hrPolicy.holiday.holidayNamePlaceholder')}
                                 style={inp(!!errors.name)} />
                             <ErrMsg msg={errors.name} />
                         </div>
@@ -351,7 +372,7 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                         {/* Date */}
                         <div>
                             <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                Date <span style={{ color: T.danger }}>*</span>
+                                {tr('hrPolicy.holiday.date')} <span style={{ color: T.danger }}>*</span>
                             </label>
                             <input className="ph-inp" type="date" value={data.date} disabled={processing}
                                 onChange={e => { setData('date', e.target.value); setErrors(v => ({...v, date:''})); }}
@@ -364,8 +385,8 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                             <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: 12, border: `1.5px solid ${data.is_recurring ? T.primary : T.border}`, background: data.is_recurring ? T.primarySoft : T.panelSoft, cursor: 'pointer', transition: 'all 0.15s' }}
                                 onClick={() => setData('is_recurring', !data.is_recurring)}>
                                 <div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: data.is_recurring ? T.primary : T.textSoft }}>↻ Recurring Annually</div>
-                                    <div style={{ fontSize: 10, color: T.textMute, marginTop: 2 }}>Repeats every year</div>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: data.is_recurring ? T.primary : T.textSoft }}>↻ {tr('hrPolicy.holiday.recurringAnnually')}</div>
+                                    <div style={{ fontSize: 10, color: T.textMute, marginTop: 2 }}>{tr('hrPolicy.holiday.repeatsEveryYear')}</div>
                                 </div>
                                 {/* Toggle */}
                                 <div style={{ position: 'relative', width: 38, height: 22, borderRadius: 99, background: data.is_recurring ? '#7c3aed' : (dark ? 'rgba(148,163,184,0.2)' : '#d1d5db'), flexShrink: 0, transition: 'background 0.2s' }}>
@@ -382,13 +403,13 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                             style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 12, border: 'none', background: processing ? T.textMute : 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', boxShadow: processing ? 'none' : '0 4px 14px rgba(124,58,237,0.35)', transition: 'all 0.15s' }}
                             onMouseEnter={e => { if (!processing) e.currentTarget.style.opacity = '0.9'; }}
                             onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                            {processing ? <><PHSpinner/> Saving...</> : <>{editingId ? '✅ Update Holiday' : '✅ Add Holiday'}</>}
+                            {processing ? <><PHSpinner/> {tr('common.saving')}</> : <>{editingId ? `✅ ${tr('hrPolicy.holiday.updateHoliday')}` : `✅ ${tr('hrPolicy.holiday.addHoliday')}`}</>}
                         </button>
                         <button type="button" onClick={() => { reset(); setErrors({}); setShowForm(false); setEditingId(null); }} disabled={processing}
                             style={{ padding: '10px 18px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                             onMouseEnter={e => e.currentTarget.style.background = T.panelSoft}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                            Cancel
+                            {tr('common.cancel')}
                         </button>
                     </div>
                 </form>
@@ -403,7 +424,7 @@ export default function PublicHolidaySection({ publicHolidays = [] }) {
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Add Holiday
+                    {tr('hrPolicy.holiday.addHoliday')}
                 </button>
             )}
         </div>

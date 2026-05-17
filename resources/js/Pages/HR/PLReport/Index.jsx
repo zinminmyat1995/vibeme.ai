@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Head, router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
+import { useTranslation } from "@/Contexts/LanguageContext";
 import {
     ComposedChart, Bar, Line, PieChart, Pie, Cell,
     XAxis, YAxis, CartesianGrid, Tooltip,
@@ -50,8 +51,8 @@ const T = (dark) => dark ? {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const fmt = (n, cur = "USD") => n == null ? "—" :
-    new Intl.NumberFormat("en-US", { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(n);
+const fmt = (n, cur = "USD", locale = "en-US") => n == null ? "—" :
+    new Intl.NumberFormat(locale, { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(n);
 const fmtK = (n) => {
     if (n == null) return "—";
     const abs = Math.abs(n);
@@ -61,6 +62,9 @@ const fmtK = (n) => {
 };
 const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthName = (tr, month, type = "full") => tr(`plReport.months.${type}.${month}`) || MONTHS_FULL[month - 1] || "";
+const monthLabel = (tr, item) => item?.month ? `${monthName(tr, item.month, "short")} ${item.year ?? ""}`.trim() : item?.label;
+const deptName = (tr, dept) => tr(`plReport.departments.${dept}`) || dept;
 const DEPT_COLORS = { HR:"#7F77DD", IT:"#1D9E75", BPO:"#EF9F27", SST:"#D4537E", Driver:"#378ADD", Other:"#888780" };
 
 function PremiumSelect({ options=[], value='', onChange, width='auto', dark, t }) {
@@ -249,7 +253,7 @@ function KPI({ label, value, sub, changePct, color, accentColor, t }) {
 }
 
 // ── Sticky Header ─────────────────────────────────────────────────────────────
-function StickyHeader({ fromYear, fromMonth, toYear, toMonth, setFromYear, setFromMonth, setToYear, setToMonth, available, t, dark, onApply }) {
+function StickyHeader({ fromYear, fromMonth, toYear, toMonth, setFromYear, setFromMonth, setToYear, setToMonth, available, t, dark, onApply, tr }) {
     const [visible, setVisible] = useState(true);
     const [lastY,   setLastY]   = useState(0);
 
@@ -265,8 +269,8 @@ function StickyHeader({ fromYear, fromMonth, toYear, toMonth, setFromYear, setFr
 
     const years  = [...new Set(available.map(m => m.year))];
     const yearOpts  = years.map(y => ({ value:y, label:String(y) }));
-    const fromMonthOpts = available.filter(m => m.year === fromYear).map(m => ({ value:m.month, label:MONTHS_FULL[m.month-1] }));
-    const toMonthOpts   = available.filter(m => m.year === toYear).map(m => ({ value:m.month, label:MONTHS_FULL[m.month-1] }));
+    const fromMonthOpts = available.filter(m => m.year === fromYear).map(m => ({ value:m.month, label:monthName(tr, m.month, 'full') }));
+    const toMonthOpts   = available.filter(m => m.year === toYear).map(m => ({ value:m.month, label:monthName(tr, m.month, 'full') }));
 
     return (
         <div style={{
@@ -279,14 +283,14 @@ function StickyHeader({ fromYear, fromMonth, toYear, toMonth, setFromYear, setFr
             flexWrap:"wrap", gap:12,
         }}>
             <div>
-                <div style={{ fontSize:16, fontWeight:500, color:t.text }}>Profit &amp; Loss Dashboard</div>
-                <div style={{ fontSize:11, color:t.textMute, marginTop:2 }}>Revenue · Project cost · Overhead · Net profit</div>
+                <div style={{ fontSize:16, fontWeight:500, color:t.text }}>{tr('plReport.header.title')}</div>
+                <div style={{ fontSize:11, color:t.textMute, marginTop:2 }}>{tr('plReport.header.subtitle')}</div>
             </div>
 
             <div style={{ display:"flex", alignItems:"flex-end", gap:10, flexWrap:"wrap" }}>
                 {/* FROM */}
                 <div>
-                    <div style={{ fontSize:10, fontWeight:600, color:t.textMute, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:4 }}>From</div>
+                    <div style={{ fontSize:10, fontWeight:600, color:t.textMute, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:4 }}>{tr('plReport.filters.from')}</div>
                     <div style={{ display:"flex", gap:6 }}>
                         <PremiumSelect options={yearOpts} value={fromYear} onChange={v => setFromYear(+v)} width={76} dark={dark} t={t} />
                         <PremiumSelect options={fromMonthOpts} value={fromMonth} onChange={v => setFromMonth(+v)} width={120} dark={dark} t={t} />
@@ -297,7 +301,7 @@ function StickyHeader({ fromYear, fromMonth, toYear, toMonth, setFromYear, setFr
 
                 {/* TO */}
                 <div>
-                    <div style={{ fontSize:10, fontWeight:600, color:t.textMute, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:4 }}>To</div>
+                    <div style={{ fontSize:10, fontWeight:600, color:t.textMute, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:4 }}>{tr('plReport.filters.to')}</div>
                     <div style={{ display:"flex", gap:6 }}>
                         <PremiumSelect options={yearOpts} value={toYear} onChange={v => setToYear(+v)} width={76} dark={dark} t={t} />
                         <PremiumSelect options={toMonthOpts} value={toMonth} onChange={v => setToMonth(+v)} width={120} dark={dark} t={t} />
@@ -311,7 +315,7 @@ function StickyHeader({ fromYear, fromMonth, toYear, toMonth, setFromYear, setFr
                     cursor:"pointer", marginBottom:1, letterSpacing:"0.02em",
                     boxShadow:"0 2px 8px rgba(99,102,241,0.35)", outline:"none",
                 }}>
-                    Apply filter
+                    {tr('plReport.actions.applyFilter')}
                 </button>
             </div>
         </div>
@@ -323,6 +327,8 @@ export default function PLReportIndex({
     availableMonths=[], filter={}, summary={},
     monthlyTrend=[], projects=[], overheadByDept={},
 }) {
+    const { t: tr, locale = "en" } = useTranslation();
+    const fmtMoney = (n, cur = "USD") => fmt(n, cur, locale === "ja" ? "ja-JP" : locale === "ko" ? "ko-KR" : locale === "vi" ? "vi-VN" : "en-US");
     const dark = useTheme();
     const t    = useMemo(() => T(dark), [dark]);
 
@@ -341,46 +347,46 @@ export default function PLReportIndex({
     const expenseTotal = (summary.total_project_cost ?? 0) + (summary.total_overhead ?? 0);
 
     const pieData = [
-        { name:"Salary",   value:summary.total_project_cost ?? 0, color:"#7F77DD" },
-        { name:"Overhead", value:summary.total_overhead ?? 0,     color:"#EF9F27" },
+        { name:tr("plReport.expense.salary"),   value:summary.total_project_cost ?? 0, color:"#7F77DD" },
+        { name:tr("plReport.expense.overhead"), value:summary.total_overhead ?? 0,     color:"#EF9F27" },
     ].filter(d => d.value > 0);
 
     const trendData = monthlyTrend.map(m => ({
-        label:          m.label,
-        "Gross profit": m.gross_profit,
-        "Margin %":     m.revenue > 0 ? Math.round((m.gross_profit/m.revenue)*100) : 0,
+        label: monthLabel(tr, m),
+        grossProfit: m.gross_profit,
+        marginPercent: m.revenue > 0 ? Math.round((m.gross_profit / m.revenue) * 100) : 0,
     }));
 
     const incomeData = monthlyTrend.map(m => ({
-        label:          m.label,
-        Revenue:        m.revenue,
-        "Total cost":   m.total_cost,
-        "Net margin %": m.revenue > 0 ? Math.round((m.net_profit/m.revenue)*100) : 0,
+        label: monthLabel(tr, m),
+        revenue: m.revenue,
+        totalCost: m.total_cost,
+        netMarginPercent: m.revenue > 0 ? Math.round((m.net_profit / m.revenue) * 100) : 0,
     }));
 
     const deptList = Object.entries(overheadByDept).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
     const expenseItems = [
-        { label:"Salary",   value:summary.total_project_cost ?? 0, color:"#7F77DD" },
-        { label:"Overhead", value:summary.total_overhead ?? 0,     color:"#EF9F27" },
-        { label:"OT",       value:0,                               color:"#1D9E75" },
-        { label:"Leave",    value:0,                               color:"#D4537E" },
+        { label:tr("plReport.expense.salary"),   value:summary.total_project_cost ?? 0, color:"#7F77DD" },
+        { label:tr("plReport.expense.overhead"), value:summary.total_overhead ?? 0,     color:"#EF9F27" },
+        { label:tr("plReport.expense.ot"),       value:0,                               color:"#1D9E75" },
+        { label:tr("plReport.expense.leave"),    value:0,                               color:"#D4537E" },
     ];
 
     if (availableMonths.length === 0) {
         return (
-            <AppLayout title="P&L Report">
-                <Head title="P&L Report" />
+            <AppLayout title={tr("plReport.pageTitle")}>
+                <Head title={tr("plReport.pageTitle")} />
                 <div style={{ background:t.surface, border:`0.5px solid ${t.border}`, borderRadius:12, padding:"48px 20px", textAlign:"center", color:t.textMute, fontSize:13 }}>
-                    No confirmed payroll data. Please confirm payroll records first.
+                    {tr('plReport.empty.noPayrollData')}
                 </div>
             </AppLayout>
         );
     }
 
     return (
-        <AppLayout title="P&L Report">
-            <Head title="P&L Report" />
+        <AppLayout title={tr("plReport.pageTitle")}>
+            <Head title={tr("plReport.pageTitle")} />
             {/* Global style: remove focus outline on all chart containers */}
             <style>{`
                 .pl-chart-wrap *:focus { outline: none !important; }
@@ -395,44 +401,44 @@ export default function PLReportIndex({
                     toYear={toYear}     toMonth={toMonth}
                     setFromYear={setFromYear} setFromMonth={setFromMonth}
                     setToYear={setToYear}     setToMonth={setToMonth}
-                    available={availableMonths} t={t} dark={dark} onApply={apply}
+                    available={availableMonths} t={t} dark={dark} onApply={apply} tr={tr}
                 />
 
                 {/* ── Row 1: KPI Cards ── */}
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:10 }}>
-                    <KPI label="Total Revenue"  value={fmt(summary.total_revenue)}
+                    <KPI label={tr("plReport.kpi.totalRevenue")}  value={fmtMoney(summary.total_revenue)}
                         changePct={summary.revenue_change_pct}
                         color="#534AB7" accentColor="#7F77DD" t={t} />
-                    <KPI label="Project Cost"   value={fmt(summary.total_project_cost)}
+                    <KPI label={tr("plReport.kpi.projectCost")}   value={fmtMoney(summary.total_project_cost)}
                         changePct={summary.project_cost_change_pct}
                         accentColor="#AFA9EC" t={t} />
-                    <KPI label="Overhead Cost"  value={fmt(summary.total_overhead)}
+                    <KPI label={tr("plReport.kpi.overheadCost")}  value={fmtMoney(summary.total_overhead)}
                         changePct={summary.overhead_change_pct}
                         color={t.warning} accentColor="#EF9F27" t={t} />
-                    <KPI label="Gross Profit"   value={fmt(summary.gross_profit)}
+                    <KPI label={tr("plReport.kpi.grossProfit")}   value={fmtMoney(summary.gross_profit)}
                         changePct={summary.gross_profit_change_pct}
                         color={t.success} accentColor="#5DCAA5" t={t}
-                        sub="Before overhead" />
-                    <KPI label="Net Profit"     value={fmt(summary.net_profit)}
+                        sub={tr("plReport.labels.beforeOverhead")} />
+                    <KPI label={tr("plReport.kpi.netProfit")}     value={fmtMoney(summary.net_profit)}
                         changePct={summary.net_profit_change_pct}
                         color={isProfit ? t.success : t.danger}
                         accentColor={isProfit ? "#1D9E75" : "#E24B4A"} t={t}
-                        sub={summary.net_margin_pct != null ? `${summary.net_margin_pct}% margin` : undefined} />
-                    <KPI label="Outstanding"    value={fmt(summary.outstanding_revenue)}
+                        sub={summary.net_margin_pct != null ? `${summary.net_margin_pct}% ${tr("plReport.labels.margin")}` : undefined} />
+                    <KPI label={tr("plReport.kpi.outstanding")}    value={fmtMoney(summary.outstanding_revenue)}
                         color={t.warning} accentColor="#BA7517" t={t}
-                        sub={`of ${fmt(summary.total_contract_value)} contract`} />
+                        sub={`${tr("plReport.labels.of")} ${fmtMoney(summary.total_contract_value)} ${tr("plReport.labels.contract")}`} />
                 </div>
 
                 {/* ── Row 2: Operating Income (3fr) + Period Comparison (1fr) ── */}
                 <div style={{ display:"grid", gridTemplateColumns:"3fr 1fr", gap:12 }}>
 
-                    <Card title="Operating income & expenses"
-                        sub="Revenue · Total cost · Net margin % — by month" t={t}>
+                    <Card title={tr("plReport.cards.operatingIncomeTitle")}
+                        sub={tr("plReport.cards.operatingIncomeSub")} t={t}>
                         <div className="pl-chart-wrap">
                             <ChartLegend items={[
-                                { color:"#AFA9EC", label:"Revenue" },
-                                { color:"#EF9F27", label:"Total cost" },
-                                { color:"#E24B4A", label:"Net margin %", line:true },
+                                { color:"#AFA9EC", label:tr("plReport.kpi.totalRevenue") },
+                                { color:"#EF9F27", label:tr("plReport.chart.totalCost") },
+                                { color:"#E24B4A", label:tr("plReport.chart.netMarginPercent"), line:true },
                             ]} />
                             <ResponsiveContainer width="100%" height={210}>
                                 <ComposedChart data={incomeData} barCategoryGap="30%"
@@ -442,21 +448,21 @@ export default function PLReportIndex({
                                     <YAxis yAxisId="left" tick={{ fontSize:10, fill:t.textMute }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
                                     <YAxis yAxisId="right" orientation="right" tick={{ fontSize:10, fill:"#E24B4A" }} axisLine={false} tickLine={false} tickFormatter={v => v+"%"} />
                                     <Tooltip content={<ChartTip />} cursor={{ fill:"rgba(148,163,184,0.06)" }} />
-                                    <Bar yAxisId="left" dataKey="Revenue"    fill="#AFA9EC" radius={[4,4,0,0]} maxBarSize={44} />
-                                    <Bar yAxisId="left" dataKey="Total cost" fill="#EF9F27" radius={[4,4,0,0]} maxBarSize={44} />
-                                    <Line yAxisId="right" type="monotone" dataKey="Net margin %" stroke="#E24B4A" strokeWidth={2} dot={{ r:4, fill:"#E24B4A", strokeWidth:0 }} activeDot={{ r:6, strokeWidth:0 }} />
+                                    <Bar yAxisId="left" dataKey="revenue" name={tr("plReport.chart.revenue")}    fill="#AFA9EC" radius={[4,4,0,0]} maxBarSize={44} />
+                                    <Bar yAxisId="left" dataKey="totalCost" name={tr("plReport.chart.totalCost")} fill="#EF9F27" radius={[4,4,0,0]} maxBarSize={44} />
+                                    <Line yAxisId="right" type="monotone" dataKey="netMarginPercent" name={tr("plReport.chart.netMarginPercent")} stroke="#E24B4A" strokeWidth={2} dot={{ r:4, fill:"#E24B4A", strokeWidth:0 }} activeDot={{ r:6, strokeWidth:0 }} />
                                 </ComposedChart>
                             </ResponsiveContainer>
                         </div>
                     </Card>
 
-                    <Card title="Period comparison" sub="This period vs previous" t={t}>
+                    <Card title={tr("plReport.cards.periodComparisonTitle")} sub={tr("plReport.cards.periodComparisonSub")} t={t}>
                         {[
-                            { label:"Revenue",      value:fmt(summary.total_revenue),      pct:summary.revenue_change_pct },
-                            { label:"Project cost", value:fmt(summary.total_project_cost), pct:summary.project_cost_change_pct },
-                            { label:"Overhead",     value:fmt(summary.total_overhead),     pct:summary.overhead_change_pct },
-                            { label:"Gross profit", value:fmt(summary.gross_profit),       pct:summary.gross_profit_change_pct, bold:true },
-                            { label:"Net profit",   value:fmt(summary.net_profit),         pct:summary.net_profit_change_pct,   bold:true },
+                            { label:tr("plReport.kpi.totalRevenue"),      value:fmtMoney(summary.total_revenue),      pct:summary.revenue_change_pct },
+                            { label:tr("plReport.kpi.projectCost"), value:fmtMoney(summary.total_project_cost), pct:summary.project_cost_change_pct },
+                            { label:tr("plReport.kpi.overheadCost"),     value:fmtMoney(summary.total_overhead),     pct:summary.overhead_change_pct },
+                            { label:tr("plReport.kpi.grossProfit"), value:fmtMoney(summary.gross_profit),       pct:summary.gross_profit_change_pct, bold:true },
+                            { label:tr("plReport.kpi.netProfit"),   value:fmtMoney(summary.net_profit),         pct:summary.net_profit_change_pct,   bold:true },
                         ].map((row,i,arr) => (
                             <div key={i} style={{
                                 display:"flex", justifyContent:"space-between", alignItems:"center",
@@ -480,16 +486,16 @@ export default function PLReportIndex({
                 {/* ── Row 3: Gross Profit Trend (3fr) + Expense Breakdown (1fr) ── */}
                 <div style={{ display:"grid", gridTemplateColumns:"3fr 1fr", gap:12 }}>
 
-                    <Card title="Gross profit trend"
-                        sub="Gross profit · Gross margin % — by month" t={t}>
+                    <Card title={tr("plReport.cards.grossProfitTrendTitle")}
+                        sub={tr("plReport.cards.grossProfitTrendSub")} t={t}>
                         <div className="pl-chart-wrap">
                             <ChartLegend items={[
-                                { color:"#534AB7", label:"Gross profit", line:true },
-                                { color:"#EF9F27", label:"Gross margin %", line:true },
+                                { color:"#534AB7", label:tr("plReport.kpi.grossProfit"), line:true },
+                                { color:"#EF9F27", label:tr("plReport.chart.grossMarginPercent"), line:true },
                             ]} />
                             {trendData.length === 0 ? (
                                 <div style={{ height:180, display:"flex", alignItems:"center", justifyContent:"center", color:t.textMute, fontSize:12 }}>
-                                    No data available
+                                    {tr('plReport.empty.noDataAvailable')}
                                 </div>
                             ) : trendData.length === 1 ? (
                                 <ResponsiveContainer width="100%" height={180}>
@@ -499,8 +505,8 @@ export default function PLReportIndex({
                                         <YAxis yAxisId="left" tick={{ fontSize:10, fill:t.textMute }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
                                         <YAxis yAxisId="right" orientation="right" tick={{ fontSize:10, fill:"#EF9F27" }} axisLine={false} tickLine={false} tickFormatter={v => v+"%"} />
                                         <Tooltip content={<ChartTip />} cursor={{ fill:"rgba(148,163,184,0.06)" }} />
-                                        <Bar yAxisId="left" dataKey="Gross profit" fill="#AFA9EC" radius={[4,4,0,0]} maxBarSize={60} />
-                                        <Bar yAxisId="right" dataKey="Margin %"    fill="#EF9F27" radius={[4,4,0,0]} maxBarSize={60} />
+                                        <Bar yAxisId="left" dataKey="grossProfit" name={tr("plReport.chart.grossProfit")} fill="#AFA9EC" radius={[4,4,0,0]} maxBarSize={60} />
+                                        <Bar yAxisId="right" dataKey="marginPercent" name={tr("plReport.chart.marginPercent")}    fill="#EF9F27" radius={[4,4,0,0]} maxBarSize={60} />
                                     </ComposedChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -511,16 +517,16 @@ export default function PLReportIndex({
                                         <YAxis yAxisId="left" tick={{ fontSize:10, fill:t.textMute }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
                                         <YAxis yAxisId="right" orientation="right" tick={{ fontSize:10, fill:"#EF9F27" }} axisLine={false} tickLine={false} tickFormatter={v => v+"%"} />
                                         <Tooltip content={<ChartTip />} cursor={{ fill:"rgba(148,163,184,0.06)" }} />
-                                        <Line yAxisId="left" type="monotone" dataKey="Gross profit" stroke="#534AB7" strokeWidth={2.5} dot={{ r:4, fill:"#534AB7", strokeWidth:0 }} activeDot={{ r:6, strokeWidth:0 }} />
-                                        <Line yAxisId="right" type="monotone" dataKey="Margin %" stroke="#EF9F27" strokeWidth={2} strokeDasharray="5 3" dot={{ r:3, fill:"#EF9F27", strokeWidth:0 }} activeDot={{ r:5, strokeWidth:0 }} />
+                                        <Line yAxisId="left" type="monotone" dataKey="grossProfit" name={tr("plReport.chart.grossProfit")} stroke="#534AB7" strokeWidth={2.5} dot={{ r:4, fill:"#534AB7", strokeWidth:0 }} activeDot={{ r:6, strokeWidth:0 }} />
+                                        <Line yAxisId="right" type="monotone" dataKey="marginPercent" name={tr("plReport.chart.marginPercent")} stroke="#EF9F27" strokeWidth={2} strokeDasharray="5 3" dot={{ r:3, fill:"#EF9F27", strokeWidth:0 }} activeDot={{ r:5, strokeWidth:0 }} />
                                     </ComposedChart>
                                 </ResponsiveContainer>
                             )}
                         </div>
                     </Card>
 
-                    <Card title="Expense breakdown"
-                        sub="Salary · OT · Leave · Overhead" t={t}>
+                    <Card title={tr("plReport.cards.expenseBreakdownTitle")}
+                        sub={tr("plReport.cards.expenseBreakdownSub")} t={t}>
                         <div className="pl-chart-wrap">
                             <ResponsiveContainer width="100%" height={160}>
                                 <PieChart style={{ outline:"none", userSelect:"none" }}>
@@ -530,7 +536,7 @@ export default function PLReportIndex({
                                         {pieData.map((d,i) => <Cell key={i} fill={d.color} />)}
                                     </Pie>
                                     <Tooltip
-                                        formatter={v => [fmt(v),""]}
+                                        formatter={v => [fmtMoney(v),""]}
                                         contentStyle={{ background:"#1e293b", border:"1px solid rgba(148,163,184,0.2)", borderRadius:8, fontSize:11, color:"#f1f5f9" }}
                                     />
                                 </PieChart>
@@ -544,7 +550,7 @@ export default function PLReportIndex({
                                             <span style={{ fontSize:10, color:t.textMute }}>{item.label}</span>
                                         </div>
                                         <div style={{ textAlign:"right" }}>
-                                            <div style={{ fontSize:11, fontWeight:500, color:t.text }}>{fmt(item.value)}</div>
+                                            <div style={{ fontSize:11, fontWeight:500, color:t.text }}>{fmtMoney(item.value)}</div>
                                             <div style={{ fontSize:9, color:t.textMute }}>
                                                 {expenseTotal > 0 ? Math.round((item.value/expenseTotal)*100) : 0}%
                                             </div>
@@ -559,10 +565,10 @@ export default function PLReportIndex({
                 {/* ── Row 4: Projects + Departments ── */}
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
 
-                    <Card title="Revenue by project"
-                        sub="Click any project to view full detail breakdown" t={t}>
+                    <Card title={tr("plReport.cards.revenueByProjectTitle")}
+                        sub={tr("plReport.cards.revenueByProjectSub")} t={t}>
                         {projects.length === 0 ? (
-                            <div style={{ textAlign:"center", color:t.textMute, fontSize:12, padding:"24px 0" }}>No projects</div>
+                            <div style={{ textAlign:"center", color:t.textMute, fontSize:12, padding:"24px 0" }}>{tr('plReport.empty.noProjects')}</div>
                         ) : (
                             <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
                                 {projects.map(p => {
@@ -601,7 +607,7 @@ export default function PLReportIndex({
                                                         }}>{isP ? "+" : ""}{p.margin_pct}%</span>
                                                     )}
                                                 </div>
-                                                <span style={{ fontSize:13, fontWeight:600, color:"#534AB7" }}>{fmt(p.revenue, p.currency)}</span>
+                                                <span style={{ fontSize:13, fontWeight:600, color:"#534AB7" }}>{fmtMoney(p.revenue, p.currency)}</span>
                                             </div>
                                             <div style={{ height:7, borderRadius:99, background:t.soft, overflow:"hidden", border:`0.5px solid ${t.border}` }}>
                                                 <div style={{
@@ -613,11 +619,11 @@ export default function PLReportIndex({
                                                 }} />
                                             </div>
                                             <div style={{ display:"flex", gap:12, marginTop:5, fontSize:10, color:t.textMute }}>
-                                                <span>Cost {fmt(p.total_cost, p.currency)}</span>
+                                                <span>{tr('plReport.labels.cost')} {fmtMoney(p.total_cost, p.currency)}</span>
                                                 <span style={{ color:isP ? t.success : t.danger, fontWeight:600 }}>
-                                                    {isP ? "+" : ""}{fmt(p.profit, p.currency)}
+                                                    {isP ? "+" : ""}{fmtMoney(p.profit, p.currency)}
                                                 </span>
-                                                {p.member_count > 0 && <span>{p.member_count} member{p.member_count > 1 ? "s" : ""}</span>}
+                                                {p.member_count > 0 && <span>{p.member_count} {p.member_count > 1 ? tr("plReport.units.members") : tr("plReport.units.member")}</span>}
                                             </div>
                                         </div>
                                     );
@@ -626,10 +632,10 @@ export default function PLReportIndex({
                         )}
                     </Card>
 
-                    <Card title="Overhead by department"
-                        sub="Non-project staff salary cost this period" t={t}>
+                    <Card title={tr("plReport.cards.overheadByDepartmentTitle")}
+                        sub={tr("plReport.cards.overheadByDepartmentSub")} t={t}>
                         {deptList.length === 0 ? (
-                            <div style={{ textAlign:"center", color:t.textMute, fontSize:12, padding:"24px 0" }}>No overhead data</div>
+                            <div style={{ textAlign:"center", color:t.textMute, fontSize:12, padding:"24px 0" }}>{tr('plReport.empty.noOverheadData')}</div>
                         ) : (
                             <>
                                 <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
@@ -641,9 +647,9 @@ export default function PLReportIndex({
                                                 <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
                                                     <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                                                         <div style={{ width:10, height:10, borderRadius:3, background:color, flexShrink:0 }} />
-                                                        <span style={{ fontSize:12, fontWeight:500, color:t.text }}>{dept}</span>
+                                                        <span style={{ fontSize:12, fontWeight:500, color:t.text }}>{deptName(tr, dept)}</span>
                                                     </div>
-                                                    <span style={{ fontSize:12, fontWeight:600, color:t.text }}>{fmt(amount)}</span>
+                                                    <span style={{ fontSize:12, fontWeight:600, color:t.text }}>{fmtMoney(amount)}</span>
                                                 </div>
                                                 <div style={{ height:7, borderRadius:99, background:t.soft, overflow:"hidden", border:`0.5px solid ${t.border}` }}>
                                                     <div style={{
@@ -657,8 +663,8 @@ export default function PLReportIndex({
                                     })}
                                 </div>
                                 <div style={{ borderTop:`0.5px solid ${t.border}`, marginTop:16, paddingTop:12, display:"flex", justifyContent:"space-between", fontSize:12 }}>
-                                    <span style={{ color:t.textMute }}>Total overhead</span>
-                                    <span style={{ fontWeight:600, color:t.text }}>{fmt(summary.total_overhead)}</span>
+                                    <span style={{ color:t.textMute }}>{tr('plReport.labels.totalOverhead')}</span>
+                                    <span style={{ fontWeight:600, color:t.text }}>{fmtMoney(summary.total_overhead)}</span>
                                 </div>
                             </>
                         )}

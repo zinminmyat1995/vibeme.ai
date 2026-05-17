@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 function useReactiveTheme() {
     const getDark = () => {
@@ -46,18 +47,19 @@ function getTheme(dark) {
 }
 
 const STATUS_CFG = {
-    pending:   { label:'Pending',   color:'#d97706', bg:'#fef3c7', bgDark:'rgba(217,119,6,0.18)',   icon:'⏳' },
-    sent:      { label:'Sent',      color:'#059669', bg:'#d1fae5', bgDark:'rgba(5,150,105,0.18)',   icon:'✓' },
-    dismissed: { label:'Dismissed', color:'#6b7280', bg:'#f3f4f6', bgDark:'rgba(107,114,128,0.16)', icon:'—' },
+    pending:   { labelKey:'hrAlerts.status.pending', label:'Pending',   color:'#d97706', bg:'#fef3c7', bgDark:'rgba(217,119,6,0.18)',   icon:'⏳' },
+    sent:      { labelKey:'hrAlerts.status.sent', label:'Sent',      color:'#059669', bg:'#d1fae5', bgDark:'rgba(5,150,105,0.18)',   icon:'✓' },
+    dismissed: { labelKey:'hrAlerts.status.dismissed', label:'Dismissed', color:'#6b7280', bg:'#f3f4f6', bgDark:'rgba(107,114,128,0.16)', icon:'—' },
 };
 const TYPE_CFG = {
-    late:   { label:'Late Alert',   color:'#f59e0b', bg:'#fef3c7', bgDark:'rgba(245,158,11,0.18)', icon:'⏰', accent:'#f59e0b' },
-    absent: { label:'Absent Alert', color:'#ef4444', bg:'#fee2e2', bgDark:'rgba(239,68,68,0.18)',  icon:'📅', accent:'#ef4444' },
+    late:   { labelKey:'hrAlerts.types.lateAlert', label:'Late Alert',   color:'#f59e0b', bg:'#fef3c7', bgDark:'rgba(245,158,11,0.18)', icon:'⏰', accent:'#f59e0b' },
+    absent: { labelKey:'hrAlerts.types.absentAlert', label:'Absent Alert', color:'#ef4444', bg:'#fee2e2', bgDark:'rgba(239,68,68,0.18)',  icon:'📅', accent:'#ef4444' },
 };
 
-function fmtMonth(m, y) {
+function fmtMonth(m, y, tr) {
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${months[(m||1)-1]} ${y}`;
+    const monthKey = months[(m||1)-1];
+    return `${tr ? tr(`hrAlerts.monthsShort.${monthKey}`) : monthKey} ${y}`;
 }
 
 function Avatar({ name, avatarUrl, size=32 }) {
@@ -71,13 +73,13 @@ function Avatar({ name, avatarUrl, size=32 }) {
 }
 
 // ── Summary Cards (Leave page style) ──────────────────────────
-function AlertSummaryCards({ stats, dark, theme }) {
+function AlertSummaryCards({ stats, dark, theme, tr }) {
     const cards = [
-        { label:'Pending Alerts',    value:stats.pending,   icon:'⏳', color:'#f59e0b', soft:dark?'rgba(245,158,11,0.14)':'#fef3c7',   border:dark?'rgba(245,158,11,0.25)':'#fde68a' },
-        { label:'Late Warnings',     value:stats.late,      icon:'⏰', color:'#f87171', soft:dark?'rgba(248,113,113,0.14)':'#fee2e2', border:dark?'rgba(248,113,113,0.25)':'#fca5a5' },
-        { label:'Absent Warnings',   value:stats.absent,    icon:'📅', color:'#ef4444', soft:dark?'rgba(239,68,68,0.14)':'#fee2e2',   border:dark?'rgba(239,68,68,0.25)':'#fca5a5' },
-        { label:'Warnings Sent',     value:stats.sent,      icon:'📨', color:'#10b981', soft:dark?'rgba(16,185,129,0.14)':'#d1fae5',  border:dark?'rgba(16,185,129,0.25)':'#6ee7b7' },
-        { label:'Dismissed',         value:stats.dismissed, icon:'—',  color:'#6b7280', soft:dark?'rgba(107,114,128,0.14)':'#f3f4f6', border:dark?'rgba(107,114,128,0.25)':'#d1d5db' },
+        { label:tr('hrAlerts.summary.pendingAlerts'),    value:stats.pending,   icon:'⏳', color:'#f59e0b', soft:dark?'rgba(245,158,11,0.14)':'#fef3c7',   border:dark?'rgba(245,158,11,0.25)':'#fde68a' },
+        { label:tr('hrAlerts.summary.lateWarnings'),     value:stats.late,      icon:'⏰', color:'#f87171', soft:dark?'rgba(248,113,113,0.14)':'#fee2e2', border:dark?'rgba(248,113,113,0.25)':'#fca5a5' },
+        { label:tr('hrAlerts.summary.absentWarnings'),   value:stats.absent,    icon:'📅', color:'#ef4444', soft:dark?'rgba(239,68,68,0.14)':'#fee2e2',   border:dark?'rgba(239,68,68,0.25)':'#fca5a5' },
+        { label:tr('hrAlerts.summary.warningsSent'),     value:stats.sent,      icon:'📨', color:'#10b981', soft:dark?'rgba(16,185,129,0.14)':'#d1fae5',  border:dark?'rgba(16,185,129,0.25)':'#6ee7b7' },
+        { label:tr('hrAlerts.summary.dismissed'),         value:stats.dismissed, icon:'—',  color:'#6b7280', soft:dark?'rgba(107,114,128,0.14)':'#f3f4f6', border:dark?'rgba(107,114,128,0.25)':'#d1d5db' },
     ];
     return (
         <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
@@ -110,7 +112,7 @@ function AlertSummaryCards({ stats, dark, theme }) {
 }
 
 // ── Alert Row ──────────────────────────────────────────────────
-function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, setExpandedId }) {
+function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, setExpandedId, tr }) {
     const sc = STATUS_CFG[alert.status] || STATUS_CFG.pending;
     const tc = TYPE_CFG[alert.type]     || TYPE_CFG.late;
     const isPending  = alert.status === 'pending';
@@ -129,10 +131,10 @@ function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, s
                     {/* Row 1 */}
                     <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:10 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                            <span style={{ fontSize:13, fontWeight:700, color:theme.text }}>{tc.icon} {tc.label}</span>
-                            <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 8px', background:dark?sc.bgDark:sc.bg, color:sc.color }}>{sc.icon} {sc.label}</span>
+                            <span style={{ fontSize:13, fontWeight:700, color:theme.text }}>{tc.icon} {tr(tc.labelKey)}</span>
+                            <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 8px', background:dark?sc.bgDark:sc.bg, color:sc.color }}>{sc.icon} {tr(sc.labelKey)}</span>
                             <span style={{ fontSize:10, fontWeight:700, borderRadius:99, padding:'2px 8px', background:dark?tc.bgDark:tc.bg, color:tc.color }}>
-                                {alert.type==='late' ? `${alert.trigger_count}x late` : `${alert.trigger_count} days absent`}
+                                {alert.type==='late' ? `${alert.trigger_count}x ${tr('hrAlerts.labels.late')}` : `${alert.trigger_count} ${tr('hrAlerts.units.days')} ${tr('hrAlerts.labels.absent')}`}
                             </span>
                         </div>
 
@@ -140,7 +142,7 @@ function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, s
                         <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
                             {alert.status==='sent' && alert.actioned_by_user && (
                                 <div style={{ textAlign:'right', lineHeight:1.5 }}>
-                                    <div style={{ fontSize:10, color:theme.textMute }}>Sent by</div>
+                                    <div style={{ fontSize:10, color:theme.textMute }}>{tr('hrAlerts.labels.sentBy')}</div>
                                     <div style={{ fontSize:12, fontWeight:800, color:theme.success }}>{alert.actioned_by_user.name}</div>
                                 </div>
                             )}
@@ -158,7 +160,7 @@ function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, s
                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                             <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                                         </svg>
-                                        Send Warning
+                                        {tr('hrAlerts.actions.sendWarning')}
                                     </button>
                                     <button onClick={()=>onDismiss(alert)} style={{
                                         background: dark?'linear-gradient(135deg,rgba(107,114,128,0.25),rgba(107,114,128,0.15))':'linear-gradient(135deg,#f3f4f6,#e5e7eb)',
@@ -174,7 +176,7 @@ function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, s
                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                                             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                                         </svg>
-                                        Dismiss
+                                        {tr('hrAlerts.actions.dismiss')}
                                     </button>
                                 </div>
                             )}
@@ -195,8 +197,8 @@ function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, s
                     <div style={{ marginTop:8 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                             <span style={{ display:'inline-flex', alignItems:'baseline', gap:5 }}>
-                                <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'.05em', color:theme.textMute }}>Period</span>
-                                <span style={{ fontSize:12, fontWeight:700, color:theme.text }}>{fmtMonth(alert.alert_month, alert.alert_year)}</span>
+                                <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'.05em', color:theme.textMute }}>{tr('hrAlerts.labels.period')}</span>
+                                <span style={{ fontSize:12, fontWeight:700, color:theme.text }}>{fmtMonth(alert.alert_month, alert.alert_year, tr)}</span>
                             </span>
                             {alert.letter_draft && (
                                 <button onClick={()=>setExpandedId(isExpanded ? null : alert.id)} style={{
@@ -214,7 +216,7 @@ function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, s
                                             : <polyline points="6 9 12 15 18 9"/>
                                         }
                                     </svg>
-                                    {isExpanded ? 'Hide Letter' : 'View Letter'}
+                                    {isExpanded ? tr('hrAlerts.actions.hideLetter') : tr('hrAlerts.actions.viewLetter')}
                                 </button>
                             )}
                         </div>
@@ -239,7 +241,7 @@ function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, s
                                     marginBottom:6,
                                 }}>
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={tc.accent} strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                    <span style={{ fontSize:10, fontWeight:800, textTransform:'uppercase', letterSpacing:'.07em', color:tc.accent }}>Warning Letter</span>
+                                    <span style={{ fontSize:10, fontWeight:800, textTransform:'uppercase', letterSpacing:'.07em', color:tc.accent }}>{tr('hrAlerts.labels.warningLetter')}</span>
                                 </div>
                                 <div style={{
                                     borderRadius:10,
@@ -259,7 +261,7 @@ function AlertRow({ alert, dark, theme, onSend, onDismiss, isLast, expandedId, s
 }
 
 // ── Send Modal ─────────────────────────────────────────────────
-function SendModal({ alert, dark, theme, loading, onCancel, onConfirm }) {
+function SendModal({ alert, dark, theme, loading, onCancel, onConfirm, tr }) {
     const [letter, setLetter] = useState('');
 
     useEffect(() => {
@@ -278,8 +280,8 @@ function SendModal({ alert, dark, theme, loading, onCancel, onConfirm }) {
                         <div style={{ display:'flex', gap:12, alignItems:'center' }}>
                             <div style={{ width:40, height:40, borderRadius:12, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>⚠️</div>
                             <div>
-                                <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', marginBottom:2 }}>HR Alert</div>
-                                <div style={{ fontSize:16, fontWeight:900, color:'#fff' }}>Send Warning Letter</div>
+                                <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', marginBottom:2 }}>{tr('hrAlerts.pageTitle')}</div>
+                                <div style={{ fontSize:16, fontWeight:900, color:'#fff' }}>{tr('hrAlerts.modal.sendWarningLetter')}</div>
                             </div>
                         </div>
                         <button onClick={onCancel} style={{ width:30, height:30, borderRadius:10, background:'rgba(255,255,255,0.14)', border:'none', cursor:'pointer', fontSize:18, color:'rgba(255,255,255,0.8)', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
@@ -296,27 +298,27 @@ function SendModal({ alert, dark, theme, loading, onCancel, onConfirm }) {
                         </div>
                         <div style={{ display:'flex', gap:8 }}>
                             <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:99, background:dark?tc.bgDark:tc.bg, color:tc.color }}>
-                                {tc.icon} {alert.type==='late' ? `Late ${alert.trigger_count}x` : `Absent ${alert.trigger_count} days`}
+                                {tc.icon} {alert.type==='late' ? `${tr('hrAlerts.labels.late')} ${alert.trigger_count}x` : `${tr('hrAlerts.labels.absent')} ${alert.trigger_count} ${tr('hrAlerts.units.days')}`}
                             </span>
                             <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:99, background:dark?'rgba(255,255,255,0.07)':'#f1f5f9', color:theme.textMute }}>
-                                {fmtMonth(alert.alert_month, alert.alert_year)}
+                                {fmtMonth(alert.alert_month, alert.alert_year, tr)}
                             </span>
                         </div>
                     </div>
                     <div>
-                        <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.06em', marginBottom:8 }}>✏️ Edit Warning Letter</div>
+                        <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.06em', marginBottom:8 }}>✏️ {tr('hrAlerts.modal.editWarningLetter')}</div>
                         <textarea value={letter} onChange={e=>setLetter(e.target.value)} rows={10}
                             style={{ width:'100%', padding:'12px 14px', borderRadius:12, border:`1.5px solid ${theme.inputBorder}`, background:dark?theme.inputBg:'#fff', color:theme.text, fontSize:12.5, lineHeight:1.65, fontFamily:'inherit', resize:'vertical', outline:'none', boxSizing:'border-box' }}
                             onFocus={e=>e.target.style.borderColor='#7c3aed'}
                             onBlur={e=>e.target.style.borderColor=theme.inputBorder}/>
-                        <div style={{ fontSize:11, color:theme.textMute, marginTop:6 }}>💡 AI-generated draft — review before sending</div>
+                        <div style={{ fontSize:11, color:theme.textMute, marginTop:6 }}>💡 {tr('hrAlerts.modal.aiDraftNote')}</div>
                     </div>
                 </div>
                 <div style={{ borderTop:`1px solid ${theme.border}`, padding:'14px 24px', display:'flex', justifyContent:'flex-end', gap:10, flexShrink:0 }}>
-                    <button onClick={onCancel} disabled={loading} style={{ background:dark?'rgba(255,255,255,0.07)':'#f3f4f6', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 18px', fontSize:13, fontWeight:600, cursor:'pointer', color:theme.textSoft }}>Cancel</button>
+                    <button onClick={onCancel} disabled={loading} style={{ background:dark?'rgba(255,255,255,0.07)':'#f3f4f6', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 18px', fontSize:13, fontWeight:600, cursor:'pointer', color:theme.textSoft }}>{tr('hrAlerts.actions.cancel')}</button>
                     <button onClick={()=>onConfirm(letter)} disabled={loading||!letter.trim()} style={{ background:'linear-gradient(135deg,#ea580c,#f97316)', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:800, color:'#fff', cursor:(loading||!letter.trim())?'not-allowed':'pointer', opacity:(loading||!letter.trim())?.6:1, display:'flex', alignItems:'center', gap:8, boxShadow:'0 4px 14px rgba(234,88,12,0.35)' }}>
                         {loading && <span style={{ width:13, height:13, border:'2px solid rgba(255,255,255,0.3)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'haSpin .7s linear infinite' }}/>}
-                        {loading ? 'Sending...' : '📨 Send Warning'}
+                        {loading ? tr('hrAlerts.actions.sending') : `📨 ${tr('hrAlerts.actions.sendWarning')}`}
                     </button>
                 </div>
             </div>
@@ -325,7 +327,7 @@ function SendModal({ alert, dark, theme, loading, onCancel, onConfirm }) {
     );
 }
 
-function DismissModal({ alert, dark, theme, loading, onCancel, onConfirm }) {
+function DismissModal({ alert, dark, theme, loading, onCancel, onConfirm, tr }) {
     if (!alert) return null;
     const tc = TYPE_CFG[alert?.type] || TYPE_CFG.late;
     return createPortal(
@@ -336,21 +338,21 @@ function DismissModal({ alert, dark, theme, loading, onCancel, onConfirm }) {
                     <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
                         <div style={{ width:44, height:44, borderRadius:14, background:dark?'rgba(107,114,128,0.16)':'#f3f4f6', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 }}>—</div>
                         <div>
-                            <div style={{ fontSize:15, fontWeight:900, color:theme.text }}>Dismiss Alert</div>
-                            <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>No warning will be sent</div>
+                            <div style={{ fontSize:15, fontWeight:900, color:theme.text }}>{tr('hrAlerts.modal.dismissAlert')}</div>
+                            <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>{tr('hrAlerts.modal.noWarningWillBeSent')}</div>
                         </div>
                     </div>
                     <div style={{ background:dark?'rgba(255,255,255,0.04)':'#f9fafb', border:`1px solid ${theme.border}`, borderRadius:12, padding:'12px 14px', fontSize:13, color:theme.textSoft }}>
                         <strong style={{ color:theme.text }}>{alert.user?.name}</strong>
                         {' — '}
-                        <span style={{ color:tc.color, fontWeight:600 }}>{alert.type==='late' ? `Late ${alert.trigger_count}x` : `Absent ${alert.trigger_count} days`}</span>
-                        {' · '}{fmtMonth(alert.alert_month, alert.alert_year)}
+                        <span style={{ color:tc.color, fontWeight:600 }}>{alert.type==='late' ? `${tr('hrAlerts.labels.late')} ${alert.trigger_count}x` : `${tr('hrAlerts.labels.absent')} ${alert.trigger_count} ${tr('hrAlerts.units.days')}`}</span>
+                        {' · '}{fmtMonth(alert.alert_month, alert.alert_year, tr)}
                     </div>
                 </div>
                 <div style={{ display:'flex', justifyContent:'flex-end', gap:10, padding:'0 24px 22px' }}>
-                    <button onClick={onCancel} disabled={loading} style={{ background:dark?'rgba(255,255,255,0.07)':'#f3f4f6', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 18px', fontSize:13, fontWeight:600, cursor:'pointer', color:theme.textSoft }}>Cancel</button>
+                    <button onClick={onCancel} disabled={loading} style={{ background:dark?'rgba(255,255,255,0.07)':'#f3f4f6', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 18px', fontSize:13, fontWeight:600, cursor:'pointer', color:theme.textSoft }}>{tr('hrAlerts.actions.cancel')}</button>
                     <button onClick={onConfirm} disabled={loading} style={{ background:dark?'rgba(107,114,128,0.2)':'#6b7280', border:'none', borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:700, cursor:'pointer', color:'#fff', opacity:loading?.6:1 }}>
-                        {loading ? 'Dismissing...' : 'Dismiss'}
+                        {loading ? tr('hrAlerts.actions.dismissing') : tr('hrAlerts.actions.dismiss')}
                     </button>
                 </div>
             </div>
@@ -363,6 +365,7 @@ function DismissModal({ alert, dark, theme, loading, onCancel, onConfirm }) {
 //  MAIN PAGE
 // ═══════════════════════════════════════════════════════════════
 export default function HrAlertsIndex({ alerts, statusFilter, stats }) {
+    const { t: tr } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -416,15 +419,15 @@ export default function HrAlertsIndex({ alerts, statusFilter, stats }) {
     const alertList = alerts?.data || [];
 
     const tabs = [
-        { key:'pending',   label:'Pending',   count:stats?.pending,   alert:stats?.pending > 0 },
-        { key:'sent',      label:'Sent',       count:stats?.sent,      alert:false },
-        { key:'dismissed', label:'Dismissed',  count:stats?.dismissed, alert:false },
-        { key:'all',       label:'All',        count:stats?.total,     alert:false },
+        { key:'pending',   label:tr('hrAlerts.status.pending'),   count:stats?.pending,   alert:stats?.pending > 0 },
+        { key:'sent',      label:tr('hrAlerts.status.sent'),       count:stats?.sent,      alert:false },
+        { key:'dismissed', label:tr('hrAlerts.status.dismissed'),  count:stats?.dismissed, alert:false },
+        { key:'all',       label:tr('hrAlerts.status.all'),        count:stats?.total,     alert:false },
     ];
 
     return (
-        <AppLayout title="HR Alerts">
-            <Head title="HR Alerts"/>
+        <AppLayout title={tr('hrAlerts.pageTitle')}>
+            <Head title={tr('hrAlerts.pageTitle')}/>
             <style>{`
                 @keyframes haPopIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
                 @keyframes haSpin  { to{transform:rotate(360deg)} }
@@ -435,12 +438,12 @@ export default function HrAlertsIndex({ alerts, statusFilter, stats }) {
             <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
 
                 {/* ── Summary Cards ── */}
-                <AlertSummaryCards stats={stats || {pending:0,late:0,absent:0,sent:0,dismissed:0,total:0}} dark={dark} theme={theme}/>
+                <AlertSummaryCards stats={stats || {pending:0,late:0,absent:0,sent:0,dismissed:0,total:0}} dark={dark} theme={theme} tr={tr}/>
 
                 {/* ── Header row ── */}
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                     <p style={{ fontSize:12, color:theme.textMute, margin:0 }}>
-                        AI-generated warning letters for attendance violations
+                        {tr('hrAlerts.description')}
                     </p>
                     <button onClick={handleManualRun} disabled={runLoading} style={{
                         height:38, padding:'0 16px', borderRadius:10,
@@ -458,7 +461,7 @@ export default function HrAlertsIndex({ alerts, statusFilter, stats }) {
                             <polyline points="23 4 23 10 17 10"/>
                             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                         </svg>
-                        {runLoading ? 'Checking...' : 'Run Check Now'}
+                        {runLoading ? tr('hrAlerts.actions.checking') : tr('hrAlerts.actions.runCheckNow')}
                     </button>
                 </div>
 
@@ -494,10 +497,10 @@ export default function HrAlertsIndex({ alerts, statusFilter, stats }) {
                         <div style={{ padding:'56px 24px', textAlign:'center' }}>
                             <div style={{ fontSize:36, marginBottom:12 }}>🎉</div>
                             <div style={{ fontSize:14, fontWeight:600, color:theme.textSoft, marginBottom:4 }}>
-                                {activeStatus==='pending' ? 'No pending alerts' : 'No alerts found'}
+                                {activeStatus==='pending' ? tr('hrAlerts.empty.noPendingAlerts') : tr('hrAlerts.empty.noAlertsFound')}
                             </div>
                             <div style={{ fontSize:12, color:theme.textMute }}>
-                                {activeStatus==='pending' ? 'All attendance within thresholds!' : 'Try a different filter.'}
+                                {activeStatus==='pending' ? tr('hrAlerts.empty.allAttendanceWithinThresholds') : tr('hrAlerts.empty.tryDifferentFilter')}
                             </div>
                         </div>
                     ) : alertList.map((alert, idx) => (
@@ -506,6 +509,7 @@ export default function HrAlertsIndex({ alerts, statusFilter, stats }) {
                             onSend={a=>setSendModal(a)} onDismiss={a=>setDismissModal(a)}
                             isLast={idx===alertList.length-1}
                             expandedId={expandedId} setExpandedId={setExpandedId}
+                            tr={tr}
                         />
                     ))}
 
@@ -521,8 +525,8 @@ export default function HrAlertsIndex({ alerts, statusFilter, stats }) {
                 </div>
             </div>
 
-            <SendModal    alert={sendModal}    dark={dark} theme={theme} loading={actionLoading} onCancel={()=>setSendModal(null)}    onConfirm={handleSend}/>
-            <DismissModal alert={dismissModal} dark={dark} theme={theme} loading={actionLoading} onCancel={()=>setDismissModal(null)} onConfirm={handleDismiss}/>
+            <SendModal    alert={sendModal}    dark={dark} theme={theme} loading={actionLoading} onCancel={()=>setSendModal(null)}    onConfirm={handleSend} tr={tr}/>
+            <DismissModal alert={dismissModal} dark={dark} theme={theme} loading={actionLoading} onCancel={()=>setDismissModal(null)} onConfirm={handleDismiss} tr={tr}/>
         </AppLayout>
     );
 }

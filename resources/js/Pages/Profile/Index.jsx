@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ── Theme (matches existing app pattern) ──────────────────────
 function useReactiveTheme() {
@@ -101,7 +102,7 @@ function fmtAllowance(value, type) {
     return Number(value).toLocaleString('en-US');
 }
 
-function tenure(joinedDate) {
+function tenure(joinedDate, t) {
     if (!joinedDate) return null;
     const start = new Date(joinedDate);
     const now   = new Date();
@@ -122,23 +123,23 @@ function tenure(joinedDate) {
 
     // year ထိရှိရင် → year + month + day
     if (years > 0) {
-        const parts = [`${years}Year`];
-        if (months > 0) parts.push(`${months}Month`);
-        if (days   > 0) parts.push(`${days}Day`);
+        const parts = [`${years}${t('profile.tenure.year')}`];
+        if (months > 0) parts.push(`${months}${t('profile.tenure.month')}`);
+        if (days   > 0) parts.push(`${days}${t('profile.tenure.day')}`);
         return parts.join(' ');
     }
 
     // month ထိရှိရင် → month + day
     if (months > 0) {
-        const parts = [`${months}Month`];
-        if (days > 0) parts.push(`${days}Day`);
+        const parts = [`${months}${t('profile.tenure.month')}`];
+        if (days > 0) parts.push(`${days}${t('profile.tenure.day')}`);
         return parts.join(' ');
     }
 
     // day ထိရင် → day ပဲ
-    if (days > 0) return `${days}Day`;
+    if (days > 0) return `${days}${t('profile.tenure.day')}`;
 
-    return 'Today';
+    return t('profile.tenure.today');
 }
 
 const ROLE_COLORS = {
@@ -150,17 +151,17 @@ const ROLE_COLORS = {
 };
 
 const EMP_TYPE_CFG = {
-    probation:  { label: 'Probation',  color: '#d97706', bg: '#fef3c7', bgD: 'rgba(217,119,6,0.16)' },
-    permanent:  { label: 'Permanent',  color: '#059669', bg: '#ecfdf5', bgD: 'rgba(5,150,105,0.16)' },
-    contract:   { label: 'Contract',   color: '#2563eb', bg: '#dbeafe', bgD: 'rgba(37,99,235,0.16)'  },
+    probation:  { label: 'profile.employmentTypes.probation',  color: '#d97706', bg: '#fef3c7', bgD: 'rgba(217,119,6,0.16)' },
+    permanent:  { label: 'profile.employmentTypes.permanent',  color: '#059669', bg: '#ecfdf5', bgD: 'rgba(5,150,105,0.16)' },
+    contract:   { label: 'profile.employmentTypes.contract',   color: '#2563eb', bg: '#dbeafe', bgD: 'rgba(37,99,235,0.16)'  },
 };
 
 const COUNTRY_NAMES = {
-    myanmar:  { flag: '🇲🇲', name: 'Myanmar'  },
-    vietnam:  { flag: '🇻🇳', name: 'Vietnam'  },
-    korea:    { flag: '🇰🇷', name: 'Korea'    },
-    cambodia: { flag: '🇰🇭', name: 'Cambodia' },
-    japan:    { flag: '🇯🇵', name: 'Japan'    },
+    myanmar:  { flag: '🇲🇲', name: 'profile.countries.myanmar'  },
+    vietnam:  { flag: '🇻🇳', name: 'profile.countries.vietnam'  },
+    korea:    { flag: '🇰🇷', name: 'profile.countries.korea'    },
+    cambodia: { flag: '🇰🇭', name: 'profile.countries.cambodia' },
+    japan:    { flag: '🇯🇵', name: 'profile.countries.japan'    },
 };
 
 // ── Section Card ───────────────────────────────────────────────
@@ -193,7 +194,7 @@ function SectionCard({ title, icon, children, theme, dark }) {
 }
 
 // ── Info Row ───────────────────────────────────────────────────
-function InfoRow({ label, value, theme, secret, onToggle, revealed, extra }) {
+function InfoRow({ label, value, theme, secret, onToggle, revealed, extra, t }) {
     const chipLabel = {
         fontSize: 10, fontWeight: 700,
         textTransform: 'uppercase', letterSpacing: '0.06em',
@@ -217,7 +218,7 @@ function InfoRow({ label, value, theme, secret, onToggle, revealed, extra }) {
                 {secret && (
                     <button
                         onClick={onToggle}
-                        title={revealed ? 'Hide' : 'Show'}
+                        title={revealed ? t('profile.actions.hide') : t('profile.actions.show')}
                         style={{
                             background: 'none', border: 'none', cursor: 'pointer',
                             color: theme.textMute, padding: '2px 4px', borderRadius: 6,
@@ -292,6 +293,8 @@ function Avatar({ name, url, size = 90, theme }) {
 
 // ── Main Page ──────────────────────────────────────────────────
 export default function ProfileIndex({ profileUser, payrollProfile }) {
+    const { t } = useTranslation();
+
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -301,11 +304,11 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
     const roleCfg   = ROLE_COLORS[profileUser.role?.name] || ROLE_COLORS.employee;
     const empCfg    = EMP_TYPE_CFG[profileUser.employment_type] || EMP_TYPE_CFG.permanent;
     const countryCfg = COUNTRY_NAMES[profileUser.country] || { flag: '🌐', name: profileUser.country || '' };
-    const tenureStr = tenure(profileUser.joined_date);
+    const tenureStr = tenure(profileUser.joined_date, t);
 
     return (
-        <AppLayout title="My Profile">
-            <Head title="My Profile" />
+        <AppLayout title={t('profile.pageTitle')}>
+            <Head title={t('profile.pageTitle')} />
             <style>{`
                 @keyframes profFadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
             `}</style>
@@ -356,7 +359,7 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                     borderRadius: 99, padding: '3px 10px',
                                     textTransform: 'uppercase', letterSpacing: '0.5px',
                                 }}>
-                                    {profileUser.role?.display_name || profileUser.role?.name || 'Employee'}
+                                    {profileUser.role?.display_name || profileUser.role?.name || t('profile.fallback.employee')}
                                 </span>
                                 {/* Employment type */}
                                 <span style={{
@@ -365,7 +368,7 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                     background: dark ? empCfg.bgD : empCfg.bg,
                                     borderRadius: 99, padding: '3px 10px',
                                 }}>
-                                    {empCfg.label}
+                                    {t(empCfg.label)}
                                 </span>
                             </div>
 
@@ -397,7 +400,7 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                         borderRadius: 99, padding: '3px 10px',
                                         display: 'inline-flex', alignItems: 'center', gap: 5,
                                     }}>
-                                        {countryCfg.name}
+                                        {countryCfg.name?.startsWith?.('profile.') ? t(countryCfg.name) : countryCfg.name}
                                     </span>
                                 )}
                                 {tenureStr && (
@@ -421,7 +424,7 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                         borderRadius: 99, padding: '3px 10px',
                                         display: 'inline-flex', alignItems: 'center', gap: 4,
                                     }}>
-                                        ● Active
+                                        ● {t('profile.status.active')}
                                     </span>
                                 )}
                             </div>
@@ -433,59 +436,66 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(340px,1fr))', gap: 18 }}>
 
                     {/* ── Personal Information ── */}
-                    <SectionCard title="Personal Information" icon="👤" theme={theme} dark={dark}>
+                    <SectionCard title={t('profile.sections.personalInformation')} icon="👤" theme={theme} dark={dark}>
                         <InfoRow
-                            label="Full Name"
+                            label={t('profile.fields.fullName')}
                             value={profileUser.name}
                             theme={theme}
+                            t={t}
                         />
                         <Divider theme={theme} />
                         <InfoRow
-                            label="Email"
+                            label={t('profile.fields.email')}
                             value={profileUser.email}
                             theme={theme}
+                            t={t}
                         />
                         <Divider theme={theme} />
                         <InfoRow
-                            label="Phone"
+                            label={t('profile.fields.phone')}
                             value={showPhone ? profileUser.phone || '—' : maskPhone(profileUser.phone)}
                             theme={theme}
                             secret={!!profileUser.phone}
                             revealed={showPhone}
                             onToggle={() => setShowPhone(v => !v)}
+                            t={t}
                         />
                         <Divider theme={theme} />
                         <InfoRow
-                            label="Date of Birth"
+                            label={t('profile.fields.dateOfBirth')}
                             value={fmtDate(profileUser.date_of_birth)}
                             theme={theme}
+                            t={t}
                         />
                         <Divider theme={theme} />
                         <InfoRow
-                            label="Country"
+                            label={t('profile.fields.country')}
                             value={profileUser.country
-                                ? `${countryCfg.name}`
+                                ? `${countryCfg.name?.startsWith?.('profile.') ? t(countryCfg.name) : countryCfg.name}`
                                 : '—'}
                             theme={theme}
+                            t={t}
                         />
                     </SectionCard>
 
                     {/* ── Work Information ── */}
-                    <SectionCard title="Work Information" icon="💼" theme={theme} dark={dark}>
+                    <SectionCard title={t('profile.sections.workInformation')} icon="💼" theme={theme} dark={dark}>
                         <InfoRow
-                            label="Position"
+                            label={t('profile.fields.position')}
                             value={profileUser.position}
                             theme={theme}
+                            t={t}
                         />
                         <Divider theme={theme} />
                         <InfoRow
-                            label="Department"
+                            label={t('profile.fields.department')}
                             value={profileUser.department}
                             theme={theme}
+                            t={t}
                         />
                         <Divider theme={theme} />
                         <InfoRow
-                            label="Join Date"
+                            label={t('profile.fields.joinDate')}
                             value={fmtDate(profileUser.joined_date)}
                             theme={theme}
                             extra={tenureStr ? (
@@ -498,10 +508,11 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                     {tenureStr}
                                 </span>
                             ) : null}
+                            t={t}
                         />
                         <Divider theme={theme} />
                         <InfoRow
-                            label="Employment"
+                            label={t('profile.fields.employment')}
                             theme={theme}
                             extra={
                                 <span style={{
@@ -510,23 +521,25 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                     background: dark ? empCfg.bgD : empCfg.bg,
                                     borderRadius: 99, padding: '2px 10px',
                                 }}>
-                                    {empCfg.label}
+                                    {t(empCfg.label)}
                                 </span>
                             }
+                            t={t}
                         />
                         {profileUser.employment_type === 'contract' && profileUser.contract_end_date && (
                             <>
                                 <Divider theme={theme} />
                                 <InfoRow
-                                    label="Contract End"
+                                    label={t('profile.fields.contractEnd')}
                                     value={fmtDate(profileUser.contract_end_date)}
                                     theme={theme}
+                                    t={t}
                                 />
                             </>
                         )}
                         <Divider theme={theme} />
                         <InfoRow
-                            label="Role"
+                            label={t('profile.fields.role')}
                             theme={theme}
                             extra={
                                 <span style={{
@@ -539,14 +552,15 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                     {profileUser.role?.display_name || profileUser.role?.name || '—'}
                                 </span>
                             }
+                            t={t}
                         />
                     </SectionCard>
 
                     {/* ── Salary Information ── */}
                     {payrollProfile && (
-                        <SectionCard title="Salary Information" icon="💰" theme={theme} dark={dark}>
+                        <SectionCard title={t('profile.sections.salaryInformation')} icon="💰" theme={theme} dark={dark}>
                             <InfoRow
-                                label="Base Salary"
+                                label={t('profile.fields.baseSalary')}
                                 value={showSalary
                                     ? fmtSalary(payrollProfile.base_salary, payrollProfile.currency_code)
                                     : maskSalary(payrollProfile.base_salary, payrollProfile.currency_code)
@@ -555,14 +569,16 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                 secret={true}
                                 revealed={showSalary}
                                 onToggle={() => setShowSalary(v => !v)}
+                                t={t}
                             />
                             {payrollProfile.bank_name && (
                                 <>
                                     <Divider theme={theme} />
                                     <InfoRow
-                                        label="Bank"
+                                        label={t('profile.fields.bank')}
                                         value={payrollProfile.bank_name}
                                         theme={theme}
+                                        t={t}
                                     />
                                 </>
                             )}
@@ -570,9 +586,10 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                 <>
                                     <Divider theme={theme} />
                                     <InfoRow
-                                        label="Account Name"
+                                        label={t('profile.fields.accountName')}
                                         value={payrollProfile.bank_account_holder_name}
                                         theme={theme}
+                                        t={t}
                                     />
                                 </>
                             )}
@@ -580,9 +597,10 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                 <>
                                     <Divider theme={theme} />
                                     <InfoRow
-                                        label="Account No."
+                                        label={t('profile.fields.accountNo')}
                                         value={payrollProfile.bank_account_number}
                                         theme={theme}
+                                        t={t}
                                     />
                                 </>
                             )}
@@ -590,9 +608,10 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                 <>
                                     <Divider theme={theme} />
                                     <InfoRow
-                                        label="Branch"
+                                        label={t('profile.fields.branch')}
                                         value={payrollProfile.bank_branch}
                                         theme={theme}
+                                        t={t}
                                     />
                                 </>
                             )}
@@ -600,9 +619,10 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                 <>
                                     <Divider theme={theme} />
                                     <InfoRow
-                                        label="Effective Date"
+                                        label={t('profile.fields.effectiveDate')}
                                         value={fmtDate(payrollProfile.effective_date)}
                                         theme={theme}
+                                        t={t}
                                     />
                                 </>
                             )}
@@ -617,7 +637,7 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                             color: theme.textMute, textTransform: 'uppercase',
                                             letterSpacing: '0.06em', marginBottom: 8,
                                         }}>
-                                            Allowances
+                                            {t('profile.fields.allowances')}
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                                             {payrollProfile.allowances.map(a => (
@@ -640,7 +660,7 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
                                         </div>
                                         {!showSalary && (
                                             <div style={{ fontSize: 10, color: theme.textMute, marginTop: 6 }}>
-                                                Reveal salary to see allowance values
+                                                {t('profile.messages.revealSalary')}
                                             </div>
                                         )}
                                     </div>
@@ -651,14 +671,14 @@ export default function ProfileIndex({ profileUser, payrollProfile }) {
 
                     {/* No payroll profile notice */}
                     {!payrollProfile && (
-                        <SectionCard title="Salary Information" icon="💰" theme={theme} dark={dark}>
+                        <SectionCard title={t('profile.sections.salaryInformation')} icon="💰" theme={theme} dark={dark}>
                             <div style={{
                                 padding: '12px 0',
                                 fontSize: 12, color: theme.textMute,
                                 display: 'flex', alignItems: 'center', gap: 8,
                             }}>
                                 <span>⚠️</span>
-                                No payroll profile assigned yet. Contact HR for details.
+                                {t('profile.messages.noPayrollProfile')}
                             </div>
                         </SectionCard>
                     )}

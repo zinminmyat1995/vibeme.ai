@@ -1,6 +1,6 @@
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 const FLAGS = {
     en: (<svg width="18" height="13" viewBox="0 0 60 40"><rect width="60" height="40" fill="#012169"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" strokeWidth="8"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" strokeWidth="5"/><path d="M30,0 V40 M0,20 H60" stroke="#fff" strokeWidth="13"/><path d="M30,0 V40 M0,20 H60" stroke="#C8102E" strokeWidth="8"/></svg>),
@@ -12,12 +12,12 @@ const FLAGS = {
 };
 
 const LANGUAGES = [
-    { code: 'en', label: 'English', flag: FLAGS.en },
-    { code: 'ja', label: 'Japanese', flag: FLAGS.ja },
-    { code: 'my', label: 'Myanmar', flag: FLAGS.my },
-    { code: 'km', label: 'Khmer', flag: FLAGS.km },
-    { code: 'vi', label: 'Vietnamese', flag: FLAGS.vi },
-    { code: 'ko', label: 'Korean', flag: FLAGS.ko },
+    { code: 'en', labelKey: 'documentTranslation.upload.languages.en', fallback: 'English', flag: FLAGS.en },
+    { code: 'ja', labelKey: 'documentTranslation.upload.languages.ja', fallback: 'Japanese', flag: FLAGS.ja },
+    { code: 'my', labelKey: 'documentTranslation.upload.languages.my', fallback: 'Myanmar', flag: FLAGS.my },
+    { code: 'km', labelKey: 'documentTranslation.upload.languages.km', fallback: 'Khmer', flag: FLAGS.km },
+    { code: 'vi', labelKey: 'documentTranslation.upload.languages.vi', fallback: 'Vietnamese', flag: FLAGS.vi },
+    { code: 'ko', labelKey: 'documentTranslation.upload.languages.ko', fallback: 'Korean', flag: FLAGS.ko },
 ];
 
 const ACCEPTED = '.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg';
@@ -61,6 +61,11 @@ function getTheme(darkMode) {
         secondary: '#2563eb', success: '#059669', warning: '#d97706', danger: '#ef4444',
         inputBg: '#f8fafc', inputBorder: '#e5e7eb',
     };
+}
+
+function tx(tr, key, fallback) {
+    const value = tr(key);
+    return value === key ? fallback : value;
 }
 
 function card(theme, extra = {}) {
@@ -133,7 +138,8 @@ function flattenFolders(folders, prefix = '') {
 }
 function formatSize(bytes) { if (bytes < 1024) return `${bytes} B`; if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`; return `${(bytes / 1048576).toFixed(1)} MB`; }
 
-export default function UploadModal({ open, onClose, folders = [], currentFolderId = null, hasApi = false ,onUploaded,}) {
+export default function UploadModal({ open, onClose, folders = [], currentFolderId = null, hasApi = false, onUploaded }) {
+    const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
     const [dragOver, setDragOver] = useState(false);
@@ -147,8 +153,12 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
     useEffect(() => { if (open) form.setData('folder_id', currentFolderId || ''); }, [currentFolderId, open]);
     if (!open) return null;
 
-    const folderOptions = [{ value: '', label: 'Root (No folder)' }, ...flattenFolders(folders).map((f) => ({ value: String(f.id), label: f.name }))];
-    const visibilityOptions = [{ value: 'private', label: 'Private', desc: 'Only you', icon: '🔒' }, { value: 'branch', label: 'My Branch', desc: 'Your branch', icon: '🏢' }, { value: 'all', label: 'All Branches', desc: 'Everyone', icon: '🌐' }];
+    const folderOptions = [{ value: '', label: tr('documentTranslation.upload.rootNoFolder') }, ...flattenFolders(folders).map((f) => ({ value: String(f.id), label: f.name }))];
+    const visibilityOptions = [
+        { value: 'private', label: tr('documentTranslation.upload.visibility.private'), desc: tr('documentTranslation.upload.visibility.onlyYou'), icon: '🔒' },
+        { value: 'branch', label: tr('documentTranslation.upload.visibility.branch'), desc: tr('documentTranslation.upload.visibility.yourBranch'), icon: '🏢' },
+        { value: 'all', label: tr('documentTranslation.upload.visibility.all'), desc: tr('documentTranslation.upload.visibility.everyone'), icon: '🌐' },
+    ];
 
     const handleFile = (file) => { if (!file) return; const ext = file.name.split('.').pop().toLowerCase(); setPreview({ name: file.name, size: formatSize(file.size), ext }); form.setData('file', file); };
     const toggleTargetLang = (code) => { const current = form.data.target_languages; form.setData('target_languages', current.includes(code) ? current.filter((l) => l !== code) : [...current, code]); };
@@ -166,7 +176,7 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
                 onClose();
                 resetAll();
             },
-            onError: () => { fireGlobalToast('Upload failed. Please try again.', 'error'); },
+            onError: () => { fireGlobalToast(tr('documentTranslation.upload.uploadFailed'), 'error'); },
         });
     };
 
@@ -186,8 +196,8 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
                         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 34%), radial-gradient(circle at bottom right, rgba(255,255,255,0.10), transparent 28%), linear-gradient(135deg, rgba(255,255,255,0.08), transparent 58%)', pointerEvents: 'none' }} />
                         <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start' }}>
                             <div>
-                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 10 }}>Document Translation</div>
-                                <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.12 }}>Upload workspace</div>
+                                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 10 }}>{tr('documentTranslation.upload.eyebrow')}</div>
+                                <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.12 }}>{tr('documentTranslation.upload.title')}</div>
                             </div>
                             <button type="button" onClick={onClose} style={{ width: 50, height: 50, borderRadius: 18, border: '1px solid rgba(255,255,255,0.16)', background: 'rgba(255,255,255,0.12)', color: '#fff', cursor: 'pointer', fontSize: 28, lineHeight: 1, flexShrink: 0 }}>×</button>
                         </div>
@@ -197,38 +207,36 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
                         <div className="dt-upload-scroll-hide" style={{ minHeight: 0, flex: 1, overflowY: 'auto', padding: 24 }}>
                             <div style={{ display: 'grid', gap: 18, paddingBottom: 8 }}>
                                 <div style={{ ...card(theme, { padding: 20, borderRadius: 22 }) }}>
-                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>File intake</div>
+                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>{tr('documentTranslation.upload.fileIntake')}</div>
                                     <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }} onClick={() => inputRef.current?.click()} style={{ border: `2px dashed ${dragOver ? theme.primary : form.errors.file ? theme.danger : theme.inputBorder}`, borderRadius: 24, padding: '28px 20px', background: dragOver ? theme.primarySoft : theme.inputBg, cursor: 'pointer' }}>
                                         <input ref={inputRef} type="file" accept={ACCEPTED} style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files[0])} />
-                                        {preview ? <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}><FileGlyph ext={preview.ext} theme={theme} /><div style={{ minWidth: 0, flex: 1 }}><div style={{ fontSize: 14, fontWeight: 900, color: theme.text, wordBreak: 'break-word' }}>{preview.name}</div><div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>{preview.size} · {preview.ext.toUpperCase()}</div><div style={{ marginTop: 8, fontSize: 11, color: theme.textMute }}>Click to replace or drag another file here.</div></div><button type="button" onClick={(e) => { e.stopPropagation(); setPreview(null); form.setData('file', null); if (inputRef.current) inputRef.current.value = ''; }} style={{ width: 42, height: 42, borderRadius: 14, border: `1px solid ${theme.border}`, background: theme.panelSoft, color: theme.danger, cursor: 'pointer', fontSize: 20, flexShrink: 0 }}>×</button></div> : <div style={{ textAlign: 'center' }}><div style={{ width: 82, height: 82, margin: '0 auto 14px', borderRadius: 26, background: theme.primarySoft, color: theme.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'uploadPulse 2.1s ease-in-out infinite' }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M17 8l-5-5-5 5" /><path d="M12 3v12" /></svg></div><div style={{ fontSize: 15, fontWeight: 900, color: theme.text }}>Drop file here or browse</div><div style={{ marginTop: 8, fontSize: 12.5, color: theme.textMute, lineHeight: 1.6 }}>PDF, DOC, DOCX, TXT, PNG, JPG, JPEG</div><div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 999, background: theme.panelSoft, color: theme.textSoft, fontSize: 11, fontWeight: 900 }}>Max 20MB</div></div>}
+                                        {preview ? <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}><FileGlyph ext={preview.ext} theme={theme} /><div style={{ minWidth: 0, flex: 1 }}><div style={{ fontSize: 14, fontWeight: 900, color: theme.text, wordBreak: 'break-word' }}>{preview.name}</div><div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>{preview.size} · {preview.ext.toUpperCase()}</div><div style={{ marginTop: 8, fontSize: 11, color: theme.textMute }}>{tr('documentTranslation.upload.replaceHint')}</div></div><button type="button" onClick={(e) => { e.stopPropagation(); setPreview(null); form.setData('file', null); if (inputRef.current) inputRef.current.value = ''; }} style={{ width: 42, height: 42, borderRadius: 14, border: `1px solid ${theme.border}`, background: theme.panelSoft, color: theme.danger, cursor: 'pointer', fontSize: 20, flexShrink: 0 }}>×</button></div> : <div style={{ textAlign: 'center' }}><div style={{ width: 82, height: 82, margin: '0 auto 14px', borderRadius: 26, background: theme.primarySoft, color: theme.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'uploadPulse 2.1s ease-in-out infinite' }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M17 8l-5-5-5 5" /><path d="M12 3v12" /></svg></div><div style={{ fontSize: 15, fontWeight: 900, color: theme.text }}>{tr('documentTranslation.upload.dropBrowse')}</div><div style={{ marginTop: 8, fontSize: 12.5, color: theme.textMute, lineHeight: 1.6 }}>{tr('documentTranslation.upload.acceptedTypes')}</div><div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 999, background: theme.panelSoft, color: theme.textSoft, fontSize: 11, fontWeight: 900 }}>{tr('documentTranslation.upload.maxSize')}</div></div>}
                                     </div>
                                     <FieldError msg={form.errors.file} theme={theme} />
                                 </div>
 
                                 <div style={{ ...card(theme, { padding: 20, borderRadius: 22, position: 'relative', zIndex: 120, overflow: 'visible' }) }}>
-                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>Metadata</div>
+                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>{tr('documentTranslation.upload.metadata')}</div>
                                     <div style={{ display: 'grid', gap: 16 }}>
                                         <div style={{ position: 'relative', zIndex: 150 }}>
-                                            <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 8 }}>Save to folder</div>
-                                            <PremiumSelect options={folderOptions} value={form.data.folder_id} onChange={(value) => form.setData('folder_id', value)} placeholder="Root (No folder)" theme={theme} darkMode={darkMode} width="100%" zIndex={400} />
+                                            <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 8 }}>{tr('documentTranslation.upload.saveToFolder')}</div>
+                                            <PremiumSelect options={folderOptions} value={form.data.folder_id} onChange={(value) => form.setData('folder_id', value)} placeholder={tr('documentTranslation.upload.rootNoFolder')} theme={theme} darkMode={darkMode} width="100%" zIndex={400} />
                                         </div>
-                                        <div><div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 8 }}>Tags</div><input value={form.data.tags} onChange={(e) => form.setData('tags', e.target.value)} placeholder="hr, report, 2026" style={{ width: '100%', height: 52, borderRadius: 18, border: `1px solid ${form.errors.tags ? theme.danger : theme.inputBorder}`, background: theme.inputBg, color: theme.text, padding: '0 16px', outline: 'none', boxSizing: 'border-box', fontSize: 13, fontFamily: 'inherit' }} /><FieldError msg={form.errors.tags} theme={theme} /></div>
+                                        <div><div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 8 }}>{tr('documentTranslation.upload.tags')}</div><input value={form.data.tags} onChange={(e) => form.setData('tags', e.target.value)} placeholder={tr('documentTranslation.upload.tagsPlaceholder')} style={{ width: '100%', height: 52, borderRadius: 18, border: `1px solid ${form.errors.tags ? theme.danger : theme.inputBorder}`, background: theme.inputBg, color: theme.text, padding: '0 16px', outline: 'none', boxSizing: 'border-box', fontSize: 13, fontFamily: 'inherit' }} /><FieldError msg={form.errors.tags} theme={theme} /></div>
                                     </div>
                                 </div>
 
                                 <div style={{ ...card(theme, { padding: 20, borderRadius: 22 }) }}>
-                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>Language direction</div>
+                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>{tr('documentTranslation.upload.languageDirection')}</div>
 
                                     {isImageFile ? (
-                                        // ── Image file → notice box ပဲပြ ──
                                         <div style={{ padding: '12px 16px', borderRadius: 14, background: darkMode ? 'rgba(245,158,11,0.12)' : '#fef3c7', border: `1px solid ${darkMode ? 'rgba(245,158,11,0.25)' : '#fde68a'}`, color: theme.warning, fontSize: 12, fontWeight: 700, lineHeight: 1.6 }}>
-                                            ⚠ Image files cannot be translated. Only text-based files (TXT, DOC, DOCX, PDF) are supported.
+                                            {tr('documentTranslation.upload.imageCannotTranslate')}
                                         </div>
                                     ) : (
-                                        // ── Text file → source + target languages ပြ ──
                                         <>
                                             <div>
-                                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 10 }}>Source language</div>
+                                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft, marginBottom: 10 }}>{tr('documentTranslation.upload.sourceLanguage')}</div>
                                                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                                                     {LANGUAGES.map((lang) => {
                                                         const active = form.data.source_language === lang.code;
@@ -236,7 +244,7 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
                                                             <button key={lang.code} type="button" onClick={() => form.setData('source_language', lang.code)}
                                                                 style={{ height: 42, padding: '0 14px', borderRadius: 999, border: `1px solid ${active ? theme.primary : theme.inputBorder}`, background: active ? theme.primarySoft : theme.inputBg, color: active ? theme.primary : theme.textSoft, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800 }}>
                                                                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>
-                                                                {lang.label}
+                                                                {tx(tr, lang.labelKey, lang.fallback)}
                                                             </button>
                                                         );
                                                     })}
@@ -246,8 +254,8 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
 
                                             <div style={{ marginTop: 18 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
-                                                    <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>Translate to</div>
-                                                    {!hasApi && <div style={{ padding: '5px 10px', borderRadius: 999, background: darkMode ? 'rgba(245,158,11,0.14)' : '#fef3c7', color: theme.warning, fontSize: 10.5, fontWeight: 900 }}>API not configured</div>}
+                                                    <div style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>{tr('documentTranslation.upload.translateTo')}</div>
+                                                    {!hasApi && <div style={{ padding: '5px 10px', borderRadius: 999, background: darkMode ? 'rgba(245,158,11,0.14)' : '#fef3c7', color: theme.warning, fontSize: 10.5, fontWeight: 900 }}>{tr('documentTranslation.upload.apiNotConfigured')}</div>}
                                                 </div>
                                                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                                                     {LANGUAGES.filter((lang) => lang.code !== form.data.source_language).map((lang) => {
@@ -256,7 +264,7 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
                                                             <button key={lang.code} type="button" onClick={() => toggleTargetLang(lang.code)}
                                                                 style={{ height: 42, padding: '0 14px', borderRadius: 999, border: `1px solid ${selected ? theme.success : theme.inputBorder}`, background: selected ? (darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5') : theme.inputBg, color: selected ? theme.success : theme.textSoft, display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 800 }}>
                                                                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>{lang.flag}</span>
-                                                                {lang.label}
+                                                                {tx(tr, lang.labelKey, lang.fallback)}
                                                             </button>
                                                         );
                                                     })}
@@ -267,19 +275,19 @@ export default function UploadModal({ open, onClose, folders = [], currentFolder
                                 </div>
 
                                 <div style={{ ...card(theme, { padding: 20, borderRadius: 22 }) }}>
-                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>Visibility</div>
+                                    <div style={{ fontSize: 12, color: theme.primary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 14 }}>{tr('documentTranslation.upload.visibilityTitle')}</div>
                                     <div style={{ display: 'grid', gap: 10 }}>{visibilityOptions.map((item) => { const active = form.data.visibility === item.value; return <button key={item.value} type="button" onClick={() => form.setData('visibility', item.value)} style={{ width: '100%', padding: '15px 16px', borderRadius: 18, border: `1px solid ${active ? theme.primary : theme.border}`, background: active ? theme.primarySoft : theme.panelSoft, display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left', cursor: 'pointer' }}><div style={{ width: 44, height: 44, borderRadius: 14, background: active ? `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` : theme.inputBg, color: active ? '#fff' : theme.textSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{item.icon}</div><div style={{ minWidth: 0 }}><div style={{ fontSize: 13, fontWeight: 900, color: active ? theme.primary : theme.text }}>{item.label}</div><div style={{ marginTop: 4, fontSize: 11.5, color: theme.textMute }}>{item.desc}</div></div></button>; })}</div>
                                     <FieldError msg={form.errors.visibility} theme={theme} />
-                                    {!hasApi && <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 16, border: `1px solid ${theme.border}`, background: darkMode ? 'rgba(245,158,11,0.12)' : '#fef3c7', color: theme.warning, fontSize: 12, fontWeight: 700, lineHeight: 1.6 }}>Translation API is not configured. The document can still be uploaded and stored using the current flow.</div>}
+                                    {!hasApi && <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 16, border: `1px solid ${theme.border}`, background: darkMode ? 'rgba(245,158,11,0.12)' : '#fef3c7', color: theme.warning, fontSize: 12, fontWeight: 700, lineHeight: 1.6 }}>{tr('documentTranslation.upload.apiDemoNotice')}</div>}
                                 </div>
                             </div>
                         </div>
 
                         <div style={{ flexShrink: 0, display: 'flex', gap: 10, justifyContent: 'flex-end', padding: '16px 24px 20px', borderTop: `1px solid ${theme.border}`, background: theme.panelSolid }}>
-                            <UIButton type="button" onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
+                            <UIButton type="button" onClick={onClose} variant="ghost" theme={theme}>{tr('documentTranslation.actions.cancel')}</UIButton>
                             <UIButton type="submit" disabled={form.processing || !form.data.file} theme={theme}>
                                 {form.processing && <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'uploadSpin 0.7s linear infinite' }} />}
-                                {form.processing ? 'Uploading...' : 'Upload document'}
+                                {form.processing ? tr('documentTranslation.upload.uploading') : tr('documentTranslation.upload.uploadDocument')}
                             </UIButton>
                         </div>
                     </form>

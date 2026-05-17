@@ -1,10 +1,12 @@
 // resources/js/Pages/Surveys/Closed.jsx
 import { Head } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 export default function SurveyClosed({ title }) {
+    const { t: tr } = useTranslation();
     return (
         <>
-        <Head title="Survey Closed"/>
+        <Head title={tr('surveys.closed.headTitle')}/>
         <style>{`
             * { box-sizing: border-box; }
             body { margin:0; background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%); font-family:'Segoe UI',system-ui,sans-serif; }
@@ -32,7 +34,7 @@ export default function SurveyClosed({ title }) {
 
                         {/* Title */}
                         <h2 style={{ fontSize:22, fontWeight:900, color:'#0f172a', margin:'0 0 10px', letterSpacing:'-0.3px' }}>
-                            Survey Closed
+                            {tr('surveys.closed.title')}
                         </h2>
 
                         {/* Survey name */}
@@ -41,21 +43,21 @@ export default function SurveyClosed({ title }) {
                         </div>
 
                         <p style={{ fontSize:14, color:'#64748b', lineHeight:1.65, margin:'0 0 24px' }}>
-                            This survey is no longer accepting responses. The submission window has ended.
+                            {tr('surveys.closed.message')}
                         </p>
 
                         {/* Info pill */}
                         <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:99, background:'#f1f5f9', border:'1px solid #e2e8f0' }}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                             <span style={{ fontSize:12, fontWeight:600, color:'#64748b' }}>
-                                Responses are no longer being collected
+                                {tr('surveys.closed.responsesNoLongerCollected')}
                             </span>
                         </div>
                     </div>
                 </div>
 
                 <p style={{ textAlign:'center', fontSize:12, color:'#a78bfa', marginTop:16 }}>
-                    Contact HR if you have any questions 💜
+                    {tr('surveys.closed.contactHr')}
                 </p>
             </div>
         </div>

@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback,useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -13,6 +14,16 @@ const fmtMoney = v => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 
 const ucfirst = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 const toast = (msg, type = 'success') =>
     window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type } }));
+
+const dashText = (tr, key, fallback, replacements = {}) => {
+    let value = tr ? tr(`dash.${key}`) : fallback;
+    if (!value || value === `dash.${key}`) value = fallback;
+    Object.entries(replacements).forEach(([name, val]) => {
+        value = String(value).replaceAll(`{{${name}}}`, val);
+    });
+    return value;
+};
+
 
 
 // Date/time formatters — strip T00:00:00.000000Z raw ISO strings
@@ -157,8 +168,9 @@ function BarRow({ label, value, max = 100, color, extra, t }) {
 }
 
 function DonutChart({ data = [], size = 130, t }) {
+    const { t: tr } = useTranslation();
     const total = data.reduce((s, d) => s + (d.value || 0), 0);
-    if (!total) return <div style={{ fontSize: 11, color: t.textMute, textAlign: 'center', padding: 12 }}>No data</div>;
+    if (!total) return <div style={{ fontSize: 11, color: t.textMute, textAlign: 'center', padding: 12 }}>{dashText(tr, 'noData', 'No data')}</div>;
     const r = 46, cx = size / 2, cy = size / 2, stroke = 18, circ = 2 * Math.PI * r;
     let offset = 0;
     return (
@@ -174,7 +186,7 @@ function DonutChart({ data = [], size = 130, t }) {
                     offset += pct; return seg;
                 })}
                 <text x={cx} y={cy - 6} textAnchor="middle" fontSize="24" fontWeight="900" fill={t.text}>{total}</text>
-                <text x={cx} y={cy + 12} textAnchor="middle" fontSize="9" fill={t.textMute}>employees</text>
+                <text x={cx} y={cy + 12} textAnchor="middle" fontSize="9" fill={t.textMute}>{dashText(tr, 'staff', 'employees')}</text>
             </svg>
             {/* Legend — right side: compact, square · label · count */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -228,7 +240,8 @@ function AlertRow({ name, dept, tag, color, soft, urgent, t }) {
 }
 
 function HolidayList({ items = [], t }) {
-    if (!items.length) return <div style={{ fontSize: 12, color: t.textMute, padding: '8px 0' }}>No upcoming holidays</div>;
+    const { t: tr } = useTranslation();
+    if (!items.length) return <div style={{ fontSize: 12, color: t.textMute, padding: '8px 0' }}>{dashText(tr, 'noUpcomingHolidays', 'No upcoming holidays')}</div>;
     return items.map((h, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < items.length - 1 ? `1px solid ${t.border}` : 'none' }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: t.tealSoft, color: t.teal, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -240,7 +253,7 @@ function HolidayList({ items = [], t }) {
                 <div style={{ fontSize: 10, color: t.textMute }}>{h.date}</div>
             </div>
             <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 99, background: t.tealSoft, color: t.teal }}>
-                {h.days_left === 0 || h.days_left === '0' ? 'Today' : `${h.days_left}d`}
+                {h.days_left === 0 || h.days_left === '0' ? dashText(tr, 'today', 'Today') : `${h.days_left}d`}
             </span>
         </div>
     ));
@@ -248,11 +261,12 @@ function HolidayList({ items = [], t }) {
 
 // On leave today — collapsible, approved only, max 4 visible then "show more"
 function OnLeaveTodayList({ items = [], t }) {
+    const { t: tr } = useTranslation();
     const [showAll, setShowAll] = useState(false);
     if (!items.length) return (
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:'18px 0' }}>
             <div style={{ fontSize:24 }}>🌴</div>
-            <div style={{ fontSize:12, color:t.textMute }}>No one on leave today</div>
+            <div style={{ fontSize:12, color:t.textMute }}>{dashText(tr, 'noOneOnLeave', 'No one on leave today')}</div>
         </div>
     );
     const MAX_VISIBLE = 4;
@@ -267,7 +281,7 @@ function OnLeaveTodayList({ items = [], t }) {
                         <div style={{ width:30, height:30, borderRadius:'50%', background:t.greenSoft, color:t.green, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>{inits}</div>
                         <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ fontSize:12, fontWeight:600, color:t.text }}>{b.name}</div>
-                            <div style={{ fontSize:10, color:t.textMute }}>{ucfirst(b.leave_type || 'Leave')} · {b.department}</div>
+                            <div style={{ fontSize:10, color:t.textMute }}>{ucfirst(b.leave_type || dashText(tr, 'leave', 'Leave'))} · {b.department}</div>
                         </div>
                     </div>
                 );
@@ -275,7 +289,7 @@ function OnLeaveTodayList({ items = [], t }) {
             {items.length > MAX_VISIBLE && (
                 <button onClick={() => setShowAll(v => !v)}
                     style={{ marginTop:8, width:'100%', padding:'6px', borderRadius:8, border:`1px solid ${t.border}`, background:t.surface2, color:t.textSoft, fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit', transition:'all 0.12s' }}>
-                    {showAll ? '▲ Show less' : `▼ Show ${extra} more`}
+                    {showAll ? dashText(tr, 'showLess', '▲ Show less') : dashText(tr, 'showMore', '▼ Show {{count}} more', { count: extra })}
                 </button>
             )}
         </div>
@@ -314,6 +328,7 @@ function Sparkline({ data = [], color = '#2563eb', height = 40 }) {
 // ① Announcement Banner — shows below hero for ALL roles
 // ─────────────────────────────────────────────────────────────────────────────
 function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload }) {
+    const { t: tr } = useTranslation();
     const [idx, setIdx]           = useState(0);
     const [expanded, setExpanded] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
@@ -339,14 +354,14 @@ function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload })
                 headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' },
             });
             if (res.ok) {
-                toast('Announcement deleted.');
+                toast(dashText(tr, 'announcementDeleted', 'Announcement deleted.'));
                 // Go to previous if last item deleted
                 if (idx >= announcements.length - 1) go(Math.max(0, idx - 1));
                 onReload();
             } else {
-                toast('Failed to delete.', 'error');
+                toast(dashText(tr, 'failedToDelete', 'Failed to delete.'), 'error');
             }
-        } catch { toast('Network error.', 'error'); }
+        } catch { toast(dashText(tr, 'networkError', 'Network error.'), 'error'); }
         finally { setDeletingId(null); }
     };
 
@@ -368,7 +383,7 @@ function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload })
                         <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.amber }}>
                             Announcement
                         </span>
-                        <span style={{ fontSize: 10, color: t.textMute }}>By {a.created_by}</span>
+                        <span style={{ fontSize: 10, color: t.textMute }}>{dashText(tr, 'by', 'By')} {a.created_by}</span>
                         <span style={{ fontSize: 10, color: t.textMute }}>{a.start_at} → {a.end_at}</span>
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{a.title}</div>
@@ -414,7 +429,7 @@ function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload })
                         <button
                             onClick={() => handleDelete(a.id)}
                             disabled={deletingId === a.id}
-                            title="Delete announcement"
+                            title={dashText(tr, 'deleteAnnouncement', 'Delete announcement')}
                             style={{
                                 width: 28, height: 28, borderRadius: 8,
                                 border: `1px solid ${t.border}`,
@@ -456,7 +471,7 @@ function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload })
                         onMouseEnter={e => e.currentTarget.style.opacity = '1'}
                         onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}
                     >
-                        {expanded ? 'See less' : 'See more'}
+                        {expanded ? dashText(tr, 'seeLess', 'See less') : dashText(tr, 'seeMore', 'See more')}
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" strokeWidth="2.5"
                             style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>
@@ -470,19 +485,19 @@ function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload })
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 10 }}>
                         {a.file_path && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 11, color: t.textMute, minWidth: 78 }}>📎 Attachment</span>
+                                <span style={{ fontSize: 11, color: t.textMute, minWidth: 78 }}>📎 {dashText(tr, 'attachment', 'Attachment')}</span>
                                 <span style={{ fontSize: 11, color: t.textMute }}>›</span>
                                 <a href={a.file_path} download={a.file_name} target="_blank" rel="noreferrer"
                                     style={{ fontSize: 12, fontWeight: 600, color: t.blue, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 260 }}
                                     onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                                     onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
-                                    {a.file_name || 'Download'} ↓
+                                    {a.file_name || dashText(tr, 'download', dashText(tr, 'download', 'Download'))} ↓
                                 </a>
                             </div>
                         )}
                         {a.link_url && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 11, color: t.textMute, minWidth: 78 }}>🔗 Link</span>
+                                <span style={{ fontSize: 11, color: t.textMute, minWidth: 78 }}>🔗 {dashText(tr, 'link', 'Link')}</span>
                                 <span style={{ fontSize: 11, color: t.textMute }}>›</span>
                                 <a href={a.link_url} target="_blank" rel="noreferrer"
                                     style={{ fontSize: 12, fontWeight: 600, color: t.violet, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 260 }}
@@ -501,6 +516,7 @@ function AnnouncementBanner({ announcements = [], t, dark, roleName, onReload })
 
 // Announcement create modal
 function AnnouncementModal({ t, onClose, onCreated }) {
+    const { t: tr } = useTranslation();
     const [form, setForm] = useState({ title: '', content: '', start_at: '', end_at: '', link_url: '' });
     const [file, setFile] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -509,10 +525,10 @@ function AnnouncementModal({ t, onClose, onCreated }) {
 
     const submit = async () => {
         const errs = {};
-        if (!form.title.trim()) errs.title = 'Required';
-        if (!form.content.trim()) errs.content = 'Required';
-        if (!form.start_at) errs.start_at = 'Required';
-        if (!form.end_at) errs.end_at = 'Required';
+        if (!form.title.trim()) errs.title = dashText(tr, 'required', 'Required');
+        if (!form.content.trim()) errs.content = dashText(tr, 'required', 'Required');
+        if (!form.start_at) errs.start_at = dashText(tr, 'required', 'Required');
+        if (!form.end_at) errs.end_at = dashText(tr, 'required', 'Required');
         if (Object.keys(errs).length) { setErrors(errs); return; }
 
         setSaving(true);
@@ -532,12 +548,12 @@ function AnnouncementModal({ t, onClose, onCreated }) {
             });
             if (!res.ok) {
                 const d = await res.json().catch(() => {});
-                setErrors(d?.errors || { general: 'Failed.' });
+                setErrors(d?.errors || { general: dashText(tr, 'failed', 'Failed.') });
                 return;
             }
-            window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: 'Announcement published!', type: 'success' } }));
+            window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: dashText(tr, 'announcementPublished', 'Announcement published!'), type: 'success' } }));
             onCreated();
-        } catch { setErrors({ general: 'Network error.' }); }
+        } catch { setErrors({ general: dashText(tr, 'networkError', 'Network error.') }); }
         finally { setSaving(false); }
     };
 
@@ -557,40 +573,40 @@ function AnnouncementModal({ t, onClose, onCreated }) {
             <div style={{ background: t.surface, borderRadius: 18, width: '100%', maxWidth: 460, boxShadow: '0 30px 90px rgba(0,0,0,0.22)', overflow: 'hidden' }}>
                 {/* Header */}
                 <div style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>📢 New Announcement</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>📢 {dashText(tr, 'newAnnouncement', 'New Announcement')}</div>
                     <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 28, height: 28, cursor: 'pointer', color: '#fff', fontSize: 16 }}>×</button>
                 </div>
 
                 <div style={{ padding: '18px 20px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {/* Title */}
                     <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>TITLE</label>
-                        <input {...inp('title')} placeholder="Announcement title..." />
+                        <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>{dashText(tr, 'title', 'TITLE')}</label>
+                        <input {...inp('title')} placeholder={dashText(tr, 'announcementTitlePlaceholder', 'Announcement title...')} />
                         {errors.title && <p style={{ fontSize: 11, color: '#ef4444', margin: '3px 0 0' }}>{errors.title}</p>}
                     </div>
 
                     {/* Content */}
                     <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>CONTENT</label>
-                        <textarea {...inp('content')} placeholder="Write your announcement..." rows={3} style={{ ...inp('content').style, resize: 'vertical', minHeight: 80 }} />
+                        <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>{dashText(tr, 'content', 'CONTENT')}</label>
+                        <textarea {...inp('content')} placeholder={dashText(tr, 'announcementContentPlaceholder', 'Write your announcement...')} rows={3} style={{ ...inp('content').style, resize: 'vertical', minHeight: 80 }} />
                         {errors.content && <p style={{ fontSize: 11, color: '#ef4444', margin: '3px 0 0' }}>{errors.content}</p>}
                     </div>
 
                     {/* Dates */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                         <div>
-                            <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>START DATE</label>
+                            <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>{dashText(tr, 'startDate', 'START DATE')}</label>
                             <input type="datetime-local" {...inp('start_at')} />
                         </div>
                         <div>
-                            <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>END DATE</label>
+                            <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 4 }}>{dashText(tr, 'endDate', 'END DATE')}</label>
                             <input type="datetime-local" {...inp('end_at')} />
                         </div>
                     </div>
 
                     {/* Divider */}
                     <div style={{ borderTop: `1px dashed ${t.borderMid}`, paddingTop: 10 }}>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 8 }}>ATTACHMENTS (optional)</label>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: t.textSoft, display: 'block', marginBottom: 8 }}>{dashText(tr, 'attachmentsOptional', 'ATTACHMENTS (optional)')}</label>
 
                         {/* File Upload */}
                         <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg,.zip" style={{ display: 'none' }}
@@ -609,13 +625,13 @@ function AnnouncementModal({ t, onClose, onCreated }) {
                         ) : (
                             <button onClick={() => fileRef.current.click()}
                                 style={{ width: '100%', padding: '10px', borderRadius: 10, border: `2px dashed ${t.borderMid}`, background: t.surface2, cursor: 'pointer', fontSize: 12, color: t.textSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                                📎 Attach File (PDF, Word, Excel, Image, ZIP — max 20MB)
+                                {dashText(tr, 'attachFilePlaceholder', '📎 Attach File (PDF, Word, Excel, Image, ZIP — max 20MB')}
                             </button>
                         )}
 
                         {/* Link URL */}
                         <div style={{ marginTop: 8 }}>
-                            <input {...inp('link_url')} placeholder="🔗  Or paste a link (https://...)" />
+                            <input {...inp('link_url')} placeholder={dashText(tr, 'linkPlaceholder', '🔗  Or paste a link (https://...)')} />
                         </div>
                     </div>
 
@@ -623,10 +639,10 @@ function AnnouncementModal({ t, onClose, onCreated }) {
 
                     {/* Actions */}
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
-                        <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: 10, border: `1px solid ${t.borderMid}`, background: 'none', cursor: 'pointer', fontSize: 13, color: t.textSoft }}>Cancel</button>
+                        <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: 10, border: `1px solid ${t.borderMid}`, background: 'none', cursor: 'pointer', fontSize: 13, color: t.textSoft }}>{dashText(tr, 'cancel', 'Cancel')}</button>
                         <button onClick={submit} disabled={saving}
                             style={{ padding: '9px 22px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : 'linear-gradient(135deg,#f59e0b,#d97706)', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, color: '#fff' }}>
-                            {saving ? 'Publishing...' : '📢 Publish'}
+                            {saving ? dashText(tr, 'publishing', 'Publishing...') : `📢 ${dashText(tr, 'publish', 'Publish')}`}
                         </button>
                     </div>
                 </div>
@@ -645,8 +661,9 @@ function AnnouncementModal({ t, onClose, onCreated }) {
 // ApprovalItem row — clean display, no raw timestamps
 // ─────────────────────────────────────────────────────────────────────────────
 function ApprovalItemRow({ item, t, onApprove, onReject }) {
+    const { t: tr } = useTranslation();
     const typeColors = { leave: t.amber, ot: t.violet, attendance: t.blue, expense: t.green };
-    const typeLabels = { leave: 'LEAVE', ot: 'OT', attendance: 'ATTENDANCE', expense: 'EXPENSE' };
+    const typeLabels = { leave: dashText(tr, 'typeLeave', 'LEAVE'), ot: dashText(tr, 'typeOT', 'OT'), attendance: dashText(tr, 'typeAttendance', 'ATTENDANCE'), expense: dashText(tr, 'typeExpense', 'EXPENSE') };
     const clr = typeColors[item.type] || t.blue;
     const inits = item.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
 
@@ -749,6 +766,7 @@ function ApprovalItemRow({ item, t, onApprove, onReject }) {
 // ③ Approval Confirmation Modal — type-specific detail + OT segment adjust
 // ─────────────────────────────────────────────────────────────────────────────
 function ApprovalConfirmModal({ item, action, onConfirm, onCancel, t, externalBusy = false }) {
+    const { t: tr } = useTranslation();
     const [note, setNote] = useState('');
     const [busy, setBusy] = useState(false);
     // OT segment hours state
@@ -761,7 +779,7 @@ function ApprovalConfirmModal({ item, action, onConfirm, onCancel, t, externalBu
     const isApprove = action === 'approve';
     const accentColor = isApprove ? t.green : t.red;
     const accentSoft  = isApprove ? t.greenSoft : t.redSoft;
-    const typeLabel   = { leave:'Leave Request', ot:'Overtime Request', attendance:'Attendance Request', expense:'Expense Request' }[item.type] || 'Request';
+    const typeLabel   = { leave:'Leave Request', ot:dashText(tr, 'overtimeRequest', 'Overtime Request'), attendance:dashText(tr, 'attendanceRequest', 'Attendance Request'), expense:dashText(tr, 'expenseRequest', 'Expense Request') }[item.type] || dashText(tr, 'request', 'Request');
     const inits = item.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
     const d = item.raw || {};
 
@@ -791,21 +809,21 @@ function ApprovalConfirmModal({ item, action, onConfirm, onCancel, t, externalBu
             return (
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                        <Cell label="Leave type" value={leaveType} t={t} />
-                        <Cell label="Total days" value={days ? `${fmtDays(days)} day(s)` : '—'} t={t} highlight color={accentColor} />
-                        <Cell label="Start date" value={start} t={t} />
-                        <Cell label="End date"   value={end}   t={t} />
+                        <Cell label={dashText(tr, 'leaveType', 'Leave type')} value={leaveType} t={t} />
+                        <Cell label={dashText(tr, 'totalDays', 'Total days')} value={days ? `${fmtDays(days)} day(s)` : '—'} t={t} highlight color={accentColor} />
+                        <Cell label={dashText(tr, 'startDate', 'Start date')} value={start} t={t} />
+                        <Cell label={dashText(tr, 'endDate', 'End date')}   value={end}   t={t} />
                     </div>
                     {(noteVal || docUrl) && (
                         <div style={{ display:'grid', gridTemplateColumns: docUrl ? '1fr 1fr' : '1fr', gap:8 }}>
-                            {noteVal && <Cell label="Note" value={noteVal} t={t} />}
+                            {noteVal && <Cell label={dashText(tr, 'note', 'Note')} value={noteVal} t={t} />}
                             {docUrl && (
                                 <div style={{ background:t.surface2, borderRadius:10, padding:'10px 12px' }}>
-                                    <div style={{ fontSize:10, color:t.textMute, marginBottom:6 }}>Document</div>
+                                    <div style={{ fontSize:10, color:t.textMute, marginBottom:6 }}>{dashText(tr, 'document', 'Document')}</div>
                                     <a href={docUrl} download={docName} target="_blank" rel="noopener noreferrer"
                                         style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 10px', borderRadius:8, background:t.blueSoft, border:`1px solid ${t.blue}33`, color:t.blue, fontSize:11, fontWeight:600, textDecoration:'none', cursor:'pointer', maxWidth:'100%', overflow:'hidden' }}>
                                         <span style={{ fontSize:14, flexShrink:0 }}>📎</span>
-                                        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{docName || 'Download'}</span>
+                                        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{docName || dashText(tr, 'download', 'Download')}</span>
                                         <span style={{ fontSize:9, opacity:0.7, flexShrink:0 }}>↓</span>
                                     </a>
                                 </div>
@@ -911,13 +929,13 @@ function ApprovalConfirmModal({ item, action, onConfirm, onCancel, t, externalBu
             return (
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                        <Cell label="Date"       value={date} t={t} />
-                        <Cell label="Work hours" value={wh ? fmtHrs(wh) : '—'} t={t} highlight color={accentColor} />
-                        <Cell label="Check in"   value={ci} t={t} />
-                        <Cell label="Check out"  value={co} t={t} />
-                        {Number(late) > 0 && <Cell label="Late" value={`+${late}m`} t={t} color={t.red} />}
+                        <Cell label={dashText(tr, 'date', 'Date')}       value={date} t={t} />
+                        <Cell label={dashText(tr, 'workHours', 'Work hours')} value={wh ? fmtHrs(wh) : '—'} t={t} highlight color={accentColor} />
+                        <Cell label={dashText(tr, 'checkIn', 'Check in')}   value={ci} t={t} />
+                        <Cell label={dashText(tr, 'checkOut', 'Check out')}  value={co} t={t} />
+                        {Number(late) > 0 && <Cell label={dashText(tr, 'late', 'Late')} value={`+${late}m`} t={t} color={t.red} />}
                     </div>
-                    {noteV && <Cell label="Note" value={noteV} t={t} />}
+                    {noteV && <Cell label={dashText(tr, 'note', 'Note')} value={noteV} t={t} />}
                 </div>
             );
         }
@@ -935,29 +953,29 @@ function ApprovalConfirmModal({ item, action, onConfirm, onCancel, t, externalBu
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {/* Row 1: Title + Amount */}
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                        <Cell label="Title"        value={title}  t={t} />
-                        <Cell label="Amount"       value={amount ? `${currency} ${Number(amount).toFixed(2)}` : '—'} t={t} highlight color={accentColor} />
-                        <Cell label="Category"     value={cat}    t={t} />
-                        <Cell label="Expense date" value={expDate} t={t} />
+                        <Cell label={dashText(tr, 'title', 'Title')}        value={title}  t={t} />
+                        <Cell label={dashText(tr, 'amount', 'Amount')}       value={amount ? `${currency} ${Number(amount).toFixed(2)}` : '—'} t={t} highlight color={accentColor} />
+                        <Cell label={dashText(tr, 'category', 'Category')}     value={cat}    t={t} />
+                        <Cell label={dashText(tr, 'expenseDate', 'Expense date')} value={expDate} t={t} />
                     </div>
                     {/* Row 2: Description (left) + Attachments (right) — side by side */}
                     {(hasDesc || hasAtt) && (
                         <div style={{ display:'grid', gridTemplateColumns: hasDesc && hasAtt ? '1fr 1fr' : '1fr', gap:8 }}>
                             {hasDesc && (
                                 <div style={{ background:t.surface2, borderRadius:10, padding:'10px 12px' }}>
-                                    <div style={{ fontSize:10, color:t.textMute, marginBottom:4 }}>Description</div>
+                                    <div style={{ fontSize:10, color:t.textMute, marginBottom:4 }}>{dashText(tr, 'description', 'Description')}</div>
                                     <div style={{ fontSize:13, fontWeight:600, color:t.text, lineHeight:1.5, wordBreak:'break-word' }}>{desc}</div>
                                 </div>
                             )}
                             {hasAtt && (
                                 <div style={{ background:t.surface2, borderRadius:10, padding:'10px 12px' }}>
-                                    <div style={{ fontSize:10, color:t.textMute, marginBottom:6 }}>Attachments</div>
+                                    <div style={{ fontSize:10, color:t.textMute, marginBottom:6 }}>{dashText(tr, 'attachments', 'Attachments')}</div>
                                     <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
                                         {attachments.map((att, i) => (
                                             <a key={i} href={`/storage/${att.path}`} download={att.name} target="_blank" rel="noopener noreferrer"
                                                 style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'5px 9px', borderRadius:7, background:t.blueSoft, border:`1px solid ${t.blue}33`, color:t.blue, fontSize:11, fontWeight:600, textDecoration:'none', cursor:'pointer', overflow:'hidden' }}>
                                                 <span style={{ fontSize:13, flexShrink:0 }}>📎</span>
-                                                <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{att.name || `File ${i+1}`}</span>
+                                                <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>{att.name || `${dashText(tr, 'document', 'File')} ${i+1}`}</span>
                                                 <span style={{ fontSize:9, opacity:0.6, flexShrink:0 }}>↓</span>
                                             </a>
                                         ))}
@@ -969,19 +987,19 @@ function ApprovalConfirmModal({ item, action, onConfirm, onCancel, t, externalBu
                     {/* Note (approve) or Rejection reason (reject) — expense only */}
                     {isApprove ? (
                         <div>
-                            <div style={{ fontSize:10, fontWeight:700, color:t.textMute, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:5 }}>Note (optional)</div>
-                            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="Add a note for the employee…" style={{ width:'100%', padding:'9px 12px', borderRadius:10, fontSize:12, border:`1px solid ${t.borderMid}`, background:t.surface2, color:t.text, fontFamily:'inherit', outline:'none', resize:'vertical', boxSizing:'border-box' }} />
+                            <div style={{ fontSize:10, fontWeight:700, color:t.textMute, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:5 }}>{dashText(tr, 'noteOptional', 'Note (optional)')}</div>
+                            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder={dashText(tr, 'noteForEmployee', 'Add a note for the employee…')} style={{ width:'100%', padding:'9px 12px', borderRadius:10, fontSize:12, border:`1px solid ${t.borderMid}`, background:t.surface2, color:t.text, fontFamily:'inherit', outline:'none', resize:'vertical', boxSizing:'border-box' }} />
                         </div>
                     ) : (
                         <div>
                             <div style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, fontWeight:700, color:t.textMute, textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:5 }}>
-                                Rejection reason <span style={{ color:t.red }}>*</span>
+                                {dashText(tr, 'rejectionReason', 'Rejection reason')} <span style={{ color:t.red }}>*</span>
                             </div>
-                            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="Why is this being rejected?…"
+                            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder={dashText(tr, 'rejectionReasonPlaceholder', 'Why is this being rejected?…')}
                                 style={{ width:'100%', padding:'9px 12px', borderRadius:10, fontSize:12,
                                     border:`1px solid ${note.trim() ? t.borderMid : t.red + '88'}`,
                                     background:t.surface2, color:t.text, fontFamily:'inherit', outline:'none', resize:'vertical', boxSizing:'border-box' }} />
-                            {!note.trim() && <div style={{ fontSize:10, color:t.red, marginTop:3 }}>Rejection reason is required</div>}
+                            {!note.trim() && <div style={{ fontSize:10, color:t.red, marginTop:3 }}>{dashText(tr, 'rejectionReasonRequired', 'Rejection reason is required')}</div>}
                         </div>
                     )}
                 </div>
@@ -999,14 +1017,14 @@ function ApprovalConfirmModal({ item, action, onConfirm, onCancel, t, externalBu
                 <div style={{ padding:'16px 20px', background:accentSoft, borderBottom:`1px solid ${t.border}`, display:'flex', alignItems:'center', gap:12 }}>
                     <div style={{ width:42, height:42, borderRadius:13, background:accentColor+'22', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{isApprove ? '✓' : '✕'}</div>
                     <div style={{ flex:1 }}>
-                        <div style={{ fontSize:15, fontWeight:800, color:accentColor }}>{isApprove ? 'Confirm Approval' : 'Confirm Rejection'}</div>
+                        <div style={{ fontSize:15, fontWeight:800, color:accentColor }}>{isApprove ? dashText(tr, 'confirmApproval', 'Confirm Approval') : dashText(tr, 'confirmRejection', 'Confirm Rejection')}</div>
                         <div style={{ fontSize:12, color:t.textSoft }}>{typeLabel}</div>
                     </div>
                     <button onClick={onCancel} style={{ background:'none', border:'none', color:t.textMute, cursor:'pointer', fontSize:20, lineHeight:1 }}>✕</button>
                 </div>
                 {/* Requester */}
                 <div style={{ padding:'14px 20px', borderBottom:`1px solid ${t.border}` }}>
-                    <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:t.textMute, marginBottom:8 }}>Requested by</div>
+                    <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:t.textMute, marginBottom:8 }}>{dashText(tr, 'requestedBy', 'Requested by')}</div>
                     <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                         <div style={{ width:34, height:34, borderRadius:'50%', background:t.blueSoft, color:t.blue, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, flexShrink:0 }}>{inits}</div>
                         <div>
@@ -1017,15 +1035,15 @@ function ApprovalConfirmModal({ item, action, onConfirm, onCancel, t, externalBu
                 </div>
                 {/* Detail */}
                 <div className='dash-scroll-hide' style={{ padding:'14px 20px', borderBottom:`1px solid ${t.border}`, maxHeight:380, overflowY:'auto', scrollbarWidth:'none' }}>
-                    <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:t.textMute, marginBottom:10 }}>Request Details</div>
+                    <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:t.textMute, marginBottom:10 }}>{dashText(tr, 'requestDetails', 'Request Details')}</div>
                     {renderDetail()}
                 </div>
                 {/* No rejection reason field — expense has it inside renderDetail; others need no extra input */}
                 {/* Buttons */}
                 <div style={{ padding:'14px 20px', display:'flex', justifyContent:'flex-end', gap:8 }}>
-                    <button onClick={onCancel} style={{ padding:'9px 18px', borderRadius:10, border:`1px solid ${t.border}`, background:t.surface2, color:t.textSoft, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+                    <button onClick={onCancel} style={{ padding:'9px 18px', borderRadius:10, border:`1px solid ${t.border}`, background:t.surface2, color:t.textSoft, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>{dashText(tr, 'cancel', 'Cancel')}</button>
                     <button onClick={confirm} disabled={busy || externalBusy} style={{ padding:'9px 22px', borderRadius:10, border:'none', background:accentColor, color:'#fff', fontSize:13, fontWeight:700, cursor:(busy||externalBusy)?'not-allowed':'pointer', fontFamily:'inherit', opacity:(busy||externalBusy)?0.7:1 }}>
-                        {(busy || externalBusy) ? 'Processing…' : isApprove ? 'Approve' : 'Reject'}
+                        {(busy || externalBusy) ? dashText(tr, 'processing', 'Processing…') : isApprove ? dashText(tr, 'approve', 'Approve') : dashText(tr, 'reject', 'Reject')}
                     </button>
                 </div>
             </div>
@@ -1047,6 +1065,7 @@ function Cell({ label, value, t, highlight, color, span2 }) {
 // ③ Pending Approvals Panel — 4 request types, scrollable list (max 7 rows)
 // ─────────────────────────────────────────────────────────────────────────────
 function PendingApprovalsPanel({ approvalQueue = {}, onReload, t }) {
+    const { t: tr } = useTranslation();
     const [confirm, setConfirm] = useState(null);
     const [tab, setTab] = useState('all');
 
@@ -1066,7 +1085,7 @@ function PendingApprovalsPanel({ approvalQueue = {}, onReload, t }) {
     };
 
     const filtered   = tab === 'all' ? allItems : allItems.filter(x => x.type === tab);
-    const tabLabels  = [['all','All'],['leave','Leave'],['ot','OT'],['attendance','Attendance'],['expense','Expense']];
+    const tabLabels  = [['all', dashText(tr, 'all', 'All')], ['leave', dashText(tr, 'leave', 'Leave')], ['ot', dashText(tr, 'ot', 'OT')], ['attendance', dashText(tr, 'attendance', 'Attendance')], ['expense', dashText(tr, 'expense', 'Expense')]];
 
     const ITEM_H = 82; // approx height per item in px
     const MAX_VISIBLE = 7;
@@ -1083,7 +1102,7 @@ function PendingApprovalsPanel({ approvalQueue = {}, onReload, t }) {
             expense:    { approve: `/payroll/expenses/${item.id}/approve`,              reject: `/payroll/expenses/${item.id}/reject` },
         };
         const urls = routeMap[item.type];
-        if (!urls) { toast('Unknown request type.', 'error'); return Promise.resolve(); }
+        if (!urls) { toast(dashText(tr, 'unknownRequestType', 'Unknown request type.'), 'error'); return Promise.resolve(); }
         const url = action === 'approve' ? urls.approve : urls.reject;
 
         // Build payload with correct field names per type
@@ -1117,7 +1136,7 @@ function PendingApprovalsPanel({ approvalQueue = {}, onReload, t }) {
                 onError: (errors) => {
                     setActionBusy(false);
                     const errValues = Object.values(errors || {});
-                    const msg = errors?.message || errors?.error || (errValues.length ? String(errValues[0]) : null) || 'Action failed.';
+                    const msg = errors?.message || errors?.error || (errValues.length ? String(errValues[0]) : null) || dashText(tr, 'actionFailed', 'Action failed.');
                     toast(msg, 'error');
                     resolve(); // resolve so modal busy resets
                 },
@@ -1127,7 +1146,7 @@ function PendingApprovalsPanel({ approvalQueue = {}, onReload, t }) {
 
     return (
         <>
-            <Panel title="Pending approvals" subtitle="Leave · OT · Attendance · Expense" t={t}>
+            <Panel title={dashText(tr, 'pendingApprovals', 'Pending approvals')} subtitle={`${dashText(tr, 'leave', 'Leave')} · ${dashText(tr, 'ot', 'OT')} · ${dashText(tr, 'attendance', 'Attendance')} · ${dashText(tr, 'expense', 'Expense')}`} t={t}>
                 {/* Tab pills */}
                 <div style={{ display:'flex', gap:5, marginBottom:12, flexWrap:'wrap' }}>
                     {tabLabels.map(([key, label]) => (
@@ -1142,8 +1161,8 @@ function PendingApprovalsPanel({ approvalQueue = {}, onReload, t }) {
                     ? (
                         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'32px 20px', gap:12 }}>
                             <div style={{ width:52, height:52, borderRadius:16, background:t.greenSoft, display:'flex', alignItems:'center', justifyContent:'center', fontSize:24 }}>🎉</div>
-                            <div style={{ fontSize:13, fontWeight:700, color:t.text }}>All caught up!</div>
-                            <div style={{ fontSize:11, color:t.textMute, textAlign:'center' }}>No pending approvals right now.</div>
+                            <div style={{ fontSize:13, fontWeight:700, color:t.text }}>{dashText(tr, 'allCaughtUp', 'All caught up!')}</div>
+                            <div style={{ fontSize:11, color:t.textMute, textAlign:'center' }}>{dashText(tr, 'noPendingApprovals', 'No pending approvals right now.')}</div>
                         </div>
                     )
                     : (
@@ -1174,10 +1193,11 @@ function PendingApprovalsPanel({ approvalQueue = {}, onReload, t }) {
 // ④ Leave usage — vertical bar chart, top 20 sorted desc, like monthly attendance
 // ─────────────────────────────────────────────────────────────────────────────
 function LeaveUsageChart({ data = [], t }) {
+    const { t: tr } = useTranslation();
     if (!data.length) return (
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'24px 0', gap:8 }}>
             <div style={{ fontSize:22 }}>📋</div>
-            <div style={{ fontSize:12, color:t.textMute }}>No leave data this month</div>
+            <div style={{ fontSize:12, color:t.textMute }}>{dashText(tr, 'noLeaveData', 'No leave data this month')}</div>
         </div>
     );
     // Sort desc by days, take top 20
@@ -1212,10 +1232,11 @@ function LeaveUsageChart({ data = [], t }) {
 // ⑤ OT by active project — vertical bar chart, top 10, sorted desc
 // ─────────────────────────────────────────────────────────────────────────────
 function OtByProjectChart({ data = [], t }) {
+    const { t: tr } = useTranslation();
     if (!data.length) return (
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'24px 0', gap:8 }}>
             <div style={{ fontSize:22 }}>⏱️</div>
-            <div style={{ fontSize:12, color:t.textMute }}>No OT project data this month</div>
+            <div style={{ fontSize:12, color:t.textMute }}>{dashText(tr, 'noOTData', 'No OT project data this month')}</div>
         </div>
     );
     const sorted = [...data].sort((a, b) => (b.ot_hours || 0) - (a.ot_hours || 0)).slice(0, 10);
@@ -1252,10 +1273,11 @@ function OtByProjectChart({ data = [], t }) {
 // Payroll trend — vertical bar chart (6 months)
 // ─────────────────────────────────────────────────────────────────────────────
 function PayrollTrendMini({ data = [], t }) {
+    const { t: tr } = useTranslation();
     if (!data.length) return (
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'24px 0', gap:8 }}>
             <div style={{ fontSize:22 }}>💰</div>
-            <div style={{ fontSize:12, color:t.textMute }}>No payroll data</div>
+            <div style={{ fontSize:12, color:t.textMute }}>{dashText(tr, 'noPayrollData', 'No payroll data')}</div>
         </div>
     );
     const max = Math.max(...data.map(d => d.total || 0), 1);
@@ -1278,7 +1300,7 @@ function PayrollTrendMini({ data = [], t }) {
                 })}
             </div>
             <div style={{ marginTop:8, fontSize:11, color:t.textMute }}>
-                Latest: <strong style={{ color:t.blue }}>{data.length ? `$${Math.round(data[data.length-1]?.total || 0).toLocaleString()}` : '—'}</strong>
+                {dashText(tr, 'latest', 'Latest')}: <strong style={{ color:t.blue }}>{data.length ? `$${Math.round(data[data.length-1]?.total || 0).toLocaleString()}` : '—'}</strong>
             </div>
         </div>
     );
@@ -1288,6 +1310,7 @@ function PayrollTrendMini({ data = [], t }) {
 // ⑥ Monthly attendance bar chart — full month with daily count labels
 // ─────────────────────────────────────────────────────────────────────────────
 function MonthlyAttendanceChart({ data = [], t }) {
+    const { t: tr } = useTranslation();
     // Build full month: data comes from backend (days 1→today).
     // Fill remaining days of the month as future (no bar, just label).
     const now = new Date();
@@ -1336,7 +1359,7 @@ function MonthlyAttendanceChart({ data = [], t }) {
                 })}
             </div>
             <div style={{ display: 'flex', gap: 14, marginTop: 6 }}>
-                {[['Weekday', t.green], ['Today', t.blue], ['Weekend', t.surface3]].map(([l, c]) => (
+                {[[dashText(tr, 'weekday', 'Weekday'), t.green], [dashText(tr, 'today', 'Today'), t.blue], [dashText(tr, 'weekend', 'Weekend'), t.surface3]].map(([l, c]) => (
                     <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: t.textMute }}><span style={{ width: 8, height: 8, borderRadius: 2, background: c, display: 'inline-block' }} />{l}</div>
                 ))}
             </div>
@@ -1348,10 +1371,11 @@ function MonthlyAttendanceChart({ data = [], t }) {
 // ⑦ Late arrivals — vertical bar chart, top 20 sorted desc
 // ─────────────────────────────────────────────────────────────────────────────
 function LateArrivalsList({ data = [], t }) {
+    const { t: tr } = useTranslation();
     if (!data.length) return (
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'24px 0', gap:8 }}>
             <div style={{ fontSize:22 }}>✅</div>
-            <div style={{ fontSize:12, color:t.textMute }}>No late arrivals this month</div>
+            <div style={{ fontSize:12, color:t.textMute }}>{dashText(tr, 'noLateArrivals', 'No late arrivals this month')}</div>
         </div>
     );
     const sorted = [...data].sort((a, b) => (b.late_count || 0) - (a.late_count || 0)).slice(0, 20);
@@ -1385,6 +1409,7 @@ function LateArrivalsList({ data = [], t }) {
 // ⑨ Shared approver sections — same UI for Admin, HR, Management
 // ─────────────────────────────────────────────────────────────────────────────
 function SharedApproverSections({ props, t, onReload, isHrOnly }) {
+    const { t: tr } = useTranslation();
     const {
         approvalQueue = {}, employmentChart = [], departmentChart = [],
         monthlyAttendance = [], probationAlerts = [], contractAlerts = [],
@@ -1401,11 +1426,11 @@ function SharedApproverSections({ props, t, onReload, isHrOnly }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* KPIs */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
-                <KpiCard label="Headcount"         value={headcount}                        sub={summary.country || ''}                   color={t.blue}   soft={t.blueSoft}   t={t} />
-                <KpiCard label="Present today"     value={summary.present_today || 0}       sub={`${summary.attendance_rate || 0}%`}      color={t.green}  soft={t.greenSoft}  t={t} />
-                <KpiCard label="On leave today"    value={summary.on_leave_today || onLeaveToday.length || 0} sub="Approved"             color={t.amber}  soft={t.amberSoft}  t={t} />
-                <KpiCard label="All pending"       value={totalPending}                     sub="Leave · OT · Attend · Expense"           color={t.violet} soft={t.violetSoft} t={t} />
-                <KpiCard label="OT hours / month"  value={`${summary.ot_hours_month || 0}h`} sub="Approved"                             color={t.pink}   soft={t.pinkSoft}   t={t} />
+                <KpiCard label={dashText(tr, 'kpi.headcount', 'Headcount')}         value={headcount}                        sub={summary.country || ''}                   color={t.blue}   soft={t.blueSoft}   t={t} />
+                <KpiCard label={dashText(tr, 'kpi.presentToday', 'Present today')}     value={summary.present_today || 0}       sub={`${summary.attendance_rate || 0}%`}      color={t.green}  soft={t.greenSoft}  t={t} />
+                <KpiCard label={dashText(tr, 'kpi.onLeaveToday', 'On leave today')}    value={summary.on_leave_today || onLeaveToday.length || 0} sub={dashText(tr, 'approved', 'Approved')}             color={t.amber}  soft={t.amberSoft}  t={t} />
+                <KpiCard label={dashText(tr, 'kpi.allPending', 'All pending')}       value={totalPending}                     sub={`${dashText(tr, 'leave', 'Leave')} · ${dashText(tr, 'ot', 'OT')} · ${dashText(tr, 'attendance', 'Attend')} · ${dashText(tr, 'expense', 'Expense')}`}           color={t.violet} soft={t.violetSoft} t={t} />
+                <KpiCard label={dashText(tr, 'kpi.otHoursMonth', 'OT hours / month')}  value={`${summary.ot_hours_month || 0}h`} sub={dashText(tr, 'approved', 'Approved')}                             color={t.pink}   soft={t.pinkSoft}   t={t} />
             </div>
 
             {/* ③ Pending approvals — full width */}
@@ -1413,38 +1438,38 @@ function SharedApproverSections({ props, t, onReload, isHrOnly }) {
 
             {/* ④ Leave usage + ⑤ OT by project */}
             <div style={col2}>
-                <Panel title="Leave usage this month" subtitle="Top 20 employees by days taken" t={t}>
+                <Panel title={dashText(tr, 'leaveUsageThisMonth', 'Leave usage this month')} subtitle={dashText(tr, 'top20ByDays', 'Top 20 employees by days taken')} t={t}>
                     <LeaveUsageChart data={leaveUsageChart} t={t} />
                 </Panel>
-                <Panel title="OT by active project" subtitle="Top 10 · hours approved this month" t={t}>
+                <Panel title={dashText(tr, 'otByProject', 'OT by active project')} subtitle={dashText(tr, 'top10OTHours', 'Top 10 · hours approved this month')} t={t}>
                     <OtByProjectChart data={otByProjectChart} t={t} />
                 </Panel>
             </div>
 
             {/* ⑥ Monthly attendance (left) + Payroll trend (right) */}
             <div style={col2}>
-                <Panel title="Monthly attendance" subtitle={`${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })} · daily present count`} t={t}>
+                <Panel title={dashText(tr, 'monthlyAttendance', 'Monthly attendance')} subtitle={`${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })} · ${dashText(tr, 'dailyPresentCount', 'daily present count')}`} t={t}>
                     <MonthlyAttendanceChart data={monthlyAttendance} t={t} />
                 </Panel>
-                <Panel title="Payroll trend" subtitle="Last 6 months · net salary total" t={t}>
+                <Panel title={dashText(tr, 'payrollTrend', 'Payroll trend')} subtitle={dashText(tr, 'last6Months', 'Last 6 months · net salary total')} t={t}>
                     <PayrollTrendMini data={props.payrollTrend || []} t={t} />
                 </Panel>
             </div>
 
             {/* Employment + Department */}
             <div style={col2}>
-                <Panel title="Employment mix" subtitle="By type — active employees" t={t}>
+                <Panel title={dashText(tr, 'employmentMix', 'Employment mix')} subtitle={dashText(tr, 'byTypeActive', 'By type — active employees')} t={t}>
                     <div style={{ display:'flex', justifyContent:'center', alignItems:'center' }}>
                         <DonutChart size={140} t={t} data={employmentChart.length ? employmentChart : [
-                            { label: 'Permanent', value: orgSummary.permanent || teamSummary.permanent || 0, color: t.blue },
-                            { label: 'Probation', value: orgSummary.probation || teamSummary.probation || 0, color: t.red },
-                            { label: 'Contract',  value: orgSummary.contract  || teamSummary.contract  || 0, color: t.green },
+                            { label: dashText(tr, 'permanent', 'Permanent'), value: orgSummary.permanent || teamSummary.permanent || 0, color: t.blue },
+                            { label: dashText(tr, 'probation', 'Probation'), value: orgSummary.probation || teamSummary.probation || 0, color: t.red },
+                            { label: dashText(tr, 'contract', 'Contract'),  value: orgSummary.contract  || teamSummary.contract  || 0, color: t.green },
                         ]} />
                     </div>
                 </Panel>
-                <Panel title="Department headcount" t={t}>
+                <Panel title={dashText(tr, 'departmentHeadcount', 'Department headcount')} t={t}>
                     {departmentChart.slice(0, 6).map((d, i) => <BarRow key={i} label={d.label} value={d.value} max={Math.max(...departmentChart.map(x => x.value), 1)} color={[t.blue,t.green,t.violet,t.amber,t.pink,t.teal][i%6]} t={t} />)}
-                    {!departmentChart.length && <div style={{ fontSize: 12, color: t.textMute }}>No data</div>}
+                    {!departmentChart.length && <div style={{ fontSize: 12, color: t.textMute }}>{dashText(tr, 'noData', 'No data')}</div>}
                 </Panel>
             </div>
 
@@ -1452,49 +1477,49 @@ function SharedApproverSections({ props, t, onReload, isHrOnly }) {
             {isHrOnly ? (
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
                     {/* Late check-in — left */}
-                    <Panel title="Late check-in frequency" subtitle="This month · sorted by count desc · top 20" t={t}>
+                    <Panel title={dashText(tr, 'lateCheckIn', 'Late check-in frequency')} subtitle={dashText(tr, 'lateCheckInSubtitle', 'This month · sorted by count desc · top 20')} t={t}>
                         <LateArrivalsList data={chronicallyLate} t={t} />
                     </Panel>
                     {/* Probation + Contract — right, stacked vertically */}
                     <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-                        <Panel title="Probation ending soon" subtitle="Within 10 days" t={t}>
-                            {probationAlerts.length ? probationAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.amber} soft={t.amberSoft} urgent={a.days_left<=3} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
+                        <Panel title={dashText(tr, 'probationEndingSoon', 'Probation ending soon')} subtitle={dashText(tr, 'within10Days', 'Within 10 days')} t={t}>
+                            {probationAlerts.length ? probationAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.amber} soft={t.amberSoft} urgent={a.days_left<=3} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>{dashText(tr, 'noAlerts', 'No alerts')}</div>}
                         </Panel>
-                        <Panel title="Contract expiring" subtitle="Within 30 days" t={t}>
-                            {contractAlerts.length ? contractAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.red} soft={t.redSoft} urgent={a.days_left<=7} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
+                        <Panel title={dashText(tr, 'contractExpiring', 'Contract expiring')} subtitle={dashText(tr, 'within30Days', 'Within 30 days')} t={t}>
+                            {contractAlerts.length ? contractAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.red} soft={t.redSoft} urgent={a.days_left<=7} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>{dashText(tr, 'noAlerts', 'No alerts')}</div>}
                         </Panel>
                     </div>
                 </div>
             ) : (
                 /* Non-HR: Probation + Contract side by side (no late check-in) */
                 <div style={col2}>
-                    <Panel title="Probation ending soon" subtitle="Within 10 days" t={t}>
-                        {probationAlerts.length ? probationAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.amber} soft={t.amberSoft} urgent={a.days_left<=3} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
+                    <Panel title={dashText(tr, 'probationEndingSoon', 'Probation ending soon')} subtitle={dashText(tr, 'within10Days', 'Within 10 days')} t={t}>
+                        {probationAlerts.length ? probationAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.amber} soft={t.amberSoft} urgent={a.days_left<=3} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>{dashText(tr, 'noAlerts', 'No alerts')}</div>}
                     </Panel>
-                    <Panel title="Contract expiring" subtitle="Within 30 days" t={t}>
-                        {contractAlerts.length ? contractAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.red} soft={t.redSoft} urgent={a.days_left<=7} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>No alerts</div>}
+                    <Panel title={dashText(tr, 'contractExpiring', 'Contract expiring')} subtitle={dashText(tr, 'within30Days', 'Within 30 days')} t={t}>
+                        {contractAlerts.length ? contractAlerts.slice(0,5).map((a,i) => <AlertRow key={i} name={a.name} dept={`${a.department} · ${a.country||''}`} tag={`${a.days_left}d`} color={t.red} soft={t.redSoft} urgent={a.days_left<=7} t={t} />) : <div style={{fontSize:12,color:t.textMute}}>{dashText(tr, 'noAlerts', 'No alerts')}</div>}
                     </Panel>
                 </div>
             )}
 
             {/* ⑧ On leave today (date-filtered on backend) + Birthdays + Holidays */}
             <div style={col3}>
-                <Panel title="🎂 Birthdays this week" t={t}>
+                <Panel title={`🎂 ${dashText(tr, 'birthdaysThisWeek', 'Birthdays this week')}`} t={t}>
                     {birthdaysThisWeek.slice(0,4).map((b,i) => <PersonRow key={i} name={b.name} meta={`${b.department} · ${b.date}`} avatarBg={t.pinkSoft} avatarColor={t.pink} avatarUrl={b.avatar_url} last={i===birthdaysThisWeek.length-1} t={t} />)}
                     {!birthdaysThisWeek.length && (
                         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:'18px 0' }}>
                             <div style={{ fontSize:28 }}>🎂</div>
-                            <div style={{ fontSize:12, fontWeight:600, color:t.textSoft }}>No birthdays this week</div>
-                            <div style={{ fontSize:10, color:t.textMute }}>Check back next week!</div>
+                            <div style={{ fontSize:12, fontWeight:600, color:t.textSoft }}>{dashText(tr, 'noBirthdays', 'No birthdays this week')}</div>
+                            <div style={{ fontSize:10, color:t.textMute }}>{dashText(tr, 'checkBackNextWeek', 'Check back next week!')}</div>
                         </div>
                     )}
                 </Panel>
-                <Panel title="🌴 On leave today"
-                    subtitle={onLeaveToday.length ? `${onLeaveToday.length} employee${onLeaveToday.length > 1 ? 's' : ''} on approved leave` : 'Approved leave covering today'}
+                <Panel title={`🌴 ${dashText(tr, 'onLeaveToday', 'On leave today')}`}
+                    subtitle={onLeaveToday.length ? `${onLeaveToday.length} ${dashText(tr, 'employeesOnLeave', 'employees on approved leave')}` : dashText(tr, 'approvedLeaveCoveringToday', 'Approved leave covering today')}
                     t={t}>
                     <OnLeaveTodayList items={onLeaveToday} t={t} />
                 </Panel>
-                <Panel title="📅 Upcoming holidays" t={t}>
+                <Panel title={`📅 ${dashText(tr, 'upcomingHolidays', 'Upcoming holidays')}`} t={t}>
                     <HolidayList items={upcomingHolidays.slice(0,4)} t={t} />
                 </Panel>
             </div>
@@ -1506,18 +1531,19 @@ function SharedApproverSections({ props, t, onReload, isHrOnly }) {
 // Role views — Admin, HR, Management all use SharedApproverSections (⑨)
 // ─────────────────────────────────────────────────────────────────────────────
 function AdminView({ props, t, onReload }) {
+    const { t: tr } = useTranslation();
     const [showAnn, setShowAnn] = useState(false);
     const { orgSummary = {} } = props;
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             <QuickActions t={t} items={[
-                { icon: '↑', label: 'Import attendance', soft: t.blueSoft,   onClick: () => router.visit('/payroll/attendance') },
-                { icon: '+', label: 'Announcement',      soft: t.violetSoft, onClick: () => setShowAnn(true) },
+                { icon: '↑', label: dashText(tr, 'importAttendance', 'Import attendance'), soft: t.blueSoft,   onClick: () => router.visit('/payroll/attendance') },
+                { icon: '+', label: dashText(tr, 'announcement', 'Announcement'),      soft: t.violetSoft, onClick: () => setShowAnn(true) },
             ]} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 16 }}>
-                <KpiCard label="Leave rate"  value={`${orgSummary.leave_rate||0}%`}     sub="of working days"                        color={t.pink}  soft={t.pinkSoft}  t={t} />
-                <KpiCard label="Turnover Q"  value={`${orgSummary.turnover_rate||0}%`}  sub={`${orgSummary.resigned_quarter||0} resigned`} color={t.red} soft={t.redSoft} t={t} />
-                <KpiCard label="Countries"   value={5}                                   sub="All offices"                           color={t.teal}  soft={t.tealSoft}  t={t} />
+                <KpiCard label={dashText(tr, 'kpi.leaveRate', 'Leave rate')}  value={`${orgSummary.leave_rate||0}%`}     sub={dashText(tr, 'kpi.ofWorkingDays', 'of working days')}                        color={t.pink}  soft={t.pinkSoft}  t={t} />
+                <KpiCard label={dashText(tr, 'kpi.turnoverQ', 'Turnover Q')}  value={`${orgSummary.turnover_rate||0}%`}  sub={`${orgSummary.resigned_quarter||0} ${dashText(tr, 'resigned', 'resigned')}`} color={t.red} soft={t.redSoft} t={t} />
+                <KpiCard label={dashText(tr, 'kpi.countries', 'Countries')}   value={5}                                   sub={dashText(tr, 'kpi.allOffices', 'All offices')}                           color={t.teal}  soft={t.tealSoft}  t={t} />
             </div>
             <SharedApproverSections props={props} t={t} onReload={onReload} isHrOnly={false} />
             {showAnn && <AnnouncementModal t={t} onClose={() => setShowAnn(false)} onCreated={() => { setShowAnn(false); onReload(); }} />}
@@ -1526,12 +1552,13 @@ function AdminView({ props, t, onReload }) {
 }
 
 function HrView({ props, t, onReload }) {
+    const { t: tr } = useTranslation();
     const [showAnn, setShowAnn] = useState(false);
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             <QuickActions t={t} items={[
-                { icon: '↑', label: 'Import attendance', soft: t.blueSoft,   onClick: () => router.visit('/payroll/attendance') },
-                { icon: '+', label: 'Announcement',      soft: t.violetSoft, onClick: () => setShowAnn(true) },
+                { icon: '↑', label: dashText(tr, 'importAttendance', 'Import attendance'), soft: t.blueSoft,   onClick: () => router.visit('/payroll/attendance') },
+                { icon: '+', label: dashText(tr, 'announcement', 'Announcement'),      soft: t.violetSoft, onClick: () => setShowAnn(true) },
             ]} />
             <SharedApproverSections props={props} t={t} onReload={onReload} isHrOnly={true} />
             {showAnn && <AnnouncementModal t={t} onClose={() => setShowAnn(false)} onCreated={() => { setShowAnn(false); onReload(); }} />}
@@ -1547,13 +1574,14 @@ function ManagementView({ props, t, onReload }) {
 // Employee view
 // ─────────────────────────────────────────────────────────────────────────────
 function EmployeeView({ props, t }) {
+    const { t: tr } = useTranslation();
     const { myStats = {}, todayStatus = {}, weeklyAttendance = [], upcomingHolidays = [], birthdaysThisWeek = [], approvalQueue = {} } = props;
     const [showSalary, setShowSalary] = useState(false);
 
     // ── helpers ──
     const typeColors = { leave: t.amber, ot: t.violet, attendance: t.blue, expense: t.green };
     const typeIcons  = { leave: '🌴', ot: '⏱', attendance: '🕐', expense: '💳' };
-    const typeLabels = { leave: 'Leave', ot: 'Overtime', attendance: 'Attendance', expense: 'Expense' };
+    const typeLabels = { leave: dashText(tr, 'leave', 'Leave'), ot: dashText(tr, 'overtimeRequest', 'Overtime'), attendance: dashText(tr, 'attendance', 'Attendance'), expense: dashText(tr, 'expense', 'Expense') };
 
     // clean detail string — strip raw timestamps like 2026-06-05 00:00:00
     const cleanDetail = (str) => String(str || '').replace(/\s00:00:00/g, '').replace(/T00:00:00\.000000Z/g, '').replace(/(\d+)\.0\s*d/g, '$1d');
@@ -1564,11 +1592,11 @@ function EmployeeView({ props, t }) {
             {/* ② 5-card KPI row: Present · OT · Pending Leave · Absent · Late */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
                 {[
-                    { label: 'Present days',   value: myStats.present_days || 0,           sub: 'This month',      color: t.green,  icon: '📅' },
-                    { label: 'OT this month',  value: `${myStats.ot_hours_month || 0}h`,   sub: 'Approved',        color: t.violet, icon: '⏱' },
-                    { label: 'Pending leave',  value: myStats.pending_leaves || 0,         sub: 'Awaiting approval', color: t.amber, icon: '🌴' },
-                    { label: 'Absent days',    value: myStats.absent_days || 0,            sub: 'This month',      color: t.red,    icon: '❌' },
-                    { label: 'Late arrivals',  value: myStats.late_count || 0,             sub: `avg +${myStats.avg_late_minutes || 0}m`, color: t.pink, icon: '⏰' },
+                    { label: dashText(tr, 'emp.presentDays', 'Present days'),   value: myStats.present_days || 0,           sub: dashText(tr, 'thisMonth', 'This month'),      color: t.green,  icon: '📅' },
+                    { label: dashText(tr, 'emp.otThisMonth', 'OT this month'),  value: `${myStats.ot_hours_month || 0}h`,   sub: 'Approved',        color: t.violet, icon: '⏱' },
+                    { label: dashText(tr, 'emp.pendingLeave', 'Pending leave'),  value: myStats.pending_leaves || 0,         sub: dashText(tr, 'awaitingApproval', 'Awaiting approval'), color: t.amber, icon: '🌴' },
+                    { label: dashText(tr, 'emp.absentDays', 'Absent days'),    value: myStats.absent_days || 0,            sub: dashText(tr, 'thisMonth', 'This month'),      color: t.red,    icon: '❌' },
+                    { label: dashText(tr, 'emp.lateArrivals', 'Late arrivals'),  value: myStats.late_count || 0,             sub: `avg +${myStats.avg_late_minutes || 0}m`, color: t.pink, icon: '⏰' },
                 ].map(({ label, value, sub, color, icon }) => (
                     <div key={label} style={{ ...card(t, { padding: '14px 14px', position: 'relative', overflow: 'hidden' }) }}>
                         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: color, borderRadius: '20px 20px 0 0' }} />
@@ -1581,7 +1609,7 @@ function EmployeeView({ props, t }) {
 
             {/* ③ My pending requests — show all 4 types, clean timestamps, type badge */}
             {(approvalQueue.my_pending_list || []).length > 0 && (
-                <Panel title="My pending requests" subtitle="Waiting for approval" t={t}>
+                <Panel title={dashText(tr, 'myPendingRequests', 'My pending requests')} subtitle={dashText(tr, 'waitingForApproval', 'Waiting for approval')} t={t}>
                     {(approvalQueue.my_pending_list || []).map((item, i) => {
                         const clr = typeColors[item.type] || t.blue;
                         const lbl = typeLabels[item.type] || item.type;
@@ -1593,9 +1621,9 @@ function EmployeeView({ props, t }) {
                                         <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 8px', borderRadius: 99, background: clr + '22', color: clr, letterSpacing: '0.04em' }}>{lbl}</span>
                                     </div>
                                     <div style={{ fontSize: 12, fontWeight: 600, color: t.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cleanDetail(item.detail)}</div>
-                                    <div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>Submitted {item.submitted_at}</div>
+                                    <div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>{dashText(tr, 'submitted', 'Submitted')} {item.submitted_at}</div>
                                 </div>
-                                <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 99, background: t.amberSoft, color: t.amber, flexShrink: 0 }}>Pending</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 99, background: t.amberSoft, color: t.amber, flexShrink: 0 }}>{dashText(tr, 'pending', 'Pending')}</span>
                             </div>
                         );
                     })}
@@ -1605,11 +1633,11 @@ function EmployeeView({ props, t }) {
             {/* Latest payslip + Leave balances */}
             <div style={col2}>
                 {/* ④ Latest payslip with eye icon toggle */}
-                <Panel title="Latest payslip" subtitle={`${myStats.payslip_period || 'This month'} · ${ucfirst(myStats.payslip_status || 'pending')}`} t={t}
+                <Panel title={dashText(tr, 'latestPayslip', 'Latest payslip')} subtitle={`${myStats.payslip_period || 'This month'} · ${ucfirst(myStats.payslip_status || 'pending')}`} t={t}
                     action={
                         <button onClick={() => setShowSalary(v => !v)}
                             style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${t.border}`, background: t.surface2, color: t.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-                            title={showSalary ? 'Hide amounts' : 'Show amounts'}>
+                            title={showSalary ? dashText(tr, 'hideAmounts', 'Hide amounts') : dashText(tr, 'showAmounts', 'Show amounts')}>
                             {showSalary
                                 ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                                 : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1617,13 +1645,13 @@ function EmployeeView({ props, t }) {
                         </button>
                     }>
                     <div style={{ marginBottom: 12 }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: t.textMute, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Net salary</div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: t.textMute, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{dashText(tr, 'netSalary', 'Net salary')}</div>
                         <div style={{ fontSize: 32, fontWeight: 900, color: t.blue, letterSpacing: '-1px', lineHeight: 1, filter: showSalary ? 'none' : 'blur(7px)', transition: 'filter 0.2s', userSelect: showSalary ? 'auto' : 'none' }}>
                             {myStats.net_salary ? `$${fmtMoney(myStats.net_salary)}` : '—'}
                         </div>
                     </div>
                     <div style={col2}>
-                        {[['Base salary', myStats.base_salary, t.text, '$'], ['OT pay', myStats.overtime_amount, t.green, '+$'], ['Allowances', myStats.total_allowances, t.teal, '+$'], ['Deductions', myStats.total_deductions, t.red, '-$']].map(([lbl, val, clr, pref]) => (
+                        {[[dashText(tr, 'baseSalary', 'Base salary'), myStats.base_salary, t.text, '$'], [dashText(tr, 'otPay', 'OT pay'), myStats.overtime_amount, t.green, '+$'], [dashText(tr, 'allowances', 'Allowances'), myStats.total_allowances, t.teal, '+$'], [dashText(tr, 'deductions', 'Deductions'), myStats.total_deductions, t.red, '-$']].map(([lbl, val, clr, pref]) => (
                             <div key={lbl} style={{ background: t.surface2, borderRadius: 10, padding: '10px 12px' }}>
                                 <div style={{ fontSize: 10, color: t.textMute }}>{lbl}</div>
                                 <div style={{ fontSize: 14, fontWeight: 700, color: clr, marginTop: 2, filter: showSalary ? 'none' : 'blur(5px)', transition: 'filter 0.2s' }}>
@@ -1634,7 +1662,7 @@ function EmployeeView({ props, t }) {
                     </div>
                 </Panel>
 
-                <Panel title="Leave balances" subtitle="Remaining days" t={t}>
+                <Panel title={dashText(tr, 'leaveBalances', 'Leave balances')} subtitle={dashText(tr, 'remainingDays', 'Remaining days')} t={t}>
                     {(myStats.leave_balances || []).map((lb, i) => (
                         <div key={i} style={{ marginBottom: 12 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
@@ -1646,24 +1674,24 @@ function EmployeeView({ props, t }) {
                             </div>
                         </div>
                     ))}
-                    {!(myStats.leave_balances || []).length && <div style={{ fontSize: 12, color: t.textMute }}>No data</div>}
+                    {!(myStats.leave_balances || []).length && <div style={{ fontSize: 12, color: t.textMute }}>{dashText(tr, 'noData', 'No data')}</div>}
                 </Panel>
             </div>
 
             <div style={col2}>
-                <Panel title="My weekly attendance" subtitle="Work hours per day" t={t}>
+                <Panel title={dashText(tr, 'myWeeklyAttendance', 'My weekly attendance')} subtitle={dashText(tr, 'workHoursPerDay', 'Work hours per day')} t={t}>
                     <Sparkline color={t.green} height={56} data={weeklyAttendance.map(d => d.value || 0)} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
                         {weeklyAttendance.map(d => <div key={d.label} style={{ fontSize: 9, color: t.textMute }}>{d.label}</div>)}
                     </div>
                 </Panel>
-                <Panel title="📅 Upcoming holidays" t={t}>
+                <Panel title={`📅 ${dashText(tr, 'upcomingHolidays', 'Upcoming holidays')}`} t={t}>
                     <HolidayList items={upcomingHolidays.slice(0, 4)} t={t} />
                 </Panel>
             </div>
 
             {birthdaysThisWeek.length > 0 && (
-                <Panel title="🎂 Birthdays this week" t={t}>
+                <Panel title={`🎂 ${dashText(tr, 'birthdaysThisWeek', 'Birthdays this week')}`} t={t}>
                     {birthdaysThisWeek.slice(0, 4).map((b, i) => <PersonRow key={i} name={b.name} meta={`${b.department} · ${b.date}`} avatarBg={t.pinkSoft} avatarColor={t.pink} avatarUrl={b.avatar_url} last={i === birthdaysThisWeek.length - 1} t={t} />)}
                 </Panel>
             )}
@@ -1672,6 +1700,7 @@ function EmployeeView({ props, t }) {
 }
 
 function WarningCard({ warnings, dark, t }) {
+    const { t: tr } = useTranslation();
     const [idx,        setIdx]      = useState(0);
     const [expanded,   setExpanded] = useState(false);
     const [ackLoading, setAckLoading] = useState(false);
@@ -1735,7 +1764,7 @@ function WarningCard({ warnings, dark, t }) {
                         <span style={{ fontSize: 10, color: t.textMute }}>{w.month_label}</span>
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 700, color }}>
-                        {isAbsent ? 'Absence Warning' : 'Late Arrival Warning'}
+                        {isAbsent ? dashText(tr, 'absenceWarning', 'Absence Warning') : dashText(tr, 'lateArrivalWarning', 'Late Arrival Warning')}
                     </div>
                 </div>
  
@@ -1761,7 +1790,7 @@ function WarningCard({ warnings, dark, t }) {
                     {display}
                 </div>
  
-                {/* See more/less (text only) + Mark as read button — same row */}
+                {/* See more/less (text only) + {dashText(tr, 'markAsRead', 'Mark as read')} button — same row */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
  
                     {/* Text-only see more / see less */}
@@ -1779,7 +1808,7 @@ function WarningCard({ warnings, dark, t }) {
                             onMouseEnter={e => e.currentTarget.style.opacity = '1'}
                             onMouseLeave={e => e.currentTarget.style.opacity = '0.8'}
                         >
-                            {expanded ? 'See less' : 'See more'}
+                            {expanded ? dashText(tr, 'seeLess', 'See less') : dashText(tr, 'seeMore', 'See more')}
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" strokeWidth="2.5"
                                 style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>
@@ -1790,7 +1819,7 @@ function WarningCard({ warnings, dark, t }) {
                         <span />
                     )}
  
-                    {/* Mark as read button */}
+                    {/* {dashText(tr, 'markAsRead', 'Mark as read')} button */}
                     <button
                         onClick={handleAcknowledge}
                         disabled={ackLoading}
@@ -1816,7 +1845,7 @@ function WarningCard({ warnings, dark, t }) {
                                     style={{ animation: 'spin 0.7s linear infinite' }}>
                                     <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                                 </svg>
-                                Marking…
+                                {dashText(tr, 'marking', 'Marking…')}
                             </>
                         ) : (
                             <>
@@ -1825,7 +1854,7 @@ function WarningCard({ warnings, dark, t }) {
                                     strokeLinecap="round" strokeLinejoin="round">
                                     <polyline points="20 6 9 17 4 12"/>
                                 </svg>
-                                Mark as read
+                                {dashText(tr, 'markAsRead', 'Mark as read')}
                             </>
                         )}
                     </button>
@@ -1839,6 +1868,7 @@ function WarningCard({ warnings, dark, t }) {
 // ── MAIN EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Dashboard(props) {
+    const { t: tr } = useTranslation();
     const {
         roleName, dashboardMode, announcements = [], orgSummary = {}, teamSummary = {},
         approvalQueue = {}, employmentChart = [], departmentChart = [],
@@ -1855,7 +1885,7 @@ export default function Dashboard(props) {
     const firstName = auth?.user?.name?.split(' ')?.[0] || 'there';
     const now  = new Date();
     const hour = now.getHours();
-    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    const greeting = hour < 12 ? dashText(tr, 'goodMorning', 'Good morning') : hour < 17 ? dashText(tr, 'goodAfternoon', 'Good afternoon') : dashText(tr, 'goodEvening', 'Good evening');
 
     const isHrAdmin    = roleIn(roleName, ['admin', 'hr']);
     const isManagement = roleIn(roleName, ['management']);
@@ -1872,8 +1902,8 @@ export default function Dashboard(props) {
     const totalPending = (approvalQueue.pending_leave_requests||0) + (approvalQueue.pending_ot_requests||0) + (approvalQueue.pending_attendance_requests||0) + (approvalQueue.pending_expense_requests||0);
 
     return (
-        <AppLayout title="Dashboard">
-            <Head title="Dashboard" />
+        <AppLayout title={dashText(tr, 'dashboard', 'Dashboard')}>
+            <Head title={dashText(tr, 'dashboard', 'Dashboard')} />
             <style>{`.dash-scroll-hide::-webkit-scrollbar{display:none}.dash-scroll-hide{scrollbar-width:none;-ms-overflow-style:none}`}</style>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0, paddingBottom: 40 }}>
 
@@ -1881,7 +1911,7 @@ export default function Dashboard(props) {
                 <div style={{ ...card(t, { padding: '20px 24px', marginBottom: 16 }) }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                         <div>
-                            <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: t.blue, marginBottom: 4 }}>{dashboardMode || 'personal'} dashboard</div>
+                            <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: t.blue, marginBottom: 4 }}>{dashboardMode || dashText(tr, 'personal', 'personal')} {dashText(tr, 'dashboard', 'dashboard')}</div>
                             <div style={{ fontSize: 22, fontWeight: 800, color: t.text, letterSpacing: '-0.3px', lineHeight: 1.2 }}>{greeting}, {firstName}</div>
                             <div style={{ fontSize: 12, color: t.textMute, marginTop: 4 }}>{now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</div>
                         </div>
@@ -1890,15 +1920,15 @@ export default function Dashboard(props) {
                                 <>
                                     <div style={{ background: t.amberSoft, borderRadius: 12, padding: '10px 16px', textAlign: 'center', minWidth: 72 }}>
                                         <div style={{ fontSize: 20, fontWeight: 800, color: t.amber }}>{totalPending}</div>
-                                        <div style={{ fontSize: 10, color: t.amber, fontWeight: 600, marginTop: 2 }}>Pending</div>
+                                        <div style={{ fontSize: 10, color: t.amber, fontWeight: 600, marginTop: 2 }}>{dashText(tr, 'pending', 'Pending')}</div>
                                     </div>
                                     <div style={{ background: t.greenSoft, borderRadius: 12, padding: '10px 16px', textAlign: 'center', minWidth: 72 }}>
                                         <div style={{ fontSize: 20, fontWeight: 800, color: t.green }}>{orgSummary.present_today || teamSummary.present_today || 0}</div>
-                                        <div style={{ fontSize: 10, color: t.green, fontWeight: 600, marginTop: 2 }}>Present</div>
+                                        <div style={{ fontSize: 10, color: t.green, fontWeight: 600, marginTop: 2 }}>{dashText(tr, 'present', 'Present')}</div>
                                     </div>
                                     <div style={{ background: t.blueSoft, borderRadius: 12, padding: '10px 16px', textAlign: 'center', minWidth: 72 }}>
                                         <div style={{ fontSize: 20, fontWeight: 800, color: t.blue }}>{orgSummary.total_employees || teamSummary.headcount || 0}</div>
-                                        <div style={{ fontSize: 10, color: t.blue, fontWeight: 600, marginTop: 2 }}>Staff</div>
+                                        <div style={{ fontSize: 10, color: t.blue, fontWeight: 600, marginTop: 2 }}>{dashText(tr, 'staff', 'Staff')}</div>
                                     </div>
                                 </>
                             )}
@@ -1909,10 +1939,10 @@ export default function Dashboard(props) {
                                     </div>
                                     <div>
                                         <div style={{ fontSize: 12, fontWeight: 700, color: todayStatus.checked_in ? t.green : t.text }}>
-                                            {todayStatus.checked_in ? `Checked in · ${todayStatus.check_in || '—'}` : 'Not checked in yet'}
+                                            {todayStatus.checked_in ? `${dashText(tr, 'checkedIn', 'Checked in')} · ${todayStatus.check_in || '—'}` : dashText(tr, 'notCheckedIn', 'Not checked in yet')}
                                         </div>
                                         <div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>
-                                            {todayStatus.check_out ? `Out · ${todayStatus.check_out}` : todayStatus.checked_in ? 'Currently at work' : 'Today is a working day'}
+                                            {todayStatus.check_out ? `${dashText(tr, 'out', 'Out')} · ${todayStatus.check_out}` : todayStatus.checked_in ? dashText(tr, 'currentlyAtWork', 'Currently at work') : dashText(tr, 'todayIsWorkingDay', 'Today is a working day')}
                                         </div>
                                     </div>
                                 </div>

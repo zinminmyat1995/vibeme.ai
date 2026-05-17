@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 function useReactiveTheme() {
     const getDark = () => {
@@ -65,14 +66,14 @@ function ChoiceBar({ label, count, pct, color, dark, theme }) {
 }
 
 // ── Question result card ───────────────────────────────────────
-function QuestionResult({ qr, idx, dark, theme }) {
+function QuestionResult({ qr, idx, dark, theme, tr }) {
     const typeColor = {
         single_choice:'#7c3aed', multi_choice:'#0891b2',
         yes_no:'#059669', rating:'#d97706', text:'#dc2626',
     };
     const typeLabel = {
-        single_choice:'Single Choice', multi_choice:'Multi Choice',
-        yes_no:'Yes / No', rating:'Rating', text:'Text Answer',
+        single_choice:tr('surveys.questionTypes.singleChoice'), multi_choice:tr('surveys.questionTypes.multiChoice'),
+        yes_no:tr('surveys.questionTypes.yesNo'), rating:tr('surveys.questionTypes.rating'), text:tr('surveys.questionTypes.textAnswer'),
     };
     const c = typeColor[qr.type] || '#7c3aed';
 
@@ -98,7 +99,7 @@ function QuestionResult({ qr, idx, dark, theme }) {
                             <span style={{ fontSize:10, fontWeight:700, padding:'2px 7px', borderRadius:99, background:`${c}18`, color:c }}>
                                 {typeLabel[qr.type]||qr.type}
                             </span>
-                            <span style={{ fontSize:11, color:theme.textMute }}>{qr.answered} responses</span>
+                            <span style={{ fontSize:11, color:theme.textMute }}>{qr.answered} {tr('surveys.labels.responsesLower')}</span>
                         </div>
                     </div>
                 </div>
@@ -120,7 +121,7 @@ function QuestionResult({ qr, idx, dark, theme }) {
                             <span style={{ fontSize:36, fontWeight:900, color:'#f59e0b', lineHeight:1 }}>
                                 {qr.avg || '—'}
                             </span>
-                            <span style={{ fontSize:13, color:theme.textMute }}>/ 5 avg</span>
+                            <span style={{ fontSize:13, color:theme.textMute }}>/ 5 {tr('surveys.results.avg')}</span>
                             <div style={{ marginLeft:8, display:'flex', gap:2 }}>
                                 {[1,2,3,4,5].map(s => (
                                     <span key={s} style={{ fontSize:16, color: s <= Math.round(qr.avg||0) ? '#f59e0b' : (dark?'rgba(255,255,255,0.12)':'#e2e8f0') }}>★</span>
@@ -139,7 +140,7 @@ function QuestionResult({ qr, idx, dark, theme }) {
                 {qr.type === 'text' && (
                     <div style={{ display:'flex', flexDirection:'column', gap:8, maxHeight:260, overflowY:'auto' }}>
                         {!qr.answers?.length ? (
-                            <div style={{ fontSize:13, color:theme.textMute, fontStyle:'italic', padding:'12px 0' }}>No text answers yet.</div>
+                            <div style={{ fontSize:13, color:theme.textMute, fontStyle:'italic', padding:'12px 0' }}>{tr('surveys.results.noTextAnswersYet')}</div>
                         ) : qr.answers.map((a,i) => (
                             <div key={i} style={{
                                 padding:'10px 14px', borderRadius:10,
@@ -160,7 +161,7 @@ function QuestionResult({ qr, idx, dark, theme }) {
 }
 
 // ── Individual response row ────────────────────────────────────
-function ResponseRow({ resp, idx, survey, questions, dark, theme, isLast }) {
+function ResponseRow({ resp, idx, survey, questions, dark, theme, isLast, tr }) {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -177,13 +178,13 @@ function ResponseRow({ resp, idx, survey, questions, dark, theme, isLast }) {
                 {survey.is_anonymous ? (
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                         <div style={{ width:28, height:28, borderRadius:'50%', background:dark?'rgba(255,255,255,0.08)':'#f1f5f9', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>👤</div>
-                        <span style={{ fontSize:13, fontWeight:600, color:theme.textMute }}>Anonymous</span>
+                        <span style={{ fontSize:13, fontWeight:600, color:theme.textMute }}>{tr('surveys.labels.anonymous')}</span>
                     </div>
                 ) : (
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                         <Avatar name={resp.respondent?.name} avatarUrl={resp.respondent?.avatar_url}/>
                         <div>
-                            <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{resp.respondent?.name || 'Unknown'}</div>
+                            <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{resp.respondent?.name || `{tr('surveys.results.unknown')}`}</div>
                             {resp.respondent?.department && <div style={{ fontSize:11, color:theme.textMute }}>{resp.respondent.department}</div>}
                         </div>
                     </div>
@@ -231,6 +232,7 @@ function ResponseRow({ resp, idx, survey, questions, dark, theme, isLast }) {
 //  MAIN
 // ═══════════════════════════════════════════════════════════════
 export default function SurveysResults({ survey, results, responses = [] }) {
+    const { t: tr } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -258,14 +260,14 @@ export default function SurveysResults({ survey, results, responses = [] }) {
     const totalResp = results.total_responses || 0;
 
     const tabs = [
-        { key:'results',   label:'Question Results', count:null },
-        { key:'responses', label:'Individual Responses', count:totalResp },
-        { key:'insight',   label:'AI Insight', count:null },
+        { key:'results',   label:tr('surveys.results.questionResults'), count:null },
+        { key:'responses', label:tr('surveys.results.individualResponses'), count:totalResp },
+        { key:'insight',   label:tr('surveys.results.aiInsight'), count:null },
     ];
 
     return (
-        <AppLayout title="Survey Results">
-            <Head title="Survey Results"/>
+        <AppLayout title={tr('surveys.results.pageTitle')}>
+            <Head title={tr('surveys.results.pageTitle')}/>
             <style>{`
                 @keyframes sv-fade { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
                 @keyframes sv-spin { to{transform:rotate(360deg)} }
@@ -284,14 +286,14 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                     <div style={{ position:'relative' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
                             <button onClick={()=>router.visit('/hr/surveys')} style={{ padding:'5px 12px', borderRadius:8, border:'1px solid rgba(255,255,255,0.2)', background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.8)', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
-                                ← Surveys
+                                ← {tr('surveys.index.pageTitle')}
                             </button>
-                            <span style={{ fontSize:10, color:'rgba(255,255,255,0.45)', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase' }}>Survey Results</span>
+                            <span style={{ fontSize:10, color:'rgba(255,255,255,0.45)', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase' }}>{tr('surveys.results.pageTitle')}</span>
                         </div>
                         <h1 style={{ fontSize:22, fontWeight:900, color:'#fff', margin:'8px 0 4px', letterSpacing:'-0.3px' }}>{survey.title}</h1>
                         <div style={{ display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
-                            <span style={{ fontSize:12, color:'rgba(255,255,255,0.65)' }}>{totalResp} responses · Avg {fmtSec(results.avg_completion_sec)}</span>
-                            {survey.is_anonymous && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:99, background:'rgba(255,255,255,0.15)', color:'rgba(255,255,255,0.85)' }}>🔒 Anonymous</span>}
+                            <span style={{ fontSize:12, color:'rgba(255,255,255,0.65)' }}>{totalResp} {tr('surveys.labels.responsesLower')} · {tr('surveys.results.avg')} {fmtSec(results.avg_completion_sec)}</span>
+                            {survey.is_anonymous && <span style={{ fontSize:11, padding:'2px 8px', borderRadius:99, background:'rgba(255,255,255,0.15)', color:'rgba(255,255,255,0.85)' }}>🔒 {tr('surveys.labels.anonymous')}</span>}
                             <span style={{ fontSize:11, padding:'2px 8px', borderRadius:99, background:'rgba(255,255,255,0.15)', color:'rgba(255,255,255,0.85)', textTransform:'capitalize' }}>{survey.status}</span>
                         </div>
                     </div>
@@ -300,9 +302,9 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                 {/* ── Summary cards ── */}
                 <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
                     {[
-                        { label:'Total Responses', value:totalResp,                              icon:'💬', color:'#7c3aed', soft:dark?'rgba(124,58,237,0.14)':'#f3e8ff' },
-                        { label:'Avg Completion',  value:fmtSec(results.avg_completion_sec),    icon:'⏱',  color:'#0891b2', soft:dark?'rgba(8,145,178,0.14)':'#e0f2fe'  },
-                        { label:'Questions',       value:results.questions?.length||0,           icon:'📋', color:'#059669', soft:dark?'rgba(5,150,105,0.14)':'#d1fae5'  },
+                        { label:tr('surveys.index.stats.totalResponses'), value:totalResp,                              icon:'💬', color:'#7c3aed', soft:dark?'rgba(124,58,237,0.14)':'#f3e8ff' },
+                        { label:tr('surveys.results.avgCompletion'),  value:fmtSec(results.avg_completion_sec),    icon:'⏱',  color:'#0891b2', soft:dark?'rgba(8,145,178,0.14)':'#e0f2fe'  },
+                        { label:tr('surveys.labels.questions'),       value:results.questions?.length||0,           icon:'📋', color:'#059669', soft:dark?'rgba(5,150,105,0.14)':'#d1fae5'  },
                     ].map(c => (
                         <div key={c.label} style={{
                             display:'flex', alignItems:'center', gap:12, flex:1, minWidth:140,
@@ -328,7 +330,7 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                         transition:'all .15s',
                     }}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        Export CSV
+                        {tr('surveys.results.exportCsv')}
                     </a>
                 </div>
 
@@ -362,9 +364,9 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                     {tab === 'results' && (
                         <div style={{ padding:'18px 20px' }}>
                             {!results.questions?.length ? (
-                                <div style={{ padding:'40px', textAlign:'center', color:theme.textMute }}>No responses yet.</div>
+                                <div style={{ padding:'40px', textAlign:'center', color:theme.textMute }}>{tr('surveys.results.noResponsesYet')}</div>
                             ) : results.questions.map((qr, idx) => (
-                                <QuestionResult key={idx} qr={qr} idx={idx} dark={dark} theme={theme}/>
+                                <QuestionResult key={idx} qr={qr} idx={idx} dark={dark} theme={theme} tr={tr}/>
                             ))}
                         </div>
                     )}
@@ -384,6 +386,7 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                                     questions={results.questions_raw || []}
                                     dark={dark} theme={theme}
                                     isLast={idx === responses.length - 1}
+                                    tr={tr}
                                 />
                             ))}
                         </div>
@@ -395,9 +398,9 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
                                 <div>
                                     <div style={{ fontSize:15, fontWeight:800, color:theme.text, display:'flex', alignItems:'center', gap:8 }}>
-                                        🤖 AI Analysis
+                                        🤖 {tr('surveys.results.aiAnalysis')}
                                     </div>
-                                    {insightTime && <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>Generated {insightTime}</div>}
+                                    {insightTime && <div style={{ fontSize:11, color:theme.textMute, marginTop:2 }}>{tr('surveys.results.generated')} {insightTime}</div>}
                                 </div>
                                 <button onClick={generateInsight} disabled={insightLoading || totalResp === 0} style={{
                                     padding:'9px 18px', borderRadius:10, border:'none',
@@ -411,7 +414,7 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                                         ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{animation:'sv-spin 1s linear infinite'}}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
                                         : <span>✨</span>
                                     }
-                                    {insightLoading ? 'Analyzing...' : insight ? 'Regenerate' : 'Generate Insight'}
+                                    {insightLoading ? tr('surveys.results.analyzing') : insight ? tr('surveys.results.regenerate') : tr('surveys.results.generateInsight')}
                                 </button>
                             </div>
 
@@ -424,9 +427,9 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                             ) : (
                                 <div style={{ padding:'56px 24px', textAlign:'center' }}>
                                     <div style={{ fontSize:42, marginBottom:12 }}>🤖</div>
-                                    <div style={{ fontSize:14, fontWeight:600, color:theme.textSoft, marginBottom:6 }}>No insight generated yet</div>
+                                    <div style={{ fontSize:14, fontWeight:600, color:theme.textSoft, marginBottom:6 }}>{tr('surveys.results.noInsightGeneratedYet')}</div>
                                     <div style={{ fontSize:12, color:theme.textMute }}>
-                                        {totalResp === 0 ? 'Collect responses before generating AI insights.' : 'Click "Generate Insight" to analyze all responses with AI.'}
+                                        {totalResp === 0 ? `{tr('surveys.results.collectResponsesBeforeInsights')}` : `{tr('surveys.results.clickGenerateInsight')}`}
                                     </div>
                                 </div>
                             )}

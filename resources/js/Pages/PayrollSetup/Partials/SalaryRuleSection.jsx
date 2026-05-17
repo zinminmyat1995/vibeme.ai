@@ -1,6 +1,8 @@
 import { useForm, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '@/Contexts/LanguageContext';
+const trPresetName = (tr, value) => tr(`hrPolicy.presets.${String(value || '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '')}`) || value;
 
 /* ── useTheme ── */
 function useTheme() {
@@ -53,9 +55,9 @@ function getTheme(dark) {
 
 /* ── Constants ── */
 const PAY_CYCLE_OPTIONS = [
-    { value:'monthly',      label:'Monthly',      hint:'12× / year', desc:'Once a month',  emoji:'📅' },
-    { value:'semi_monthly', label:'Semi-Monthly', hint:'24× / year', desc:'Twice a month', emoji:'📆' },
-    { value:'ten_day',      label:'10-Day',       hint:'36× / year', desc:'Every 10 days', emoji:'🗓️' },
+    { value:'monthly',      labelKey:'hrPolicy.salary.monthly',      label:'Monthly',      hint:'12× / year', descKey:'hrPolicy.salary.onceAMonth',  desc:'Once a month',  emoji:'📅' },
+    { value:'semi_monthly', labelKey:'hrPolicy.salary.semiMonthly',  label:'Semi-Monthly', hint:'24× / year', descKey:'hrPolicy.salary.twiceAMonth', desc:'Twice a month', emoji:'📆' },
+    { value:'ten_day',      labelKey:'hrPolicy.salary.tenDay',       label:'10-Day',       hint:'36× / year', descKey:'hrPolicy.salary.everyTenDays', desc:'Every 10 days', emoji:'🗓️' },
 ];
 const MONTHS = [
     {value:1,label:'January'},{value:2,label:'February'},{value:3,label:'March'},
@@ -64,10 +66,10 @@ const MONTHS = [
     {value:10,label:'October'},{value:11,label:'November'},{value:12,label:'December'},
 ];
 const FREQ_OPTIONS = [
-    {value:'monthly',  label:'Monthly',  hint:'Every month',    emoji:'📅'},
-    {value:'quarterly',label:'Quarterly',hint:'Every 3 months', emoji:'📊'},
-    {value:'yearly',   label:'Yearly',   hint:'Once a year',    emoji:'🗓️'},
-    {value:'once',     label:'One-Time', hint:'Special bonus',  emoji:'💫'},
+    {value:'monthly',  labelKey:'hrPolicy.salary.monthly',              label:'Monthly',   hintKey:'hrPolicy.salary.everyMonth',       hint:'Every month',    emoji:'📅'},
+    {value:'quarterly',labelKey:'hrPolicy.bonus.frequency.quarterly',   label:'Quarterly', hintKey:'hrPolicy.salary.everyThreeMonths', hint:'Every 3 months', emoji:'📊'},
+    {value:'yearly',   labelKey:'hrPolicy.bonus.frequency.yearly',      label:'Yearly',    hintKey:'hrPolicy.salary.onceAYear',        hint:'Once a year',    emoji:'🗓️'},
+    {value:'once',     labelKey:'hrPolicy.bonus.frequency.once',        label:'One-Time',  hintKey:'hrPolicy.salary.specialBonus',     hint:'Special bonus',  emoji:'💫'},
 ];
 
 /* ── Utilities ── */
@@ -89,7 +91,7 @@ function Portal({ children }) {
 }
 
 /* ── PremiumSelect ── */
-function PremiumSelect({ options=[], value='', onChange, placeholder='Select...', T, dark, disabled=false, zIndex=300 }) {
+function PremiumSelect({ options=[], value='', onChange, placeholder='Select...', T, dark, disabled=false, zIndex=300, tr }) {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
     const sel = options.find(o => String(o.value)===String(value) && !o.disabled);
@@ -102,7 +104,7 @@ function PremiumSelect({ options=[], value='', onChange, placeholder='Select...'
         <div ref={ref} style={{position:'relative',zIndex}}>
             <button type="button" onClick={()=>!disabled&&setOpen(v=>!v)}
                 style={{width:'100%',height:48,padding:'0 16px',borderRadius:14,border:`1.5px solid ${open?T.primary:T.inputBorder}`,background:T.inputBg,color:sel?T.text:T.textMute,display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,cursor:disabled?'not-allowed':'pointer',boxShadow:open?`0 0 0 3px ${T.primarySoft}`:T.shadowSoft,backdropFilter:'blur(12px)',transition:'all 0.18s',outline:'none',opacity:disabled?0.6:1}}>
-                <span style={{fontSize:13,fontWeight:sel?700:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sel?sel.label:placeholder}</span>
+                <span style={{fontSize:13,fontWeight:sel?700:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sel ? (sel.labelKey && tr ? tr(sel.labelKey) : sel.label) : placeholder}</span>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{transform:open?'rotate(180deg)':'rotate(0deg)',transition:'transform 0.18s',flexShrink:0}}>
                     <path d="M4 6L8 10L12 6" stroke={T.textMute} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -121,7 +123,7 @@ function PremiumSelect({ options=[], value='', onChange, placeholder='Select...'
                                 <span style={{width:18,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                                     {isSel&&<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
                                 </span>
-                                {opt.label}
+                                {opt.labelKey && tr ? tr(opt.labelKey) : opt.label}
                             </button>
                         );
                     })}
@@ -136,7 +138,7 @@ function PremiumSelect({ options=[], value='', onChange, placeholder='Select...'
    CSS stacking contexts (overflow:hidden, transform, will-change).
    Position computed from trigger's getBoundingClientRect.
    ─────────────────────────────────────────────────────────── */
-function PremiumTimePicker({ value, onChange, T, dark, error }) {
+function PremiumTimePicker({ value, onChange, T, dark, error, tr }) {
     const [open, setOpen] = useState(false);
     const [dropPos, setDropPos] = useState({ top:0, left:0, width:280 });
     const triggerRef = useRef(null);
@@ -188,7 +190,7 @@ function PremiumTimePicker({ value, onChange, T, dark, error }) {
     const hours12 = [12,1,2,3,4,5,6,7,8,9,10,11];
     // Full 0–59 minutes
     const minutes = Array.from({length:60},(_,i)=>i);
-    const displayVal = value ? `${String(h12).padStart(2,'0')}:${String(mm).padStart(2,'0')} ${period}` : 'Select time...';
+    const displayVal = value ? `${String(h12).padStart(2,'0')}:${String(mm).padStart(2,'0')} ${period}` : (tr ? tr('common.selectTime') : 'Select time...');
 
     return (
         <div ref={triggerRef} style={{position:'relative'}}>
@@ -241,7 +243,7 @@ function PremiumTimePicker({ value, onChange, T, dark, error }) {
 
                         {/* Hour */}
                         <div style={{marginBottom:8}}>
-                            <div style={{fontSize:9,fontWeight:700,color:T.textMute,marginBottom:4,letterSpacing:'0.06em',textTransform:'uppercase'}}>Hour</div>
+                            <div style={{fontSize:9,fontWeight:700,color:T.textMute,marginBottom:4,letterSpacing:'0.06em',textTransform:'uppercase'}}>{tr ? tr('common.hour') : 'Hour'}</div>
                             <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:3}}>
                                 {hours12.map(h=>{
                                     const isSel=h===h12;
@@ -252,7 +254,7 @@ function PremiumTimePicker({ value, onChange, T, dark, error }) {
 
                         {/* Minute — 0-59, scrollable */}
                         <div style={{marginBottom:10}}>
-                            <div style={{fontSize:9,fontWeight:700,color:T.textMute,marginBottom:4,letterSpacing:'0.06em',textTransform:'uppercase'}}>Minute</div>
+                            <div style={{fontSize:9,fontWeight:700,color:T.textMute,marginBottom:4,letterSpacing:'0.06em',textTransform:'uppercase'}}>{tr ? tr('common.minute') : 'Minute'}</div>
                             <div style={{
                                 display:'grid', gridTemplateColumns:'repeat(10,1fr)', gap:3,
                                 maxHeight:86, overflowY:'auto',
@@ -267,7 +269,7 @@ function PremiumTimePicker({ value, onChange, T, dark, error }) {
                         </div>
 
                         {/* Confirm */}
-                        <button type="button" onClick={()=>setOpen(false)} style={{width:'100%',padding:'7px',borderRadius:8,border:'none',background:T.primary,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}>✓ Confirm</button>
+                        <button type="button" onClick={()=>setOpen(false)} style={{width:'100%',padding:'7px',borderRadius:8,border:'none',background:T.primary,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}>✓ {tr ? tr('common.confirm') : 'Confirm'}</button>
                     </div>
                 </Portal>
             )}
@@ -352,7 +354,7 @@ function ShiftTimeline({ start, end, T, dark }) {
 }
 
 /* ── PayrollPreview ── */
-function PayrollPreview({ payCycle, cutoffDay, T }) {
+function PayrollPreview({ payCycle, cutoffDay, T, tr }) {
     const d=parseInt(cutoffDay)||25;
     const now=new Date(),y=now.getFullYear(),m=now.getMonth();
     const fmt=date=>date.toLocaleDateString('en-US',{month:'short',day:'numeric'});
@@ -363,10 +365,10 @@ function PayrollPreview({ payCycle, cutoffDay, T }) {
     else{pS=new Date(y,m-1,prevCutoff+1);pE=new Date(y,m,cutoff);}
     const total=Math.round((pE-pS)/86400000)+1;
     if(payCycle==='semi_monthly'){const mid=Math.floor(total/2);const p1E=new Date(pS.getTime()+(mid-1)*86400000);const p2S=new Date(p1E.getTime()+86400000);
-        return <div style={{display:'flex',flexDirection:'column',gap:4}}><div style={{fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.07em'}}>2 periods / month</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P1: {fmt(pS)} → {fmt(p1E)}</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P2: {fmt(p2S)} → {fmt(pE)}</div></div>;}
+        return <div style={{display:'flex',flexDirection:'column',gap:4}}><div style={{fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.07em'}}>{tr ? tr('hrPolicy.salary.twoPeriodsMonth') : '2 periods / month'}</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P1: {fmt(pS)} → {fmt(p1E)}</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P2: {fmt(p2S)} → {fmt(pE)}</div></div>;}
     if(payCycle==='ten_day'){const c=Math.floor(total/3);const p1E=new Date(pS.getTime()+(c-1)*86400000);const p2S=new Date(p1E.getTime()+86400000);const p2E=new Date(p2S.getTime()+(c-1)*86400000);const p3S=new Date(p2E.getTime()+86400000);
-        return <div style={{display:'flex',flexDirection:'column',gap:4}}><div style={{fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.07em'}}>3 periods / month</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P1: {fmt(pS)} → {fmt(p1E)}</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P2: {fmt(p2S)} → {fmt(p2E)}</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P3: {fmt(p3S)} → {fmt(pE)}</div></div>;}
-    return <div><div style={{fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.07em',marginBottom:4}}>Monthly</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>{fmt(pS)} → {fmt(pE)}</div></div>;
+        return <div style={{display:'flex',flexDirection:'column',gap:4}}><div style={{fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.07em'}}>{tr ? tr('hrPolicy.salary.threePeriodsMonth') : '3 periods / month'}</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P1: {fmt(pS)} → {fmt(p1E)}</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P2: {fmt(p2S)} → {fmt(p2E)}</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>P3: {fmt(p3S)} → {fmt(pE)}</div></div>;}
+    return <div><div style={{fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.07em',marginBottom:4}}>{tr ? tr('hrPolicy.salary.monthly') : 'Monthly'}</div><div style={{fontSize:12,fontWeight:700,color:T.primary}}>{fmt(pS)} → {fmt(pE)}</div></div>;
 }
 
 /* ── SavedCard ── */
@@ -381,7 +383,7 @@ function SavedCard({ label, value, sub, T }) {
 }
 
 /* ── ConfirmModal — via Portal ── */
-function ConfirmModal({ open, onClose, onConfirm, data, isEdit, processing, T, dark, currencies, banks }) {
+function ConfirmModal({ open, onClose, onConfirm, data, isEdit, processing, T, dark, currencies, banks, tr }) {
     if (!open) return null;
     const bank=banks?.find(b=>b.id==data.bank_id);
     const currency=currencies?.find(c=>c.id==data.currency_id);
@@ -398,22 +400,22 @@ function ConfirmModal({ open, onClose, onConfirm, data, isEdit, processing, T, d
         return`${pE.getDate()} of each month`;
     };
     const rows=[
-        {icon:'📅',label:'Pay Cycle',value:cycle?.label??'—'},
-        {icon:'⏳',label:'Probation',value:`${data.probation_days} days`},
-        {icon:'💱',label:'Currency',value:currency?`${currency.currency_name} (${currency.currency_code})`:'—'},
-        {icon:'🏦',label:'Bank',value:bank?.bank_name??'—'},
-        {icon:'🌤️',label:'Day Shift',value:`${to12h(data.day_shift_start)} – ${to12h(data.day_shift_end)}`},
-        {icon:'🌙',label:'Night Shift',value:`${to12h(data.day_shift_end)} – ${to12h(data.day_shift_start)} (auto)`},
-        {icon:'🍽️',label:'Lunch Break',value:`${data.lunch_start??'12:00'} – ${data.lunch_end??'13:00'}`},
-        {icon:'💼',label:'Work Hours',value:`${to12h(data.work_start??'08:00')} – ${to12h(data.work_end??'17:00')}`},
-        {icon:'⚡',label:'OT Base',value:data.overtime_base==='hourly_rate'?'Hourly Rate':'Daily Rate'},
-        {icon:'⚠️',label:'Late Deduction',value:`${data.late_deduction_rate||0} / ${data.late_deduction_unit==='per_minute'?'min':'hr'}`},
+        {icon:'📅',label: tr ? tr('hrPolicy.salary.payCycle') : 'Pay Cycle',value: cycle ? (cycle.labelKey && tr ? tr(cycle.labelKey) : cycle.label) : '—'},
+        {icon:'⏳',label: tr ? tr('hrPolicy.salary.probation') : 'Probation',value:`${data.probation_days} days`},
+        {icon:'💱',label: tr ? tr('hrPolicy.salary.currency') : 'Currency',value:currency?`${currency.currency_name} (${currency.currency_code})`:'—'},
+        {icon:'🏦',label: tr ? tr('hrPolicy.salary.bank') : 'Bank',value:bank?.bank_name??'—'},
+        {icon:'🌤️',label: tr ? tr('hrPolicy.salary.dayShift') : 'Day Shift',value:`${to12h(data.day_shift_start)} – ${to12h(data.day_shift_end)}`},
+        {icon:'🌙',label: tr ? tr('hrPolicy.salary.nightShift') : 'Night Shift',value:`${to12h(data.day_shift_end)} – ${to12h(data.day_shift_start)} (auto)`},
+        {icon:'🍽️',label: tr ? tr('hrPolicy.salary.lunchBreak') : 'Lunch Break',value:`${data.lunch_start??'12:00'} – ${data.lunch_end??'13:00'}`},
+        {icon:'💼',label: tr ? tr('hrPolicy.salary.workHours') : 'Work Hours',value:`${to12h(data.work_start??'08:00')} – ${to12h(data.work_end??'17:00')}`},
+        {icon:'⚡',label: tr ? tr('hrPolicy.salary.otBase') : 'OT Base',value:data.overtime_base==='hourly_rate' ? (tr ? tr('hrPolicy.salary.hourlyRate') : 'Hourly Rate') : (tr ? tr('hrPolicy.salary.dailyRate') : 'Daily Rate')},
+        {icon:'⚠️',label: tr ? tr('hrPolicy.salary.lateDeduction') : 'Late Deduction',value:`${data.late_deduction_rate||0} / ${data.late_deduction_unit==='per_minute'?'min':'hr'}`},
         {icon:'⏰',label:'Late Warning',  value: data.late_alert_enabled
             ? `Enabled — ≥ ${data.late_alert_threshold} times/month`
-            : 'Disabled'},
+            : (tr ? tr('common.disabled') : 'Disabled')},
         {icon:'📅',label:'Absent Warning', value: data.absent_alert_enabled
             ? `Enabled — ≥ ${data.absent_alert_threshold} days/month`
-            : 'Disabled'},
+            : (tr ? tr('common.disabled') : 'Disabled')},
         {icon:'🎁',label:'Bonus (Probation)',value:data.bonus_during_probation?'Yes — pay bonus':'No — skip'},
         {icon:'📋',label:'Bonus (Contract)',value:data.bonus_for_contract?'Yes — pay bonus':'No — skip'},
         {icon:'📆',label:'Pay Dates',value:payDates()},
@@ -447,9 +449,9 @@ function ConfirmModal({ open, onClose, onConfirm, data, isEdit, processing, T, d
                         </div>
                     </div>
                     <div style={{padding:'16px 24px',borderTop:`1px solid ${T.border}`,display:'flex',gap:10,justifyContent:'flex-end',flexShrink:0}}>
-                        <button onClick={onClose} style={{padding:'10px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}} onMouseEnter={e=>e.currentTarget.style.background=T.panelSoft} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>Cancel</button>
+                        <button onClick={onClose} style={{padding:'10px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}} onMouseEnter={e=>e.currentTarget.style.background=T.panelSoft} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>{tr ? tr('common.cancel') : 'Cancel'}</button>
                         <button onClick={onConfirm} disabled={processing} style={{display:'inline-flex',alignItems:'center',gap:7,padding:'10px 22px',borderRadius:12,border:'none',background:processing?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:13,fontWeight:700,cursor:processing?'not-allowed':'pointer',boxShadow:processing?'none':'0 4px 14px rgba(124,58,237,0.35)',transition:'all 0.15s'}} onMouseEnter={e=>{if(!processing)e.currentTarget.style.opacity='0.9';}} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-                            {processing?<><SRSpinner/> Saving...</>:<>{isEdit?'✅ Yes, Update':'✅ Yes, Save'}</>}
+                            {processing?<><SRSpinner/> {tr ? tr('common.saving') : 'Saving...'}</>:<>{isEdit?`✅ ${tr ? tr('common.update') : 'Update'}`:`✅ ${tr ? tr('common.save') : 'Save'}`}</>}
                         </button>
                     </div>
                 </div>
@@ -459,7 +461,7 @@ function ConfirmModal({ open, onClose, onConfirm, data, isEdit, processing, T, d
 }
 
 /* ── BankModal — via Portal ── */
-function BankModal({ banks, onClose, T, dark }) {
+function BankModal({ banks, onClose, T, dark, tr }) {
     const [showForm,setShowForm]=useState(false);
     const [editingId,setEditingId]=useState(null);
     const [deleteTarget,setDeleteTarget]=useState(null);
@@ -495,11 +497,11 @@ function BankModal({ banks, onClose, T, dark }) {
                             <div style={{textAlign:'center',padding:'0 32px'}}>
                                 <div style={{width:52,height:52,borderRadius:16,background:T.dangerSoft,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px',fontSize:22}}>🗑️</div>
                                 <div style={{fontSize:14,fontWeight:800,color:T.text,marginBottom:6}}>Delete "{deleteTarget.bank_name}"?</div>
-                                <div style={{fontSize:12,color:T.textMute,marginBottom:20}}>This action cannot be undone.</div>
+                                <div style={{fontSize:12,color:T.textMute,marginBottom:20}}>{tr ? tr('common.thisActionCannotBeUndone') : 'This action cannot be undone.'}</div>
                                 <div style={{display:'flex',gap:10,justifyContent:'center'}}>
-                                    <button onClick={()=>setDeleteTarget(null)} disabled={deleting} style={{padding:'9px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+                                    <button onClick={()=>setDeleteTarget(null)} disabled={deleting} style={{padding:'9px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>{tr ? tr('common.cancel') : 'Cancel'}</button>
                                     <button onClick={handleDel} disabled={deleting} style={{padding:'9px 18px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#ef4444,#dc2626)',color:'#fff',fontSize:13,fontWeight:700,cursor:deleting?'not-allowed':'pointer',opacity:deleting?0.6:1,boxShadow:'0 4px 14px rgba(239,68,68,0.35)',display:'flex',alignItems:'center',gap:6}}>
-                                        {deleting?<><SRSpinner/> Deleting...</>:'Yes, Delete'}
+                                        {deleting?<><SRSpinner/> {tr ? tr('common.deleting') : 'Deleting...'}</>:(tr ? tr('common.yesDelete') : 'Yes, Delete')}
                                     </button>
                                 </div>
                             </div>
@@ -513,12 +515,12 @@ function BankModal({ banks, onClose, T, dark }) {
                         {banks?.length>0?(
                             <div style={{borderRadius:14,overflow:'hidden',border:`1px solid ${T.border}`}}>
                                 <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
-                                    <thead><tr style={{background:T.tableHead,borderBottom:`1px solid ${T.divider}`}}>{['Bank Name','Code','Status','Actions'].map((h,i)=><th key={h} style={{padding:'10px 14px',fontSize:10,fontWeight:800,letterSpacing:'0.07em',textTransform:'uppercase',color:T.textMute,textAlign:i===0?'left':'center'}}>{h}</th>)}</tr></thead>
+                                    <thead><tr style={{background:T.tableHead,borderBottom:`1px solid ${T.divider}`}}>{['Bank Name','Code',trText('common.status', 'Status'),trText('common.actions', 'Actions')].map((h,i)=><th key={h} style={{padding:'10px 14px',fontSize:10,fontWeight:800,letterSpacing:'0.07em',textTransform:'uppercase',color:T.textMute,textAlign:i===0?'left':'center'}}>{h}</th>)}</tr></thead>
                                     <tbody>{banks.map((bank,idx)=>(
                                         <tr key={bank.id} style={{borderBottom:idx<banks.length-1?`1px solid ${T.divider}`:'none',transition:'background 0.1s'}} onMouseEnter={e=>e.currentTarget.style.background=T.rowHover} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                                             <td style={{padding:'10px 14px',fontWeight:700,color:T.text}}>{bank.bank_name}</td>
                                             <td style={{padding:'10px 14px',textAlign:'center'}}>{bank.bank_code?<span style={{fontFamily:'monospace',fontSize:11,fontWeight:800,padding:'3px 8px',borderRadius:6,background:T.panelSofter,color:T.primary}}>{bank.bank_code}</span>:<span style={{color:T.textMute}}>—</span>}</td>
-                                            <td style={{padding:'10px 14px',textAlign:'center'}}><span style={{display:'inline-block',padding:'2px 8px',borderRadius:99,fontSize:10,fontWeight:800,background:bank.is_active?T.successSoft:T.panelSoft,color:bank.is_active?T.success:T.textMute}}>{bank.is_active?'Active':'Inactive'}</span></td>
+                                            <td style={{padding:'10px 14px',textAlign:'center'}}><span style={{display:'inline-block',padding:'2px 8px',borderRadius:99,fontSize:10,fontWeight:800,background:bank.is_active?T.successSoft:T.panelSoft,color:bank.is_active?T.success:T.textMute}}>{bank.is_active ? (tr ? tr('common.active') : 'Active') : (tr ? tr('common.inactive') : 'Inactive')}</span></td>
                                             <td style={{padding:'10px 14px',textAlign:'center'}}>
                                                 <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
                                                     <button onClick={()=>handleEdit(bank)} style={{width:34,height:34,borderRadius:10,border:`1px solid ${T.border}`,background:T.panelSoft,color:T.textSoft,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background=T.panelSofter;e.currentTarget.style.transform='translateY(-1px)';}} onMouseLeave={e=>{e.currentTarget.style.background=T.panelSoft;e.currentTarget.style.transform='translateY(0)';}}>
@@ -569,11 +571,11 @@ function BankModal({ banks, onClose, T, dark }) {
                                     />
                                     {bankErrors.email&&<div style={{fontSize:11,color:T.danger,marginTop:3}}>{bankErrors.email}</div>}
                                 </div>
-                                <SRToggle label="Active" checked={data.is_active} onChange={v=>setData('is_active',v)} T={T} dark={dark}/>
+                                <SRToggle label={tr ? tr('common.active') : 'Active'} checked={data.is_active} onChange={v=>setData('is_active',v)} T={T} dark={dark}/>
                                 <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-                                    <button type="button" onClick={()=>{reset();setBankErrors({});setShowForm(false);setEditingId(null);}} disabled={processing} style={{padding:'8px 14px',borderRadius:10,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:12,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+                                    <button type="button" onClick={()=>{reset();setBankErrors({});setShowForm(false);setEditingId(null);}} disabled={processing} style={{padding:'8px 14px',borderRadius:10,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:12,fontWeight:600,cursor:'pointer'}}>{tr ? tr('common.cancel') : 'Cancel'}</button>
                                     <button type="submit" disabled={processing} style={{display:'inline-flex',alignItems:'center',gap:6,padding:'8px 16px',borderRadius:10,border:'none',background:processing?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:12,fontWeight:700,cursor:processing?'not-allowed':'pointer',boxShadow:processing?'none':'0 3px 10px rgba(124,58,237,0.3)'}}>
-                                        {processing?<><SRSpinner/> Saving...</>:<>{editingId?'Update':'Add Bank'}</>}
+                                        {processing?<><SRSpinner/> {trText('common.saving', 'Saving...')}</>:<>{editingId ? (tr ? tr('common.update') : 'Update') : (tr ? tr('hrPolicy.salary.addBank') : 'Add Bank')}</>}
                                     </button>
                                 </div>
                             </form>
@@ -594,8 +596,17 @@ function BankModal({ banks, onClose, T, dark }) {
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════ */
 export default function SalaryRuleSection({ salaryRule, banks, currencies, bonusTypes, bonusSchedules }) {
+    const { t: tr } = useTranslation();
     const dark = useTheme();
     const T    = getTheme(dark);
+
+    const trText = (key, fallback = '') => {
+        const value = tr(key);
+        if (typeof value === 'string') return value;
+        if (value && typeof value === 'object' && typeof value._self === 'string') return value._self;
+        return fallback || key;
+    };
+
     const isEdit = !!salaryRule;
 
     const [showConfirm,setShowConfirm]   = useState(false);
@@ -735,7 +746,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
     const getWhen=s=>{
         if((s.frequency==='yearly'||s.frequency==='once')&&s.pay_month) return MONTHS.find(m=>m.value==s.pay_month)?.label??'—';
         if(s.frequency==='quarterly'&&s.pay_quarter) return `Q${s.pay_quarter}`;
-        if(s.frequency==='monthly') return 'Every month';
+        if(s.frequency==='monthly') return tr('hrPolicy.salary.everyMonth');
         return '—';
     };
 
@@ -760,8 +771,8 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             .sr-animate{animation:srFade 0.2s ease;}
         `}</style>
 
-        <ConfirmModal open={showConfirm} onClose={()=>setShowConfirm(false)} onConfirm={handleConfirmedSave} data={data} isEdit={isEdit} processing={processing} T={T} dark={dark} currencies={currencies} banks={banks}/>
-        {showBankModal&&<BankModal banks={banks} onClose={()=>setShowBankModal(false)} T={T} dark={dark}/>}
+        <ConfirmModal open={showConfirm} onClose={()=>setShowConfirm(false)} onConfirm={handleConfirmedSave} data={data} isEdit={isEdit} processing={processing} T={T} dark={dark} currencies={currencies} banks={banks} tr={tr}/>
+        {showBankModal&&<BankModal banks={banks} onClose={()=>setShowBankModal(false)} T={T} dark={dark} tr={tr}/>}
 
         {/* Delete SF modal — via Portal */}
         {deleteSFTarget&&(
@@ -770,13 +781,13 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                     <div onClick={()=>!deletingSF&&setDeleteSFTarget(null)} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.5)',backdropFilter:'blur(8px)'}}/>
                     <div className="sr-animate" style={{position:'relative',background:T.panelSolid,border:`1px solid ${T.border}`,borderRadius:20,width:'100%',maxWidth:400,padding:'28px 28px 24px',boxShadow:T.shadow}}>
                         <div style={{width:52,height:52,borderRadius:16,background:T.dangerSoft,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:24}}>🗑️</div>
-                        <div style={{fontSize:16,fontWeight:800,color:T.text,textAlign:'center',marginBottom:8}}>Delete Bonus Schedule</div>
-                        <div style={{fontSize:13,fontWeight:700,color:T.text,textAlign:'center',marginBottom:4}}>"{deleteSFTarget.bonus_type?.name}" schedule?</div>
-                        <div style={{fontSize:11,color:T.textMute,textAlign:'center',marginBottom:24}}>This action cannot be undone.</div>
+                        <div style={{fontSize:16,fontWeight:800,color:T.text,textAlign:'center',marginBottom:8}}>{trText('hrPolicy.bonus.deleteBonusSchedule', 'Delete Bonus Schedule')}</div>
+                        <div style={{fontSize:13,fontWeight:700,color:T.text,textAlign:'center',marginBottom:4}}>"{deleteSFTarget.bonus_type?.name}" {trText('hrPolicy.bonus.schedule', 'schedule')}?</div>
+                        <div style={{fontSize:11,color:T.textMute,textAlign:'center',marginBottom:24}}>{tr ? tr('common.thisActionCannotBeUndone') : 'This action cannot be undone.'}</div>
                         <div style={{display:'flex',gap:10}}>
-                            <button onClick={()=>!deletingSF&&setDeleteSFTarget(null)} disabled={deletingSF} style={{flex:1,padding:'10px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:700,cursor:'pointer'}}>Cancel</button>
+                            <button onClick={()=>!deletingSF&&setDeleteSFTarget(null)} disabled={deletingSF} style={{flex:1,padding:'10px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:700,cursor:'pointer'}}>{tr ? tr('common.cancel') : 'Cancel'}</button>
                             <button onClick={handleSFDeleteConfirm} disabled={deletingSF} style={{flex:1,padding:'10px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#ef4444,#dc2626)',color:'#fff',fontSize:13,fontWeight:700,cursor:deletingSF?'not-allowed':'pointer',opacity:deletingSF?0.6:1,boxShadow:'0 4px 14px rgba(239,68,68,0.35)',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-                                {deletingSF?<><SRSpinner/> Deleting...</>:'Yes, Delete'}
+                                {deletingSF?<><SRSpinner/> Deleting...</>:tr('common.yesDelete')}
                             </button>
                         </div>
                     </div>
@@ -788,7 +799,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
         <form ref={formRef} onSubmit={handleSaveClick} style={{display:'flex',flexDirection:'column',gap:18}}>
 
             {/* ── 1. Pay Cycle ── */}
-            <SectionCard emoji="📅" title="Pay Cycle" T={T}>
+            <SectionCard emoji="📅" title={tr('hrPolicy.salary.payCycle')} T={T}>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
                     {PAY_CYCLE_OPTIONS.map(opt=>{
                         const isSel=data.pay_cycle===opt.value;
@@ -798,10 +809,10 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                 <div style={{width:15,height:15,borderRadius:'50%',border:`2px solid ${isSel?T.primary:T.textMute}`,background:isSel?T.primary:'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
                                     {isSel&&<div style={{width:5,height:5,borderRadius:'50%',background:'#fff'}}/>}
                                 </div>
-                                <span style={{fontSize:13,fontWeight:700,color:isSel?T.primary:T.text}}>{opt.emoji} {opt.label}</span>
+                                <span style={{fontSize:13,fontWeight:700,color:isSel?T.primary:T.text}}>{opt.emoji} {opt.labelKey && tr ? tr(opt.labelKey) : opt.label}</span>
                                 <span style={{marginLeft:'auto',fontSize:10,fontWeight:800,color:isSel?T.primary:T.textMute,padding:'2px 8px',borderRadius:99,background:isSel?(dark?'rgba(124,58,237,0.2)':'rgba(124,58,237,0.08)'):T.panelSoft}}>{opt.hint}</span>
                             </div>
-                            <div style={{fontSize:11,color:T.textMute,paddingLeft:23}}>{opt.desc}</div>
+                            <div style={{fontSize:11,color:T.textMute,paddingLeft:23}}>{opt.descKey ? tr(opt.descKey) : opt.desc}</div>
                         </label>;
                     })}
                 </div>
@@ -952,7 +963,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             </SectionCard>
 
             {/* ── 4. Lunch Break ── */}
-            <SectionCard emoji="🍽️" title="Lunch Break" T={T}>
+            <SectionCard emoji="🍽️" title={tr('hrPolicy.salary.lunchBreak')} T={T}>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                     <div>
                         <label style={lbl}><span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:'#fbbf24',marginRight:6,verticalAlign:'middle'}}/>Lunch starts</label>
@@ -969,7 +980,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             </SectionCard>
 
             {/* ── 5. Work Hours ── */}
-            <SectionCard emoji="💼" title="Work Hours" T={T}>
+            <SectionCard emoji="💼" title={tr('hrPolicy.salary.workHours')} T={T}>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
                     <div>
                         <label style={lbl}><span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:'#34d399',marginRight:6,verticalAlign:'middle'}}/>Work starts</label>
@@ -1032,7 +1043,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         >
                             <div style={{minWidth:0}}>
                                 <div style={{fontSize:12, fontWeight:700, color: data.late_alert_enabled ? '#d97706' : T.textMute}}>
-                                    {data.late_alert_enabled ? '✓ Active' : 'Inactive'}
+                                    {data.late_alert_enabled ? '✓ Active' : tr('common.inactive')}
                                 </div>
                                 <div style={{fontSize:10, color:T.textMute, marginTop:2, lineHeight:1.4}}>
                                     {data.late_alert_enabled ? 'Late warning is enabled' : 'Late warning is disabled'}
@@ -1104,7 +1115,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         >
                             <div style={{minWidth:0}}>
                                 <div style={{fontSize:12, fontWeight:700, color: data.absent_alert_enabled ? '#dc2626' : T.textMute}}>
-                                    {data.absent_alert_enabled ? '✓ Active' : 'Inactive'}
+                                    {data.absent_alert_enabled ? '✓ Active' : tr('common.inactive')}
                                 </div>
                                 <div style={{fontSize:10, color:T.textMute, marginTop:2, lineHeight:1.4}}>
                                     {data.absent_alert_enabled ? 'Absent warning is enabled' : 'Absent warning is disabled'}
@@ -1132,16 +1143,16 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                 <div>
                     <label style={lbl}>OT Calculation Base</label>
                     <div style={{display:'flex',gap:10,marginTop:6}}>
-                        {[{value:'hourly_rate',label:'Hourly Rate',hint:'Daily ÷ working hrs',icon:'⏱️'},{value:'daily_rate',label:'Daily Rate',hint:'Monthly ÷ working days',icon:'📅'}].map(opt=>{
+                        {[{value:'hourly_rate',label:tr('hrPolicy.salary.hourlyRate'),hint:'Daily ÷ working hrs',icon:'⏱️'},{value:'daily_rate',label:tr('hrPolicy.salary.dailyRate'),hint:'Monthly ÷ working days',icon:'📅'}].map(opt=>{
                             const isSel=data.overtime_base===opt.value;
                             return <label key={opt.value} onClick={()=>setData('overtime_base',opt.value)} style={{flex:1,padding:'12px 16px',borderRadius:13,cursor:'pointer',transition:'all 0.15s',border:`1.5px solid ${isSel?T.primary:T.border}`,background:isSel?T.primarySoft:T.panelSolid}}>
                                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                                     <div style={{width:15,height:15,borderRadius:'50%',border:`2px solid ${isSel?T.primary:T.textMute}`,background:isSel?T.primary:'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
                                         {isSel&&<div style={{width:5,height:5,borderRadius:'50%',background:'#fff'}}/>}
                                     </div>
-                                    <span style={{fontSize:13,fontWeight:700,color:isSel?T.primary:T.text}}>{opt.icon} {opt.label}</span>
+                                    <span style={{fontSize:13,fontWeight:700,color:isSel?T.primary:T.text}}>{opt.icon} {opt.labelKey && tr ? tr(opt.labelKey) : opt.label}</span>
                                 </div>
-                                <div style={{fontSize:11,color:T.textMute,paddingLeft:23}}>{opt.hint}</div>
+                                <div style={{fontSize:11,color:T.textMute,paddingLeft:23}}>{opt.hintKey ? tr(opt.hintKey) : opt.hint}</div>
                             </label>;
                         })}
                     </div>
@@ -1158,9 +1169,9 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                         <div style={{width:13,height:13,borderRadius:'50%',border:`2px solid ${isSel?T.primary:T.textMute}`,background:isSel?T.primary:'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
                                             {isSel&&<div style={{width:4,height:4,borderRadius:'50%',background:'#fff'}}/>}
                                         </div>
-                                        <span style={{fontSize:12,fontWeight:700,color:isSel?T.primary:T.textSoft}}>{opt.label}</span>
+                                        <span style={{fontSize:12,fontWeight:700,color:isSel?T.primary:T.textSoft}}>{opt.labelKey && tr ? tr(opt.labelKey) : opt.label}</span>
                                     </div>
-                                    <div style={{fontSize:10,color:T.textMute,paddingLeft:19}}>{opt.hint}</div>
+                                    <div style={{fontSize:10,color:T.textMute,paddingLeft:19}}>{opt.hintKey ? tr(opt.hintKey) : opt.hint}</div>
                                 </label>;
                             })}
                         </div>
@@ -1188,7 +1199,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                     </div>
                     <div style={{display:'flex',flexDirection:'column',justifyContent:'center',padding:'14px 16px',borderRadius:12,border:`1px solid ${T.border}`,background:T.panelSolid,gap:8}}>
                         <div style={{fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.07em'}}>Preview</div>
-                        <PayrollPreview payCycle={data.pay_cycle} cutoffDay={data.payroll_cutoff_day} T={T}/>
+                        <PayrollPreview payCycle={data.pay_cycle} cutoffDay={data.payroll_cutoff_day} T={T} tr={tr}/>
                     </div>
                 </div>
             </SectionCard>
@@ -1204,7 +1215,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                     <div style={{borderRadius:14,overflow:'hidden',border:`1px solid ${T.border}`}}>
                         <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
                             <thead><tr style={{background:T.tableHead,borderBottom:`1px solid ${T.divider}`}}>
-                                {['Bonus','Rate','Frequency','Pay When','Notes','Status','Actions'].map((h,i)=><th key={h} style={{padding:'10px 14px',fontSize:10,fontWeight:800,letterSpacing:'0.07em',textTransform:'uppercase',color:T.textMute,whiteSpace:'nowrap',textAlign:i===0?'left':'center'}}>{h}</th>)}
+                                {[trText('hrPolicy.sections.bonus', 'Bonus'), trText('hrPolicy.bonus.rate', 'Rate'), trText('hrPolicy.bonus.frequency', 'Frequency'), trText('hrPolicy.bonus.payWhen', 'Pay When'), trText('hrPolicy.bonus.notes', 'Notes'), trText('common.status', 'Status'), trText('common.actions', 'Actions')].map((h,i)=><th key={h} style={{padding:'10px 14px',fontSize:10,fontWeight:800,letterSpacing:'0.07em',textTransform:'uppercase',color:T.textMute,whiteSpace:'nowrap',textAlign:i===0?'left':'center'}}>{h}</th>)}
                             </tr></thead>
                             <tbody>
                                 {bonusSchedules.map((s,idx)=>{
@@ -1219,7 +1230,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                         <td style={{padding:'10px 14px',textAlign:'center'}}><span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 9px',borderRadius:99,fontSize:10,fontWeight:800,background:T.primarySoft,color:T.primary}}>{freq.emoji} {freq.label}</span></td>
                                         <td style={{padding:'10px 14px',textAlign:'center',fontSize:12,fontWeight:600,color:T.textSoft}}>{getWhen(s)}</td>
                                         <td style={{padding:'10px 14px',textAlign:'center',fontSize:11,color:T.textMute,maxWidth:140}}><span style={{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.notes||'—'}</span></td>
-                                        <td style={{padding:'10px 14px',textAlign:'center'}}><span style={{display:'inline-block',padding:'3px 9px',borderRadius:99,fontSize:10,fontWeight:800,background:s.is_active?T.successSoft:T.panelSoft,color:s.is_active?T.success:T.textMute}}>{s.is_active?'Active':'Inactive'}</span></td>
+                                        <td style={{padding:'10px 14px',textAlign:'center'}}><span style={{display:'inline-block',padding:'3px 9px',borderRadius:99,fontSize:10,fontWeight:800,background:s.is_active?T.successSoft:T.panelSoft,color:s.is_active?T.success:T.textMute}}>{s.is_active?tr('common.active'):tr('common.inactive')}</span></td>
                                         <td style={{padding:'10px 14px',textAlign:'center'}}>
                                             <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
                                                 <button type="button" onClick={()=>handleSFEdit(s)} style={{width:36,height:36,borderRadius:11,border:`1px solid ${T.border}`,background:T.panelSoft,color:T.textSoft,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}} onMouseEnter={e=>{e.currentTarget.style.background=T.panelSofter;e.currentTarget.style.transform='translateY(-1px)';}} onMouseLeave={e=>{e.currentTarget.style.background=T.panelSoft;e.currentTarget.style.transform='translateY(0)';}}>
@@ -1252,7 +1263,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <ErrMsg msg={sfErrors.bonus_type_id}/>
                         </div>
                         <div>
-                            <label style={lbl}>Frequency</label>
+                            <label style={lbl}>{trText('hrPolicy.bonus.frequency', 'Frequency')}</label>
                             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
                                 {FREQ_OPTIONS.map(opt=>{
                                     const isSel=sf.frequency===opt.value;
@@ -1261,9 +1272,9 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                             <div style={{width:13,height:13,borderRadius:'50%',border:`2px solid ${isSel?T.primary:T.textMute}`,background:isSel?T.primary:'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
                                                 {isSel&&<div style={{width:4,height:4,borderRadius:'50%',background:'#fff'}}/>}
                                             </div>
-                                            <span style={{fontSize:11,fontWeight:700,color:isSel?T.primary:T.textSoft}}>{opt.label}</span>
+                                            <span style={{fontSize:11,fontWeight:700,color:isSel?T.primary:T.textSoft}}>{opt.labelKey && tr ? tr(opt.labelKey) : opt.label}</span>
                                         </div>
-                                        <div style={{fontSize:9,color:T.textMute,paddingLeft:19}}>{opt.hint}</div>
+                                        <div style={{fontSize:9,color:T.textMute,paddingLeft:19}}>{opt.hintKey ? tr(opt.hintKey) : opt.hint}</div>
                                     </label>;
                                 })}
                             </div>
@@ -1292,11 +1303,11 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                             <input className="sr-inp" type="text" value={sf.notes} onChange={e=>{setSF('notes',e.target.value);setSFErrors(p=>({...p,notes:''}));}} placeholder="e.g. Paid with December payroll" disabled={sfProc} style={inp(!!sfErrors.notes)}/>
                             <ErrMsg msg={sfErrors.notes}/>
                         </div>
-                        <SRToggle label="Active" checked={sf.is_active} onChange={v=>setSF('is_active',v)} T={T} dark={dark}/>
+                        <SRToggle label={tr ? tr('common.active') : 'Active'} checked={sf.is_active} onChange={v=>setSF('is_active',v)} T={T} dark={dark}/>
                         <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-                            <button type="button" onClick={()=>{resetSF();setSFErrors({});setShowSF(false);setEditingSFId(null);}} disabled={sfProc} style={{padding:'10px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}} onMouseEnter={e=>e.currentTarget.style.background=T.panelSoft} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>Cancel</button>
+                            <button type="button" onClick={()=>{resetSF();setSFErrors({});setShowSF(false);setEditingSFId(null);}} disabled={sfProc} style={{padding:'10px 18px',borderRadius:12,border:`1.5px solid ${T.border}`,background:'transparent',color:T.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}} onMouseEnter={e=>e.currentTarget.style.background=T.panelSoft} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>{tr ? tr('common.cancel') : 'Cancel'}</button>
                             <button type="button" onClick={handleSFSubmit} disabled={sfProc} style={{display:'inline-flex',alignItems:'center',gap:7,padding:'10px 20px',borderRadius:12,border:'none',background:sfProc?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:13,fontWeight:700,cursor:sfProc?'not-allowed':'pointer',boxShadow:sfProc?'none':'0 4px 14px rgba(124,58,237,0.35)',transition:'all 0.15s'}} onMouseEnter={e=>{if(!sfProc)e.currentTarget.style.opacity='0.9';}} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-                                {sfProc?<><SRSpinner/> Saving...</>:<>{editingSFId?'✅ Update Schedule':'✅ Add Schedule'}</>}
+                                {sfProc?<><SRSpinner/> {trText('common.saving', 'Saving...')}</>:<>{editingSFId?'✅ Update Schedule':'✅ Add Schedule'}</>}
                             </button>
                         </div>
                     </div>
@@ -1313,20 +1324,20 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                 <SectionCard emoji="✅" title="Current Saved Settings" T={T}>
                     <div style={{display:'flex',justifyContent:'flex-end',marginTop:-8}}>
                         <span style={{display:'inline-flex',alignItems:'center',gap:5,padding:'3px 10px',borderRadius:99,background:T.successSoft,color:T.success,fontSize:10,fontWeight:800}}>
-                            <span style={{width:6,height:6,borderRadius:'50%',background:T.success,display:'inline-block'}}/>Saved
+                            <span style={{width:6,height:6,borderRadius:'50%',background:T.success,display:'inline-block'}}/>{trText('hrPolicy.saved', 'Saved')}
                         </span>
                     </div>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
-                        <SavedCard label="Pay Cycle"       value={PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.label??'—'} sub={PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.hint} T={T}/>
-                        <SavedCard label="Probation"       value={salaryRule.probation_days!=null?`${salaryRule.probation_days} days`:'—'} T={T}/>
-                        <SavedCard label="Currency"        value={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_code??'—'} sub={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_name} T={T}/>
-                        <SavedCard label="Bank"            value={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_name??'—'} sub={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_code} T={T}/>
-                        <SavedCard label="Work Hours"      value={salaryRule.work_start&&salaryRule.work_end?`${to12h(salaryRule.work_start)} – ${to12h(salaryRule.work_end)}`:'—'} sub="Attendance window" T={T}/>
-                        <SavedCard label="Day Shift"       value={salaryRule.day_shift_start&&salaryRule.day_shift_end?`${to12h(salaryRule.day_shift_start)} – ${to12h(salaryRule.day_shift_end)}`:'—'} T={T}/>
-                        <SavedCard label="Night Shift"     value={salaryRule.day_shift_end&&salaryRule.day_shift_start?`${to12h(salaryRule.day_shift_end)} – ${to12h(salaryRule.day_shift_start)}`:'—'} sub="Auto-derived" T={T}/>
-                        <SavedCard label="Lunch Break"     value={salaryRule.lunch_start&&salaryRule.lunch_end?`${salaryRule.lunch_start?.substring(0,5)} – ${salaryRule.lunch_end?.substring(0,5)}`:'12:00 – 13:00'} sub="Auto-deducted" T={T}/>
-                        <SavedCard label="OT Base"         value={salaryRule.overtime_base==='hourly_rate'?'Hourly Rate':'Daily Rate'} sub={salaryRule.overtime_base==='hourly_rate'?'Daily ÷ working hrs':'Monthly ÷ working days'} T={T}/>
-                        <SavedCard label="Late Deduction"  value={`${salaryRule.late_deduction_rate??0} / ${salaryRule.late_deduction_unit==='per_minute'?'min':'hr'}`} T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.payCycle')}       value={PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.labelKey ? trText(PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.labelKey, PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.label) : (PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.label??'—')} sub={PAY_CYCLE_OPTIONS.find(o=>o.value===salaryRule.pay_cycle)?.hint} T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.probation')}       value={salaryRule.probation_days!=null?`${salaryRule.probation_days} days`:'—'} T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.currency')}        value={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_code??'—'} sub={currencies?.find(c=>c.id==salaryRule.currency_id)?.currency_name} T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.bank')}            value={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_name??'—'} sub={banks?.find(b=>b.id==salaryRule.bank_id)?.bank_code} T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.workHours')}      value={salaryRule.work_start&&salaryRule.work_end?`${to12h(salaryRule.work_start)} – ${to12h(salaryRule.work_end)}`:'—'} sub="Attendance window" T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.dayShift')}       value={salaryRule.day_shift_start&&salaryRule.day_shift_end?`${to12h(salaryRule.day_shift_start)} – ${to12h(salaryRule.day_shift_end)}`:'—'} T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.nightShift')}     value={salaryRule.day_shift_end&&salaryRule.day_shift_start?`${to12h(salaryRule.day_shift_end)} – ${to12h(salaryRule.day_shift_start)}`:'—'} sub="Auto-derived" T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.lunchBreak')}     value={salaryRule.lunch_start&&salaryRule.lunch_end?`${salaryRule.lunch_start?.substring(0,5)} – ${salaryRule.lunch_end?.substring(0,5)}`:'12:00 – 13:00'} sub="Auto-deducted" T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.otBase')}         value={salaryRule.overtime_base==='hourly_rate'?tr('hrPolicy.salary.hourlyRate'):tr('hrPolicy.salary.dailyRate')} sub={salaryRule.overtime_base==='hourly_rate'?'Daily ÷ working hrs':'Monthly ÷ working days'} T={T}/>
+                        <SavedCard label={tr('hrPolicy.salary.lateDeduction')}  value={`${salaryRule.late_deduction_rate??0} / ${salaryRule.late_deduction_unit==='per_minute'?'min':'hr'}`} T={T}/>
                         <SavedCard label="Payment Date"    value={(() => {
                             const d=salaryRule?.payroll_cutoff_day??25;const cycle=salaryRule?.pay_cycle??'monthly';
                             const now=new Date();const y=now.getFullYear();const m=now.getMonth();
@@ -1340,14 +1351,14 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                         })()} T={T}/>
                         <SavedCard
                             label="Late Warning"
-                            value={salaryRule.late_alert_enabled ? `≥ ${salaryRule.late_alert_threshold ?? 3}x / month` : 'Disabled'}
-                            sub={salaryRule.late_alert_enabled ? 'Active' : 'Inactive'}
+                            value={salaryRule.late_alert_enabled ? `≥ ${salaryRule.late_alert_threshold ?? 3}x / month` : (tr ? tr('common.disabled') : 'Disabled')}
+                            sub={salaryRule.late_alert_enabled ? tr('common.active') : tr('common.inactive')}
                             T={T}
                         />
                         <SavedCard
                             label="Absent Warning"
-                            value={salaryRule.absent_alert_enabled ? `≥ ${salaryRule.absent_alert_threshold ?? 2} days / month` : 'Disabled'}
-                            sub={salaryRule.absent_alert_enabled ? 'Active' : 'Inactive'}
+                            value={salaryRule.absent_alert_enabled ? `≥ ${salaryRule.absent_alert_threshold ?? 2} days / month` : (tr ? tr('common.disabled') : 'Disabled')}
+                            sub={salaryRule.absent_alert_enabled ? tr('common.active') : tr('common.inactive')}
                             T={T}
                         />
                         <SavedCard label="Bonus (Probation)" value={salaryRule.bonus_during_probation?'Yes — pay bonus':'No — skip'} T={T}/>
@@ -1355,7 +1366,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                     </div>
                     {bonusSchedules?.length>0&&(
                         <div style={{borderRadius:14,overflow:'hidden',border:`1px solid ${T.border}`,marginTop:4}}>
-                            <div style={{padding:'10px 14px',borderBottom:`1px solid ${T.divider}`,background:T.panelSolid,fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.08em'}}>Bonus Schedules</div>
+                            <div style={{padding:'10px 14px',borderBottom:`1px solid ${T.divider}`,background:T.panelSolid,fontSize:10,fontWeight:800,color:T.textMute,textTransform:'uppercase',letterSpacing:'0.08em'}}>{tr('hrPolicy.bonus.bonusSchedules')}</div>
                             <div>
                                 {bonusSchedules.map((s,idx)=>{
                                     const when=getWhen(s);const freq=FREQ_OPTIONS.find(f=>f.value===s.frequency)?.label??s.frequency;
@@ -1368,8 +1379,8 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
                                                     <div style={{fontSize:13,fontWeight:700,color:T.text}}>{s.bonus_type?.name??'—'}</div>
                                                     <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:5}}>
                                                         <span style={{display:'inline-flex',alignItems:'center',gap:4,padding:'2px 8px',borderRadius:99,fontSize:10,fontWeight:800,background:T.primarySoft,color:T.primary}}>{freq}</span>
-                                                        {when!=='—'&&when!=='Every month'&&<span style={{padding:'2px 8px',borderRadius:99,fontSize:10,fontWeight:700,background:T.panelSofter,color:T.textSoft}}>📅 {when}</span>}
-                                                        <span style={{padding:'2px 8px',borderRadius:99,fontSize:10,fontWeight:800,background:s.is_active?T.successSoft:T.panelSoft,color:s.is_active?T.success:T.textMute}}>{s.is_active?'Active':'Inactive'}</span>
+                                                        {when!=='—'&&when!==tr('hrPolicy.salary.everyMonth')&&<span style={{padding:'2px 8px',borderRadius:99,fontSize:10,fontWeight:700,background:T.panelSofter,color:T.textSoft}}>📅 {when}</span>}
+                                                        <span style={{padding:'2px 8px',borderRadius:99,fontSize:10,fontWeight:800,background:s.is_active?T.successSoft:T.panelSoft,color:s.is_active?T.success:T.textMute}}>{s.is_active?tr('common.active'):tr('common.inactive')}</span>
                                                     </div>
                                                     {s.notes&&<div style={{marginTop:4,fontSize:11,color:T.textMute,fontStyle:'italic'}}>{s.notes}</div>}
                                                 </div>
@@ -1390,7 +1401,7 @@ export default function SalaryRuleSection({ salaryRule, banks, currencies, bonus
             {/* Submit */}
             <div style={{display:'flex',justifyContent:'flex-end'}}>
                 <button type="submit" disabled={processing} style={{display:'inline-flex',alignItems:'center',gap:8,padding:'12px 28px',borderRadius:14,border:'none',background:processing?T.textMute:'linear-gradient(135deg,#7c3aed,#2563eb)',color:'#fff',fontSize:14,fontWeight:800,cursor:processing?'not-allowed':'pointer',boxShadow:processing?'none':'0 4px 18px rgba(124,58,237,0.4)',transition:'all 0.15s'}} onMouseEnter={e=>{if(!processing)e.currentTarget.style.opacity='0.9';}} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-                    {processing?<><SRSpinner/> Saving...</>:<><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{isEdit?'Review & Update':'Review & Save'}</>}
+                    {processing?<><SRSpinner/> {trText('common.saving', 'Saving...')}</>:<><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{isEdit ? trText('hrPolicy.salary.reviewUpdate', 'Review & Update') : trText('hrPolicy.salary.reviewSave', 'Review & Save')}</>}
                 </button>
             </div>
 

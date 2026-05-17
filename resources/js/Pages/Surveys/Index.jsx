@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 function useReactiveTheme() {
     const getDark = () => {
@@ -45,12 +46,12 @@ function getTheme(dark) {
 }
 
 const STATUS_CFG = {
-    draft:  { label:'Draft',  color:'#6b7280', bg:'#f3f4f6', bgDark:'rgba(107,114,128,0.16)', dot:'#9ca3af' },
-    active: { label:'Active', color:'#059669', bg:'#d1fae5', bgDark:'rgba(5,150,105,0.16)',   dot:'#10b981' },
-    closed: { label:'Closed', color:'#dc2626', bg:'#fee2e2', bgDark:'rgba(220,38,38,0.16)',   dot:'#ef4444' },
+    draft:  { labelKey:'surveys.status.draft', label:'Draft',  color:'#6b7280', bg:'#f3f4f6', bgDark:'rgba(107,114,128,0.16)', dot:'#9ca3af' },
+    active: { labelKey:'surveys.status.active', label:'Active', color:'#059669', bg:'#d1fae5', bgDark:'rgba(5,150,105,0.16)',   dot:'#10b981' },
+    closed: { labelKey:'surveys.status.closed', label:'Closed', color:'#dc2626', bg:'#fee2e2', bgDark:'rgba(220,38,38,0.16)',   dot:'#ef4444' },
 };
 
-function StatusBadge({ status, dark }) {
+function StatusBadge({ status, dark, tr }) {
     const cfg = STATUS_CFG[status] || STATUS_CFG.draft;
     return (
         <span style={{
@@ -59,12 +60,12 @@ function StatusBadge({ status, dark }) {
             background: dark ? cfg.bgDark : cfg.bg, color: cfg.color,
         }}>
             <span style={{ width:5, height:5, borderRadius:'50%', background:cfg.dot }}/>
-            {cfg.label}
+            {tr(cfg.labelKey)}
         </span>
     );
 }
 
-function CopyLinkButton({ url, dark, theme }) {
+function CopyLinkButton({ url, dark, theme, tr }) {
     const [copied, setCopied] = useState(false);
     const handleCopy = (e) => {
         e.stopPropagation();
@@ -74,7 +75,7 @@ function CopyLinkButton({ url, dark, theme }) {
         });
     };
     return (
-        <button onClick={handleCopy} title="Copy survey link" style={{
+        <button onClick={handleCopy} title={tr('surveys.index.copySurveyLink')} style={{
             display:'flex', alignItems:'center', gap:5,
             padding:'5px 10px', borderRadius:8, fontSize:11, fontWeight:600,
             border:`1px solid ${theme.border}`,
@@ -87,12 +88,12 @@ function CopyLinkButton({ url, dark, theme }) {
             ) : (
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             )}
-            {copied ? 'Copied!' : 'Copy Link'}
+            {copied ? tr('surveys.index.copied') : tr('surveys.index.copyLink')}
         </button>
     );
 }
 
-function SurveyRow({ survey, dark, theme, onDelete, isLast }) {
+function SurveyRow({ survey, dark, theme, onDelete, isLast, tr }) {
     const [delConfirm, setDelConfirm] = useState(false);
 
     return (
@@ -115,10 +116,10 @@ function SurveyRow({ survey, dark, theme, onDelete, isLast }) {
                     <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', marginBottom:4 }}>
                             <span style={{ fontSize:14, fontWeight:700, color:theme.text }}>{survey.title}</span>
-                            <StatusBadge status={survey.status} dark={dark}/>
+                            <StatusBadge status={survey.status} dark={dark} tr={tr}/>
                             {survey.is_anonymous && (
                                 <span style={{ fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:99, background:dark?'rgba(99,102,241,0.15)':'#e0e7ff', color:'#4f46e5' }}>
-                                    🔒 Anonymous
+                                    🔒 {tr('surveys.labels.anonymous')}
                                 </span>
                             )}
                         </div>
@@ -128,26 +129,26 @@ function SurveyRow({ survey, dark, theme, onDelete, isLast }) {
                         {/* Meta row */}
                         <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
                             <span style={{ display:'inline-flex', alignItems:'baseline', gap:4 }}>
-                                <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'.05em', color:theme.textMute }}>Questions</span>
+                                <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'.05em', color:theme.textMute }}>{tr('surveys.labels.questions')}</span>
                                 <span style={{ fontSize:12, fontWeight:700, color:theme.text }}>{survey.question_count}</span>
                             </span>
                             <span style={{ display:'inline-flex', alignItems:'baseline', gap:4 }}>
-                                <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'.05em', color:theme.textMute }}>Responses</span>
+                                <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'.05em', color:theme.textMute }}>{tr('surveys.labels.responses')}</span>
                                 <span style={{ fontSize:12, fontWeight:700, color:theme.primary }}>{survey.response_count}</span>
                             </span>
                             {survey.closes_at && (
                                 <span style={{ display:'inline-flex', alignItems:'baseline', gap:4 }}>
-                                    <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'.05em', color:theme.textMute }}>Closes</span>
+                                    <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'.05em', color:theme.textMute }}>{tr('surveys.labels.closes')}</span>
                                     <span style={{ fontSize:12, fontWeight:700, color:theme.text }}>{survey.closes_at}</span>
                                 </span>
                             )}
-                            <span style={{ fontSize:11, color:theme.textMute }}>by {survey.created_by} · {survey.created_at}</span>
+                            <span style={{ fontSize:11, color:theme.textMute }}>{tr('surveys.labels.by')} {survey.created_by} · {survey.created_at}</span>
                         </div>
                     </div>
 
                     {/* Actions */}
                     <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0, flexWrap:'wrap' }}>
-                        <CopyLinkButton url={survey.public_url} dark={dark} theme={theme}/>
+                        <CopyLinkButton url={survey.public_url} dark={dark} theme={theme} tr={tr}/>
 
                         {survey.response_count > 0 && (
                             <button onClick={()=>router.visit(`/hr/surveys/${survey.id}/results`)} style={{
@@ -158,7 +159,7 @@ function SurveyRow({ survey, dark, theme, onDelete, isLast }) {
                                 color:theme.primary, cursor:'pointer', fontFamily:'inherit',
                             }}>
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                                Results
+                                {tr('surveys.index.results')}
                             </button>
                         )}
 
@@ -171,7 +172,7 @@ function SurveyRow({ survey, dark, theme, onDelete, isLast }) {
                                 color: survey.status==='draft'?'#059669':'#dc2626',
                                 cursor:'pointer', fontFamily:'inherit',
                             }}>
-                                {survey.status === 'draft' ? '▶ Activate' : '■ Close'}
+                                {survey.status === 'draft' ? `▶ ${tr('surveys.index.activate')}` : `■ ${tr('surveys.index.close')}`}
                             </button>
                         )}
 
@@ -204,12 +205,12 @@ function SurveyRow({ survey, dark, theme, onDelete, isLast }) {
                                 <button onClick={()=>{ onDelete(survey.id); setDelConfirm(false); }} style={{
                                     padding:'4px 10px', borderRadius:8, border:'none', fontSize:11, fontWeight:700,
                                     background:'#ef4444', color:'#fff', cursor:'pointer',
-                                }}>Delete</button>
+                                }}>{tr('surveys.actions.delete')}</button>
                                 <button onClick={()=>setDelConfirm(false)} style={{
                                     padding:'4px 8px', borderRadius:8, border:`1px solid ${theme.border}`,
                                     fontSize:11, fontWeight:600, background:'transparent',
                                     color:theme.textMute, cursor:'pointer',
-                                }}>Cancel</button>
+                                }}>{tr('surveys.actions.cancel')}</button>
                             </div>
                         )}
                     </div>
@@ -220,6 +221,7 @@ function SurveyRow({ survey, dark, theme, onDelete, isLast }) {
 }
 
 export default function SurveysIndex({ surveys = [], stats = {} }) {
+    const { t: tr } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
     const [tab, setTab] = useState('all');
@@ -231,23 +233,23 @@ export default function SurveysIndex({ surveys = [], stats = {} }) {
     const filtered = tab === 'all' ? surveys : surveys.filter(s => s.status === tab);
 
     const statCards = [
-        { label:'Total Surveys',    value:stats.total||0,     icon:'📋', color:'#7c3aed', soft:dark?'rgba(124,58,237,0.14)':'#f3e8ff',  border:dark?'rgba(124,58,237,0.25)':'#ddd6fe' },
-        { label:'Active',           value:stats.active||0,    icon:'▶',  color:'#059669', soft:dark?'rgba(5,150,105,0.14)':'#d1fae5',   border:dark?'rgba(5,150,105,0.25)':'#6ee7b7'  },
-        { label:'Draft',            value:stats.draft||0,     icon:'✏️', color:'#6b7280', soft:dark?'rgba(107,114,128,0.14)':'#f3f4f6', border:dark?'rgba(107,114,128,0.25)':'#d1d5db' },
-        { label:'Closed',           value:stats.closed||0,    icon:'■',  color:'#dc2626', soft:dark?'rgba(220,38,38,0.14)':'#fee2e2',   border:dark?'rgba(220,38,38,0.25)':'#fca5a5'  },
-        { label:'Total Responses',  value:stats.responses||0, icon:'💬', color:'#0891b2', soft:dark?'rgba(8,145,178,0.14)':'#e0f2fe',   border:dark?'rgba(8,145,178,0.25)':'#7dd3fc'  },
+        { label:tr('surveys.index.stats.totalSurveys'),    value:stats.total||0,     icon:'📋', color:'#7c3aed', soft:dark?'rgba(124,58,237,0.14)':'#f3e8ff',  border:dark?'rgba(124,58,237,0.25)':'#ddd6fe' },
+        { label:tr('surveys.status.active'),           value:stats.active||0,    icon:'▶',  color:'#059669', soft:dark?'rgba(5,150,105,0.14)':'#d1fae5',   border:dark?'rgba(5,150,105,0.25)':'#6ee7b7'  },
+        { label:tr('surveys.status.draft'),            value:stats.draft||0,     icon:'✏️', color:'#6b7280', soft:dark?'rgba(107,114,128,0.14)':'#f3f4f6', border:dark?'rgba(107,114,128,0.25)':'#d1d5db' },
+        { label:tr('surveys.status.closed'),           value:stats.closed||0,    icon:'■',  color:'#dc2626', soft:dark?'rgba(220,38,38,0.14)':'#fee2e2',   border:dark?'rgba(220,38,38,0.25)':'#fca5a5'  },
+        { label:tr('surveys.index.stats.totalResponses'),  value:stats.responses||0, icon:'💬', color:'#0891b2', soft:dark?'rgba(8,145,178,0.14)':'#e0f2fe',   border:dark?'rgba(8,145,178,0.25)':'#7dd3fc'  },
     ];
 
     const tabs = [
-        { key:'all',    label:'All',    count:surveys.length },
-        { key:'active', label:'Active', count:surveys.filter(s=>s.status==='active').length },
-        { key:'draft',  label:'Draft',  count:surveys.filter(s=>s.status==='draft').length },
-        { key:'closed', label:'Closed', count:surveys.filter(s=>s.status==='closed').length },
+        { key:'all',    label:tr('surveys.status.all'),    count:surveys.length },
+        { key:'active', label:tr('surveys.status.active'), count:surveys.filter(s=>s.status==='active').length },
+        { key:'draft',  label:tr('surveys.status.draft'),  count:surveys.filter(s=>s.status==='draft').length },
+        { key:'closed', label:tr('surveys.status.closed'), count:surveys.filter(s=>s.status==='closed').length },
     ];
 
     return (
-        <AppLayout title="Surveys">
-            <Head title="Surveys"/>
+        <AppLayout title={tr('surveys.index.pageTitle')}>
+            <Head title={tr('surveys.index.pageTitle')}/>
             <style>{`
                 @keyframes sv-fade { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
                 .sv-hide::-webkit-scrollbar { display:none }
@@ -322,7 +324,7 @@ export default function SurveysIndex({ surveys = [], stats = {} }) {
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
                                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
-                            Create Survey
+                            {tr('surveys.index.createSurvey')}
                         </button>
                     </div>
 
@@ -331,10 +333,10 @@ export default function SurveysIndex({ surveys = [], stats = {} }) {
                         <div style={{ padding:'56px 24px', textAlign:'center' }}>
                             <div style={{ fontSize:36, marginBottom:12 }}>📋</div>
                             <div style={{ fontSize:14, fontWeight:600, color:theme.textSoft, marginBottom:4 }}>
-                                No surveys found
+                                {tr('surveys.index.noSurveysFound')}
                             </div>
                             <div style={{ fontSize:12, color:theme.textMute }}>
-                                Click "Create Survey" to create your first survey.
+                                Click "{tr('surveys.index.createSurvey')}" to create your first survey.
                             </div>
                         </div>
                     ) : filtered.map((s, idx) => (
@@ -342,6 +344,7 @@ export default function SurveysIndex({ surveys = [], stats = {} }) {
                             key={s.id} survey={s} dark={dark} theme={theme}
                             onDelete={handleDelete}
                             isLast={idx === filtered.length - 1}
+                            tr={tr}
                         />
                     ))}
                 </div>

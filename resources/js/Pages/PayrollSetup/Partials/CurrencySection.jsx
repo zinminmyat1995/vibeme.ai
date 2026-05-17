@@ -1,5 +1,7 @@
 import { useForm, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/Contexts/LanguageContext';
+const trPresetName = (tr, value) => tr(`hrPolicy.presets.${String(value || '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '')}`) || value;
 
 // ── Theme hook ─────────────────────────────────────────────────
 function useTheme() {
@@ -88,6 +90,7 @@ const PRESET_CURRENCIES = [
 ];
 
 export default function CurrencySection({ currencies }) {
+    const { t: tr } = useTranslation();
     const dark = useTheme();
     const T    = getTheme(dark);
 
@@ -101,9 +104,9 @@ export default function CurrencySection({ currencies }) {
 
     const validate = () => {
         const errs = {};
-        if (!data.currency_name.trim()) errs.currency_name = 'Currency name is required.';
-        if (!data.currency_code.trim()) errs.currency_code = 'Currency code is required.';
-        else if (data.currency_code.length > 10) errs.currency_code = 'Max 10 characters.';
+        if (!data.currency_name.trim()) errs.currency_name = tr('hrPolicy.validation.currencyNameRequired');
+        if (!data.currency_code.trim()) errs.currency_code = tr('hrPolicy.validation.currencyCodeRequired');
+        else if (data.currency_code.length > 10) errs.currency_code = tr('hrPolicy.validation.maxTenCharacters');
         return errs;
     };
 
@@ -188,19 +191,19 @@ export default function CurrencySection({ currencies }) {
                     <div onClick={() => !deleting && setDeleteTarget(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}/>
                     <div className="cur-animate" style={{ position: 'relative', background: T.panelSolid, border: `1px solid ${T.border}`, borderRadius: 20, width: '100%', maxWidth: 400, padding: '28px 28px 24px', boxShadow: T.shadow }}>
                         <div style={{ width: 52, height: 52, borderRadius: 16, background: T.dangerSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24 }}>🗑️</div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>Delete Currency</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>{tr('hrPolicy.currency.deleteCurrency')}</div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>
-                            "{deleteTarget.currency_name} ({deleteTarget.currency_code})"
+                            "{trPresetName(tr, deleteTarget.currency_name)} ({deleteTarget.currency_code})"
                         </div>
-                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>This action cannot be undone.</div>
+                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>{tr('common.thisActionCannotBeUndone')}</div>
                         <div style={{ display: 'flex', gap: 10 }}>
                             <button onClick={() => !deleting && setDeleteTarget(null)} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                                Cancel
+                                {tr('common.cancel')}
                             </button>
                             <button onClick={handleDeleteConfirm} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1, boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}>
-                                {deleting ? '⏳ Deleting...' : 'Yes, Delete'}
+                                {deleting ? `⏳ ${tr('common.deleting')}` : tr('common.yesDelete')}
                             </button>
                         </div>
                     </div>
@@ -213,8 +216,8 @@ export default function CurrencySection({ currencies }) {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                         <thead>
                             <tr style={{ background: T.tableHead, borderBottom: `1px solid ${T.divider}` }}>
-                                {['Currency Name', 'Code', 'Status', 'Actions'].map(h => (
-                                    <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, textAlign: h === 'Currency Name' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                                {[tr('hrPolicy.currency.currencyName'), tr('hrPolicy.currency.currencyCodeShort'), tr('common.status'), tr('common.actions')].map(h => (
+                                    <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, textAlign: h === tr('hrPolicy.currency.currencyName') ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -226,7 +229,11 @@ export default function CurrencySection({ currencies }) {
                                         <td style={{ padding: '12px 14px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 {preset && <span style={{ fontSize: 18 }}>{preset.flag}</span>}
-                                                <span style={{ fontWeight: 700, color: T.text }}>{currency.currency_name}</span>
+                                                <span style={{ fontWeight: 700, color: T.text }}>
+                                                    {PRESET_CURRENCIES.some(p => p.name === currency.currency_name)
+                                                        ? trPresetName(tr, currency.currency_name)
+                                                        : currency.currency_name}
+                                                </span>
                                             </div>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -236,7 +243,7 @@ export default function CurrencySection({ currencies }) {
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                             <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: currency.is_active ? T.successSoft : T.panelSoft, color: currency.is_active ? T.success : T.textMute }}>
-                                                {currency.is_active ? 'Active' : 'Inactive'}
+                                                {currency.is_active ? tr('common.active') : tr('common.inactive')}
                                             </span>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -245,7 +252,7 @@ export default function CurrencySection({ currencies }) {
                                                     style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textSoft, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                     onMouseEnter={e => { e.currentTarget.style.background = T.panelSofter; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.background = T.panelSoft; e.currentTarget.style.transform = 'translateY(0)'; }}
-                                                    title="Edit">
+                                                    title={tr('common.edit')}>
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
                                                     </svg>
@@ -254,7 +261,7 @@ export default function CurrencySection({ currencies }) {
                                                     style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.dangerSoft, color: T.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.85'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.opacity = '1'; }}
-                                                    title="Delete">
+                                                    title={tr('common.delete')}>
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                                                         <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
@@ -271,8 +278,8 @@ export default function CurrencySection({ currencies }) {
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', borderRadius: 16, border: `1.5px dashed ${T.emptyBorder}`, background: T.panelSoft, textAlign: 'center', gap: 6 }}>
                     <div style={{ fontSize: 32, marginBottom: 4 }}>💱</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: T.textSoft }}>No currencies configured yet</div>
-                    <div style={{ fontSize: 11, color: T.textMute }}>Click below to add your first currency</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.textSoft }}>{tr('hrPolicy.currency.noCurrenciesConfigured')}</div>
+                    <div style={{ fontSize: 11, color: T.textMute }}>{tr('hrPolicy.currency.createFirstCurrency')}</div>
                 </div>
             )}
 
@@ -287,7 +294,7 @@ export default function CurrencySection({ currencies }) {
                                 {editingId ? '✏️' : '➕'}
                             </div>
                             <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>
-                                {editingId ? 'Edit Currency' : 'Add New Currency'}
+                                {editingId ? tr('hrPolicy.currency.editCurrency') : tr('hrPolicy.currency.addNewCurrency')}
                             </div>
                         </div>
                         <button type="button" onClick={handleCancel} style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✕</button>
@@ -295,7 +302,7 @@ export default function CurrencySection({ currencies }) {
 
                     {/* Quick Select presets */}
                     <div>
-                        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 8 }}>Quick Select</div>
+                        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 8 }}>{tr('hrPolicy.allowance.quickSelect')}</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                             {PRESET_CURRENCIES.map(preset => {
                                 const isSelected = data.currency_code === preset.code;
@@ -315,7 +322,7 @@ export default function CurrencySection({ currencies }) {
                                         <span style={{ fontSize: 14 }}>{preset.flag}</span>
                                         <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: 11 }}>{preset.code}</span>
                                         <span style={{ color: T.textMute, fontSize: 10 }}>·</span>
-                                        <span style={{ fontSize: 11 }}>{preset.name}</span>
+                                        <span style={{ fontSize: 11 }}>{trPresetName(tr, preset.name)}</span>
                                     </button>
                                 );
                             })}
@@ -326,22 +333,22 @@ export default function CurrencySection({ currencies }) {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                         <div>
                             <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                Currency Name <span style={{ color: T.danger }}>*</span>
+                                {tr('hrPolicy.currency.currencyName')} <span style={{ color: T.danger }}>*</span>
                             </label>
                             <input className="cur-inp" type="text" value={data.currency_name} disabled={processing}
                                 onChange={e => { setData('currency_name', e.target.value); setFormErrors(p => ({ ...p, currency_name: '' })); }}
-                                placeholder="e.g. US Dollar, Cambodian Riel"
+                                placeholder={tr('hrPolicy.currency.currencyNamePlaceholder')}
                                 style={inp(!!formErrors.currency_name)} />
                             {formErrors.currency_name && <ErrMsg msg={formErrors.currency_name} />}
                         </div>
 
                         <div>
                             <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                Currency Code <span style={{ color: T.danger }}>*</span>
+                                {tr('hrPolicy.currency.currencyCode')} <span style={{ color: T.danger }}>*</span>
                             </label>
                             <input className="cur-inp" type="text" value={data.currency_code} disabled={processing}
                                 onChange={e => { setData('currency_code', e.target.value.toUpperCase()); setFormErrors(p => ({ ...p, currency_code: '' })); }}
-                                placeholder="e.g. USD, KHR, MMK"
+                                placeholder={tr('hrPolicy.currency.currencyCodePlaceholder')}
                                 maxLength={10}
                                 style={{ ...inp(!!formErrors.currency_code), fontFamily: 'monospace', letterSpacing: '0.1em', fontWeight: 700 }} />
                             {formErrors.currency_code && <ErrMsg msg={formErrors.currency_code} />}
@@ -350,7 +357,7 @@ export default function CurrencySection({ currencies }) {
 
                     {/* Active Toggle */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '14px 18px', borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft }}>
-                        <CurToggle label="Active" checked={data.is_active} onChange={v => setData('is_active', v)} disabled={processing} T={T} dark={dark} />
+                        <CurToggle label={tr('common.active')} checked={data.is_active} onChange={v => setData('is_active', v)} disabled={processing} T={T} dark={dark} />
                     </div>
 
                     {/* Actions */}
@@ -359,13 +366,13 @@ export default function CurrencySection({ currencies }) {
                             style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 12, border: 'none', background: processing ? T.textMute : 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', boxShadow: processing ? 'none' : '0 4px 14px rgba(124,58,237,0.35)', transition: 'all 0.15s' }}
                             onMouseEnter={e => { if (!processing) e.currentTarget.style.opacity = '0.9'; }}
                             onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                            {processing ? <><CurSpinner /> Saving...</> : <>{editingId ? '✅ Update Currency' : '✅ Add Currency'}</>}
+                            {processing ? <><CurSpinner /> {tr('common.saving')}</> : <>{editingId ? `✅ ${tr('hrPolicy.currency.updateCurrency')}` : `✅ ${tr('hrPolicy.currency.addCurrency')}`}</>}
                         </button>
                         <button type="button" onClick={handleCancel} disabled={processing}
                             style={{ padding: '10px 18px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                             onMouseEnter={e => e.currentTarget.style.background = T.panelSoft}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                            Cancel
+                            {tr('common.cancel')}
                         </button>
                     </div>
                 </form>
@@ -380,7 +387,7 @@ export default function CurrencySection({ currencies }) {
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Add Currency
+                    {tr('hrPolicy.currency.addCurrency')}
                 </button>
             )}
         </div>

@@ -2,20 +2,21 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { useForm, usePage, router } from '@inertiajs/react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ── Complexity config ──────────────────────────────
 const COMPLEXITY = {
-    simple:     { label: 'Simple',     color: '#10b981', bg: '#d1fae5' },
-    medium:     { label: 'Medium',     color: '#f59e0b', bg: '#fef3c7' },
-    complex:    { label: 'Complex',    color: '#ef4444', bg: '#fee2e2' },
-    enterprise: { label: 'Enterprise', color: '#8b5cf6', bg: '#ede9fe' },
+    simple:     { label: 'Simple', labelKey: 'requirement.common.complexity.simple',     color: '#10b981', bg: '#d1fae5' },
+    medium:     { label: 'Medium', labelKey: 'requirement.common.complexity.medium',     color: '#f59e0b', bg: '#fef3c7' },
+    complex:    { label: 'Complex', labelKey: 'requirement.common.complexity.complex', color: '#ef4444', bg: '#fee2e2' },
+    enterprise: { label: 'Enterprise', labelKey: 'requirement.common.complexity.enterprise', color: '#8b5cf6', bg: '#ede9fe' },
 };
 
 const STATUS = {
-    pending:   { label: 'Pending',   color: '#6b7280', bg: '#f3f4f6', dot: '#9ca3af' },
-    analyzing: { label: 'Analyzing', color: '#2563eb', bg: '#dbeafe', dot: '#3b82f6' },
-    completed: { label: 'Completed', color: '#059669', bg: '#d1fae5', dot: '#10b981' },
-    failed:    { label: 'Failed',    color: '#dc2626', bg: '#fee2e2', dot: '#ef4444' },
+    pending:   { label: 'Pending', labelKey: 'requirement.common.status.pending',   color: '#6b7280', bg: '#f3f4f6', dot: '#9ca3af' },
+    analyzing: { label: 'Analyzing', labelKey: 'requirement.common.status.analyzing', color: '#2563eb', bg: '#dbeafe', dot: '#3b82f6' },
+    completed: { label: 'Completed', labelKey: 'requirement.common.status.completed', color: '#059669', bg: '#d1fae5', dot: '#10b981' },
+    failed:    { label: 'Failed', labelKey: 'requirement.common.status.failed', color: '#dc2626', bg: '#fee2e2', dot: '#ef4444' },
 };
 
 const PLATFORMS = ['web', 'mobile', 'both', 'desktop'];
@@ -26,8 +27,21 @@ const COMMON_FEATURES = [
     'API Integration', 'Reporting & Export', 'Multi-language',
     'Mobile Responsive', 'Real-time Updates', 'Search & Filter',
 ];
-const fireToast = (message, type = 'success') =>
-    window.dispatchEvent(new CustomEvent('global-toast', { detail: { message, type } }));
+const FEATURE_KEYS = {
+    'User Authentication': 'userAuthentication',
+    'Dashboard & Analytics': 'dashboardAnalytics',
+    'Role & Permissions': 'rolePermissions',
+    'Notifications': 'notifications',
+    'File Upload': 'fileUpload',
+    'Payment Integration': 'paymentIntegration',
+    'API Integration': 'apiIntegration',
+    'Reporting & Export': 'reportingExport',
+    'Multi-language': 'multiLanguage',
+    'Mobile Responsive': 'mobileResponsive',
+    'Real-time Updates': 'realTimeUpdates',
+    'Search & Filter': 'searchFilter',
+};
+const featureKey = (label) => FEATURE_KEYS[label] || label;
 
 function useReactiveTheme() {
     const getDark = () => {
@@ -517,6 +531,7 @@ function Toast({ message, type, onClose, darkMode = false }) {
 }
 
 function StatusBadge({ status, darkMode = false }) {
+    const { t: tr } = useTranslation();
     const theme = getTheme(darkMode);
     const s = STATUS[status] || STATUS.pending;
 
@@ -558,6 +573,7 @@ function StatusBadge({ status, darkMode = false }) {
 }
 
 function ComplexityBadge({ complexity, darkMode = false }) {
+    const { t: tr } = useTranslation();
     const c = COMPLEXITY[complexity];
     if (!c) return null;
 
@@ -581,12 +597,13 @@ function ComplexityBadge({ complexity, darkMode = false }) {
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
         }}>
-            {c.label}
+            {tr(c.labelKey || `requirement.common.complexity.${complexity}`, {}, c.label)}
         </span>
     );
 }
 
 function FeasibilityRing({ score, darkMode = false }) {
+    const { t: tr } = useTranslation();
     const theme = getTheme(darkMode);
     if (!score && score !== 0) return null;
     const color = score >= 75 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
@@ -612,7 +629,7 @@ function FeasibilityRing({ score, darkMode = false }) {
                 />
                 <text x="22" y="27" textAnchor="middle" fontSize="10" fontWeight="800" fill={color}>{score}</text>
             </svg>
-            <span style={{ fontSize: 11, color: theme.textMute, fontWeight: 700 }}>Feasibility</span>
+            <span style={{ fontSize: 11, color: theme.textMute, fontWeight: 700 }}>{tr('requirement.list.labels.feasibility')}</span>
         </div>
     );
 }
@@ -666,6 +683,7 @@ function StepPill({ index, active, completed }) {
 }
 
 function NewRequirementModal({ onClose, darkMode = false }) {
+    const { t: tr } = useTranslation();
     const theme = getTheme(darkMode);
     const [step, setStep] = useState(1);
     const [stepErrors, setStepErrors] = useState({});
@@ -686,24 +704,24 @@ function NewRequirementModal({ onClose, darkMode = false }) {
     const validateStep = (s) => {
         const errs = {};
         if (s === 1) {
-            if (!form.data.company_name.trim()) errs.company_name = 'Company name is required.';
-            if (!form.data.contact_person.trim()) errs.contact_person = 'Contact person is required.';
+            if (!form.data.company_name.trim()) errs.company_name = tr('requirement.validation.companyNameRequired');
+            if (!form.data.contact_person.trim()) errs.contact_person = tr('requirement.validation.contactPersonRequired');
             if (form.data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.data.email)) {
-                errs.email = 'Please enter a valid email address.';
+                errs.email = tr('requirement.validation.validEmail');
             }
         }
         if (s === 2) {
-            if (!form.data.project_title.trim()) errs.project_title = 'Project title is required.';
-            if (!form.data.project_description.trim()) errs.project_description = 'Project description is required.';
+            if (!form.data.project_title.trim()) errs.project_title = tr('requirement.validation.projectTitleRequired');
+            if (!form.data.project_description.trim()) errs.project_description = tr('requirement.validation.projectDescriptionRequired');
             if (form.data.project_description.trim().length < 20) {
-                errs.project_description = 'Description must be at least 20 characters.';
+                errs.project_description = tr('requirement.validation.descriptionMin');
             }
-            if (!form.data.budget_range) errs.budget_range = 'Please select a budget range.';
-            if (!form.data.expected_deadline) errs.expected_deadline = 'Please set an expected deadline.';
+            if (!form.data.budget_range) errs.budget_range = tr('requirement.validation.budgetRequired');
+            if (!form.data.expected_deadline) errs.expected_deadline = tr('requirement.validation.deadlineRequired');
         }
         if (s === 3) {
             if (form.data.core_features.length === 0) {
-                errs.core_features = 'Please select at least one core feature.';
+                errs.core_features = tr('requirement.validation.coreFeatureRequired');
             }
         }
         return errs;
@@ -728,7 +746,6 @@ function NewRequirementModal({ onClose, darkMode = false }) {
         }
         form.post('/requirement-analysis', {
             onSuccess: () => {
-                fireToast('Requirement submitted and AI analysis started.');
                 onClose();
             },
         });
@@ -748,15 +765,15 @@ function NewRequirementModal({ onClose, darkMode = false }) {
         letterSpacing: '0.08em',
     };
 
-    const stepLabels = ['Client Info', 'Project Details', 'Requirements'];
+    const stepLabels = [tr('requirement.modal.steps.clientInfo'), tr('requirement.modal.steps.projectDetails'), tr('requirement.modal.steps.requirements')];
 
     const platformOptions = PLATFORMS.map(p => ({
         value: p,
-        label: p.charAt(0).toUpperCase() + p.slice(1),
+        label: tr(`requirement.platforms.${p}`),
     }));
 
     const budgetOptions = [
-        { value: '', label: 'Select budget...', disabled: true },
+        { value: '', label: tr('requirement.placeholders.selectBudget'), disabled: true },
         ...BUDGET_RANGES.map(b => ({ value: b, label: b })),
     ];
 
@@ -793,10 +810,10 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
                         <div>
                             <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.03em' }}>
-                                New Requirement Analysis
+                                {tr('requirement.modal.title')}
                             </h2>
                             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', margin: '5px 0 0' }}>
-                                AI will analyze and provide insights automatically.
+                                {tr('requirement.modal.subtitle')}
                             </p>
                         </div>
                         <button
@@ -864,55 +881,55 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                         {step === 1 && (
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
                                 <div style={{ gridColumn: '1/-1' }}>
-                                    <label style={lbl}>Company Name <span style={{ color: theme.danger }}>*</span></label>
+                                    <label style={lbl}>{tr('requirement.fields.companyName')} <span style={{ color: theme.danger }}>*</span></label>
                                     <input
                                         value={form.data.company_name}
                                         onChange={e => { form.setData('company_name', e.target.value); setStepErrors(x => ({ ...x, company_name: '' })); }}
-                                        placeholder="Acme Corporation"
+                                        placeholder={tr('requirement.placeholders.companyName')}
                                         style={inp('company_name')}
                                     />
                                     <FieldError msg={stepErrors.company_name || form.errors.company_name} darkMode={darkMode} />
                                 </div>
 
                                 <div>
-                                    <label style={lbl}>Contact Person <span style={{ color: theme.danger }}>*</span></label>
+                                    <label style={lbl}>{tr('requirement.fields.contactPerson')} <span style={{ color: theme.danger }}>*</span></label>
                                     <input
                                         value={form.data.contact_person}
                                         onChange={e => { form.setData('contact_person', e.target.value); setStepErrors(x => ({ ...x, contact_person: '' })); }}
-                                        placeholder="John Smith"
+                                        placeholder={tr('requirement.placeholders.contactPerson')}
                                         style={inp('contact_person')}
                                     />
                                     <FieldError msg={stepErrors.contact_person || form.errors.contact_person} darkMode={darkMode} />
                                 </div>
 
                                 <div>
-                                    <label style={lbl}>Industry</label>
+                                    <label style={lbl}>{tr('requirement.fields.industry')}</label>
                                     <input
                                         value={form.data.industry}
                                         onChange={e => form.setData('industry', e.target.value)}
-                                        placeholder="e.g. Healthcare, Finance"
+                                        placeholder={tr('requirement.placeholders.industry')}
                                         style={inp('industry')}
                                     />
                                 </div>
 
                                 <div>
-                                    <label style={lbl}>Email</label>
+                                    <label style={lbl}>{tr('requirement.fields.email')}</label>
                                     <input
                                         type="email"
                                         value={form.data.email}
                                         onChange={e => { form.setData('email', e.target.value); setStepErrors(x => ({ ...x, email: '' })); }}
-                                        placeholder="john@company.com"
+                                        placeholder={tr('requirement.placeholders.email')}
                                         style={inp('email')}
                                     />
                                     <FieldError msg={stepErrors.email || form.errors.email} darkMode={darkMode} />
                                 </div>
 
                                 <div>
-                                    <label style={lbl}>Phone</label>
+                                    <label style={lbl}>{tr('requirement.fields.phone')}</label>
                                     <input
                                         value={form.data.phone}
                                         onChange={e => form.setData('phone', e.target.value)}
-                                        placeholder="+1 234 567 8900"
+                                        placeholder={tr('requirement.placeholders.phone')}
                                         style={inp('phone')}
                                     />
                                 </div>
@@ -922,23 +939,23 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                         {step === 2 && (
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
                                 <div style={{ gridColumn: '1/-1' }}>
-                                    <label style={lbl}>Project Title <span style={{ color: theme.danger }}>*</span></label>
+                                    <label style={lbl}>{tr('requirement.fields.projectTitle')} <span style={{ color: theme.danger }}>*</span></label>
                                     <input
                                         value={form.data.project_title}
                                         onChange={e => { form.setData('project_title', e.target.value); setStepErrors(x => ({ ...x, project_title: '' })); }}
-                                        placeholder="e.g. Hospital Management System"
+                                        placeholder={tr('requirement.placeholders.projectTitle')}
                                         style={inp('project_title')}
                                     />
                                     <FieldError msg={stepErrors.project_title || form.errors.project_title} darkMode={darkMode} />
                                 </div>
 
                                 <div style={{ gridColumn: '1/-1' }}>
-                                    <label style={lbl}>Project Description <span style={{ color: theme.danger }}>*</span></label>
+                                    <label style={lbl}>{tr('requirement.fields.projectDescription')} <span style={{ color: theme.danger }}>*</span></label>
                                     <textarea
                                         className="hide-scrollbar"
                                         value={form.data.project_description}
                                         onChange={e => { form.setData('project_description', e.target.value); setStepErrors(x => ({ ...x, project_description: '' })); }}
-                                        placeholder="Describe what the client needs in detail (min. 20 characters)..."
+                                        placeholder={tr('requirement.placeholders.projectDescription')}
                                         rows={5}
                                         style={{
                                             ...inp('project_description'),
@@ -952,12 +969,12 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                                 </div>
 
                                 <div style={{ position: 'relative', zIndex: 220 }}>
-                                    <label style={lbl}>Platform <span style={{ color: theme.danger }}>*</span></label>
+                                    <label style={lbl}>{tr('requirement.fields.platform')} <span style={{ color: theme.danger }}>*</span></label>
                                     <PremiumSelect
                                         options={platformOptions}
                                         value={form.data.platform}
                                         onChange={(val) => form.setData('platform', val)}
-                                        placeholder="Select platform..."
+                                        placeholder={tr('requirement.placeholders.selectPlatform')}
                                         theme={theme}
                                         darkMode={darkMode}
                                         minWidth={0}
@@ -967,23 +984,23 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                                 </div>
 
                                 <div>
-                                    <label style={lbl}>Expected Users</label>
+                                    <label style={lbl}>{tr('requirement.fields.expectedUsers')}</label>
                                     <input
                                         type="number"
                                         value={form.data.expected_users}
                                         onChange={e => form.setData('expected_users', e.target.value)}
-                                        placeholder="e.g. 500"
+                                        placeholder={tr('requirement.placeholders.expectedUsers')}
                                         style={inp('expected_users')}
                                     />
                                 </div>
 
                                 <div style={{ position: 'relative', zIndex: 210 }}>
-                                    <label style={lbl}>Budget Range <span style={{ color: theme.danger }}>*</span></label>
+                                    <label style={lbl}>{tr('requirement.fields.budgetRange')} <span style={{ color: theme.danger }}>*</span></label>
                                     <PremiumSelect
                                         options={budgetOptions}
                                         value={form.data.budget_range}
                                         onChange={(val) => { form.setData('budget_range', val); setStepErrors(x => ({ ...x, budget_range: '' })); }}
-                                        placeholder="Select budget..."
+                                        placeholder={tr('requirement.placeholders.selectBudget')}
                                         theme={theme}
                                         darkMode={darkMode}
                                         minWidth={0}
@@ -994,7 +1011,7 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                                 </div>
 
                                 <div>
-                                    <label style={lbl}>Expected Deadline <span style={{ color: theme.danger }}>*</span></label>
+                                    <label style={lbl}>{tr('requirement.fields.expectedDeadline')} <span style={{ color: theme.danger }}>*</span></label>
                                     <input
                                         type="date"
                                         value={form.data.expected_deadline}
@@ -1010,9 +1027,9 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                                 <div>
                                     <label style={lbl}>
-                                        Core Features <span style={{ color: theme.danger }}>*</span>{' '}
+                                        {tr('requirement.fields.coreFeatures')} <span style={{ color: theme.danger }}>*</span>{' '}
                                         <span style={{ fontSize: 10, color: theme.textMute, textTransform: 'none', fontWeight: 600 }}>
-                                            (select at least one)
+                                            {tr('requirement.hints.selectAtLeastOne')}
                                         </span>
                                     </label>
 
@@ -1039,7 +1056,7 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                                                         boxShadow: selected ? `0 10px 24px ${theme.primary}25` : 'none',
                                                     }}
                                                 >
-                                                    {selected ? `• ${f}` : f}
+                                                    {selected ? `• ${tr(`requirement.features.${featureKey(f)}`, {}, f)}` : tr(`requirement.features.${featureKey(f)}`, {}, f)}
                                                 </button>
                                             );
                                         })}
@@ -1049,12 +1066,12 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                                 </div>
 
                                 <div>
-                                    <label style={lbl}>Integration Needs</label>
+                                    <label style={lbl}>{tr('requirement.fields.integrationNeeds')}</label>
                                     <textarea
                                         className="hide-scrollbar"
                                         value={form.data.integration_needs}
                                         onChange={e => form.setData('integration_needs', e.target.value)}
-                                        placeholder="e.g. Integrate with existing ERP, payment gateway, SMS service..."
+                                        placeholder={tr('requirement.placeholders.integrationNeeds')}
                                         rows={4}
                                         style={{
                                             ...inp('integration_needs'),
@@ -1066,12 +1083,12 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                                 </div>
 
                                 <div>
-                                    <label style={lbl}>Special Requirements / Notes</label>
+                                    <label style={lbl}>{tr('requirement.fields.specialRequirements')}</label>
                                     <textarea
                                         className="hide-scrollbar"
                                         value={form.data.special_requirements}
                                         onChange={e => form.setData('special_requirements', e.target.value)}
-                                        placeholder="Any other specific requirements, constraints, or notes..."
+                                        placeholder={tr('requirement.placeholders.specialRequirements')}
                                         rows={4}
                                         style={{
                                             ...inp('special_requirements'),
@@ -1106,12 +1123,12 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                             variant="ghost"
                             theme={theme}
                         >
-                            {step === 1 ? 'Cancel' : 'Back'}
+                            {step === 1 ? tr('requirement.actions.cancel') : tr('requirement.actions.back')}
                         </UIButton>
 
                         {step < 3 ? (
                             <UIButton type="button" onClick={handleNext} variant="primary" theme={theme}>
-                                Next
+                                {tr('requirement.actions.next')}
                             </UIButton>
                         ) : (
                             <UIButton type="submit" disabled={form.processing} variant="primary" theme={theme}>
@@ -1126,7 +1143,7 @@ function NewRequirementModal({ onClose, darkMode = false }) {
                                         animation: 'spin 0.7s linear infinite'
                                     }} />
                                 )}
-                                {form.processing ? 'Analyzing...' : 'Submit & Analyze'}
+                                {form.processing ? tr('requirement.actions.analyzing') : tr('requirement.actions.submitAnalyze')}
                             </UIButton>
                         )}
                     </div>
@@ -1137,6 +1154,7 @@ function NewRequirementModal({ onClose, darkMode = false }) {
 }
 
 function DeleteConfirm({ onClose, onConfirm, darkMode = false }) {
+    const { t: tr } = useTranslation();
     const theme = getTheme(darkMode);
 
     return (
@@ -1159,22 +1177,23 @@ function DeleteConfirm({ onClose, onConfirm, darkMode = false }) {
             </div>
 
             <h4 style={{ fontSize: 22, fontWeight: 900, color: theme.text, marginBottom: 8 }}>
-                Delete Analysis?
+                {tr('requirement.confirm.deleteAnalysis')}
             </h4>
 
             <p style={{ fontSize: 13, color: theme.textMute, marginBottom: 24, lineHeight: 1.7 }}>
-                This action cannot be undone.
+                {tr('requirement.confirm.cannotBeUndone')}
             </p>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                <UIButton onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
-                <UIButton onClick={onConfirm} variant="danger" theme={theme}>Delete</UIButton>
+                <UIButton onClick={onClose} variant="ghost" theme={theme}>{tr('requirement.actions.cancel')}</UIButton>
+                <UIButton onClick={onConfirm} variant="danger" theme={theme}>{tr('requirement.actions.delete')}</UIButton>
             </div>
         </div>
     );
 }
 
 export default function RequirementAnalysis({ analyses = [], stats = {}, clients = [] }) {
+    const { t: tr } = useTranslation();
     const { flash } = usePage().props;
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
@@ -1194,27 +1213,26 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
     const handleDelete = (id) => {
         router.delete(`/requirement-analysis/${id}`, {
             onSuccess: () => {
-                fireToast('Deleted successfully');
                 setDeleteId(null);
             },
         });
     };
 
     const statusOptions = [
-        { value: '', label: 'All Status' },
-        ...Object.entries(STATUS).map(([k, v]) => ({ value: k, label: v.label })),
+        { value: '', label: tr('requirement.filters.allStatus') },
+        ...Object.entries(STATUS).map(([k, v]) => ({ value: k, label: tr(v.labelKey || `requirement.common.status.${k}`, {}, v.label) })),
     ];
 
     const statCards = [
-        { label: 'Total',     value: stats.total     ?? 0, color: theme.text,     bg: theme.metricCard, line: 'All analyses' },
-        { label: 'Pending',   value: stats.pending   ?? 0, color: theme.warning,  bg: theme.warningSoft, line: 'Waiting queue' },
-        { label: 'Analyzing', value: stats.analyzing ?? 0, color: theme.secondary, bg: theme.secondarySoft, line: 'In progress' },
-        { label: 'Completed', value: stats.completed ?? 0, color: theme.success,  bg: theme.successSoft, line: 'Ready to review' },
-        { label: 'Failed',    value: stats.failed    ?? 0, color: theme.danger,   bg: theme.dangerSoft, line: 'Needs retry' },
+        { key: 'total', label: tr('requirement.list.stats.total'), value: stats.total ?? 0, color: theme.text, bg: theme.metricCard, line: tr('requirement.list.stats.allAnalyses') },
+        { key: 'pending', label: tr('requirement.common.status.pending'), value: stats.pending ?? 0, color: theme.warning, bg: theme.warningSoft, line: tr('requirement.list.stats.waitingQueue') },
+        { key: 'analyzing', label: tr('requirement.common.status.analyzing'), value: stats.analyzing ?? 0, color: theme.secondary, bg: theme.secondarySoft, line: tr('requirement.list.stats.inProgress') },
+        { key: 'completed', label: tr('requirement.common.status.completed'), value: stats.completed ?? 0, color: theme.success, bg: theme.successSoft, line: tr('requirement.list.stats.readyToReview') },
+        { key: 'failed', label: tr('requirement.common.status.failed'), value: stats.failed ?? 0, color: theme.danger, bg: theme.dangerSoft, line: tr('requirement.list.stats.needsRetry') },
     ];
 
     return (
-        <AppLayout title="Requirement Analysis">
+        <AppLayout title={tr('requirement.list.pageTitle')}>
             <style>{`
                 @keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes popIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
@@ -1237,9 +1255,9 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                     <div style={{ position: 'absolute', inset: 0, background: theme.glass, pointerEvents: 'none' }} />
                     <div style={{ position: 'relative' }}>
                         <SectionTitle
-                            eyebrow="Requirement Analysis"
-                            title="Premium AI requirement workspace"
-                            desc="Create, analyze, re-run and review requirement analysis with a clean premium flow across light and dark mode."
+                            eyebrow={tr('requirement.list.hero.eyebrow')}
+                            title={tr('requirement.list.hero.title')}
+                            desc={tr('requirement.list.hero.desc')}
                             theme={theme}
                             action={
                                 <UIButton onClick={() => setShowNew(true)} variant="primary" theme={theme}>
@@ -1247,7 +1265,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                                         <path d="M12 5v14" />
                                         <path d="M5 12h14" />
                                     </svg>
-                                    New Analysis
+                                    {tr('requirement.actions.newAnalysis')}
                                 </UIButton>
                             }
                         />
@@ -1255,7 +1273,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 14, marginTop: 22 }}>
                             {statCards.map((s, i) => (
                                 <div
-                                    key={s.label}
+                                    key={s.key}
                                     style={{
                                         ...card(theme, {
                                             padding: 18,
@@ -1270,7 +1288,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                                     <div style={{ position: 'absolute', inset: 0, background: theme.glass, opacity: darkMode ? 0.48 : 0.30, pointerEvents: 'none' }} />
                                     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                                            <div style={{ width: 12, height: 12, borderRadius: '50%', background: s.color, boxShadow: `0 0 0 6px ${darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.65)'}` }} />
+                                            <div style={{ width: 12, height: 12, borderRadius: '50%', background: s.color, boxShadow: `0 0 0 6px ${darkMode ? 'rgba(255,255,255,0.06)' : `${s.color}22`}` }} />
                                             <div style={{ fontSize: 11, color: theme.textMute, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                                                 {s.label}
                                             </div>
@@ -1308,7 +1326,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="Search by project or client..."
+                            placeholder={tr('requirement.placeholders.searchProjectClient')}
                             style={{
                                 background: 'transparent',
                                 border: 'none',
@@ -1330,7 +1348,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                         options={statusOptions}
                         value={filterStatus}
                         onChange={setFilterStatus}
-                        placeholder="All Status"
+                        placeholder={tr('requirement.filters.allStatus')}
                         theme={theme}
                         darkMode={darkMode}
                         minWidth={180}
@@ -1348,9 +1366,9 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                         flexWrap: 'wrap'
                     }}>
                         <div>
-                            <div style={{ fontSize: 16, fontWeight: 900, color: theme.text }}>Analysis directory</div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: theme.text }}>{tr('requirement.list.analysisDirectory')}</div>
                             <div style={{ marginTop: 4, fontSize: 12, color: theme.textMute }}>
-                                {filtered.length} result{filtered.length !== 1 ? 's' : ''} found
+                                {filtered.length} {filtered.length !== 1 ? tr('requirement.labels.results') : tr('requirement.labels.result')} {tr('requirement.labels.found')}
                             </div>
                         </div>
                         <div style={{
@@ -1365,7 +1383,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                             fontWeight: 900,
                             boxShadow: theme.chipShadow
                         }}>
-                            Live analysis list
+                            {tr('requirement.list.liveAnalysisList')}
                         </div>
                     </div>
 
@@ -1373,7 +1391,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
-                                    {['Project', 'Client', 'Platform', 'Complexity', 'Feasibility', 'Status', 'Date', 'Actions'].map(h => (
+                                    {[tr('requirement.table.project'), tr('requirement.table.client'), tr('requirement.table.platform'), tr('requirement.table.complexity'), tr('requirement.table.feasibility'), tr('requirement.table.status'), tr('requirement.table.date'), tr('requirement.table.actions')].map(h => (
                                         <th
                                             key={h}
                                             style={{
@@ -1413,8 +1431,8 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                                                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                                                 </svg>
                                             </div>
-                                            <div style={{ fontSize: 15, color: theme.text, fontWeight: 900 }}>No analyses yet</div>
-                                            <div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>Click New Analysis to get started.</div>
+                                            <div style={{ fontSize: 15, color: theme.text, fontWeight: 900 }}>{tr('requirement.empty.noAnalyses')}</div>
+                                            <div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>{tr('requirement.empty.clickNewAnalysis')}</div>
                                         </td>
                                     </tr>
                                 ) : filtered.map((a, i) => (
@@ -1434,7 +1452,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                                             </div>
                                             {a.ai_analysis?.estimated_duration && (
                                                 <div style={{ fontSize: 11, color: theme.textMute }}>
-                                                    Duration {a.ai_analysis.estimated_duration}
+                                                    {tr('requirement.labels.duration')} {a.ai_analysis.estimated_duration}
                                                 </div>
                                             )}
                                         </td>
@@ -1459,7 +1477,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                                                 textTransform: 'uppercase',
                                                 letterSpacing: '0.08em'
                                             }}>
-                                                {a.platform}
+                                                {tr(`requirement.platforms.${a.platform}`, {}, a.platform)}
                                             </span>
                                         </td>
 
@@ -1498,7 +1516,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                                                         justifyContent: 'center',
                                                     }}
                                                 >
-                                                    View
+                                                    {tr('requirement.actions.view')}
                                                 </a>
 
                                                 {a.status === 'failed' && (
@@ -1515,7 +1533,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                                                             cursor: 'pointer'
                                                         }}
                                                     >
-                                                        Re-run
+                                                        {tr('requirement.actions.rerun')}
                                                     </button>
                                                 )}
 
@@ -1532,7 +1550,7 @@ export default function RequirementAnalysis({ analyses = [], stats = {}, clients
                                                         cursor: 'pointer'
                                                     }}
                                                 >
-                                                    Delete
+                                                    {tr('requirement.actions.delete')}
                                                 </button>
                                             </div>
                                         </td>

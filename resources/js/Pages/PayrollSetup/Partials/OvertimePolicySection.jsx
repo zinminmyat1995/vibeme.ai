@@ -1,5 +1,7 @@
 import { useForm, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '@/Contexts/LanguageContext';
+const trPresetName = (tr, value) => tr(`hrPolicy.presets.${String(value || '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '')}`) || value;
 
 // ── Theme hook ─────────────────────────────────────────────────
 function useTheme() {
@@ -98,12 +100,12 @@ const OT_PRESETS = [
 ];
 
 const DAY_TYPE_LABELS  = { weekday: 'Weekday', weekend: 'Weekend', public_holiday: 'Public Holiday' };
-const SHIFT_LABELS     = { day: '☀️ Day', night: '🌙 Night', both: '🕐 All Day' };
+const SHIFT_LABELS     = { day: 'Day', night: 'Night', both: 'All Day' };
 
 const defaultForm = { title: '', day_type: '', shift_type: '', rate_type: 'multiplier', rate_value: '', is_active: true };
 
 // ── PremiumSelect ─────────────────────────────────────────────
-function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Select...', T, dark, disabled = false, zIndex = 300 }) {
+function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Select...', T, dark, disabled = false, zIndex = 300, tr }) {
     const [open, setOpen] = useState(false);
     const wrapRef = useRef(null);
     const selected = options.find(o => String(o.value) === String(value));
@@ -131,7 +133,7 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
                     opacity: disabled ? 0.6 : 1,
                 }}>
                 <span style={{ fontSize: 13, fontWeight: selected ? 700 : 500, color: selected ? T.text : T.textMute }}>
-                    {selected ? selected.label : placeholder}
+                    {selected ? (selected.labelKey && tr ? tr(selected.labelKey) : selected.label) : placeholder}
                 </span>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
                     style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.18s ease', flexShrink: 0 }}>
@@ -166,7 +168,7 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                                     </svg>
                                 ) : <span style={{ width: 13 }}/>}
-                                {opt.label}
+                                {opt.labelKey && tr ? tr(opt.labelKey) : opt.label}
                             </button>
                         );
                     })}
@@ -177,8 +179,21 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
 }
 
 export default function OvertimePolicySection({ overtimePolicies }) {
+    const { t: tr } = useTranslation();
     const dark = useTheme();
     const T    = getTheme(dark);
+
+    const dayTypeLabels = {
+        weekday: tr('hrPolicy.overtime.weekday'),
+        weekend: tr('hrPolicy.overtime.weekend'),
+        public_holiday: tr('hrPolicy.overtime.publicHoliday'),
+    };
+
+    const shiftLabels = {
+        day: `☀️ ${tr('common.day')}`,
+        night: `🌙 ${tr('common.night')}`,
+        both: `🕐 ${tr('hrPolicy.overtime.allDay')}`,
+    };
 
     const [showForm, setShowForm]         = useState(false);
     const [editingId, setEditingId]       = useState(null);
@@ -192,10 +207,10 @@ export default function OvertimePolicySection({ overtimePolicies }) {
 
     const validate = () => {
         const errs = {};
-        if (!data.title)      errs.title     = 'Please select an OT type.';
-        if (!data.rate_value) errs.rate_value = 'Rate is required.';
+        if (!data.title)      errs.title     = tr('hrPolicy.validation.selectOtType');
+        if (!data.rate_value) errs.rate_value = tr('hrPolicy.validation.rateRequired');
         else if (isNaN(data.rate_value) || Number(data.rate_value) < 0)
-                              errs.rate_value = 'Enter a valid number.';
+                              errs.rate_value = tr('hrPolicy.validation.validNumber');
         return errs;
     };
 
@@ -279,9 +294,9 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                     <div onClick={() => !deleting && setDeleteTarget(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}/>
                     <div className="otp-animate" style={{ position: 'relative', background: T.panelSolid, border: `1px solid ${T.border}`, borderRadius: 20, width: '100%', maxWidth: 400, padding: '28px 28px 24px', boxShadow: T.shadow }}>
                         <div style={{ width: 52, height: 52, borderRadius: 16, background: T.dangerSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24 }}>🗑️</div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>Delete OT Rate</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{deleteTarget.title}"</div>
-                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>This action cannot be undone.</div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>{tr('hrPolicy.overtime.deleteOtRate')}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{trPresetName(tr, deleteTarget.title)}"</div>
+                        <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>{tr('common.thisActionCannotBeUndone')}</div>
                         <div style={{ display: 'flex', gap: 10 }}>
                             <button onClick={() => !deleting && setDeleteTarget(null)} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
@@ -289,7 +304,7 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                             </button>
                             <button onClick={handleDeleteConfirm} disabled={deleting}
                                 style={{ flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1, boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}>
-                                {deleting ? '⏳ Deleting...' : 'Yes, Delete'}
+                                {deleting ? `⏳ ${tr('common.deleting')}` : tr('common.yesDelete')}
                             </button>
                         </div>
                     </div>
@@ -302,8 +317,8 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                         <thead>
                             <tr style={{ background: T.tableHead, borderBottom: `1px solid ${T.divider}` }}>
-                                {['Title','Applies To','Shift','Rate','Status','Actions'].map(h => (
-                                    <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, textAlign: h === 'Title' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                                {[tr('hrPolicy.overtime.title'), tr('hrPolicy.overtime.appliesTo'), tr('hrPolicy.overtime.shift'), tr('hrPolicy.overtime.rate'), tr('common.status'), tr('common.actions')].map(h => (
+                                    <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, textAlign: h === tr('hrPolicy.overtime.title') ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -316,16 +331,16 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                                         <td style={{ padding: '12px 14px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 <span style={{ fontSize: 16 }}>{preset?.emoji || '⏰'}</span>
-                                                <span style={{ fontWeight: 700, color: T.text }}>{policy.title}</span>
+                                                <span style={{ fontWeight: 700, color: T.text }}>{trPresetName(tr, policy.title)}</span>
                                             </div>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                             <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: badge.bg, color: badge.color }}>
-                                                {DAY_TYPE_LABELS[policy.day_type] ?? policy.day_type}
+                                                {dayTypeLabels[policy.day_type] ?? policy.day_type}
                                             </span>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center', fontSize: 12, fontWeight: 600, color: T.textSoft }}>
-                                            {SHIFT_LABELS[policy.shift_type] ?? policy.shift_type}
+                                            {shiftLabels[policy.shift_type] ?? policy.shift_type}
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
@@ -335,13 +350,13 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                                                         : Number(policy.rate_value).toLocaleString()}
                                                 </span>
                                                 <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 99, background: policy.rate_type === 'multiplier' ? T.primarySoft : T.orangeSoft, color: policy.rate_type === 'multiplier' ? T.primary : T.orange }}>
-                                                    {policy.rate_type === 'multiplier' ? 'Multiplier' : 'Flat'}
+                                                    {policy.rate_type === 'multiplier' ? tr('hrPolicy.overtime.multiplier') : tr('hrPolicy.common.flat')}
                                                 </span>
                                             </div>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                             <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: policy.is_active ? T.successSoft : T.panelSoft, color: policy.is_active ? T.success : T.textMute }}>
-                                                {policy.is_active ? 'Active' : 'Inactive'}
+                                                {policy.is_active ? tr('common.active') : tr('common.inactive')}
                                             </span>
                                         </td>
                                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -350,7 +365,7 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                                                     style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textSoft, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                     onMouseEnter={e => { e.currentTarget.style.background = T.panelSofter; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.background = T.panelSoft; e.currentTarget.style.transform = 'translateY(0)'; }}
-                                                    title="Edit">
+                                                    title={tr('common.edit')}>
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
                                                     </svg>
@@ -359,7 +374,7 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                                                     style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.dangerSoft, color: T.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.85'; }}
                                                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.opacity = '1'; }}
-                                                    title="Delete">
+                                                    title={tr('common.delete')}>
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                                                         <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
@@ -376,8 +391,8 @@ export default function OvertimePolicySection({ overtimePolicies }) {
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', borderRadius: 16, border: `1.5px dashed ${T.emptyBorder}`, background: T.panelSoft, textAlign: 'center', gap: 6 }}>
                     <div style={{ fontSize: 32, marginBottom: 4 }}>⏰</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: T.textSoft }}>No overtime rates configured yet</div>
-                    <div style={{ fontSize: 11, color: T.textMute }}>Select one of the 5 standard OT types below</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.textSoft }}>{tr('hrPolicy.overtime.noRatesConfigured')}</div>
+                    <div style={{ fontSize: 11, color: T.textMute }}>{tr('hrPolicy.overtime.selectStandardTypes')}</div>
                 </div>
             )}
 
@@ -392,7 +407,7 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                                 {editingId ? '✏️' : '➕'}
                             </div>
                             <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>
-                                {editingId ? 'Edit OT Rate' : 'Add OT Rate'}
+                                {editingId ? tr('hrPolicy.overtime.editOtRate') : tr('hrPolicy.overtime.addOtRate')}
                             </div>
                         </div>
                         <button type="button" onClick={handleCancel} style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✕</button>
@@ -401,9 +416,9 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                     {/* OT Type Selector */}
                     <div>
                         <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            Select OT Type
+                            {tr('hrPolicy.overtime.selectOtType')}
                             {overtimePolicies.length >= 5 && !editingId && (
-                                <span style={{ fontSize: 10, color: T.success, fontWeight: 700, background: T.successSoft, padding: '2px 8px', borderRadius: 99 }}>✓ All 5 configured!</span>
+                                <span style={{ fontSize: 10, color: T.success, fontWeight: 700, background: T.successSoft, padding: '2px 8px', borderRadius: 99 }}>{`✓ ${tr('hrPolicy.overtime.allFiveConfiguredShort')}`}</span>
                             )}
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
@@ -429,10 +444,10 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                                         <div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
                                                 <span style={{ fontSize: 14 }}>{preset.emoji}</span>
-                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? T.primary : T.text }}>{preset.title}</span>
+                                                <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? T.primary : T.text }}>{trPresetName(tr, preset.title)}</span>
                                             </div>
                                             <div style={{ fontSize: 10, color: T.textMute, fontWeight: 500 }}>
-                                                {DAY_TYPE_LABELS[preset.day_type]} · {SHIFT_LABELS[preset.shift_type]}
+                                                {dayTypeLabels[preset.day_type]} · {shiftLabels[preset.shift_type]}
                                             </div>
                                         </div>
                                         <div style={{ flexShrink: 0 }}>
@@ -451,11 +466,11 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                             {/* Rate Type */}
                             <div>
-                                <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Rate Type</label>
+                                <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{tr('hrPolicy.overtime.rateType')}</label>
                                 <div style={{ display: 'flex', gap: 8 }}>
                                     {[
-                                        { value: 'multiplier', label: 'Multiplier', hint: 'e.g. 1.5×' },
-                                        { value: 'flat',       label: 'Flat Amount', hint: 'e.g. 50,000' },
+                                        { value: 'multiplier', labelKey: 'hrPolicy.overtime.multiplier', label: 'Multiplier', hint: 'e.g. 1.5×' },
+                                        { value: 'flat',       labelKey: 'hrPolicy.overtime.flatAmount', label: 'Flat Amount', hint: 'e.g. 50,000' },
                                     ].map(opt => {
                                         const isSel = data.rate_type === opt.value;
                                         return (
@@ -465,7 +480,7 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                                                     <div style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${isSel ? T.primary : T.textMute}`, background: isSel ? T.primary : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                                         {isSel && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff' }}/>}
                                                     </div>
-                                                    <span style={{ fontSize: 12, fontWeight: 700, color: isSel ? T.primary : T.textSoft }}>{opt.label}</span>
+                                                    <span style={{ fontSize: 12, fontWeight: 700, color: isSel ? T.primary : T.textSoft }}>{opt.labelKey && tr ? tr(opt.labelKey) : opt.label}</span>
                                                 </div>
                                                 <div style={{ fontSize: 10, color: T.textMute, paddingLeft: 20 }}>{opt.hint}</div>
                                             </label>
@@ -477,7 +492,7 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                             {/* Rate Value */}
                             <div>
                                 <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                    {data.rate_type === 'multiplier' ? 'Multiplier Value' : 'Flat Amount'} <span style={{ color: T.danger }}>*</span>
+                                    {data.rate_type === 'multiplier' ? tr('hrPolicy.overtime.multiplierValue') : tr('hrPolicy.overtime.flatAmount')} <span style={{ color: T.danger }}>*</span>
                                 </label>
                                 <div style={{ position: 'relative' }}>
                                     <input className="otp-inp" type="number" value={data.rate_value}
@@ -499,13 +514,13 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                     {/* Active toggle + submit */}
                     {data.title && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                            <OTPToggle label="Active" checked={data.is_active} onChange={v => setData('is_active', v)} disabled={processing} T={T} dark={dark} />
+                            <OTPToggle label={tr('common.active')} checked={data.is_active} onChange={v => setData('is_active', v)} disabled={processing} T={T} dark={dark} />
                             <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
                                 <button type="submit" disabled={processing}
                                     style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 12, border: 'none', background: processing ? T.textMute : 'linear-gradient(135deg, #7c3aed, #2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: processing ? 'not-allowed' : 'pointer', boxShadow: processing ? 'none' : '0 4px 14px rgba(124,58,237,0.35)', transition: 'all 0.15s' }}
                                     onMouseEnter={e => { if (!processing) e.currentTarget.style.opacity = '0.9'; }}
                                     onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                                    {processing ? <><OTPSpinner /> Saving...</> : <>{editingId ? '✅ Update OT Rate' : '✅ Add OT Rate'}</>}
+                                    {processing ? <><OTPSpinner /> {tr('common.saving')}</> : <>{editingId ? `✅ ${tr('hrPolicy.overtime.updateOtRate')}` : `✅ ${tr('hrPolicy.overtime.addOtRate')}`}</>}
                                 </button>
                                 <button type="button" onClick={handleCancel} disabled={processing}
                                     style={{ padding: '10px 18px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
@@ -528,7 +543,7 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Add OT Rate <span style={{ fontSize: 11, opacity: 0.7 }}>({5 - overtimePolicies.length} remaining)</span>
+                    {tr('hrPolicy.overtime.addOtRate')} <span style={{ fontSize: 11, opacity: 0.7 }}>({5 - overtimePolicies.length} {tr('hrPolicy.overtime.remaining')})</span>
                 </button>
             )}
 
@@ -537,8 +552,8 @@ export default function OvertimePolicySection({ overtimePolicies }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${T.successSoft === '#f0fdf4' ? '#bbf7d0' : 'rgba(52,211,153,0.2)'}`, background: T.successSoft }}>
                     <span style={{ fontSize: 18 }}>✅</span>
                     <div>
-                        <div style={{ fontSize: 13, fontWeight: 800, color: T.success }}>All 5 OT types configured</div>
-                        <div style={{ fontSize: 11, color: T.success, opacity: 0.75, marginTop: 1 }}>Edit individual rates using the Edit button above.</div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: T.success }}>{tr('hrPolicy.overtime.allFiveConfigured')}</div>
+                        <div style={{ fontSize: 11, color: T.success, opacity: 0.75, marginTop: 1 }}>{tr('hrPolicy.overtime.editRatesHint')}</div>
                     </div>
                 </div>
             )}

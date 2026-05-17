@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Head, router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
+import { useTranslation } from "@/Contexts/LanguageContext";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme System
@@ -95,11 +96,11 @@ function getTheme(dark) {
 // Config (original — unchanged)
 // ─────────────────────────────────────────────────────────────────────────────
 const WL = {
-    free:     { label: "Free",     color: "#22c55e", bg: "#f0fdf4", bgDark: "rgba(34,197,94,0.14)",  border: "#86efac", dot: "#22c55e", pct: 0   },
-    light:    { label: "Light",    color: "#3b82f6", bg: "#eff6ff", bgDark: "rgba(59,130,246,0.14)", border: "#93c5fd", dot: "#3b82f6", pct: 25  },
-    moderate: { label: "Moderate", color: "#f59e0b", bg: "#fefce8", bgDark: "rgba(245,158,11,0.14)", border: "#fde047", dot: "#f59e0b", pct: 50  },
-    heavy:    { label: "Heavy",    color: "#ef4444", bg: "#fef2f2", bgDark: "rgba(239,68,68,0.14)",  border: "#fca5a5", dot: "#ef4444", pct: 75  },
-    full:     { label: "Full",     color: "#7c3aed", bg: "#f5f3ff", bgDark: "rgba(124,58,237,0.14)", border: "#c4b5fd", dot: "#7c3aed", pct: 100 },
+    free:     { label: "projectAssignments.workload.free",     color: "#22c55e", bg: "#f0fdf4", bgDark: "rgba(34,197,94,0.14)",  border: "#86efac", dot: "#22c55e", pct: 0   },
+    light:    { label: "projectAssignments.workload.light",    color: "#3b82f6", bg: "#eff6ff", bgDark: "rgba(59,130,246,0.14)", border: "#93c5fd", dot: "#3b82f6", pct: 25  },
+    moderate: { label: "projectAssignments.workload.moderate", color: "#f59e0b", bg: "#fefce8", bgDark: "rgba(245,158,11,0.14)", border: "#fde047", dot: "#f59e0b", pct: 50  },
+    heavy:    { label: "projectAssignments.workload.heavy",    color: "#ef4444", bg: "#fef2f2", bgDark: "rgba(239,68,68,0.14)",  border: "#fca5a5", dot: "#ef4444", pct: 75  },
+    full:     { label: "projectAssignments.workload.full",     color: "#7c3aed", bg: "#f5f3ff", bgDark: "rgba(124,58,237,0.14)", border: "#c4b5fd", dot: "#7c3aed", pct: 100 },
 };
 
 function getWorkload(usedHours) {
@@ -111,10 +112,10 @@ function getWorkload(usedHours) {
 }
 
 const ST = {
-    active:    { label: "Active",    color: "#16a34a", bg: "#f0fdf4", bgDark: "rgba(22,163,74,0.15)",   border: "#86efac" },
-    upcoming:  { label: "Upcoming",  color: "#2563eb", bg: "#eff6ff", bgDark: "rgba(37,99,235,0.15)",   border: "#93c5fd" },
-    completed: { label: "Completed", color: "#7c3aed", bg: "#f5f3ff", bgDark: "rgba(124,58,237,0.15)", border: "#c4b5fd" },
-    cancelled: { label: "Cancelled", color: "#9ca3af", bg: "#f9fafb", bgDark: "rgba(156,163,175,0.12)", border: "#d1d5db" },
+    active:    { label: "projectAssignments.status.active",    color: "#16a34a", bg: "#f0fdf4", bgDark: "rgba(22,163,74,0.15)",   border: "#86efac" },
+    upcoming:  { label: "projectAssignments.status.upcoming",  color: "#2563eb", bg: "#eff6ff", bgDark: "rgba(37,99,235,0.15)",   border: "#93c5fd" },
+    completed: { label: "projectAssignments.status.completed", color: "#7c3aed", bg: "#f5f3ff", bgDark: "rgba(124,58,237,0.15)", border: "#c4b5fd" },
+    cancelled: { label: "projectAssignments.status.cancelled", color: "#9ca3af", bg: "#f9fafb", bgDark: "rgba(156,163,175,0.12)", border: "#d1d5db" },
 };
 
 const CC = {
@@ -165,14 +166,14 @@ function Ava({ name, url, size = 32 }) {
     );
 }
 
-function Pill({ label, color, bg, bgDark, border, dark = false }) {
+function Pill({ label, color, bg, bgDark, border, dark = false, tr }) {
     return (
         <span style={{ fontSize: 10, fontWeight: 700, color,
             background: dark ? (bgDark || bg) : bg,
             border: `1px solid ${dark ? (color + "44") : border}`,
             padding: "3px 9px", borderRadius: 99,
             textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
-            {label}
+            {tr ? tr(label) : label}
         </span>
     );
 }
@@ -262,14 +263,14 @@ function PremiumSelect({ options = [], value = "", onChange, placeholder = "Sele
 // ─────────────────────────────────────────────────────────────────────────────
 // Workload FilterBar — premium pill style
 // ─────────────────────────────────────────────────────────────────────────────
-function FilterBar({ active, onChange, theme, dark }) {
+function FilterBar({ active, onChange, theme, dark, tr }) {
     const opts = [
-        { k: "all",  label: "All",  color: theme.primary, bg: theme.primarySoft, bgDark: theme.primarySoft },
-        { k: "0",    label: "Free", color: "#22c55e", bg: "#f0fdf4", bgDark: "rgba(34,197,94,0.14)",  border: "#86efac" },
-        { k: "2",    label: "2h",   color: "#3b82f6", bg: "#eff6ff", bgDark: "rgba(59,130,246,0.14)", border: "#93c5fd" },
-        { k: "4",    label: "4h",   color: "#f59e0b", bg: "#fefce8", bgDark: "rgba(245,158,11,0.14)", border: "#fde047" },
-        { k: "6",    label: "6h",   color: "#ef4444", bg: "#fef2f2", bgDark: "rgba(239,68,68,0.14)",  border: "#fca5a5" },
-        { k: "full", label: "Full", color: "#7c3aed", bg: "#f5f3ff", bgDark: "rgba(124,58,237,0.14)", border: "#c4b5fd" },
+        { k: "all",  label: "projectAssignments.filters.all",  color: theme.primary, bg: theme.primarySoft, bgDark: theme.primarySoft },
+        { k: "0",    label: "projectAssignments.workload.free", color: "#22c55e", bg: "#f0fdf4", bgDark: "rgba(34,197,94,0.14)",  border: "#86efac" },
+        { k: "2",    label: "projectAssignments.filters.twoHours",   color: "#3b82f6", bg: "#eff6ff", bgDark: "rgba(59,130,246,0.14)", border: "#93c5fd" },
+        { k: "4",    label: "projectAssignments.filters.fourHours",   color: "#f59e0b", bg: "#fefce8", bgDark: "rgba(245,158,11,0.14)", border: "#fde047" },
+        { k: "6",    label: "projectAssignments.filters.sixHours",   color: "#ef4444", bg: "#fef2f2", bgDark: "rgba(239,68,68,0.14)",  border: "#fca5a5" },
+        { k: "full", label: "projectAssignments.workload.full", color: "#7c3aed", bg: "#f5f3ff", bgDark: "rgba(124,58,237,0.14)", border: "#c4b5fd" },
     ];
     return (
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
@@ -283,7 +284,7 @@ function FilterBar({ active, onChange, theme, dark }) {
                         color: isAct ? o.color : theme.textMute,
                         transition: "all 0.12s", outline: "none", fontFamily: "inherit",
                         letterSpacing: "0.04em", textTransform: "uppercase",
-                    }}>{o.label}</button>
+                    }}>{tr(o.label)}</button>
                 );
             })}
         </div>
@@ -293,7 +294,7 @@ function FilterBar({ active, onChange, theme, dark }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MemberRow — premium
 // ─────────────────────────────────────────────────────────────────────────────
-function MemberRow({ user, selected, onClick, theme, dark }) {
+function MemberRow({ user, selected, onClick, theme, dark, tr }) {
     const wlKey = user.used_hours_per_day != null ? getWorkload(user.used_hours_per_day) : (user.workload || "free");
     const wl    = WL[wlKey] || WL.free;
     return (
@@ -328,7 +329,7 @@ function MemberRow({ user, selected, onClick, theme, dark }) {
                 )}
             </div>
             <div style={{ flexShrink: 0 }}>
-                <Pill label={wl.label} color={wl.color} bg={wl.bg} bgDark={wl.bgDark} border={wl.border} dark={dark} />
+                <Pill label={wl.label} color={wl.color} bg={wl.bg} bgDark={wl.bgDark} border={wl.border} dark={dark} tr={tr} />
             </div>
         </div>
     );
@@ -337,7 +338,7 @@ function MemberRow({ user, selected, onClick, theme, dark }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ProjectCard — premium
 // ─────────────────────────────────────────────────────────────────────────────
-function ProjectCard({ project, theme, dark }) {
+function ProjectCard({ project, theme, dark, tr }) {
     const st      = ST[project.status] || ST.active;
     const members = (project.assignments || []).filter(a => a.status !== "removed");
     const estSize = project.est_team_size || 0;
@@ -411,7 +412,7 @@ function ProjectCard({ project, theme, dark }) {
                         background: st.bg, color: st.color,
                         flexShrink: 0, whiteSpace: "nowrap",
                     }}>
-                        {st.label}
+                        {tr(st.label)}
                     </span>
                 </div>
 
@@ -430,7 +431,7 @@ function ProjectCard({ project, theme, dark }) {
                     {/* Team label + count */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                         <span style={{ fontSize: 10, color: theme.textMute, fontWeight: 600 }}>
-                            Team {estSize > 0 ? `${members.length} / ${estSize}` : `${members.length}`}
+                            {tr("projectAssignments.labels.team")} {estSize > 0 ? `${members.length} / ${estSize}` : `${members.length}`}
                         </span>
                         {estSize > 0 && !isFull && open > 0 && (
                             <span style={{
@@ -438,7 +439,7 @@ function ProjectCard({ project, theme, dark }) {
                                 background: dark ? "rgba(220,38,38,0.15)" : "#fef2f2",
                                 color: "#dc2626",
                             }}>
-                                {open} open
+                                {open} {tr("projectAssignments.labels.open")}
                             </span>
                         )}
                         {isFull && (
@@ -447,7 +448,7 @@ function ProjectCard({ project, theme, dark }) {
                                 background: dark ? "rgba(5,150,105,0.15)" : "#ecfdf5",
                                 color: theme.success,
                             }}>
-                                Full ✓
+                                {tr("projectAssignments.workload.full")} ✓
                             </span>
                         )}
                     </div>
@@ -508,7 +509,7 @@ function ProjectCard({ project, theme, dark }) {
                         {Array.from({ length: openDots }).map((_, i) => (
                             <div
                                 key={`open-${i}`}
-                                title="Open slot"
+                                title={tr("projectAssignments.labels.openSlot")}
                                 style={{
                                     width: 24, height: 24, borderRadius: "50%",
                                     border: `1.5px dashed ${theme.borderStrong}`,
@@ -522,7 +523,7 @@ function ProjectCard({ project, theme, dark }) {
 
                         {/* No members */}
                         {members.length === 0 && estSize === 0 && (
-                            <span style={{ fontSize: 11, color: theme.textMute }}>No members yet</span>
+                            <span style={{ fontSize: 11, color: theme.textMute }}>{tr("projectAssignments.empty.noMembersYet")}</span>
                         )}
                     </div>
 
@@ -530,8 +531,8 @@ function ProjectCard({ project, theme, dark }) {
                     <div style={{ fontSize: 10, color: theme.textMute }}>
                         <span style={{ marginRight: 4 }}>📅</span>
                         {days !== null
-                            ? days === 0 ? "Due today" : `${days}d left`
-                            : "No end date"}
+                            ? days === 0 ? tr("projectAssignments.labels.dueToday") : `${days}${tr("projectAssignments.units.daysLeftSuffix")}`
+                            : tr("projectAssignments.labels.noEndDate")}
                     </div>
                 </div>
             </div>
@@ -542,7 +543,7 @@ function ProjectCard({ project, theme, dark }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MemberDetail — premium panel
 // ─────────────────────────────────────────────────────────────────────────────
-function MemberDetail({ user, onClose, theme, dark }) {
+function MemberDetail({ user, onClose, theme, dark, tr }) {
     const wlKey = user.used_hours_per_day != null ? getWorkload(user.used_hours_per_day) : (user.workload || "free");
     const wl    = WL[wlKey] || WL.free;
     const countryDisplay = user.country
@@ -596,7 +597,7 @@ function MemberDetail({ user, onClose, theme, dark }) {
                         <div style={{ fontSize: 16, fontWeight: 800, color: theme.text, letterSpacing: "-0.02em" }}>{user.name}</div>
                         <div style={{ fontSize: 12, color: theme.textMute, marginTop: 2 }}>{user.email}</div>
                         <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
-                            <Pill label={`${wl.label} workload`} color={wl.color} bg={wl.bg} bgDark={wl.bgDark} border={wl.border} dark={dark} />
+                            <Pill label={wl.label} color={wl.color} bg={wl.bg} bgDark={wl.bgDark} border={wl.border} dark={dark} tr={tr} />
                             {user.department && <span style={{ fontSize: 10, color: theme.textSoft, display: "inline-flex", alignItems: "center", gap: 3 }}>🏢 {user.department}</span>}
                             {user.position && <span style={{ fontSize: 10, color: theme.textSoft, display: "inline-flex", alignItems: "center", gap: 3 }}>💼 {user.position}</span>}
                             {user.country && (
@@ -611,14 +612,14 @@ function MemberDetail({ user, onClose, theme, dark }) {
                     {/* Mini stats */}
                     <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
                         {[
-                            { val: user.active_count,   label: "Active",    color: "#16a34a" },
-                            { val: user.upcoming_count, label: "Upcoming",  color: "#2563eb" },
+                            { val: user.active_count,   label: "projectAssignments.status.active",    color: "#16a34a" },
+                            { val: user.upcoming_count, label: "projectAssignments.status.upcoming",  color: "#2563eb" },
                         ].map((s, i) => (
                             <div key={i} style={{ textAlign: "center", padding: "8px 12px", borderRadius: 10,
                                 background: dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.7)",
                                 border: `1px solid ${theme.border}` }}>
                                 <div style={{ fontSize: 20, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.val}</div>
-                                <div style={{ fontSize: 9, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 3 }}>{s.label}</div>
+                                <div style={{ fontSize: 9, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 3 }}>{tr(s.label)}</div>
                             </div>
                         ))}
                     </div>
@@ -639,7 +640,7 @@ function MemberDetail({ user, onClose, theme, dark }) {
                     return (
                         <div style={{ marginTop: 14 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                                <span style={{ fontSize: 10, color: theme.textMute }}>Daily capacity ({used}h / 8h used)</span>
+                                <span style={{ fontSize: 10, color: theme.textMute }}>{tr("projectAssignments.labels.dailyCapacity")} ({used}h / 8h {tr("projectAssignments.labels.used")})</span>
                                 <span style={{ fontSize: 10, fontWeight: 800, color: bc }}>{pct}%</span>
                             </div>
 
@@ -672,7 +673,7 @@ function MemberDetail({ user, onClose, theme, dark }) {
                                         background: dark ? "rgba(255,255,255,0.04)" : "#f1f5f9",
                                         display: "flex", alignItems: "center", justifyContent: "center" }}>
                                         <span style={{ fontSize: 9, color: theme.textMute, fontWeight: 600 }}>
-                                            {8 - used}h free
+                                            {8 - used}h {tr("projectAssignments.workload.free")}
                                         </span>
                                     </div>
                                 )}
@@ -693,13 +694,13 @@ function MemberDetail({ user, onClose, theme, dark }) {
             <div style={{ padding: "16px 20px" }}>
                 <div style={{ fontSize: 10, fontWeight: 800, color: theme.textMute,
                     textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
-                    Assignments · {user.assignments?.length || 0}
+                    {tr("projectAssignments.labels.assignments")} · {user.assignments?.length || 0}
                 </div>
 
                 {!user.assignments?.length ? (
                     <div style={{ textAlign: "center", padding: "20px 0", color: theme.textMute }}>
                         <div style={{ fontSize: 28, marginBottom: 6 }}>📋</div>
-                        <div style={{ fontSize: 12 }}>No assignments yet</div>
+                        <div style={{ fontSize: 12 }}>{tr("projectAssignments.empty.noAssignmentsYet")}</div>
                     </div>
                 ) : (
                     <div>
@@ -753,14 +754,14 @@ function MemberDetail({ user, onClose, theme, dark }) {
                                                     background: dark ? s.bgDark : s.bg,
                                                     border: `1px solid ${dark ? s.color + "44" : s.border}`,
                                                 }}>
-                                                    {s.label}
+                                                    {tr(s.label)}
                                                 </span>
                                             </div>
 
                                             {/* Info row — Leave Request style */}
                                             <div style={{ display:"flex", alignItems:"center", gap:16, marginTop:5, flexWrap:"wrap" }}>
                                                 <span style={{ fontSize:11, color:theme.textMute }}>
-                                                    ⏱ <strong style={{ color:pColor }}>{a.hours_per_day}h</strong> per day
+                                                    ⏱ <strong style={{ color:pColor }}>{a.hours_per_day}h</strong> {tr("projectAssignments.units.perDay")}
                                                 </span>
                                                 <span style={{ fontSize:11, color:theme.textMute }}>
                                                     📅 {sd} → {ed}
@@ -814,6 +815,7 @@ function MemberDetail({ user, onClose, theme, dark }) {
 // Main Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function AssignmentsDashboard({ users = [], projects = [] }) {
+    const { t: tr } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -854,15 +856,15 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
     const availableCount = users.filter(u => (u.used_hours_per_day ?? 0) === 0).length;
 
     const stats = [
-        { icon: "👥", val: users.length,    label: "Total Members",   sub: "Active employees",            color: theme.stat1c, bg: theme.stat1 },
-        { icon: "✅", val: availableCount,   label: "Available",       sub: "0h assigned today",           color: theme.stat2c, bg: theme.stat2 },
-        { icon: "🔥", val: `${activePct}%`, label: "Utilization",     sub: `${totalUsed}h / ${totalCapacity}h today`, color: theme.stat3c, bg: theme.stat3 },
-        { icon: "🚀", val: liveProj,         label: "Active Projects", sub: "Currently running",           color: theme.stat4c, bg: theme.stat4 },
+        { icon: "👥", val: users.length,    label: tr("projectAssignments.stats.totalMembers"),   sub: tr("projectAssignments.stats.activeEmployees"),            color: theme.stat1c, bg: theme.stat1 },
+        { icon: "✅", val: availableCount,   label: tr("projectAssignments.stats.available"),       sub: tr("projectAssignments.stats.zeroAssignedToday"),           color: theme.stat2c, bg: theme.stat2 },
+        { icon: "🔥", val: `${activePct}%`, label: tr("projectAssignments.stats.utilization"),     sub: `${totalUsed}h / ${totalCapacity}h ${tr("projectAssignments.units.today")}`, color: theme.stat3c, bg: theme.stat3 },
+        { icon: "🚀", val: liveProj,         label: tr("projectAssignments.stats.activeProjects"), sub: tr("projectAssignments.stats.currentlyRunning"),           color: theme.stat4c, bg: theme.stat4 },
     ];
 
     return (
-        <AppLayout title="Project Assignments">
-            <Head title="Project Assignments" />
+        <AppLayout title={tr("projectAssignments.pageTitle")}>
+            <Head title={tr("projectAssignments.pageTitle")} />
             <style>{`
                 @keyframes adSpin { to { transform: rotate(360deg); } }
                 @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -886,7 +888,7 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                     }}
                         onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = theme.shadow; }}
                         onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = theme.shadowSoft; }}>
-                        📁 All Projects
+                        📁 {tr("projectAssignments.actions.allProjects")}
                     </button>
                    
                 </div>
@@ -908,7 +910,7 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                                 borderRadius: "16px 16px 0 0" }} />
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                                 <div>
-                                    <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>{s.label}</div>
+                                    <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>{tr(s.label)}</div>
                                     <div style={{ fontSize: 30, fontWeight: 900, color: s.color, lineHeight: 1, letterSpacing: "-0.04em" }}>{s.val}</div>
                                     <div style={{ fontSize: 10, color: theme.textMute, marginTop: 6 }}>{s.sub}</div>
                                 </div>
@@ -934,14 +936,14 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                         <div style={{ padding: "16px 14px 12px", borderBottom: `1px solid ${theme.border}` }}>
                             <div style={{ fontSize: 11, fontWeight: 800, color: theme.textMute, marginBottom: 12,
                                 textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                                Team Members
+                                {tr("projectAssignments.labels.teamMembers")}
                             </div>
                             {/* Search */}
                             <div style={{ position: "relative", marginBottom: 10 }}>
                                 <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
                                     fontSize: 12, color: theme.textMute, pointerEvents: "none" }}>🔍</span>
                                 <input value={search} onChange={e => setSearch(e.target.value)}
-                                    placeholder="Search members…"
+                                    placeholder={tr("projectAssignments.placeholders.searchMembers")}
                                     style={{ width: "100%", padding: "8px 10px 8px 30px", fontSize: 12,
                                         color: theme.text, background: theme.inputBg,
                                         border: `1px solid ${theme.inputBorder}`, borderRadius: 10,
@@ -952,11 +954,11 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                                 />
                             </div>
                             {/* Workload filter */}
-                            <FilterBar active={wlFilter} onChange={setWlFilter} theme={theme} dark={dark} />
+                            <FilterBar active={wlFilter} onChange={setWlFilter} theme={theme} dark={dark} tr={tr} />
                         </div>
 
                         <div style={{ padding: "6px 8px 4px 14px", fontSize: 10, color: theme.textMute, fontWeight: 600 }}>
-                            {filtered.length} member{filtered.length !== 1 ? "s" : ""}
+                            {filtered.length} {filtered.length !== 1 ? tr("projectAssignments.units.members") : tr("projectAssignments.units.member")}
                         </div>
 
                         {/* Member list — scrollbar hidden */}
@@ -964,13 +966,13 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                             {filtered.length === 0 ? (
                                 <div style={{ textAlign: "center", padding: "36px 0", color: theme.textMute }}>
                                     <div style={{ fontSize: 28, marginBottom: 8 }}>👥</div>
-                                    <div style={{ fontSize: 12 }}>No members found</div>
+                                    <div style={{ fontSize: 12 }}>{tr("projectAssignments.empty.noMembersFound")}</div>
                                 </div>
                             ) : filtered.map(u => (
                                 <MemberRow key={u.id} user={u}
                                     selected={selected?.id === u.id}
                                     onClick={u => setSelected(p => p?.id === u.id ? null : u)}
-                                    theme={theme} dark={dark} />
+                                    theme={theme} dark={dark} tr={tr} />
                             ))}
                         </div>
                     </div>
@@ -987,7 +989,7 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                         }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
                                 <span style={{ fontSize: 16 }}>🚀</span>
-                                <span style={{ fontSize: 14, fontWeight: 800, color: theme.text, letterSpacing: "-0.01em" }}>Active & Upcoming</span>
+                                <span style={{ fontSize: 14, fontWeight: 800, color: theme.text, letterSpacing: "-0.01em" }}>{tr("projectAssignments.sections.activeUpcoming")}</span>
                                 <span style={{ fontSize: 10, fontWeight: 800, color: theme.primary,
                                     background: theme.primarySoft,
                                     border: `1px solid ${theme.primary}44`,
@@ -997,14 +999,14 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                             {upcoming.length === 0 ? (
                                 <div style={{ textAlign: "center", padding: "32px 0", color: theme.textMute }}>
                                     <div style={{ fontSize: 36, marginBottom: 10 }}>📂</div>
-                                    <div style={{ fontSize: 13, marginBottom: 16, fontWeight: 600, color: theme.textSoft }}>No active or upcoming projects</div>
+                                    <div style={{ fontSize: 13, marginBottom: 16, fontWeight: 600, color: theme.textSoft }}>{tr("projectAssignments.empty.noActiveUpcomingProjects")}</div>
                                     
                                 </div>
                             ) : (
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
                                     {upcoming.map(p => (
                                         <div key={p.id} style={{ width: 220, flexShrink: 0 }}>
-                                            <ProjectCard project={p} theme={theme} dark={dark} />
+                                            <ProjectCard project={p} theme={theme} dark={dark} tr={tr} />
                                         </div>
                                     ))}
                                 </div>
@@ -1014,7 +1016,7 @@ export default function AssignmentsDashboard({ users = [], projects = [] }) {
                         {/* Member detail */}
                         {selected && (
                             <div style={{ marginBottom: 80 }}>
-                                <MemberDetail user={selected} onClose={() => setSelected(null)} theme={theme} dark={dark} />
+                                <MemberDetail user={selected} onClose={() => setSelected(null)} theme={theme} dark={dark} tr={tr} />
                             </div>
                         )}
                     </div>

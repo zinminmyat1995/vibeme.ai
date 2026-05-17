@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -13,15 +14,6 @@ const fmtC = (v, code='') => {
     const s = n % 1 === 0 ? n.toLocaleString('en-US') : n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     return code ? `${code} ${s}` : s;
 };
-
-const STEPS = [
-    { key:'attendance', label:'Attendance Import',   summary:'Download template · fill check-in/out · upload',
-      icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> },
-    { key:'calculate',  label:'Salary Calculation',  summary:'Calculate based on attendance, leave, OT & HR policy',
-      icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg> },
-    { key:'preview',    label:'Preview & Approve',   summary:'Review salary breakdown · add bonus · approve',
-      icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> },
-];
 
 // ─── Dark mode hook ────────────────────────────────────────────
 function useReactiveTheme() {
@@ -46,64 +38,40 @@ function useReactiveTheme() {
 // ─── Theme tokens ──────────────────────────────────────────────
 function getTheme(dark) {
     if (dark) return {
-        bg:           '#0f172a',
-        surface:      '#1e293b',
-        surfaceSoft:  'rgba(255,255,255,0.04)',
-        border:       'rgba(148,163,184,0.12)',
-        borderMed:    'rgba(148,163,184,0.2)',
-        text:         '#f8fafc',
-        textSoft:     '#cbd5e1',
-        textMute:     '#64748b',
-        inputBg:      'rgba(255,255,255,0.06)',
-        inputBorder:  'rgba(148,163,184,0.18)',
-        tableHead:    'rgba(255,255,255,0.03)',
-        rowAlt:       'rgba(255,255,255,0.02)',
-        rowHover:     'rgba(255,255,255,0.04)',
-        shadow:       '0 1px 3px rgba(0,0,0,0.3)',
-        primary:      '#8b5cf6',
-        primarySoft:  'rgba(139,92,246,0.16)',
-        success:      '#34d399',
-        successSoft:  'rgba(52,211,153,0.14)',
-        warning:      '#fbbf24',
-        warningSoft:  'rgba(251,191,36,0.14)',
-        danger:       '#f87171',
-        dangerSoft:   'rgba(248,113,113,0.14)',
-        menuBg:       'linear-gradient(180deg,rgba(15,23,42,0.99) 0%,rgba(10,18,36,0.99) 100%)',
+        bg:'#0f172a',surface:'#1e293b',surfaceSoft:'rgba(255,255,255,0.04)',
+        border:'rgba(148,163,184,0.12)',borderMed:'rgba(148,163,184,0.2)',
+        text:'#f8fafc',textSoft:'#cbd5e1',textMute:'#64748b',
+        inputBg:'rgba(255,255,255,0.06)',inputBorder:'rgba(148,163,184,0.18)',
+        tableHead:'rgba(255,255,255,0.03)',rowAlt:'rgba(255,255,255,0.02)',rowHover:'rgba(255,255,255,0.04)',
+        shadow:'0 1px 3px rgba(0,0,0,0.3)',
+        primary:'#8b5cf6',primarySoft:'rgba(139,92,246,0.16)',
+        success:'#34d399',successSoft:'rgba(52,211,153,0.14)',
+        warning:'#fbbf24',warningSoft:'rgba(251,191,36,0.14)',
+        danger:'#f87171',dangerSoft:'rgba(248,113,113,0.14)',
+        menuBg:'linear-gradient(180deg,rgba(15,23,42,0.99) 0%,rgba(10,18,36,0.99) 100%)',
     };
     return {
-        bg:           '#f8fafc',
-        surface:      '#ffffff',
-        surfaceSoft:  '#f9fafb',
-        border:       '#e5e7eb',
-        borderMed:    '#d1d5db',
-        text:         '#111827',
-        textSoft:     '#374151',
-        textMute:     '#9ca3af',
-        inputBg:      '#ffffff',
-        inputBorder:  '#e5e7eb',
-        tableHead:    '#f9fafb',
-        rowAlt:       '#fafafa',
-        rowHover:     '#fafbff',
-        shadow:       '0 1px 3px rgba(0,0,0,0.04)',
-        primary:      '#7c3aed',
-        primarySoft:  '#ede9fe',
-        success:      '#059669',
-        successSoft:  '#d1fae5',
-        warning:      '#d97706',
-        warningSoft:  '#fef3c7',
-        danger:       '#dc2626',
-        dangerSoft:   '#fef2f2',
-        menuBg:       '#ffffff',
+        bg:'#f8fafc',surface:'#ffffff',surfaceSoft:'#f9fafb',
+        border:'#e5e7eb',borderMed:'#d1d5db',
+        text:'#111827',textSoft:'#374151',textMute:'#9ca3af',
+        inputBg:'#ffffff',inputBorder:'#e5e7eb',
+        tableHead:'#f9fafb',rowAlt:'#fafafa',rowHover:'#fafbff',
+        shadow:'0 1px 3px rgba(0,0,0,0.04)',
+        primary:'#7c3aed',primarySoft:'#ede9fe',
+        success:'#059669',successSoft:'#d1fae5',
+        warning:'#d97706',warningSoft:'#fef3c7',
+        danger:'#dc2626',dangerSoft:'#fef2f2',
+        menuBg:'#ffffff',
     };
 }
 
-// ─── Premium Select (portal-based, no native <select>) ─────────
-function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Select…', disabled = false, width = 'auto', zIndex = 3000, dark, theme }) {
+// ─── PremiumSelect ─────────────────────────────────────────────
+function PremiumSelect({ options=[], value='', onChange, placeholder='Select…', disabled=false, width='auto', zIndex=3000, dark, theme }) {
     const [open, setOpen] = useState(false);
-    const [pos,  setPos]  = useState({ top: 0, left: 0, width: 0 });
-    const triggerRef      = useRef(null);
-    const menuRef         = useRef(null);
-    const selected        = options.find(o => String(o.value) === String(value) && !o.disabled);
+    const [pos,  setPos]  = useState({ top:0, left:0, width:0 });
+    const triggerRef = useRef(null);
+    const menuRef    = useRef(null);
+    const selected   = options.find(o => String(o.value) === String(value) && !o.disabled);
 
     useEffect(() => {
         const h = e => {
@@ -134,81 +102,53 @@ function PremiumSelect({ options = [], value = '', onChange, placeholder = 'Sele
 
     return (
         <>
-            <button
-                ref={triggerRef} type="button" onClick={handleOpen}
-                style={{
-                    width, height: 38, padding: '0 12px',
-                    borderRadius: 8,
-                    border: `1.5px solid ${open ? theme.primary : theme.inputBorder}`,
-                    background: disabled ? theme.surfaceSoft : triggerBg,
-                    color: selected ? theme.text : theme.textMute,
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    fontSize: 13, fontWeight: selected ? 600 : 400,
-                    boxShadow: open ? `0 0 0 3px ${dark ? 'rgba(139,92,246,0.18)' : 'rgba(124,58,237,0.12)'}` : 'none',
-                    transition: 'all 0.16s', opacity: disabled ? 0.5 : 1, outline: 'none',
-                    fontFamily: 'inherit',
-                }}
-            >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <button ref={triggerRef} type="button" onClick={handleOpen} style={{
+                width, height:38, padding:'0 12px', borderRadius:8,
+                border:`1.5px solid ${open ? theme.primary : theme.inputBorder}`,
+                background: disabled ? theme.surfaceSoft : triggerBg,
+                color: selected ? theme.text : theme.textMute,
+                display:'flex', alignItems:'center', justifyContent:'space-between', gap:8,
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                fontSize:13, fontWeight: selected ? 600 : 400,
+                boxShadow: open ? `0 0 0 3px ${dark ? 'rgba(139,92,246,0.18)' : 'rgba(124,58,237,0.12)'}` : 'none',
+                transition:'all 0.16s', opacity: disabled ? 0.5 : 1, outline:'none', fontFamily:'inherit',
+            }}>
+                <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {selected?.label ?? placeholder}
                 </span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2.5"
-                    style={{ flexShrink: 0, transition: 'transform 0.18s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    style={{ flexShrink:0, transition:'transform 0.18s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                     <polyline points="6 9 12 15 18 9"/>
                 </svg>
             </button>
-
             {open && createPortal(
                 <div ref={menuRef} style={{
-                    position: 'absolute', top: pos.top, left: pos.left, width: pos.width,
-                    zIndex,
-                    background: theme.menuBg,
-                    border: `1px solid ${theme.borderMed}`,
-                    borderRadius: 10,
-                    boxShadow: dark
-                        ? '0 16px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)'
-                        : '0 16px 40px rgba(15,23,42,0.14)',
-                    overflow: 'hidden',
-                    animation: 'prDropIn 0.15s ease',
-                    backdropFilter: dark ? 'blur(20px)' : 'none',
+                    position:'absolute', top:pos.top, left:pos.left, width:pos.width, zIndex,
+                    background: theme.menuBg, border:`1px solid ${theme.borderMed}`, borderRadius:10,
+                    boxShadow: dark ? '0 16px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)' : '0 16px 40px rgba(15,23,42,0.14)',
+                    overflow:'hidden', animation:'prDropIn 0.15s ease', backdropFilter: dark ? 'blur(20px)' : 'none',
                 }}>
-                    <div
-                        className="pr-select-menu-scroll"
-                        style={{
-                            maxHeight: 260,
-                            overflowY: 'auto',
-                            padding: '4px',
-                            scrollbarWidth: 'none',
-                            msOverflowStyle: 'none',
-                        }}
-                    >
+                    <div className="pr-select-menu-scroll" style={{ maxHeight:260, overflowY:'auto', padding:'4px', scrollbarWidth:'none', msOverflowStyle:'none' }}>
                         {options.map(opt => {
                             const isSel = String(opt.value) === String(value);
                             return (
                                 <button key={opt.value} type="button"
                                     onClick={() => { if (!opt.disabled) { onChange(opt.value); setOpen(false); } }}
                                     style={{
-                                        width: '100%', padding: '8px 11px', border: 'none', borderRadius: 7,
+                                        width:'100%', padding:'8px 11px', border:'none', borderRadius:7,
                                         background: isSel ? (dark ? theme.primarySoft : '#ede9fe') : 'transparent',
                                         color: isSel ? theme.primary : opt.disabled ? theme.textMute : theme.text,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                        display:'flex', alignItems:'center', justifyContent:'space-between',
                                         cursor: opt.disabled ? 'not-allowed' : 'pointer',
-                                        fontSize: 13, fontWeight: isSel ? 700 : 500,
-                                        textAlign: 'left', marginBottom: 1,
-                                        opacity: opt.disabled ? 0.45 : 1,
-                                        transition: 'background 0.1s',
-                                        fontFamily: 'inherit',
+                                        fontSize:13, fontWeight: isSel ? 700 : 500,
+                                        textAlign:'left', marginBottom:1,
+                                        opacity: opt.disabled ? 0.45 : 1, transition:'background 0.1s', fontFamily:'inherit',
                                     }}
                                     onMouseEnter={e => { if (!isSel && !opt.disabled) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.06)' : '#f5f3ff'; }}
                                     onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
                                 >
                                     <span>{opt.label}</span>
-                                    {isSel && (
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3">
-                                            <polyline points="20 6 9 17 4 12"/>
-                                        </svg>
-                                    )}
+                                    {isSel && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
                                 </button>
                             );
                         })}
@@ -237,15 +177,16 @@ function Spinner({ color='#7c3aed', size=14 }) {
     return <div style={{ width:size, height:size, border:`2px solid ${color}33`, borderTopColor:color, borderRadius:'50%', animation:'prSpin 0.7s linear infinite', flexShrink:0 }} />;
 }
 
-function StatusPill({ status, dark }) {
-    const c = {
-        draft:      { label:'Draft',      bg: dark?'rgba(107,114,128,0.18)':'#f3f4f6', color: dark?'#9ca3af':'#6b7280' },
-        calculated: { label:'Calculated', bg: dark?'rgba(29,78,216,0.18)':'#dbeafe',   color: dark?'#93c5fd':'#1d4ed8' },
-        approved:   { label:'Approved',   bg: dark?'rgba(52,211,153,0.16)':'#d1fae5',  color: dark?'#34d399':'#059669' },
-        confirmed:  { label:'Confirmed',  bg: dark?'rgba(139,92,246,0.18)':'#ede9fe',  color: dark?'#a78bfa':'#7c3aed' },
-        paid:       { label:'Paid',       bg: dark?'rgba(251,191,36,0.16)':'#fef3c7',  color: dark?'#fbbf24':'#d97706' },
-    }[status] ?? { label:'Draft', bg: dark?'rgba(107,114,128,0.18)':'#f3f4f6', color: dark?'#9ca3af':'#6b7280' };
-    return <span style={{ fontSize:10, fontWeight:700, background:c.bg, color:c.color, borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>{c.label}</span>;
+function StatusPill({ status, dark, tFn }) {
+    const cfg = {
+        draft:      { key:'draft',      bg: dark?'rgba(107,114,128,0.18)':'#f3f4f6', color: dark?'#9ca3af':'#6b7280' },
+        calculated: { key:'calculated', bg: dark?'rgba(29,78,216,0.18)':'#dbeafe',   color: dark?'#93c5fd':'#1d4ed8' },
+        approved:   { key:'approved',   bg: dark?'rgba(52,211,153,0.16)':'#d1fae5',  color: dark?'#34d399':'#059669' },
+        confirmed:  { key:'confirmed',  bg: dark?'rgba(139,92,246,0.18)':'#ede9fe',  color: dark?'#a78bfa':'#7c3aed' },
+        paid:       { key:'paid',       bg: dark?'rgba(251,191,36,0.16)':'#fef3c7',  color: dark?'#fbbf24':'#d97706' },
+    }[status] ?? { key:'draft', bg: dark?'rgba(107,114,128,0.18)':'#f3f4f6', color: dark?'#9ca3af':'#6b7280' };
+    const label = tFn ? tFn(`payroll.status.${cfg.key}`) : cfg.key;
+    return <span style={{ fontSize:10, fontWeight:700, background:cfg.bg, color:cfg.color, borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>{label}</span>;
 }
 
 function Modal({ title, children, onClose, theme }) {
@@ -322,7 +263,7 @@ function MiniModal({ title, subtitle, icon, onClose, children, theme }) {
     );
 }
 
-function ConfirmActionModal({ open, title='Confirm Action', message, confirmText='Confirm', cancelText='Cancel', tone='success', loading=false, onConfirm, onClose }) {
+function ConfirmActionModal({ open, title, message, confirmText, cancelText='Cancel', tone='success', loading=false, onConfirm, onClose }) {
     if (!open) return null;
     const tones = {
         success: { grad:'linear-gradient(135deg,#059669 0%,#047857 100%)', soft:'#ecfdf5', border:'#a7f3d0', iconBg:'rgba(255,255,255,0.18)', confirmBg:'#059669' },
@@ -338,7 +279,7 @@ function ConfirmActionModal({ open, title='Confirm Action', message, confirmText
                         <div style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
                             <div style={{ width:42, height:42, borderRadius:12, background:ui.iconBg, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:20, flexShrink:0 }}>✓</div>
                             <div>
-                                <div style={{ fontSize:11, color:'rgba(255,255,255,0.68)', fontWeight:700, letterSpacing:'0.9px', textTransform:'uppercase', marginBottom:4 }}>Payroll Confirmation</div>
+                                <div style={{ fontSize:11, color:'rgba(255,255,255,0.68)', fontWeight:700, letterSpacing:'0.9px', textTransform:'uppercase', marginBottom:4 }}>{title?.split(' ')[0] ?? 'Payroll'} Confirmation</div>
                                 <div style={{ fontSize:18, fontWeight:900, color:'#fff', letterSpacing:'-0.2px' }}>{title}</div>
                             </div>
                         </div>
@@ -353,7 +294,7 @@ function ConfirmActionModal({ open, title='Confirm Action', message, confirmText
                         <button onClick={onClose} disabled={loading} style={{ padding:'10px 18px', borderRadius:12, border:'1.5px solid #e5e7eb', background:'#fff', color:loading?'#9ca3af':'#374151', fontSize:13, fontWeight:700, cursor:loading?'not-allowed':'pointer', opacity:loading?0.6:1, fontFamily:'inherit' }}>{cancelText}</button>
                         <button onClick={onConfirm} disabled={loading} style={{ padding:'10px 18px', borderRadius:12, border:'none', background:loading?`${ui.confirmBg}99`:ui.confirmBg, color:'#fff', fontSize:13, fontWeight:800, cursor:loading?'not-allowed':'pointer', display:'inline-flex', alignItems:'center', gap:8, boxShadow:'0 10px 24px rgba(0,0,0,0.14)', fontFamily:'inherit' }}>
                             {loading && <Spinner color="#fff" size={13}/>}
-                            {loading ? 'Processing...' : confirmText}
+                            {loading ? '...' : confirmText}
                         </button>
                     </div>
                 </div>
@@ -362,16 +303,15 @@ function ConfirmActionModal({ open, title='Confirm Action', message, confirmText
     );
 }
 
-function SalaryDetailModal({ detail, curr, onApprove, onClose, theme, dark }) {
+function SalaryDetailModal({ detail, curr, onApprove, onClose, theme, dark, tFn }) {
     return (
         <div style={{ position:'fixed', inset:0, background:'rgba(17,7,46,0.55)', zIndex:9000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
             <div style={{ background: theme.surface, borderRadius:20, width:'100%', maxWidth:520, maxHeight:'92vh', display:'flex', flexDirection:'column', boxShadow:'0 32px 80px rgba(0,0,0,0.3)', overflow:'hidden', border:`1px solid ${theme.border}` }}>
-                {/* ── Compact header ── */}
                 <div style={{ background:'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', padding:'10px 16px', flexShrink:0 }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
                             <div style={{ minWidth:0 }}>
-                                <div style={{ fontSize:9, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase' }}>Salary Detail</div>
+                                <div style={{ fontSize:9, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase' }}>{tFn('payroll.detail.salaryDetail')}</div>
                                 <div style={{ fontSize:14, fontWeight:800, color:'#fff', letterSpacing:'-0.2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                                     {detail.name}
                                     {detail.position && <span style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.65)', marginLeft:5 }}>· {detail.position}</span>}
@@ -386,10 +326,8 @@ function SalaryDetailModal({ detail, curr, onApprove, onClose, theme, dark }) {
                         <button onClick={onClose} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:7, width:26, height:26, cursor:'pointer', color:'#fff', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>×</button>
                     </div>
                 </div>
-                {/* ── Scrollable body, scrollbar hidden ── */}
-                <div style={{ overflowY:'auto', flex:1, padding:'14px 18px 18px', scrollbarWidth:'none', msOverflowStyle:'none' }}
-                     className="sd-hide-scroll">
-                    <DetailModalContent detail={detail} curr={curr} onApprove={onApprove} onClose={onClose} theme={theme} dark={dark}/>
+                <div style={{ overflowY:'auto', flex:1, padding:'14px 18px 18px', scrollbarWidth:'none', msOverflowStyle:'none' }} className="sd-hide-scroll">
+                    <DetailModalContent detail={detail} curr={curr} onApprove={onApprove} onClose={onClose} theme={theme} dark={dark} tFn={tFn}/>
                 </div>
             </div>
         </div>
@@ -422,11 +360,9 @@ function DetailRow({ label, val, color, bold, dark }) {
     );
 }
 
-function ShortHourRow({ detail, curr, theme, dark }) {
+function ShortHourRow({ detail, curr, theme, dark, tFn }) {
     const [popup, setPopup] = React.useState(false);
     const shortAmt = detail.short_hour_deduction ?? 0;
-    // ✅ FIX: working_hours_per_day မသုံး — server ကနေ resolve လုပ်ထားတဲ့
-    // hours_per_day သုံး (work_start→work_end−lunch တွက်ထားတာ)
     const hpd = detail.hours_per_day ?? 8;
     const attRows  = (detail.attendance_details ?? []).filter(a => (hpd - a.work_hours - (a.late_minutes/60)) > 0.01);
     const totalSH  = attRows.reduce((s,a) => s + Math.max(0, hpd - a.work_hours - (a.late_minutes/60)), 0);
@@ -438,24 +374,23 @@ function ShortHourRow({ detail, curr, theme, dark }) {
         <>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
                 <span style={{ fontSize:12, color: lblClr, fontWeight:500, flex:1, marginRight:12, display:'flex', alignItems:'center', gap:6 }}>
-                    Insufficient Hours
+                    {tFn('payroll.detail.insufficientHours')}
                     {label && <ClickBadge label={label} color="#dc2626" bg={dark?'rgba(220,38,38,0.18)':'#fee2e2'} onClick={()=>setPopup(true)} />}
                 </span>
                 <span style={{ fontSize:12, fontWeight:600, color:'#dc2626' }}>− {fmt(shortAmt, curr)}</span>
             </div>
             {popup && (
-                <MiniModal title="Insufficient Hours" subtitle="Working Hours" icon="⏱" onClose={()=>setPopup(false)} theme={theme}>
-                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>No short records.</p>
+                <MiniModal title={tFn('payroll.detail.insufficientHours')} subtitle={tFn('payroll.detail.workingHours')} icon="⏱" onClose={()=>setPopup(false)} theme={theme}>
+                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>{tFn('payroll.detail.noShortRecords')}</p>
                     : attRows.map((a,i) => {
-                        // ✅ FIX: hard-coded 8 မသုံး
                         const sh = Math.max(0, hpd - a.work_hours - (a.late_minutes/60));
                         return (
                             <div key={i} style={{ padding:'10px 0', borderBottom:'1px solid #f3f4f6' }}>
                                 <div style={{ fontWeight:700, fontSize:13, color:'#374151', marginBottom:4 }}>{a.date}</div>
                                 <div style={{ fontSize:11, color:'#6b7280', display:'flex', gap:14 }}>
-                                    <span>In: <b>{fmtTime(a.check_in+':00')}</b></span>
-                                    <span>Out: <b>{fmtTime(a.check_out+':00')}</b></span>
-                                    <span style={{ color:'#dc2626' }}>Missing: <b>{fmtHours(sh)}</b></span>
+                                    <span>{tFn('payroll.detail.in')}: <b>{fmtTime(a.check_in+':00')}</b></span>
+                                    <span>{tFn('payroll.detail.out')}: <b>{fmtTime(a.check_out+':00')}</b></span>
+                                    <span style={{ color:'#dc2626' }}>{tFn('payroll.detail.missing')}: <b>{fmtHours(sh)}</b></span>
                                 </div>
                             </div>
                         );
@@ -466,7 +401,7 @@ function ShortHourRow({ detail, curr, theme, dark }) {
     );
 }
 
-function LateArrivalRow({ detail, curr, theme, dark }) {
+function LateArrivalRow({ detail, curr, theme, dark, tFn }) {
     const [popup, setPopup] = React.useState(false);
     const lateAmt  = detail.late_deduction ?? 0;
     const lateMins = detail.late_minutes_total ?? 0;
@@ -478,20 +413,20 @@ function LateArrivalRow({ detail, curr, theme, dark }) {
         <>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
                 <span style={{ fontSize:12, color: lblClr, fontWeight:500, flex:1, marginRight:12, display:'flex', alignItems:'center', gap:6 }}>
-                    Late Arrival
+                    {tFn('payroll.detail.lateArrival')}
                     {lateMins > 0 && <ClickBadge label={`${lateMins}min`} color="#d97706" bg={dark?'rgba(217,119,6,0.18)':'#fef3c7'} onClick={()=>setPopup(true)} />}
                 </span>
                 <span style={{ fontSize:12, fontWeight:600, color:'#dc2626' }}>− {fmt(lateAmt, curr)}</span>
             </div>
             {popup && (
-                <MiniModal title="Late Arrival" subtitle="Attendance" icon="⏰" onClose={()=>setPopup(false)} theme={theme}>
-                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>No late records.</p>
+                <MiniModal title={tFn('payroll.detail.lateArrival')} subtitle={tFn('payroll.detail.attendance')} icon="⏰" onClose={()=>setPopup(false)} theme={theme}>
+                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>{tFn('payroll.detail.noLateRecords')}</p>
                     : attRows.map((a,i) => (
                         <div key={i} style={{ padding:'10px 0', borderBottom:'1px solid #f3f4f6' }}>
                             <div style={{ fontWeight:700, fontSize:13, color:'#374151', marginBottom:4 }}>{a.date}</div>
                             <div style={{ fontSize:11, color:'#6b7280', display:'flex', gap:14 }}>
-                                <span>In: <b style={{ color:'#f59e0b' }}>{fmtTime(a.check_in+':00')}</b></span>
-                                <span style={{ color:'#dc2626' }}>Late: <b>{a.late_minutes}min</b></span>
+                                <span>{tFn('payroll.detail.in')}: <b style={{ color:'#f59e0b' }}>{fmtTime(a.check_in+':00')}</b></span>
+                                <span style={{ color:'#dc2626' }}>{tFn('payroll.detail.late')}: <b>{a.late_minutes}min</b></span>
                             </div>
                         </div>
                     ))}
@@ -501,103 +436,93 @@ function LateArrivalRow({ detail, curr, theme, dark }) {
     );
 }
 
-function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
-    const [leavePop,  setLeavePop]  = React.useState(false);
-    const [otPop,     setOtPop]     = React.useState(false);
-    const [allowPop,  setAllowPop]  = React.useState(false);
-    const [bonusPop,  setBonusPop]  = React.useState(false);
+function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark, tFn }) {
+    const [leavePop,   setLeavePop]   = React.useState(false);
+    const [otPop,      setOtPop]      = React.useState(false);
+    const [allowPop,   setAllowPop]   = React.useState(false);
+    const [bonusPop,   setBonusPop]   = React.useState(false);
     const [expensePop, setExpensePop] = React.useState(false);
     const otHrs   = detail.overtime_hours ?? 0;
     const otLabel = otHrs > 0 ? fmtHours(otHrs) : null;
     const gross   = (detail.base_salary??0)+(detail.total_allowances??0)+(detail.overtime_amount??0)+(detail.bonus_amount??0);
-    const dayTypeLabel = (t) => ({ full_day:'Full Day', half_day_am:'AM Half', half_day_pm:'PM Half', half_day:'Half Day' }[t] || t || '');
-
+    const dayTypeLabel = (t) => ({
+        full_day:    tFn('payroll.dayType.fullDay'),
+        half_day_am: tFn('payroll.dayType.halfDayAm'),
+        half_day_pm: tFn('payroll.dayType.halfDayPm'),
+        half_day:    tFn('payroll.dayType.halfDay'),
+    }[t] || t || '');
     const rowBg  = dark ? 'rgba(255,255,255,0.02)' : '#fff';
     const rowBdr = dark ? 'rgba(255,255,255,0.06)' : '#f3f4f6';
     const lblClr = dark ? '#94a3b8' : '#6b7280';
 
     return (
         <div>
-            <DetailCard icon="📅" title="Attendance" color="#ede9fe" titleColor="#7c3aed" dark={dark}>
-                <DetailRow label="Working Days" val={`${detail.working_days} days`} dark={dark} />
-                <DetailRow label="Present"      val={`${detail.present_days} days`} color={detail.present_days>0?'#059669':null} dark={dark} />
-                <DetailRow label="Absent"       val={`${detail.absent_days} days`}  color={detail.absent_days>0?'#ef4444':null} dark={dark} />
-                <DetailRow label="Late"         val={detail.late_minutes_total>0?`${detail.late_minutes_total} min`:'—'} color={detail.late_minutes_total>0?'#f59e0b':null} dark={dark} />
+            <DetailCard icon="📅" title={tFn('payroll.detail.attendance')} color="#ede9fe" titleColor="#7c3aed" dark={dark}>
+                <DetailRow label={tFn('payroll.detail.workingDays')} val={`${detail.working_days} ${tFn('payroll.detail.days')}`} dark={dark} />
+                <DetailRow label={tFn('payroll.detail.present')}     val={`${detail.present_days} ${tFn('payroll.detail.days')}`} color={detail.present_days>0?'#059669':null} dark={dark} />
+                <DetailRow label={tFn('payroll.detail.absent')}      val={`${detail.absent_days} ${tFn('payroll.detail.days')}`}  color={detail.absent_days>0?'#ef4444':null} dark={dark} />
+                <DetailRow label={tFn('payroll.detail.late')}        val={detail.late_minutes_total>0?`${detail.late_minutes_total} min`:'—'} color={detail.late_minutes_total>0?'#f59e0b':null} dark={dark} />
                 {(detail.leave_days_paid??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Paid Leave</span>
-                        <ClickBadge label={`${detail.leave_days_paid} days`} color="#059669" bg={dark?'rgba(5,150,105,0.18)':'#d1fae5'} onClick={()=>setLeavePop('paid')} />
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tFn('payroll.detail.paidLeave')}</span>
+                        <ClickBadge label={`${detail.leave_days_paid} ${tFn('payroll.detail.days')}`} color="#059669" bg={dark?'rgba(5,150,105,0.18)':'#d1fae5'} onClick={()=>setLeavePop('paid')} />
                     </div>
                 )}
                 {(detail.leave_days_unpaid??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Unpaid Leave</span>
-                        <ClickBadge label={`${detail.leave_days_unpaid} days`} color="#ef4444" bg={dark?'rgba(239,68,68,0.16)':'#fee2e2'} onClick={()=>setLeavePop('unpaid')} />
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tFn('payroll.detail.unpaidLeave')}</span>
+                        <ClickBadge label={`${detail.leave_days_unpaid} ${tFn('payroll.detail.days')}`} color="#ef4444" bg={dark?'rgba(239,68,68,0.16)':'#fee2e2'} onClick={()=>setLeavePop('unpaid')} />
                     </div>
                 )}
                 {otHrs>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Overtime</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tFn('payroll.detail.overtime')}</span>
                         <ClickBadge label={otLabel} color="#7c3aed" bg={dark?'rgba(124,58,237,0.18)':'#ede9fe'} onClick={()=>setOtPop(true)} />
                     </div>
                 )}
             </DetailCard>
 
-            <DetailCard icon="💰" title="Earnings" color="#d1fae5" titleColor="#059669" dark={dark}>
-                <DetailRow label="Base Salary" val={fmt(detail.base_salary, curr)} bold dark={dark} />
+            <DetailCard icon="💰" title={tFn('payroll.detail.earnings')} color="#d1fae5" titleColor="#059669" dark={dark}>
+                <DetailRow label={tFn('payroll.detail.baseSalary')} val={fmt(detail.base_salary, curr)} bold dark={dark} />
                 {(detail.total_allowances??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Allowances</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tFn('payroll.detail.allowances')}</span>
                         <span onClick={()=>setAllowPop(true)} style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}>+ {fmt(detail.total_allowances, curr)}</span>
                     </div>
                 )}
                 {(detail.overtime_amount??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Overtime Pay</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tFn('payroll.detail.overtimePay')}</span>
                         <span onClick={()=>setOtPop(true)} style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}>+ {fmt(detail.overtime_amount, curr)}</span>
                     </div>
                 )}
-                {(detail.bonus_amount ?? 0) > 0 && (
+                {(detail.bonus_amount??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Bonus</span>
-                        <span
-                            onClick={() => setBonusPop(true)}
-                            style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}
-                        >
-                            + {fmt(detail.bonus_amount, curr)}
-                        </span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tFn('payroll.detail.bonus')}</span>
+                        <span onClick={()=>setBonusPop(true)} style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}>+ {fmt(detail.bonus_amount, curr)}</span>
                     </div>
                 )}
-
-                {(detail.expense_reimbursement ?? 0) > 0 && (
+                {(detail.expense_reimbursement??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>
-                            Expense Reimbursement
-                        </span>
-                        <span
-                            onClick={() => setExpensePop(true)}
-                            style={{ fontSize:12, fontWeight:600, color:'#0284c7', cursor:'pointer' }}
-                        >
-                            + {fmt(detail.expense_reimbursement, curr)}
-                        </span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tFn('payroll.detail.expenseReimbursement')}</span>
+                        <span onClick={()=>setExpensePop(true)} style={{ fontSize:12, fontWeight:600, color:'#0284c7', cursor:'pointer' }}>+ {fmt(detail.expense_reimbursement, curr)}</span>
                     </div>
                 )}
-
                 <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 16px', background: dark?'rgba(5,150,105,0.1)':'#f0fdf4' }}>
-                    <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>Total Before Deductions</span>
+                    <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>{tFn('payroll.detail.totalBeforeDeductions')}</span>
                     <span style={{ fontSize:12, fontWeight:800, color:'#059669' }}>{fmt(gross, curr)}</span>
                 </div>
             </DetailCard>
 
             {((detail.late_deduction??0)+(detail.short_hour_deduction??0)+(detail.unpaid_leave_deduction??0)+((detail.salary_deduction_breakdown??[]).reduce((s,d)=>s+d.amount,0)))>0 && (
-                <DetailCard icon="✂️" title="Deductions" color="#fee2e2" titleColor="#dc2626" dark={dark}>
-                    {(detail.late_deduction??0)>0       && <LateArrivalRow detail={detail} curr={curr} theme={theme} dark={dark} />}
-                    {(detail.short_hour_deduction??0)>0 && <ShortHourRow   detail={detail} curr={curr} theme={theme} dark={dark} />}
+                <DetailCard icon="✂️" title={tFn('payroll.detail.deductions')} color="#fee2e2" titleColor="#dc2626" dark={dark}>
+                    {(detail.late_deduction??0)>0       && <LateArrivalRow detail={detail} curr={curr} theme={theme} dark={dark} tFn={tFn} />}
+                    {(detail.short_hour_deduction??0)>0 && <ShortHourRow   detail={detail} curr={curr} theme={theme} dark={dark} tFn={tFn} />}
                     {(detail.salary_deduction_breakdown??[]).map((d,i)=>(
                         <DetailRow key={i} label={<span>{d.name} <span style={{ fontSize:10, color: lblClr }}>{d.type==='percentage'?`(${d.rate}%)`:'(flat)'}</span></span>} val={`− ${fmt(d.amount, curr)}`} color="#dc2626" dark={dark}/>
                     ))}
                     <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 16px', background: dark?'rgba(220,38,38,0.08)':'#fff5f5' }}>
-                        <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>Total Deductions</span>
+                        <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>{tFn('payroll.detail.totalDeductions')}</span>
                         <span style={{ fontSize:12, fontWeight:800, color:'#dc2626' }}>− {fmt(detail.total_deductions, curr)}</span>
                     </div>
                 </DetailCard>
@@ -605,7 +530,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
 
             <div style={{ background:'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)', borderRadius:14, padding:'18px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
                 <div>
-                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.65)', fontWeight:700, letterSpacing:'1px', marginBottom:2 }}>NET SALARY</div>
+                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.65)', fontWeight:700, letterSpacing:'1px', marginBottom:2 }}>{tFn('payroll.detail.netSalary')}</div>
                     <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>{detail.period_start} — {detail.period_end}</div>
                 </div>
                 <div style={{ fontSize:24, fontWeight:900, color:'#fff', letterSpacing:'-1px' }}>{fmt(detail.net_salary, curr)}</div>
@@ -613,22 +538,22 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
 
             <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
                 {detail.status !== 'approved' && detail.status !== 'confirmed' && (
-                    <button onClick={() => onApprove(detail)} style={{ padding:'10px 22px', borderRadius:10, border:'none', background:'#059669', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Approve</button>
+                    <button onClick={() => onApprove(detail)} style={{ padding:'10px 22px', borderRadius:10, border:'none', background:'#059669', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>{tFn('payroll.btn.approve')}</button>
                 )}
-                <button onClick={onClose} style={{ padding:'10px 22px', borderRadius:10, border:`1.5px solid ${theme.border}`, background: theme.surface, color:theme.textSoft, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Close</button>
+                <button onClick={onClose} style={{ padding:'10px 22px', borderRadius:10, border:`1.5px solid ${theme.border}`, background: theme.surface, color:theme.textSoft, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>{tFn('payroll.btn.close')}</button>
             </div>
 
             {leavePop && (
-                <MiniModal title={leavePop==='paid' ? 'Paid Leave' : 'Unpaid Leave'} subtitle="Leave Records" icon={leavePop==='paid' ? '✅' : '📋'} onClose={()=>setLeavePop(false)} theme={theme}>
+                <MiniModal title={leavePop==='paid' ? tFn('payroll.detail.paidLeave') : tFn('payroll.detail.unpaidLeave')} subtitle={tFn('payroll.detail.leaveRecords')} icon={leavePop==='paid' ? '✅' : '📋'} onClose={()=>setLeavePop(false)} theme={theme}>
                     {(detail.leave_details??[]).filter(l=>leavePop==='paid'?l.is_paid:!l.is_paid).length===0
-                        ? <p style={{ fontSize:12, color: theme.textMute }}>No records.</p>
+                        ? <p style={{ fontSize:12, color: theme.textMute }}>{tFn('payroll.detail.noRecords')}</p>
                         : (detail.leave_details??[]).filter(l=>leavePop==='paid'?l.is_paid:!l.is_paid).map((l,i)=>(
                             <div key={i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
                                 <div style={{ fontWeight:800, fontSize:14, color: theme.text, marginBottom:6 }}>{l.start_date === l.end_date ? l.start_date : `${l.start_date} — ${l.end_date}`}</div>
                                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                                     <span style={{ fontSize:12, color: theme.textSoft, fontWeight:600 }}>{l.leave_type}</span>
                                     {l.day_type && <span style={{ fontSize:10, background: dark?'rgba(124,58,237,0.18)':'#ede9fe', color:'#7c3aed', borderRadius:99, padding:'2px 8px', fontWeight:700 }}>{dayTypeLabel(l.day_type)}</span>}
-                                    <span style={{ fontSize:11, color: theme.textMute, marginLeft:'auto' }}>{l.total_days} day(s)</span>
+                                    <span style={{ fontSize:11, color: theme.textMute, marginLeft:'auto' }}>{l.total_days} {tFn('payroll.detail.days')}</span>
                                 </div>
                             </div>
                         ))
@@ -636,13 +561,13 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                 </MiniModal>
             )}
             {otPop && (
-                <MiniModal title="Overtime" subtitle="OT Records" icon="⚡" onClose={()=>setOtPop(false)} theme={theme}>
-                    {(detail.ot_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>No OT records.</p>
+                <MiniModal title={tFn('payroll.detail.overtime')} subtitle={tFn('payroll.detail.otRecords')} icon="⚡" onClose={()=>setOtPop(false)} theme={theme}>
+                    {(detail.ot_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>{tFn('payroll.detail.noOtRecords')}</p>
                     : (detail.ot_details??[]).map((o,i)=>(
                         <div key={i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
                             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
                                 <span style={{ fontWeight:800, fontSize:14, color: theme.text }}>{o.date}</span>
-                                <span style={{ fontSize:11, color: theme.textMute, fontWeight:600 }}>{o.rate_type==='multiplier'?`${o.rate_value}×`:`flat`}</span>
+                                <span style={{ fontSize:11, color: theme.textMute, fontWeight:600 }}>{o.rate_type==='multiplier'?`${o.rate_value}×`:'flat'}</span>
                             </div>
                             <div style={{ fontSize:11, color: theme.textMute, display:'flex', gap:10, alignItems:'center' }}>
                                 <span style={{ color:'#7c3aed', fontWeight:600 }}>{o.policy}</span>
@@ -652,111 +577,66 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                         </div>
                     ))}
                     <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between' }}>
-                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>OT Pay (this period)</span>
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>{tFn('payroll.detail.otPayPeriod')}</span>
                         <span style={{ fontSize:13, fontWeight:800, color:'#7c3aed' }}>{fmt(detail.overtime_amount??0, curr)}</span>
                     </div>
                 </MiniModal>
             )}
             {allowPop && (
-                <MiniModal title="Allowances" subtitle="Breakdown" icon="💰" onClose={()=>setAllowPop(false)} theme={theme}>
-                    {(detail.allowance_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>No allowance details.</p>
+                <MiniModal title={tFn('payroll.detail.allowances')} subtitle={tFn('payroll.detail.breakdown')} icon="💰" onClose={()=>setAllowPop(false)} theme={theme}>
+                    {(detail.allowance_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>{tFn('payroll.detail.noAllowanceDetails')}</p>
                     : (detail.allowance_details??[]).map((a,i)=>(
                         <div key={i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                             <div>
                                 <div style={{ fontWeight:700, fontSize:13, color: theme.textSoft }}>{a.name}</div>
-                                <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>{a.type==='percentage'?`${a.rate}% of base salary`:`Fixed amount`}</div>
+                                <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>{a.type==='percentage'?`${a.rate}% of base salary`:'Fixed amount'}</div>
                             </div>
                             <span style={{ fontSize:13, fontWeight:700, color:'#059669' }}>+ {fmt(a.amount, curr)}</span>
                         </div>
                     ))}
                     <div style={{ marginTop:10, paddingTop:10, borderTop:'1px solid #e5e7eb', display:'flex', justifyContent:'space-between' }}>
-                        <span style={{ fontSize:11, fontWeight:700, color:'#6b7280' }}>Total Allowances</span>
+                        <span style={{ fontSize:11, fontWeight:700, color:'#6b7280' }}>{tFn('payroll.detail.totalAllowances')}</span>
                         <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>+ {fmt(detail.total_allowances??0, curr)}</span>
                     </div>
                 </MiniModal>
             )}
-
             {bonusPop && (
-                <MiniModal title="Bonuses" subtitle="Breakdown" icon="🎁" onClose={() => setBonusPop(false)} theme={theme}>
-                    {(detail.bonuses ?? []).length === 0 ? (
-                        <p style={{ fontSize:12, color: theme.textMute }}>No bonus details.</p>
-                    ) : (
-                        (detail.bonuses ?? []).map((b, i) => (
-                            <div
-                                key={b.id ?? `${b.bonus_type_id ?? 'bonus'}-${i}`}
-                                style={{
-                                    padding:'12px 0',
-                                    borderBottom:`1px solid ${theme.border}`,
-                                    display:'flex',
-                                    justifyContent:'space-between',
-                                    alignItems:'center'
-                                }}
-                            >
-                                <div>
-                                    <div style={{ fontWeight:700, fontSize:13, color: theme.textSoft }}>
-                                        {b.type_name}
-                                    </div>
-                                    <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>
-                                        {b.calculation_type === 'percentage'
-                                            ? `${b.rate}% of base salary`
-                                            : 'Fixed amount'}
-                                    </div>
-                                </div>
-
-                                <span style={{ fontSize:13, fontWeight:700, color:'#059669' }}>
-                                    + {fmt(b.amount, curr)}
-                                </span>
+                <MiniModal title={tFn('payroll.detail.bonuses')} subtitle={tFn('payroll.detail.breakdown')} icon="🎁" onClose={()=>setBonusPop(false)} theme={theme}>
+                    {(detail.bonuses??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>{tFn('payroll.detail.noBonusDetails')}</p>
+                    : (detail.bonuses??[]).map((b,i)=>(
+                        <div key={b.id??`${b.bonus_type_id??'bonus'}-${i}`} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                            <div>
+                                <div style={{ fontWeight:700, fontSize:13, color: theme.textSoft }}>{b.type_name}</div>
+                                <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>{b.calculation_type==='percentage'?`${b.rate}% of base salary`:'Fixed amount'}</div>
                             </div>
-                        ))
-                    )}
-
-                    <div
-                        style={{
-                            marginTop:10,
-                            paddingTop:10,
-                            borderTop:`1px solid ${theme.border}`,
-                            display:'flex',
-                            justifyContent:'space-between'
-                        }}
-                    >
-                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>
-                            Total Bonus
-                        </span>
-                        <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>
-                            + {fmt(detail.bonus_amount ?? 0, curr)}
-                        </span>
+                            <span style={{ fontSize:13, fontWeight:700, color:'#059669' }}>+ {fmt(b.amount, curr)}</span>
+                        </div>
+                    ))}
+                    <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between' }}>
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>{tFn('payroll.detail.totalBonus')}</span>
+                        <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>+ {fmt(detail.bonus_amount??0, curr)}</span>
                     </div>
                 </MiniModal>
             )}
-
             {expensePop && (
-                <MiniModal title="Expense Reimbursement" subtitle="Approved Expenses" icon="🧾" onClose={() => setExpensePop(false)} theme={theme}>
-                    {(detail.expense_details ?? []).length === 0 ? (
-                        <p style={{ fontSize:12, color: theme.textMute }}>No expense details.</p>
-                    ) : (
-                        (detail.expense_details ?? []).map((e, i) => (
-                            <div key={e.id ?? i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
-                                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:4 }}>
-                                    <div style={{ fontWeight:700, fontSize:13, color: theme.text }}>{e.title}</div>
-                                    <span style={{ fontSize:13, fontWeight:700, color:'#0284c7', flexShrink:0, marginLeft:8 }}>
-                                        + {fmt(e.amount, e.currency)}
-                                    </span>
-                                </div>
-                                <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
-                                    <span style={{ fontSize:10, background: dark?'rgba(14,165,233,0.18)':'#e0f2fe', color: dark?'#38bdf8':'#0284c7', borderRadius:99, padding:'2px 8px', fontWeight:700, textTransform:'capitalize' }}>
-                                        {e.category}
-                                    </span>
-                                    <span style={{ fontSize:11, color: theme.textMute }}>📅 {e.expense_date}</span>
-                                </div>
-                                {e.description && (
-                                    <div style={{ fontSize:11, color: theme.textMute, marginTop:4, lineHeight:1.5 }}>{e.description}</div>
-                                )}
+                <MiniModal title={tFn('payroll.detail.expenseReimbursement')} subtitle={tFn('payroll.detail.approvedExpenses')} icon="🧾" onClose={()=>setExpensePop(false)} theme={theme}>
+                    {(detail.expense_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>{tFn('payroll.detail.noExpenseDetails')}</p>
+                    : (detail.expense_details??[]).map((e,i)=>(
+                        <div key={e.id??i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:4 }}>
+                                <div style={{ fontWeight:700, fontSize:13, color: theme.text }}>{e.title}</div>
+                                <span style={{ fontSize:13, fontWeight:700, color:'#0284c7', flexShrink:0, marginLeft:8 }}>+ {fmt(e.amount, e.currency)}</span>
                             </div>
-                        ))
-                    )}
+                            <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
+                                <span style={{ fontSize:10, background: dark?'rgba(14,165,233,0.18)':'#e0f2fe', color: dark?'#38bdf8':'#0284c7', borderRadius:99, padding:'2px 8px', fontWeight:700, textTransform:'capitalize' }}>{e.category}</span>
+                                <span style={{ fontSize:11, color: theme.textMute }}>📅 {e.expense_date}</span>
+                            </div>
+                            {e.description && <div style={{ fontSize:11, color: theme.textMute, marginTop:4, lineHeight:1.5 }}>{e.description}</div>}
+                        </div>
+                    ))}
                     <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between' }}>
-                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>Total Reimbursement</span>
-                        <span style={{ fontSize:13, fontWeight:800, color:'#0284c7' }}>+ {fmt(detail.expense_reimbursement ?? 0, curr)}</span>
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>{tFn('payroll.detail.totalReimbursement')}</span>
+                        <span style={{ fontSize:13, fontWeight:800, color:'#0284c7' }}>+ {fmt(detail.expense_reimbursement??0, curr)}</span>
                     </div>
                 </MiniModal>
             )}
@@ -764,7 +644,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
     );
 }
 
-function PeriodBar({ salaryRule, periodTemplates, value, onChange, dark, theme }) {
+function PeriodBar({ salaryRule, periodTemplates, value, onChange, dark, theme, tFn }) {
     const cycle = salaryRule?.pay_cycle ?? 'monthly';
     const count = cycle==='semi_monthly'?2:cycle==='ten_day'?3:1;
     const now   = new Date();
@@ -773,34 +653,29 @@ function PeriodBar({ salaryRule, periodTemplates, value, onChange, dark, theme }
     const set   = (k,v) => onChange({...sel,[k]:Number(v)});
 
     const yearOpts   = years.map(y=>({ value:y, label:String(y) }));
-    const monthOpts  = MONTHS.map((m,i)=>({ value:i+1, label:m }));
-    const periodOpts = Array.from({length:count},(_,i)=>({ value:i+1, label:`Period ${i+1}` }));
+    const localMonths = tFn('expense.months');
+    const monthList   = Array.isArray(localMonths) ? localMonths : MONTHS;
+    const monthOpts  = monthList.map((m,i)=>({ value:i+1, label:m }));
+    const periodOpts = Array.from({length:count},(_,i)=>({ value:i+1, label:`${tFn('payroll.period.period')} ${i+1}` }));
 
-    // ── Period date range တွက် (getPeriodRange logic နဲ့ ကိုက်ညီ) ──
     const getPeriodLabel = () => {
         const { year, month, period_number: pNum } = sel;
         const totalPeriods = count;
-
         const getPDay = (n) => {
             const t = periodTemplates.find(p => p.period_number === n);
             return t ? t.day : (cycle === 'semi_monthly' ? (n===1?12:25) : cycle === 'ten_day' ? n*10 : 25);
         };
-
         const prevMonth = month === 1 ? 12 : month - 1;
         const prevYear  = month === 1 ? year - 1 : year;
         const prevMonthDays = new Date(prevYear, prevMonth, 0).getDate();
         const thisMonthDays = new Date(year, month, 0).getDate();
-
         const clampBase = (d) => Math.min(d, prevMonthDays);
         const clampReq  = (d) => Math.min(d, thisMonthDays);
-
-        const fmt = (y, m, d) => {
+        const fmtD = (y, m, d) => {
             const date = new Date(y, m-1, d);
             return date.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
         };
-
         let startD, startM, startY, endD, endM, endY;
-
         if (totalPeriods === 1) {
             const p1Day = getPDay(1);
             startD = clampBase(p1Day) + 1; startM = prevMonth; startY = prevYear;
@@ -824,8 +699,7 @@ function PeriodBar({ salaryRule, periodTemplates, value, onChange, dark, theme }
             startD = clampBase(prevDay) + 1; startM = prevMonth; startY = prevYear;
             endD   = clampBase(thisDay);     endM   = prevMonth; endY   = prevYear;
         }
-
-        return `${fmt(startY, startM, startD)} – ${fmt(endY, endM, endD)}`;
+        return `${fmtD(startY, startM, startD)} – ${fmtD(endY, endM, endD)}`;
     };
 
     return (
@@ -837,13 +711,13 @@ function PeriodBar({ salaryRule, periodTemplates, value, onChange, dark, theme }
                 {getPeriodLabel()}
             </span>
             <span style={{ fontSize:12, color:theme.primary, background:theme.primarySoft, padding:'5px 12px', borderRadius:99, fontWeight:700 }}>
-                {cycle==='semi_monthly'?'SEMI-MONTHLY':cycle==='ten_day'?'10-DAY':'MONTHLY'}
+                {cycle==='semi_monthly'?tFn('payroll.period.semiMonthly'):cycle==='ten_day'?tFn('payroll.period.tenDay'):tFn('payroll.period.monthly')}
             </span>
         </div>
     );
 }
 
-function AttendanceStep({ period, onToast, onDone, theme }) {
+function AttendanceStep({ period, onToast, onDone, theme, tFn }) {
     const [downloading, setDownloading] = useState(false);
     const [uploading,   setUploading]   = useState(false);
     const [result,      setResult]      = useState(null);
@@ -859,7 +733,7 @@ function AttendanceStep({ period, onToast, onDone, theme }) {
             const url  = URL.createObjectURL(blob);
             const a    = document.createElement('a'); a.href=url; a.download=`attendance_${period.year}_${period.month}_P${period.period_number}.xlsx`; a.click();
             URL.revokeObjectURL(url);
-            onToast('Template downloaded.', 'success');
+            onToast(tFn('payroll.attendance.downloaded'), 'success');
         } catch(e) { onToast(e.message,'error'); }
         finally { setDownloading(false); }
     };
@@ -883,9 +757,9 @@ function AttendanceStep({ period, onToast, onDone, theme }) {
         <div>
             <div style={{ display:'flex', gap:8, marginBottom:20 }}>
                 {[
-                    ['⬇️','Download','Get the Excel template pre-filled with employees & dates'],
-                    ['✏️','Fill In/Out','Type or select times (HH:MM). Skip weekends.'],
-                    ['⬆️','Upload','Work hours & late minutes auto-calculated on save'],
+                    ['⬇️', tFn('payroll.attendance.stepDownload'),    tFn('payroll.attendance.stepDownloadDesc')],
+                    ['✏️', tFn('payroll.attendance.stepFill'),        tFn('payroll.attendance.stepFillDesc')],
+                    ['⬆️', tFn('payroll.attendance.stepUpload'),      tFn('payroll.attendance.stepUploadDesc')],
                 ].map(([icon,title,desc],i)=>(
                     <div key={i} style={{ flex:1, display:'flex', gap:10, alignItems:'flex-start', padding:'12px 14px', background:theme.surfaceSoft, borderRadius:10, border:`1px solid ${theme.border}` }}>
                         <span style={{ fontSize:16, flexShrink:0, marginTop:1 }}>{icon}</span>
@@ -898,18 +772,18 @@ function AttendanceStep({ period, onToast, onDone, theme }) {
             </div>
             <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom: result ? 16 : 0 }}>
                 <button onClick={download} disabled={downloading} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'9px 18px', borderRadius:8, border:'none', background:downloading?'#ddd6fe':'#7c3aed', color:'#fff', fontSize:13, fontWeight:700, cursor:downloading?'not-allowed':'pointer', fontFamily:'inherit' }}>
-                    {downloading ? <><Spinner color="#fff" size={13}/>Downloading...</> : <>⬇️ Download Template</>}
+                    {downloading ? <><Spinner color="#fff" size={13}/>{tFn('payroll.btn.downloading')}</> : <>⬇️ {tFn('payroll.btn.downloadTemplate')}</>}
                 </button>
                 <label style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'9px 18px', borderRadius:8, border:'none', background:uploading?'#d1fae5':'#059669', color:'#fff', fontSize:13, fontWeight:700, cursor:uploading?'not-allowed':'pointer', fontFamily:'inherit' }}>
-                    {uploading ? <><Spinner color="#fff" size={13}/>Uploading...</> : <>⬆️ Upload & Save</>}
+                    {uploading ? <><Spinner color="#fff" size={13}/>{tFn('payroll.btn.uploading')}</> : <>⬆️ {tFn('payroll.btn.uploadSave')}</>}
                     <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={upload} disabled={uploading} style={{ display:'none' }} />
                 </label>
             </div>
             {result && (
                 <div style={{ padding:'12px 14px', borderRadius:8, background:result.errors?.length?'#fffbeb':'#f0fdf4', border:`1px solid ${result.errors?.length?'#fde68a':'#86efac'}` }}>
                     <div style={{ display:'flex', gap:20, fontSize:13, marginBottom:result.errors?.length?8:0 }}>
-                        <span>✅ Saved: <strong style={{ color:'#059669' }}>{result.saved}</strong></span>
-                        <span style={{ color:'#6b7280' }}>Skipped: {result.skipped}</span>
+                        <span>✅ {tFn('payroll.attendance.saved')}: <strong style={{ color:'#059669' }}>{result.saved}</strong></span>
+                        <span style={{ color:'#6b7280' }}>{tFn('payroll.attendance.skipped')}: {result.skipped}</span>
                     </div>
                     {result.errors?.length>0&&<div>{result.errors.slice(0,3).map((e,i)=><div key={i} style={{ fontSize:11, color:'#b45309', marginTop:2 }}>• {e}</div>)}{result.errors.length>3&&<div style={{ fontSize:11, color:'#b45309', marginTop:2 }}>...and {result.errors.length-3} more</div>}</div>}
                 </div>
@@ -918,7 +792,7 @@ function AttendanceStep({ period, onToast, onDone, theme }) {
     );
 }
 
-function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast, onDone, dark, theme }) {
+function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast, onDone, dark, theme, tFn }) {
     const [mode,    setMode]    = useState('all');
     const [selEmp,  setSelEmp]  = useState('');
     const [prog,    setProg]    = useState([]);
@@ -929,7 +803,7 @@ function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast
     const doneCount = prog.filter(p=>p.status==='done').length;
 
     const empOptions = [
-        { value:'', label:'— Select Employee —', disabled:true },
+        { value:'', label:`— ${tFn('payroll.calculate.selectEmployee')} —`, disabled:true },
         ...employees.map(e=>({ value:e.id, label:e.name }))
     ];
 
@@ -955,18 +829,18 @@ function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast
         if (evt.type==='calculating') setProg(prev=>{ const ex=prev.find(p=>p.user_id===evt.user_id); if(ex) return prev.map(p=>p.user_id===evt.user_id?{...p,status:'calculating'}:p); return [...prev,{user_id:evt.user_id,name:evt.name,status:'calculating'}]; });
         else if (evt.type==='done') setProg(prev=>prev.map(p=>p.user_id===evt.user_id?{...p,status:'done',net_salary:evt.net_salary}:p));
         else if (evt.type==='error') setProg(prev=>prev.map(p=>p.user_id===evt.user_id?{...p,status:'error',error:evt.message}:p));
-        else if (evt.type==='stopped') { setStopped({resume_from:evt.resume_from,done:evt.done,total:evt.total}); onToast(`Stopped. ${evt.done}/${evt.total} done. Click Continue.`,'error'); }
-        else if (evt.type==='complete') { onToast(`All ${evt.done} employees calculated!`,'success'); onDone('calculate'); }
+        else if (evt.type==='stopped') { setStopped({resume_from:evt.resume_from,done:evt.done,total:evt.total}); onToast(`${tFn('payroll.calculate.stopped')} ${evt.done}/${evt.total}.`,'error'); }
+        else if (evt.type==='complete') { onToast(`${tFn('payroll.calculate.allDone')} ${evt.done}!`,'success'); onDone('calculate'); }
     };
 
     const handleSingle = async () => {
-        if(!selEmp||!tmpl?.id){onToast('Select an employee first.','error');return;}
+        if(!selEmp||!tmpl?.id){onToast(tFn('payroll.calculate.selectEmployeeFirst'),'error');return;}
         setLoading(true);
         try {
             const res  = await fetch('/payroll/records/calculate-single',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf()},body:JSON.stringify({period_id:tmpl.id,user_id:selEmp,year:period.year,month:period.month})});
             const data = await res.json();
             if(!res.ok) throw new Error(data.message??'Failed');
-            onToast(`✅ ${data.record?.name??'Employee'} calculated!`,'success');
+            onToast(`✅ ${data.record?.name??'Employee'} ${tFn('payroll.calculate.calculated')}!`,'success');
             onDone('calculate');
         } catch(e){onToast(e.message,'error');}
         finally{setLoading(false);}
@@ -977,40 +851,32 @@ function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast
     return (
         <div>
             <div style={{ display:'flex', gap:8, marginBottom:20 }}>
-                {[['all','👥 All Employees'],['single','👤 Single Employee']].map(([m,lbl])=>(
+                {[['all',`👥 ${tFn('payroll.calculate.allEmployees')}`],['single',`👤 ${tFn('payroll.calculate.singleEmployee')}`]].map(([m,lbl])=>(
                     <button key={m} onClick={()=>setMode(m)} style={{ padding:'8px 18px', borderRadius:99, border:'1.5px solid', borderColor:mode===m?'#7c3aed':theme.border, background:mode===m?'#7c3aed':theme.surface, color:mode===m?'#fff':theme.textMute, fontSize:12, fontWeight:700, cursor:'pointer', transition:'all 0.15s', fontFamily:'inherit' }}>{lbl}</button>
                 ))}
             </div>
 
             {mode==='single' && (
                 <div style={{ display:'flex', gap:10, marginBottom:16, alignItems:'center' }}>
-                    <PremiumSelect
-                        options={empOptions}
-                        value={selEmp}
-                        onChange={v => setSelEmp(v)}
-                        placeholder="— Select Employee —"
-                        width={220}
-                        dark={dark}
-                        theme={theme}
-                    />
+                    <PremiumSelect options={empOptions} value={selEmp} onChange={v=>setSelEmp(v)} placeholder={`— ${tFn('payroll.calculate.selectEmployee')} —`} width={220} dark={dark} theme={theme}/>
                     <button onClick={handleSingle} disabled={loading||!selEmp} style={{ ...btnBase, background:selEmp?'#7c3aed':'#e5e7eb', color:selEmp?'#fff':'#9ca3af', cursor:selEmp?'pointer':'not-allowed', flexShrink:0 }}>
-                        {loading?<><Spinner color="#fff"/>Calculating...</>:'▶ Calculate'}
+                        {loading?<><Spinner color="#fff"/>{tFn('payroll.btn.calculating')}</>:`▶ ${tFn('payroll.btn.calculate')}`}
                     </button>
                 </div>
             )}
 
             {mode==='all' && (
                 <div style={{ marginBottom:16 }}>
-                    {!running&&!stopped&&<button onClick={()=>startAll()} disabled={!tmpl?.id||employees.length===0} style={{ ...btnBase, background:'#7c3aed', color:'#fff', opacity:!tmpl?.id?0.5:1 }}>▶ Calculate All ({employees.length} employees)</button>}
+                    {!running&&!stopped&&<button onClick={()=>startAll()} disabled={!tmpl?.id||employees.length===0} style={{ ...btnBase, background:'#7c3aed', color:'#fff', opacity:!tmpl?.id?0.5:1 }}>▶ {tFn('payroll.btn.calculateAll')} ({employees.length} {tFn('payroll.calculate.employees')})</button>}
                     {running && (
                         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                            <Spinner/><span style={{ fontSize:13, color:'#7c3aed', fontWeight:700 }}>Calculating... {doneCount} / {employees.length}</span>
+                            <Spinner/><span style={{ fontSize:13, color:'#7c3aed', fontWeight:700 }}>{tFn('payroll.btn.calculating')} {doneCount} / {employees.length}</span>
                             <div style={{ flex:1, height:6, background:'#ede9fe', borderRadius:99, overflow:'hidden' }}>
                                 <div style={{ height:'100%', borderRadius:99, background:'#7c3aed', width:`${employees.length?(doneCount/employees.length)*100:0}%`, transition:'width 0.3s ease' }}/>
                             </div>
                         </div>
                     )}
-                    {stopped&&!running&&<button onClick={()=>startAll(stopped.resume_from)} style={{ ...btnBase, background:'#f59e0b', color:'#fff' }}>▶ Continue ({stopped.done}/{stopped.total} done)</button>}
+                    {stopped&&!running&&<button onClick={()=>startAll(stopped.resume_from)} style={{ ...btnBase, background:'#f59e0b', color:'#fff' }}>▶ {tFn('payroll.btn.continue')} ({stopped.done}/{stopped.total} {tFn('payroll.calculate.done')})</button>}
                 </div>
             )}
 
@@ -1020,7 +886,7 @@ function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast
                         <div key={p.user_id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', background:i%2===0?theme.surface:theme.surfaceSoft, borderBottom:i<prog.length-1?`1px solid ${theme.border}`:'none' }}>
                             <span style={{ fontSize:15, width:20, textAlign:'center' }}>{p.status==='calculating'?'⏳':p.status==='done'?'✅':'❌'}</span>
                             <span style={{ flex:1, fontSize:13, fontWeight:600, color:theme.textSoft }}>{p.name}</span>
-                            {p.status==='calculating'&&<span style={{ fontSize:11, color:'#7c3aed', fontWeight:700 }}>Calculating...</span>}
+                            {p.status==='calculating'&&<span style={{ fontSize:11, color:'#7c3aed', fontWeight:700 }}>{tFn('payroll.btn.calculating')}</span>}
                             {p.status==='done'&&p.net_salary!==undefined&&<span style={{ fontSize:12, fontWeight:800, color:'#059669' }}>{fmt(p.net_salary, salaryRule?.currency_code)}</span>}
                             {p.status==='error'&&<span style={{ fontSize:11, color:'#dc2626' }}>{p.error}</span>}
                         </div>
@@ -1028,23 +894,27 @@ function CalculateStep({ period, periodTemplates, employees, salaryRule, onToast
                 </div>
             )}
 
-            {!tmpl?.id && <div style={{ padding:'12px 14px', background:'#fffbeb', borderRadius:8, border:'1px solid #fde68a', fontSize:12, color:'#92400e' }}>⚠️ No payroll period configured. Go to HR Policy → General Settings.</div>}
+            {!tmpl?.id && <div style={{ padding:'12px 14px', background:'#fffbeb', borderRadius:8, border:'1px solid #fde68a', fontSize:12, color:'#92400e' }}>⚠️ {tFn('payroll.calculate.noPeriodWarning')}</div>}
         </div>
     );
 }
 
-function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme }) {
-    const [loading,    setLoading]    = useState(false);
-    const [records,    setRecords]    = useState([]);
-    const [summary,    setSummary]    = useState(null);
-    const [detail,     setDetail]     = useState(null);
-    const [approving,  setApproving]  = useState(false);
-    const [confirming, setConfirming] = useState(false);
+function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme, tFn }) {
+    const [loading,      setLoading]    = useState(false);
+    const [records,      setRecords]    = useState([]);
+    const [summary,      setSummary]    = useState(null);
+    const [detail,       setDetail]     = useState(null);
+    const [approving,    setApproving]  = useState(false);
+    const [confirming,   setConfirming] = useState(false);
     const [confirmState, setConfirmState] = useState({ open:false, type:null, record:null });
 
     const tmpl = periodTemplates.find(p=>p.period_number===period.period_number);
     const curr = salaryRule?.currency_code ?? '';
-    const allConfirmed = records.length > 0 && records.every(r => r.status === 'confirmed');
+    const localMonths = tFn('expense.months');
+    const monthList   = Array.isArray(localMonths) ? localMonths : MONTHS;
+    const MONTHS_S    = Array.isArray(localMonths)
+        ? localMonths.map(m => m.length > 3 ? m.slice(0,3) : m)
+        : MONTHS_SHORT;
 
     const load = useCallback(async()=>{
         if(!tmpl?.id) return;
@@ -1055,7 +925,7 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme
             const data   = await res.json();
             setRecords(data.records??[]);
             setSummary(data.summary??null);
-        } catch { onToast('Failed to load records','error'); }
+        } catch { onToast(tFn('payroll.preview.loadFailed'),'error'); }
         finally { setLoading(false); }
     },[tmpl?.id, period.year, period.month]);
 
@@ -1101,7 +971,7 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme
                 const res = await fetch(`/payroll/records/${r.id}/approve`,{method:'PATCH',headers:{'X-CSRF-TOKEN':csrf()}});
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message ?? 'Approve failed');
-                onToast(`${r.name} approved.`, 'success');
+                onToast(`${r.name} ${tFn('payroll.preview.approved')}.`, 'success');
                 setConfirmState({ open:false, type:null, record:null });
                 setDetail(null);
                 load();
@@ -1110,41 +980,47 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme
         }
     };
 
+    const tableHeaders = [
+        tFn('payroll.table.employee'), tFn('payroll.table.presentWd'), tFn('payroll.table.leave'),
+        tFn('payroll.table.late'), tFn('payroll.table.ot'), tFn('payroll.table.base'),
+        tFn('payroll.table.allowances'), tFn('payroll.table.deductions'), tFn('payroll.table.bonus'),
+        tFn('payroll.table.netSalary'), tFn('payroll.table.status'), '',
+    ];
+
     return (
         <div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16, flexWrap:'wrap', gap:8 }}>
                 <span style={{ fontSize:12, color:theme.textMute, fontWeight:600 }}>
-                    {records.length} employees · {MONTHS_SHORT[period.month-1]} {period.year}
+                    {records.length} {tFn('payroll.calculate.employees')} · {MONTHS_S[period.month-1]} {period.year}
                 </span>
                 <div style={{ display:'flex', gap:6 }}>
                     <button onClick={load} disabled={loading} style={{ padding:'7px 14px', borderRadius:8, border:`1.5px solid ${theme.border}`, background:theme.surface, color:theme.textMute, fontSize:12, fontWeight:600, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
-                        🔄 Refresh
+                        🔄 {tFn('payroll.btn.refresh')}
                     </button>
                     {records.length>0 && records.some(r=>r.status!=='approved' && r.status!=='confirmed' && r.status!=='paid') && (
                         <button onClick={openApproveAllConfirm} disabled={approving} style={{ padding:'7px 16px', borderRadius:8, border:'none', background:'#059669', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
-                            {approving?<><Spinner color="#fff" size={12}/>Approving...</>:'✅ Approve All'}
+                            {approving?<><Spinner color="#fff" size={12}/>{tFn('payroll.btn.approving')}</>:`✅ ${tFn('payroll.btn.approveAll')}`}
                         </button>
                     )}
                     {records.length>0 && records.every(r=>r.status==='approved') && (
                         <button onClick={()=>setConfirmState({ open:true, type:'finalize', record:null })} disabled={confirming} style={{ padding:'7px 16px', borderRadius:8, border:'none', background:'#7c3aed', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5, fontFamily:'inherit' }}>
-                            {confirming?<><Spinner color="#fff" size={12}/>Confirming...</>:'🔒 Confirm & Finalize'}
+                            {confirming?<><Spinner color="#fff" size={12}/>{tFn('payroll.btn.confirming')}</>:`🔒 ${tFn('payroll.btn.confirmFinalize')}`}
                         </button>
                     )}
                 </div>
             </div>
 
             {loading
-                ? <div style={{ textAlign:'center', padding:48, display:'flex', flexDirection:'column', alignItems:'center', gap:10, color:'#7c3aed' }}><Spinner size={28}/><span style={{ fontSize:13, fontWeight:600 }}>Loading records...</span></div>
+                ? <div style={{ textAlign:'center', padding:48, display:'flex', flexDirection:'column', alignItems:'center', gap:10, color:'#7c3aed' }}><Spinner size={28}/><span style={{ fontSize:13, fontWeight:600 }}>{tFn('payroll.preview.loading')}</span></div>
                 : records.length===0
-                    ? <div style={{ textAlign:'center', padding:48, color:theme.textMute, fontSize:13 }}>No records yet. Calculate salary first (Step 2).</div>
+                    ? <div style={{ textAlign:'center', padding:48, color:theme.textMute, fontSize:13 }}>{tFn('payroll.preview.noRecords')}</div>
                     : (
-                        <div style={{ overflowX:'auto', borderRadius:12, border:`1px solid ${theme.border}`, boxShadow:theme.shadow, scrollbarWidth:'none', msOverflowStyle:'none' }}
-                             className="pr-hide-scroll">
+                        <div style={{ overflowX:'auto', borderRadius:12, border:`1px solid ${theme.border}`, boxShadow:theme.shadow, scrollbarWidth:'none', msOverflowStyle:'none' }} className="pr-hide-scroll">
                             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                                 <thead>
                                     <tr style={{ background:theme.tableHead, borderBottom:`2px solid ${theme.border}` }}>
-                                        {['Employee','Present / WD','Leave','Late','OT','Base','Allowances','Deductions','Bonus','Net Salary','Status',''].map(h=>(
-                                            <th key={h} style={{ padding:'10px 12px', textAlign:'left', fontSize:10, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.4px', whiteSpace:'nowrap' }}>{h}</th>
+                                        {tableHeaders.map((h,idx)=>(
+                                            <th key={idx} style={{ padding:'10px 12px', textAlign:'left', fontSize:10, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.4px', whiteSpace:'nowrap' }}>{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
@@ -1175,12 +1051,12 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme
                                             <td style={{ padding:'10px 12px', whiteSpace:'nowrap', verticalAlign:'middle', fontSize:12, color: r.total_deductions>0?'#dc2626':theme.border }}>{fmtC(r.total_deductions, curr)}</td>
                                             <td style={{ padding:'10px 12px', whiteSpace:'nowrap', verticalAlign:'middle', fontSize:12, color:theme.textSoft }}>{fmtC(r.bonus_amount, curr)}</td>
                                             <td style={{ padding:'10px 12px', whiteSpace:'nowrap', verticalAlign:'middle', fontWeight:800, fontSize:13, color:'#7c3aed' }}>{fmt(r.net_salary,curr)}</td>
-                                            <td style={{ padding:'10px 12px', whiteSpace:'nowrap', verticalAlign:'middle' }}><StatusPill status={r.status} dark={dark}/></td>
+                                            <td style={{ padding:'10px 12px', whiteSpace:'nowrap', verticalAlign:'middle' }}><StatusPill status={r.status} dark={dark} tFn={tFn}/></td>
                                             <td style={{ padding:'10px 12px', whiteSpace:'nowrap', verticalAlign:'middle' }}>
                                                 <div style={{ display:'flex', gap:4 }}>
-                                                    <button onClick={()=>setDetail(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:theme.primarySoft, color:'#7c3aed', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Detail</button>
+                                                    <button onClick={()=>setDetail(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:theme.primarySoft, color:'#7c3aed', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>{tFn('payroll.btn.detail')}</button>
                                                     {r.status !== 'approved' && r.status !== 'confirmed' && r.status !== 'paid' && (
-                                                        <button onClick={()=>openApproveOneConfirm(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:theme.successSoft, color:'#059669', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Approve</button>
+                                                        <button onClick={()=>openApproveOneConfirm(r)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:theme.successSoft, color:'#059669', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>{tFn('payroll.btn.approve')}</button>
                                                     )}
                                                 </div>
                                             </td>
@@ -1193,17 +1069,23 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme
             }
 
             {detail && (
-                <SalaryDetailModal detail={detail} curr={curr} onApprove={openApproveOneConfirm} onClose={()=>setDetail(null)} theme={theme} dark={dark}/>
+                <SalaryDetailModal detail={detail} curr={curr} onApprove={openApproveOneConfirm} onClose={()=>setDetail(null)} theme={theme} dark={dark} tFn={tFn}/>
             )}
 
             <ConfirmActionModal
                 open={confirmState.open}
                 tone={confirmState.type === 'finalize' ? 'purple' : 'success'}
                 loading={confirmState.type === 'finalize' ? confirming : approving}
-                title={confirmState.type==='all'?'Approve All Payroll Records':confirmState.type==='finalize'?'Confirm & Finalize Payroll':'Approve Employee Salary'}
-                message={confirmState.type==='all'?`Are you sure you want to approve all ${records.length} payroll records for ${MONTHS_SHORT[period.month-1]} ${period.year} Period ${period.period_number}? This action cannot be undone.`:confirmState.type==='finalize'?`This will lock all ${records.length} payroll records for ${MONTHS_SHORT[period.month-1]} ${period.year} Period ${period.period_number}. Employees will be able to view their payslips. This action cannot be undone.`:`Are you sure you want to approve salary for ${confirmState.record?.name||'this employee'}? This action cannot be undone.`}
-                confirmText={confirmState.type==='all'?'Yes, Approve All':confirmState.type==='finalize'?'🔒 Yes, Confirm & Lock':'Yes, Approve'}
-                cancelText="Cancel"
+                title={confirmState.type==='all' ? tFn('payroll.confirm.approveAllTitle') : confirmState.type==='finalize' ? tFn('payroll.confirm.finalizeTitle') : tFn('payroll.confirm.approveOneTitle')}
+                message={
+                    confirmState.type==='all'
+                        ? `${tFn('payroll.confirm.approveAllMsg')} ${records.length} ${tFn('payroll.confirm.recordsFor')} ${MONTHS_S[period.month-1]} ${period.year} ${tFn('payroll.period.period')} ${period.period_number}?`
+                        : confirmState.type==='finalize'
+                        ? `${tFn('payroll.confirm.finalizeMsg')} ${records.length} ${tFn('payroll.confirm.recordsFor')} ${MONTHS_S[period.month-1]} ${period.year} ${tFn('payroll.period.period')} ${period.period_number}.`
+                        : `${tFn('payroll.confirm.approveOneMsg')} ${confirmState.record?.name||''}?`
+                }
+                confirmText={confirmState.type==='all' ? tFn('payroll.confirm.yesApproveAll') : confirmState.type==='finalize' ? tFn('payroll.confirm.yesConfirmLock') : tFn('payroll.confirm.yesApprove')}
+                cancelText={tFn('payroll.btn.cancel')}
                 onClose={() => { if (!approving && !confirming) setConfirmState({ open:false, type:null, record:null }); }}
                 onConfirm={handleConfirmApprove}
             />
@@ -1214,6 +1096,7 @@ function PreviewStep({ period, periodTemplates, salaryRule, onToast, dark, theme
 export default function PayrollRecordsIndex({ salaryRule, periodTemplates, employees }) {
     const dark  = useReactiveTheme();
     const theme = React.useMemo(() => getTheme(dark), [dark]);
+    const { t: tFn } = useTranslation();
 
     const now = new Date();
     const [period,    setPeriod]    = useState({ year:now.getFullYear(), month:now.getMonth()+1, period_number:1 });
@@ -1221,12 +1104,17 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
     const [completed, setCompleted] = useState(new Set());
     const [calcVer,   setCalcVer]   = useState(0);
 
+    const STEPS = [
+        { key:'attendance', label:tFn('payroll.steps.attendance.label'), summary:tFn('payroll.steps.attendance.summary'),
+          icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> },
+        { key:'calculate',  label:tFn('payroll.steps.calculate.label'),  summary:tFn('payroll.steps.calculate.summary'),
+          icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg> },
+        { key:'preview',    label:tFn('payroll.steps.preview.label'),    summary:tFn('payroll.steps.preview.summary'),
+          icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> },
+    ];
+
     const showToast = (msg, type = 'success') => {
-        window.dispatchEvent(
-            new CustomEvent('global-toast', {
-                detail: { message: msg, type }
-            })
-        );
+        window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type } }));
     };
 
     const handleDone = (key) => {
@@ -1236,9 +1124,9 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
     };
 
     const stepContent = {
-        attendance: <AttendanceStep period={period} onToast={showToast} onDone={handleDone} theme={theme}/>,
-        calculate:  <CalculateStep period={period} periodTemplates={periodTemplates} employees={employees} salaryRule={salaryRule} onToast={showToast} onDone={(k)=>{ handleDone(k); setCalcVer(v=>v+1); }} dark={dark} theme={theme}/>,
-        preview:    <PreviewStep key={`${period.year}-${period.month}-${period.period_number}-${calcVer}`} period={period} periodTemplates={periodTemplates} salaryRule={salaryRule} onToast={showToast} dark={dark} theme={theme}/>,
+        attendance: <AttendanceStep period={period} onToast={showToast} onDone={handleDone} theme={theme} tFn={tFn}/>,
+        calculate:  <CalculateStep period={period} periodTemplates={periodTemplates} employees={employees} salaryRule={salaryRule} onToast={showToast} onDone={(k)=>{ handleDone(k); setCalcVer(v=>v+1); }} dark={dark} theme={theme} tFn={tFn}/>,
+        preview:    <PreviewStep key={`${period.year}-${period.month}-${period.period_number}-${calcVer}`} period={period} periodTemplates={periodTemplates} salaryRule={salaryRule} onToast={showToast} dark={dark} theme={theme} tFn={tFn}/>,
     };
 
     return (
@@ -1255,27 +1143,22 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                 .sd-hide-scroll::-webkit-scrollbar { display:none; }
                 .ex-hide::-webkit-scrollbar { display:none; }
                 .ex-hide { scrollbar-width:none; -ms-overflow-style:none; }
-                .pr-select-menu-scroll::-webkit-scrollbar {
-                    display: none;
-                }
+                .pr-select-menu-scroll::-webkit-scrollbar { display: none; }
             `}</style>
-
 
             <div style={{ background: dark ? '#0b1324' : '#f8fafc', minHeight:'100vh' }}>
                 <div style={{ paddingBottom:32 }}>
                     <div>
-                        {/* Period bar */}
                         <div style={{ background:theme.surface, borderRadius:14, padding:'14px 20px', border:`1px solid ${theme.border}`, marginBottom:16, boxShadow:theme.shadow, display:'flex', alignItems:'center', gap:16, flexWrap:'wrap' }}>
-                            <span style={{ fontSize:11, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.8px', flexShrink:0 }}>Pay Period</span>
-                            <PeriodBar salaryRule={salaryRule} periodTemplates={periodTemplates} value={period} onChange={setPeriod} dark={dark} theme={theme}/>
+                            <span style={{ fontSize:11, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.8px', flexShrink:0 }}>{tFn('payroll.period.payPeriod')}</span>
+                            <PeriodBar salaryRule={salaryRule} periodTemplates={periodTemplates} value={period} onChange={setPeriod} dark={dark} theme={theme} tFn={tFn}/>
                         </div>
 
                         <div style={{ display:'flex', gap:16, alignItems:'flex-start' }}>
-                            {/* Sidebar */}
                             <div style={{ width:220, flexShrink:0, background:theme.surface, borderRadius:14, border:`1px solid ${theme.border}`, boxShadow:theme.shadow, overflow:'hidden' }}>
                                 <div style={{ padding:'14px 16px 10px', borderBottom:`1px solid ${theme.border}` }}>
-                                    <div style={{ fontSize:10, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:2 }}>Workflow</div>
-                                    <div style={{ fontSize:11, color:theme.textMute }}>{completed.size}/{STEPS.length} steps done</div>
+                                    <div style={{ fontSize:10, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:2 }}>{tFn('payroll.sidebar.workflow')}</div>
+                                    <div style={{ fontSize:11, color:theme.textMute }}>{completed.size}/{STEPS.length} {tFn('payroll.sidebar.stepsDone')}</div>
                                 </div>
 
                                 {STEPS.map((step, idx) => {
@@ -1296,7 +1179,7 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                                                 width:34, height:34, borderRadius:'50%', flexShrink:0,
                                                 display:'flex', alignItems:'center', justifyContent:'center',
                                                 background: isDone ? theme.successSoft : isActive ? theme.primarySoft : theme.surfaceSoft,
-                                                border: isActive ? '2px solid #7c3aed' : isDone ? '2px solid #10b981' : `2px solid transparent`,
+                                                border: isActive ? '2px solid #7c3aed' : isDone ? '2px solid #10b981' : '2px solid transparent',
                                                 transition:'all 0.2s',
                                             }}>
                                                 {isDone
@@ -1309,7 +1192,7 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                                                     {idx+1}. {step.label}
                                                 </div>
                                                 <div style={{ fontSize:10, color:theme.textMute, lineHeight:1.4 }}>
-                                                    {isDone ? '✓ Completed' : isActive ? 'In progress...' : step.summary?.split('·')[0]?.trim() ?? ''}
+                                                    {isDone ? `✓ ${tFn('payroll.sidebar.completed')}` : isActive ? tFn('payroll.sidebar.inProgress') : step.summary?.split('·')[0]?.trim() ?? ''}
                                                 </div>
                                             </div>
                                         </button>
@@ -1323,7 +1206,6 @@ export default function PayrollRecordsIndex({ salaryRule, periodTemplates, emplo
                                 </div>
                             </div>
 
-                            {/* Content panel */}
                             <div style={{ flex:1, minWidth:0, background:theme.surface, borderRadius:14, border:`1px solid ${theme.border}`, boxShadow:theme.shadow, overflow:'hidden' }}>
                                 <div style={{ padding:'16px 24px 14px', borderBottom:`1px solid ${theme.border}`, display:'flex', alignItems:'center', gap:14 }}>
                                     <div style={{ width:36, height:36, borderRadius:10, background:theme.primarySoft, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>

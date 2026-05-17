@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { usePage, router } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ── Theme hook (mirrors AppLayout) ────────────────────────────
 function useTheme() {
@@ -182,7 +183,7 @@ function CellTooltip({ text, children }) {
 }
 
 // ── Custom Select ─────────────────────────────────────────────
-function PremiumSelect({ value, onChange, options, placeholder, t, dropId, openId, setOpenId }) {
+function PremiumSelect({ value, onChange, options, placeholder, t, trans, dropId, openId, setOpenId }) {
     // Support both: shared openId/setOpenId (mutual exclusion) or standalone
     const isControlled = dropId !== undefined && setOpenId !== undefined;
     const open = isControlled ? openId === dropId : false;
@@ -219,7 +220,7 @@ function PremiumSelect({ value, onChange, options, placeholder, t, dropId, openI
                     outline: 'none', transition: 'border-color 0.15s',
                     boxShadow: open ? `0 0 0 3px ${t.inputFocus}22` : 'none',
                 }}>
-                <span>{selected ? selected.label : (placeholder || 'Select...')}</span>
+                <span>{selected ? selected.label : (placeholder || trans?.('attendance.placeholders.select') || 'Select...')}</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={t.textMute} strokeWidth="2.5"
                     style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}>
                     <polyline points="6 9 12 15 18 9"/>
@@ -274,6 +275,7 @@ export default function AttendanceIndex({
 }) {
     const dark = useTheme();
     const t = getTheme(dark);
+    const { t: trans } = useTranslation();
 
     const { auth } = usePage().props;
     const user     = auth?.user;
@@ -407,11 +409,11 @@ export default function AttendanceIndex({
             },
             onError: (errs) => {
                 setSaving(false);
-                const firstErr = Object.values(errs)[0] || 'Something went wrong.';
+                const firstErr = Object.values(errs)[0] || trans('attendance.messages.somethingWentWrong');
                 const friendly = firstErr
-                    .replace('check_in_time', 'Check In time')
-                    .replace('check_out_time', 'Check Out time')
-                    .replace(/must match the format.*/, 'must be in HH:MM format (e.g. 08:00)');
+                    .replace('check_in_time', trans('attendance.fields.checkInTime'))
+                    .replace('check_out_time', trans('attendance.fields.checkOutTime'))
+                    .replace(/must match the format.*/, trans('attendance.validation.hhmmFormat'));
                 window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: friendly, type: 'error' } }));
             },
         });
@@ -427,24 +429,24 @@ export default function AttendanceIndex({
     }
 
     const empOptions    = employees.map(e => ({ value: String(e.id), label: e.name }));
-    const monthOptions  = MONTHS.map((m, i) => ({ value: String(i+1), label: m }));
+    const monthOptions  = MONTHS.map((m, i) => ({ value: String(i+1), label: trans(`attendance.months.${m}`) }));
     const yearOptions   = [2024,2025,2026,2027].map(y => ({ value: String(y), label: String(y) }));
 
     // Summary stat cards
     const stats = [
-        { val: monthlySummary.workingDays,            label: 'Working Days',   color: '#6366f1',  icon: '📅' },
-        { val: monthlySummary.presentDays,            label: 'Present',        color: '#10b981',  icon: '✅' },
-        { val: monthlySummary.absentDays,             label: 'Absent',         color: '#ef4444',  icon: '❌' },
-        { val: monthlySummary.lateDays,               label: 'Late Days',      color: '#f59e0b',  icon: '⏰' },
-        { val: `${monthlySummary.totalOTHours}h`, label: 'OT Hours', color: '#8b5cf6', icon: '⚡' },
-        { val: monthlySummary.leaveDays,              label: 'Leave Days',     color: '#10b981',  icon: '🏖️' },
-        { val: `${monthlySummary.totalLateMin}m`,     label: 'Total Late',     color: '#f59e0b',  icon: '⚡' },
-        { val: `${monthlySummary.totalWH.toFixed(1)}h`, label: 'Work Hours',  color: '#6366f1',  icon: '⏱️' },
-        { val: publicHolidays.length,                 label: 'Holidays',       color: '#ef4444',  icon: '🎌' },
+        { val: monthlySummary.workingDays,            label: trans('attendance.stats.workingDays'),   color: '#6366f1',  icon: '📅' },
+        { val: monthlySummary.presentDays,            label: trans('attendance.stats.present'),        color: '#10b981',  icon: '✅' },
+        { val: monthlySummary.absentDays,             label: trans('attendance.stats.absent'),         color: '#ef4444',  icon: '❌' },
+        { val: monthlySummary.lateDays,               label: trans('attendance.stats.lateDays'),      color: '#f59e0b',  icon: '⏰' },
+        { val: `${monthlySummary.totalOTHours}h`, label: trans('attendance.stats.otHours'), color: '#8b5cf6', icon: '⚡' },
+        { val: monthlySummary.leaveDays,              label: trans('attendance.stats.leaveDays'),     color: '#10b981',  icon: '🏖️' },
+        { val: `${monthlySummary.totalLateMin}m`,     label: trans('attendance.stats.totalLate'),     color: '#f59e0b',  icon: '⚡' },
+        { val: `${monthlySummary.totalWH.toFixed(1)}h`, label: trans('attendance.stats.workHours'),  color: '#6366f1',  icon: '⏱️' },
+        { val: publicHolidays.length,                 label: trans('attendance.stats.holidays'),       color: '#ef4444',  icon: '🎌' },
     ];
 
     return (
-        <AppLayout title="Attendance">
+        <AppLayout title={trans('attendance.pageTitle')}>
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
                 .att-wrap * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
@@ -472,8 +474,10 @@ export default function AttendanceIndex({
                                 value={empId}
                                 onChange={handleEmpChange}
                                 options={empOptions}
-                                placeholder="Select Employee"
+                                placeholder={trans('attendance.placeholders.selectEmployee')}
                                 t={t}
+
+                                trans={trans}
                                 dropId="emp"
                                 openId={openDropdownId}
                                 setOpenId={setOpenDropdownId}
@@ -486,6 +490,8 @@ export default function AttendanceIndex({
                             onChange={handleMonthChange}
                             options={monthOptions}
                             t={t}
+
+                            trans={trans}
                             dropId="month"
                             openId={openDropdownId}
                             setOpenId={setOpenDropdownId}
@@ -497,6 +503,8 @@ export default function AttendanceIndex({
                             onChange={handleYearChange}
                             options={yearOptions}
                             t={t}
+
+                            trans={trans}
                             dropId="year"
                             openId={openDropdownId}
                             setOpenId={setOpenDropdownId}
@@ -519,7 +527,7 @@ export default function AttendanceIndex({
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
-                            Add Attendance
+                            {trans('attendance.actions.addAttendance')}
                         </button>
                     )}
                 </div>
@@ -559,7 +567,7 @@ export default function AttendanceIndex({
                                 {selectedEmp.position && selectedEmp.department && <span style={{ color:t.textMute, fontSize:12 }}>·</span>}
                                 {selectedEmp.department && <span style={{ fontSize:12, fontWeight:600, color:'#6366f1' }}>{selectedEmp.department}</span>}
                                 <span style={{ color:t.textMute, fontSize:12 }}>·</span>
-                                <span style={{ fontSize:12, color:t.textMute }}>{MONTHS[month-1]} {year}</span>
+                                <span style={{ fontSize:12, color:t.textMute }}>{trans(`attendance.months.${MONTHS[month-1]}`)} {year}</span>
                                 <span style={{ color:t.textMute, fontSize:12 }}>·</span>
                                 <span style={{ fontSize:12, color:t.textMute, fontWeight:600 }}>{monthlySummary.workingDays} working days</span>
                             </div>
@@ -583,7 +591,7 @@ export default function AttendanceIndex({
                                 transition:'all 0.15s',
                             }}>‹</button>
                             <div style={{ fontSize:15, fontWeight:800, color:t.text, letterSpacing:'-0.3px' }}>
-                                {MONTHS[month-1]} {year}
+                                {trans(`attendance.months.${MONTHS[month-1]}`)} {year}
                             </div>
                             <button className="att-nav-btn" onClick={handleNextMonth} style={{
                                 background: t.navBtn, border:'none', borderRadius:10,
@@ -600,7 +608,7 @@ export default function AttendanceIndex({
                                     textAlign:'center', fontSize:10, fontWeight:700,
                                     padding:'4px 0', letterSpacing:'0.5px',
                                     color: (i===0||i===6) ? '#ef4444' : t.textMute,
-                                }}>{d}</div>
+                                }}>{trans(`attendance.days.${d}`)}</div>
                             ))}
                         </div>
 
@@ -652,29 +660,29 @@ export default function AttendanceIndex({
                                         )}
 
                                         {isAbsent && (
-                                            <div style={{ fontSize:10, color:'#ef4444', fontWeight:700, marginTop:2 }}>Absent</div>
+                                            <div style={{ fontSize:10, color:'#ef4444', fontWeight:700, marginTop:2 }}>{trans('attendance.status.absent')}</div>
                                         )}
 
                                         {(() => {
                                             const rows = [];
-                                            if (record?.check_in_time)    rows.push({ key:'in',    label:'In',    value: to12h(record.check_in_time),     color:'#6366f1', tip: null });
-                                            if (record?.check_out_time)   rows.push({ key:'out',   label:'Out',   value: to12h(record.check_out_time),    color:'#6366f1', tip: null });
-                                            if (record?.work_hours_actual) rows.push({ key:'wh',   label:'WH',    value: hToHM(record.work_hours_actual), color:'#10b981', tip: null });
+                                            if (record?.check_in_time)    rows.push({ key:'in',    label:trans('attendance.shortLabels.in'),    value: to12h(record.check_in_time),     color:'#6366f1', tip: null });
+                                            if (record?.check_out_time)   rows.push({ key:'out',   label:trans('attendance.shortLabels.out'),   value: to12h(record.check_out_time),    color:'#6366f1', tip: null });
+                                            if (record?.work_hours_actual) rows.push({ key:'wh',   label:trans('attendance.shortLabels.wh'),    value: hToHM(record.work_hours_actual), color:'#10b981', tip: null });
                                             const leaveInfos = Array.isArray(leaveInfo) ? leaveInfo : (leaveInfo ? [leaveInfo] : []);
                                             leaveInfos.forEach((li, idx) => {
-                                                const lv = li.is_half ? (li.day_type==='half_day_am' ? 'AM Half' : 'PM Half') : 'Full Day';
+                                                const lv = li.is_half ? (li.day_type==='half_day_am' ? trans('attendance.leaveDayTypes.amHalf') : trans('attendance.leaveDayTypes.pmHalf')) : trans('attendance.leaveDayTypes.fullDay');
                                                 const lc = li.is_half ? (li.day_type==='half_day_am' ? '#d97706' : '#7c3aed') : '#dc2626';
-                                                rows.push({ key:`leave-${idx}`, label:'Leave', value: lv, color: lc, tip: li.reason || (LEAVE_LABELS[li.type] || li.type) });
+                                                rows.push({ key:`leave-${idx}`, label:trans('attendance.shortLabels.leave'), value: lv, color: lc, tip: li.reason || (trans(`attendance.leaveTypes.${li.type}`) || LEAVE_LABELS[li.type] || li.type) });
                                             });
                                             if (otRecord && parseFloat(otRecord.hours_approved) > 0) {
                                                 const ov = parseFloat(otRecord.hours_approved) % 1 === 0
                                                     ? `${parseInt(otRecord.hours_approved)}h` : hToHM(otRecord.hours_approved);
-                                                rows.push({ key:'ot', label:'OT', value: ov, color:'#8b5cf6', tip: otRecord.reason || null });
+                                                rows.push({ key:'ot', label:trans('attendance.shortLabels.ot'), value: ov, color:'#8b5cf6', tip: otRecord.reason || null });
                                             }
                                             if (record?.late_minutes > 0)
-                                                rows.push({ key:'late', label:'Late', value: `${record.late_minutes}m`, color:'#f59e0b', tip: null });
+                                                rows.push({ key:'late', label:trans('attendance.shortLabels.late'), value: `${record.late_minutes}m`, color:'#f59e0b', tip: null });
                                             if (parseFloat(record?.short_hours) > 0)
-                                                rows.push({ key:'short', label:'Short', value: hToHM(record.short_hours), color:'#ef4444', tip: null });
+                                                rows.push({ key:'short', label:trans('attendance.shortLabels.short'), value: hToHM(record.short_hours), color:'#ef4444', tip: null });
                                             if (!rows.length) return null;
                                             return (
                                                 <table style={{ borderCollapse:'collapse', marginTop:3, tableLayout:'fixed', width:'100%' }}>
@@ -719,7 +727,7 @@ export default function AttendanceIndex({
                                             fontSize:9, fontWeight:800, color:'#dc2626',
                                             background: dark ? 'rgba(239,68,68,0.15)' : '#fef2f2',
                                             border:'1px solid #fecaca', borderRadius:99, padding:'2px 8px',
-                                        }}>Weekend</span>
+                                        }}>{trans('attendance.labels.weekend')}</span>
                                     )}
                                 </div>
                                 <button onClick={() => setSelectedDay(null)} style={{
@@ -740,9 +748,9 @@ export default function AttendanceIndex({
                                         <span style={{ fontSize:15 }}>🎌</span>
                                         <div>
                                             <div style={{ fontSize:11, fontWeight:800, color:'#dc2626' }}>
-                                                {selectedDay.holidayName || 'Public Holiday'}
+                                                {selectedDay.holidayName || trans('attendance.labels.publicHoliday')}
                                             </div>
-                                            <div style={{ fontSize:10, color:'#f87171', marginTop:1 }}>Public Holiday</div>
+                                            <div style={{ fontSize:10, color:'#f87171', marginTop:1 }}>{trans('attendance.labels.publicHoliday')}</div>
                                         </div>
                                     </div>
                                 )}
@@ -751,9 +759,9 @@ export default function AttendanceIndex({
                                         ? selectedDay.leaveInfo
                                         : (selectedDay.leaveInfo ? [selectedDay.leaveInfo] : []);
                                     return leaveInfos.map((li, idx) => {
-                                        const typeLabel = LEAVE_LABELS[li.type] || li.type;
-                                        const dayLabel  = li.day_type === 'half_day_am' ? 'AM Half Day'
-                                                        : li.day_type === 'half_day_pm' ? 'PM Half Day' : 'Full Day';
+                                        const typeLabel = trans(`attendance.leaveTypes.${li.type}`) || LEAVE_LABELS[li.type] || li.type;
+                                        const dayLabel  = li.day_type === 'half_day_am' ? trans('attendance.leaveDayTypes.amHalfDay')
+                                                        : li.day_type === 'half_day_pm' ? trans('attendance.leaveDayTypes.pmHalfDay') : trans('attendance.leaveDayTypes.fullDay');
                                         const colors = li.day_type === 'half_day_am'
                                             ? { bg: dark ? 'rgba(245,158,11,0.1)' : '#fefce8', color:'#d97706', border: dark ? 'rgba(245,158,11,0.2)' : '#fde047', icon:'🌤️' }
                                             : li.day_type === 'half_day_pm'
@@ -763,7 +771,7 @@ export default function AttendanceIndex({
                                             <div key={idx} style={{ display:'flex', alignItems:'center', gap:8, background:colors.bg, border:`1px solid ${colors.border}`, borderRadius:10, padding:'8px 12px', width:'100%' }}>
                                                 <span style={{ fontSize:16 }}>{colors.icon}</span>
                                                 <div>
-                                                    <div style={{ fontSize:12, fontWeight:800, color:colors.color }}>{dayLabel} Leave</div>
+                                                    <div style={{ fontSize:12, fontWeight:800, color:colors.color }}>{dayLabel} {trans('attendance.shortLabels.leave')}</div>
                                                     <div style={{ fontSize:10, color:colors.color, opacity:0.8, marginTop:1 }}>{typeLabel}</div>
                                                 </div>
                                             </div>
@@ -774,25 +782,25 @@ export default function AttendanceIndex({
 
                             {selectedDay.record ? (
                                 <div style={{ display:'flex', flexDirection:'column' }}>
-                                    <DR label="Employee"  val={selectedDay.record.user?.name || '—'} t={t} />
-                                    <DR label="Status" t={t}>
-                                        <StatusPill status={selectedDay.record.status} dark={dark} />
+                                    <DR label={trans('attendance.fields.employee')}  val={selectedDay.record.user?.name || '—'} t={t} />
+                                    <DR label={trans('attendance.fields.status')} t={t}>
+                                        <StatusPill status={selectedDay.record.status} dark={dark} trans={trans} />
                                     </DR>
-                                    <DR label="Check In"  val={to12h(selectedDay.record.check_in_time)  || '—'} t={t} />
-                                    <DR label="Check Out" val={to12h(selectedDay.record.check_out_time) || '—'} t={t} />
-                                    <DR label="Work Hours" t={t}>
+                                    <DR label={trans('attendance.fields.checkIn')}  val={to12h(selectedDay.record.check_in_time)  || '—'} t={t} />
+                                    <DR label={trans('attendance.fields.checkOut')} val={to12h(selectedDay.record.check_out_time) || '—'} t={t} />
+                                    <DR label={trans('attendance.fields.workHours')} t={t}>
                                         <span style={{ color:'#6366f1', fontWeight:700, fontSize:13 }}>
                                             {selectedDay.record.work_hours_actual ? hToHM(selectedDay.record.work_hours_actual) : '—'}
                                         </span>
                                     </DR>
                                     {parseFloat(selectedDay.record.short_hours) > 0 && (
-                                        <DR label="Short Hours" t={t}>
-                                            <span style={{ color:'#ef4444', fontWeight:700, fontSize:13 }}>{hToHM(selectedDay.record.short_hours)} short</span>
+                                        <DR label={trans('attendance.fields.shortHours')} t={t}>
+                                            <span style={{ color:'#ef4444', fontWeight:700, fontSize:13 }}>{hToHM(selectedDay.record.short_hours)} {trans('attendance.units.short')}</span>
                                         </DR>
                                     )}
                                     {selectedDay.record.late_minutes > 0 && (
-                                        <DR label="Late" t={t}>
-                                            <span style={{ color:'#f59e0b', fontWeight:700, fontSize:13 }}>{selectedDay.record.late_minutes} min</span>
+                                        <DR label={trans('attendance.fields.late')} t={t}>
+                                            <span style={{ color:'#f59e0b', fontWeight:700, fontSize:13 }}>{selectedDay.record.late_minutes} {trans('attendance.units.min')}</span>
                                         </DR>
                                     )}
                                     {selectedDay.otRecord && parseFloat(selectedDay.otRecord.hours_approved) > 0 && (() => {
@@ -802,12 +810,12 @@ export default function AttendanceIndex({
                                         const segs = ot.segments || [];
                                         return (
                                             <>
-                                                <DR label="OT Hours" t={t}>
+                                                <DR label={trans('attendance.fields.otHours')} t={t}>
                                                     <span style={{ color:'#8b5cf6', fontWeight:700, fontSize:13 }}>{hLabel}</span>
                                                 </DR>
                                                 {segs.length > 0 && (
                                                     <div style={{ paddingTop:8, marginTop:2 }}>
-                                                        <div style={{ fontSize:10, color:t.textMute, fontWeight:700, marginBottom:8, letterSpacing:'0.04em' }}>OVERTIME DETAIL</div>
+                                                        <div style={{ fontSize:10, color:t.textMute, fontWeight:700, marginBottom:8, letterSpacing:'0.04em' }}>{trans('attendance.labels.overtimeDetail')}</div>
                                                         <div style={{ borderTop:`1px solid ${t.detailBorder}`, paddingTop:6, display:'flex', flexDirection:'column', gap:8 }}>
                                                             {segs.map((seg, i) => {
                                                                 const sh = parseFloat(seg.hours);
@@ -836,12 +844,12 @@ export default function AttendanceIndex({
                                             border: dark ? '1px solid rgba(245,158,11,0.2)' : '1px solid #fde68a',
                                             borderRadius:10, padding:'8px 10px', fontSize:11, color:'#92400e', marginTop:6,
                                         }}>
-                                            ⚠️ Exceeds {stdHours}h standard. Consider OT request.
+                                            ⚠️ {trans('attendance.messages.exceedsStandard').replace(':hours', stdHours)}
                                         </div>
                                     )}
                                     {selectedDay.record.note && (
                                         <div style={{ paddingTop:8, borderTop:`1px solid ${t.detailBorder}`, marginTop:4 }}>
-                                            <div style={{ fontSize:10, color:t.textMute, fontWeight:700, marginBottom:3 }}>NOTE</div>
+                                            <div style={{ fontSize:10, color:t.textMute, fontWeight:700, marginBottom:3 }}>{trans('attendance.labels.note')}</div>
                                             <div style={{ fontSize:12, color:t.textSoft, fontStyle:'italic', lineHeight:1.5 }}>
                                                 {selectedDay.record.note}
                                             </div>
@@ -858,7 +866,7 @@ export default function AttendanceIndex({
                                                     cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:5,
                                                     boxShadow:'0 4px 12px rgba(99,102,241,0.3)',
                                                 }}>
-                                                ✏️ Edit
+                                                ✏️ {trans('attendance.actions.edit')}
                                             </button>
                                             <button
                                                 onClick={() => setShowDeleteConfirm(true)}
@@ -871,7 +879,7 @@ export default function AttendanceIndex({
                                                 }}
                                                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'}
                                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                                🗑️ Delete
+                                                🗑️ {trans('attendance.actions.delete')}
                                             </button>
                                         </div>
                                     )}
@@ -882,9 +890,9 @@ export default function AttendanceIndex({
                                         <div style={{ fontSize:28, opacity:0.4 }}>—</div>
                                         <div style={{ color:t.textMute, fontWeight:500, textAlign:'center' }}>
                                             {selectedDay.isWeekend || selectedDay.isHoliday
-                                                ? 'No attendance required'
-                                                : selectedDay.isFuture ? 'Future date'
-                                                : 'Absent — No record'}
+                                                ? trans('attendance.messages.noAttendanceRequired')
+                                                : selectedDay.isFuture ? trans('attendance.messages.futureDate')
+                                                : trans('attendance.messages.absentNoRecord')}
                                         </div>
                                         {canManage && !selectedDay.isWeekend && !selectedDay.isHoliday && !selectedDay.isFuture && (
                                             <button
@@ -894,7 +902,7 @@ export default function AttendanceIndex({
                                                     color:'#fff', border:'none', borderRadius:10,
                                                     padding:'8px 16px', fontSize:12, fontWeight:700, cursor:'pointer',
                                                 }}>
-                                                + Add Record
+                                                + {trans('attendance.actions.addRecord')}
                                             </button>
                                         )}
                                     </div>
@@ -909,16 +917,16 @@ export default function AttendanceIndex({
                                 const segs = ot.segments || [];
                                 return (
                                     <div>
-                                        <DR label="Employee" val={selectedEmp?.name || '—'} t={t} />
-                                        <DR label="Status" t={t}>
-                                            <span style={{ fontSize:11, fontWeight:700, background: dark ? 'rgba(139,92,246,0.15)' : '#fdf4ff', color:'#8b5cf6', borderRadius:99, padding:'2px 10px' }}>OT Only</span>
+                                        <DR label={trans('attendance.fields.employee')} val={selectedEmp?.name || '—'} t={t} />
+                                        <DR label={trans('attendance.fields.status')} t={t}>
+                                            <span style={{ fontSize:11, fontWeight:700, background: dark ? 'rgba(139,92,246,0.15)' : '#fdf4ff', color:'#8b5cf6', borderRadius:99, padding:'2px 10px' }}>{trans('attendance.status.otOnly')}</span>
                                         </DR>
-                                        <DR label="OT Hours" t={t}>
+                                        <DR label={trans('attendance.fields.otHours')} t={t}>
                                             <span style={{ color:'#8b5cf6', fontWeight:700, fontSize:13 }}>{hLabel}</span>
                                         </DR>
                                         {segs.length > 0 && (
                                             <div style={{ paddingTop:8, marginTop:2 }}>
-                                                <div style={{ fontSize:10, color:t.textMute, fontWeight:700, marginBottom:8, letterSpacing:'0.04em' }}>OVERTIME DETAIL</div>
+                                                <div style={{ fontSize:10, color:t.textMute, fontWeight:700, marginBottom:8, letterSpacing:'0.04em' }}>{trans('attendance.labels.overtimeDetail')}</div>
                                                 <div style={{ borderTop:`1px solid ${t.detailBorder}`, paddingTop:6, display:'flex', flexDirection:'column', gap:8 }}>
                                                     {segs.map((seg, i) => {
                                                         const sh = parseFloat(seg.hours);
@@ -951,7 +959,7 @@ export default function AttendanceIndex({
                             flexDirection:'column', gap:8,
                         }}>
                             <div style={{ fontSize:28, opacity:0.3 }}>📅</div>
-                            <span>Click a day to view details</span>
+                            <span>{trans('attendance.messages.clickDayDetails')}</span>
                         </div>
                     )}
                 </div>
@@ -962,7 +970,7 @@ export default function AttendanceIndex({
                     borderRadius: 18, padding: '16px 20px', boxShadow: t.cardShadow,
                 }}>
                     <div style={{ fontSize:13, fontWeight:800, color:t.text, marginBottom:14, letterSpacing:'-0.2px' }}>
-                        📊 {MONTHS[month-1]} {year} — Monthly Summary
+                        📊 {trans(`attendance.months.${MONTHS[month-1]}`)} {year} — {trans('attendance.summary.monthlySummary')}
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(9,1fr)', gap:10 }}>
                         {stats.map((item, i) => (
@@ -1001,7 +1009,7 @@ export default function AttendanceIndex({
                             display:'flex', alignItems:'center', justifyContent:'center',
                             fontSize:26, margin:'0 auto 16px',
                         }}>🗑️</div>
-                        <div style={{ fontSize:16, fontWeight:800, color:t.text, marginBottom:8 }}>Delete Attendance?</div>
+                        <div style={{ fontSize:16, fontWeight:800, color:t.text, marginBottom:8 }}>{trans('attendance.deleteConfirm.title')}</div>
                         <div style={{ fontSize:12, color:t.textMute, marginBottom:24, lineHeight:1.7 }}>
                             {new Date(selectedDay.dateStr+'T00:00:00').toLocaleDateString('en-US',{ weekday:'long', month:'long', day:'numeric' })}
                             <br/><span style={{ fontWeight:700, color:t.textSoft }}>{selectedDay.record.user?.name}</span>
@@ -1016,7 +1024,7 @@ export default function AttendanceIndex({
                                 onClick={() => setShowDeleteConfirm(false)} disabled={deleting}
                                 onMouseEnter={e => e.currentTarget.style.background = t.input}
                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                Cancel
+                                {trans('attendance.actions.cancel')}
                             </button>
                             <button
                                 style={{
@@ -1027,7 +1035,7 @@ export default function AttendanceIndex({
                                     opacity:deleting?0.6:1, boxShadow:'0 4px 14px rgba(239,68,68,0.35)',
                                 }}
                                 onClick={handleDelete} disabled={deleting}>
-                                {deleting ? 'Deleting...' : 'Yes, Delete'}
+                                {deleting ? trans('attendance.actions.deleting') : trans('attendance.actions.yesDelete')}
                             </button>
                         </div>
                     </div>
@@ -1046,6 +1054,7 @@ export default function AttendanceIndex({
                     onSave={handleSave}
                     dark={dark}
                     t={t}
+                    trans={trans}
                 />
             )}
         </AppLayout>
@@ -1066,12 +1075,12 @@ function DR({ label, val, children, t }) {
 }
 
 // ── Status Pill ───────────────────────────────────────────────
-function StatusPill({ status, dark }) {
+function StatusPill({ status, dark, trans }) {
     const cfg = {
-        present:  { label:'Present',  bg: dark ? 'rgba(16,185,129,0.15)' : '#d1fae5', color:'#10b981' },
-        absent:   { label:'Absent',   bg: dark ? 'rgba(239,68,68,0.15)' : '#fee2e2',  color:'#ef4444' },
-        late:     { label:'Late',     bg: dark ? 'rgba(245,158,11,0.15)' : '#fef3c7', color:'#f59e0b' },
-        half_day: { label:'Half Day', bg: dark ? 'rgba(59,130,246,0.15)' : '#dbeafe', color:'#3b82f6' },
+        present:  { label:trans('attendance.status.present'),  bg: dark ? 'rgba(16,185,129,0.15)' : '#d1fae5', color:'#10b981' },
+        absent:   { label:trans('attendance.status.absent'),   bg: dark ? 'rgba(239,68,68,0.15)' : '#fee2e2',  color:'#ef4444' },
+        late:     { label:trans('attendance.shortLabels.late'),     bg: dark ? 'rgba(245,158,11,0.15)' : '#fef3c7', color:'#f59e0b' },
+        half_day: { label:trans('attendance.status.halfDay'), bg: dark ? 'rgba(59,130,246,0.15)' : '#dbeafe', color:'#3b82f6' },
     };
     const c = cfg[status] || cfg.present;
     return (
@@ -1199,7 +1208,7 @@ function TimePicker({ value, onChange, theme, dark, error, disabled = false }) {
 }
 
 // ── Attendance Modal ──────────────────────────────────────────
-function AttendanceModal({ data, employees, onClose, onSave, saving, countryConfig, leaveInfo, dark, t }) {
+function AttendanceModal({ data, employees, onClose, onSave, saving, countryConfig, leaveInfo, dark, t, trans }) {
     const WORK_START  = countryConfig?.work_start || countryConfig?.standard_start_time || '08:00';
     const WORK_END    = countryConfig?.work_end   || '17:00';
     const LUNCH_START = countryConfig?.lunch_start || '12:00';
@@ -1257,21 +1266,21 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
 
     function validate() {
         const e = {};
-        if (!form.user_id)        e.user_id        = 'Employee is required';
-        if (!form.date)           e.date           = 'Date is required';
-        if (!form.check_in_time)  e.check_in_time  = 'Check In is required';
+        if (!form.user_id)        e.user_id        = trans('attendance.validation.employeeRequired');
+        if (!form.date)           e.date           = trans('attendance.validation.dateRequired');
+        if (!form.check_in_time)  e.check_in_time  = trans('attendance.validation.checkInRequired');
         if (isAmHalf && form.check_in_time && form.check_in_time < LUNCH_END)
-            e.check_in_time = `AM Half Leave — check-in must be ${fmt12(LUNCH_END)} or later`;
+            e.check_in_time = trans('attendance.validation.amHalfCheckIn').replace(':time', fmt12(LUNCH_END));
         if (isPmHalf && form.check_in_time && form.check_in_time >= LUNCH_START)
-            e.check_in_time = `PM Half Leave — check-in must be before ${fmt12(LUNCH_START)}`;
-        if (!form.check_out_time) e.check_out_time = 'Check Out is required';
+            e.check_in_time = trans('attendance.validation.pmHalfCheckIn').replace(':time', fmt12(LUNCH_START));
+        if (!form.check_out_time) e.check_out_time = trans('attendance.validation.checkOutRequired');
         if (isPmHalf && form.check_out_time && form.check_out_time > LUNCH_START)
-            e.check_out_time = `PM Half Leave — check-out must be ${fmt12(LUNCH_START)} or earlier`;
+            e.check_out_time = trans('attendance.validation.pmHalfCheckOut').replace(':time', fmt12(LUNCH_START));
         if (form.work_hours_actual === '' || form.work_hours_actual === null)
-            e.work_hours_actual = 'Work Hours is required';
+            e.work_hours_actual = trans('attendance.validation.workHoursRequired');
         if (form.late_minutes === '' || form.late_minutes === null)
-            e.late_minutes = 'Late minutes is required';
-        if (!form.note) e.note = 'Note is required';
+            e.late_minutes = trans('attendance.validation.lateMinutesRequired');
+        if (!form.note) e.note = trans('attendance.validation.noteRequired');
         setErrors(e);
         return Object.keys(e).length === 0;
     }
@@ -1309,10 +1318,10 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                 }}>
                     <div>
                         <div style={{ fontSize:16, fontWeight:900, color:t.text, letterSpacing:'-0.3px' }}>
-                            {isEdit ? 'Edit Attendance' : 'Add Attendance'}
+                            {isEdit ? trans('attendance.modal.editTitle') : trans('attendance.modal.addTitle')}
                         </div>
                         <div style={{ fontSize:11, color:t.textMute, marginTop:2, fontWeight:500 }}>
-                            {isEdit ? 'Update attendance record' : 'Record employee attendance'}
+                            {isEdit ? trans('attendance.modal.updateSubtitle') : trans('attendance.modal.recordSubtitle')}
                         </div>
                     </div>
                     <button onClick={onClose} style={{
@@ -1338,14 +1347,16 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                     {/* Employee */}
                     <div>
                         <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
-                            Employee <span style={{ color:'#ef4444' }}>*</span>
+                            {trans('attendance.fields.employee')} <span style={{ color:'#ef4444' }}>*</span>
                         </label>
                         <PremiumSelect
                             value={form.user_id}
                             onChange={v => set('user_id', v)}
-                            options={[{ value:'', label:'Select Employee' }, ...empOptions]}
-                            placeholder="Select Employee"
+                            options={[{ value:'', label: trans('attendance.placeholders.selectEmployee') }, ...empOptions]}
+                            placeholder={trans('attendance.placeholders.selectEmployee')}
                             t={t}
+
+                            trans={trans}
                             dropId="modal-emp"
                             openId={modalOpenId}
                             setOpenId={setModalOpenId}
@@ -1356,7 +1367,7 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                     {/* Date */}
                     <div>
                         <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
-                            Date <span style={{ color:'#ef4444' }}>*</span>
+                            {trans('attendance.fields.date')} <span style={{ color:'#ef4444' }}>*</span>
                         </label>
                         <input
                             style={{
@@ -1378,7 +1389,7 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
                         <div>
                             <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
-                                Check In <span style={{ color:'#ef4444' }}>*</span>
+                                {trans('attendance.fields.checkIn')} <span style={{ color:'#ef4444' }}>*</span>
                             </label>
                             <TimePicker
                                 value={form.check_in_time}
@@ -1388,11 +1399,11 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                                 error={!!errors.check_in_time}
                             />
                             {errors.check_in_time && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.check_in_time}</span>}
-                            {isAmHalf && !errors.check_in_time && <span style={{ fontSize:10, color:'#f59e0b', marginTop:3, display:'block' }}>⚠️ Must be {fmt12(LUNCH_END)} or later</span>}
+                            {isAmHalf && !errors.check_in_time && <span style={{ fontSize:10, color:'#f59e0b', marginTop:3, display:'block' }}>⚠️ {trans('attendance.hints.mustBeOrLater').replace(':time', fmt12(LUNCH_END))}</span>}
                         </div>
                         <div>
                             <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
-                                Check Out <span style={{ color:'#ef4444' }}>*</span>
+                                {trans('attendance.fields.checkOut')} <span style={{ color:'#ef4444' }}>*</span>
                             </label>
                             <TimePicker
                                 value={form.check_out_time}
@@ -1402,7 +1413,7 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                                 error={!!errors.check_out_time}
                             />
                             {errors.check_out_time && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.check_out_time}</span>}
-                            {isPmHalf && !errors.check_out_time && <span style={{ fontSize:10, color:'#f59e0b', marginTop:3, display:'block' }}>⚠️ Must be {fmt12(LUNCH_START)} or earlier</span>}
+                            {isPmHalf && !errors.check_out_time && <span style={{ fontSize:10, color:'#f59e0b', marginTop:3, display:'block' }}>⚠️ {trans('attendance.hints.mustBeOrEarlier').replace(':time', fmt12(LUNCH_START))}</span>}
                         </div>
                     </div>
 
@@ -1410,8 +1421,8 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
                         <div>
                             <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'flex', alignItems:'center', gap:6, marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
-                                Work Hours <span style={{ color:'#ef4444' }}>*</span>
-                                <span style={{ fontSize:8, fontWeight:800, background:'rgba(59,130,246,0.15)', color:'#3b82f6', borderRadius:4, padding:'1px 6px', textTransform:'none', letterSpacing:0 }}>AUTO</span>
+                                {trans('attendance.fields.workHours')} <span style={{ color:'#ef4444' }}>*</span>
+                                <span style={{ fontSize:8, fontWeight:800, background:'rgba(59,130,246,0.15)', color:'#3b82f6', borderRadius:4, padding:'1px 6px', textTransform:'none', letterSpacing:0 }}>{trans('attendance.labels.auto')}</span>
                             </label>
                             <div style={{
                                 ...inputStyle(!!errors.work_hours_actual),
@@ -1421,36 +1432,36 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                                 {form.work_hours_actual !== '' && form.work_hours_actual !== null ? hToHM(form.work_hours_actual) : '—'}
                             </div>
                             {errors.work_hours_actual && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.work_hours_actual}</span>}
-                            <span style={{ fontSize:10, color:t.textMute, marginTop:3, display:'block' }}>Lunch: {LUNCH_START} — {LUNCH_END}</span>
+                            <span style={{ fontSize:10, color:t.textMute, marginTop:3, display:'block' }}>{trans('attendance.labels.lunch')}: {LUNCH_START} — {LUNCH_END}</span>
                         </div>
                         <div>
                             <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'flex', alignItems:'center', gap:6, marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
-                                Late (min) <span style={{ color:'#ef4444' }}>*</span>
-                                <span style={{ fontSize:8, fontWeight:800, background:'rgba(59,130,246,0.15)', color:'#3b82f6', borderRadius:4, padding:'1px 6px', textTransform:'none', letterSpacing:0 }}>AUTO</span>
+                                {trans('attendance.fields.lateMin')} <span style={{ color:'#ef4444' }}>*</span>
+                                <span style={{ fontSize:8, fontWeight:800, background:'rgba(59,130,246,0.15)', color:'#3b82f6', borderRadius:4, padding:'1px 6px', textTransform:'none', letterSpacing:0 }}>{trans('attendance.labels.auto')}</span>
                             </label>
                             <input
                                 style={inputStyle(!!errors.late_minutes)}
                                 type="number" value={form.late_minutes}
                                 onChange={e => set('late_minutes', e.target.value)}
-                                placeholder="Auto"
+                                placeholder={trans('attendance.placeholders.auto')}
                                 onFocus={e => { e.target.style.borderColor = t.inputFocus; e.target.style.boxShadow = `0 0 0 3px ${t.inputFocus}22`; }}
                                 onBlur={e => { e.target.style.borderColor = errors.late_minutes ? '#ef4444' : t.inputBorder; e.target.style.boxShadow = 'none'; }}
                             />
                             {errors.late_minutes && <span style={{ fontSize:10, color:'#ef4444', fontWeight:600, marginTop:4, display:'block' }}>{errors.late_minutes}</span>}
-                            <span style={{ fontSize:10, color:t.textMute, marginTop:3, display:'block' }}>Start: {WORK_START}</span>
+                            <span style={{ fontSize:10, color:t.textMute, marginTop:3, display:'block' }}>{trans('attendance.labels.start')}: {WORK_START}</span>
                         </div>
                     </div>
 
                     {/* Note */}
                     <div>
                         <label style={{ fontSize:11, fontWeight:800, color:t.textSoft, display:'block', marginBottom:6, letterSpacing:'0.04em', textTransform:'uppercase' }}>
-                            Note <span style={{ color:'#ef4444' }}>*</span>
+                            {trans('attendance.fields.note')} <span style={{ color:'#ef4444' }}>*</span>
                         </label>
                         <textarea
                             style={{ ...inputStyle(!!errors.note), height:80, resize:'vertical', lineHeight:1.6 }}
                             value={form.note}
                             onChange={e => set('note', e.target.value)}
-                            placeholder="Required note..."
+                            placeholder={trans('attendance.placeholders.requiredNote')}
                             onFocus={e => { e.target.style.borderColor = t.inputFocus; e.target.style.boxShadow = `0 0 0 3px ${t.inputFocus}22`; }}
                             onBlur={e => { e.target.style.borderColor = errors.note ? '#ef4444' : t.inputBorder; e.target.style.boxShadow = 'none'; }}
                         />
@@ -1475,7 +1486,7 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = t.input}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        Cancel
+                        {trans('attendance.actions.cancel')}
                     </button>
                     <button
                         onClick={() => { if (!validate()) return; onSave(form); }}
@@ -1489,7 +1500,7 @@ function AttendanceModal({ data, employees, onClose, onSave, saving, countryConf
                         }}
                         onMouseEnter={e => { if (!saving) e.currentTarget.style.opacity = '0.9'; }}
                         onMouseLeave={e => { if (!saving) e.currentTarget.style.opacity = '1'; }}>
-                        {saving ? '⏳ Saving...' : '✅ Save'}
+                        {saving ? `⏳ ${trans('attendance.actions.saving')}` : `✅ ${trans('attendance.actions.save')}`}
                     </button>
                 </div>
             </div>

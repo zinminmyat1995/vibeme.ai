@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 function useReactiveTheme() {
     const getDark = () => {
@@ -85,7 +86,7 @@ function ActionButton({ title, onClick, children, theme, danger = false }) {
     );
 }
 
-function FolderActionMenu({ folder, onAddChild, onEdit, onDelete, theme }) {
+function FolderActionMenu({ folder, onAddChild, onEdit, onDelete, theme, tr }) {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
 
@@ -99,7 +100,7 @@ function FolderActionMenu({ folder, onAddChild, onEdit, onDelete, theme }) {
 
     return (
         <div ref={ref} style={{ position: 'relative' }}>
-            <ActionButton title="More" onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }} theme={theme}>
+            <ActionButton title={tr('documentTranslation.folderTree.actions.more')} onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }} theme={theme}>
                 <span style={{ fontSize: 16, lineHeight: 1 }}>⋯</span>
             </ActionButton>
 
@@ -122,21 +123,21 @@ function FolderActionMenu({ folder, onAddChild, onEdit, onDelete, theme }) {
                     {folder.depth < 3 && (
                         <button onClick={(e) => { e.stopPropagation(); setOpen(false); onAddChild(folder); }} style={menuBtn(theme)}>
                             <span>＋</span>
-                            <span>Add subfolder</span>
+                            <span>{tr('documentTranslation.folderTree.actions.addSubfolder')}</span>
                         </button>
                     )}
 
                     {folder.canEdit && (
                         <button onClick={(e) => { e.stopPropagation(); setOpen(false); onEdit(folder); }} style={menuBtn(theme)}>
                             <span>✎</span>
-                            <span>Edit folder</span>
+                            <span>{tr('documentTranslation.folderTree.actions.editFolder')}</span>
                         </button>
                     )}
 
                     {folder.canDelete && (
                         <button onClick={(e) => { e.stopPropagation(); setOpen(false); onDelete(folder); }} style={{ ...menuBtn(theme), color: '#ef4444' }}>
                             <span>🗑</span>
-                            <span>Delete folder</span>
+                            <span>{tr('documentTranslation.folderTree.actions.deleteFolder')}</span>
                         </button>
                     )}
                 </div>
@@ -163,7 +164,7 @@ function menuBtn(theme) {
     };
 }
 
-function FolderItem({ folder, depth = 0, selectedId, onSelect, onEdit, onDelete, onAddChild, theme, darkMode }) {
+function FolderItem({ folder, depth = 0, selectedId, onSelect, onEdit, onDelete, onAddChild, theme, darkMode, tr }) {
     const [expanded, setExpanded] = useState(false);
     const hasChildren = folder.children?.length > 0;
     const isSelected = selectedId === folder.id;
@@ -236,13 +237,13 @@ function FolderItem({ folder, depth = 0, selectedId, onSelect, onEdit, onDelete,
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 10, color: theme.textMute }}>{visIcon[folder.visibility]}</span>
-                        <span style={{ fontSize: 10, color: theme.textMute }}>{folder.documentCount} files</span>
-                        {hasChildren && <span style={{ fontSize: 10, color: theme.textMute }}>{folder.children.length} subfolders</span>}
+                        <span style={{ fontSize: 10, color: theme.textMute }}>{folder.documentCount} {folder.documentCount === 1 ? tr('documentTranslation.folderTree.units.file') : tr('documentTranslation.folderTree.units.files')}</span>
+                        {hasChildren && <span style={{ fontSize: 10, color: theme.textMute }}>{folder.children.length} {folder.children.length === 1 ? tr('documentTranslation.folderTree.units.subfolder') : tr('documentTranslation.folderTree.units.subfolders')}</span>}
                     </div>
                 </div>
 
                 {isSelected && (
-                    <FolderActionMenu folder={folder} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} theme={theme} />
+                    <FolderActionMenu folder={folder} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} theme={theme} tr={tr} />
                 )}
             </div>
 
@@ -260,6 +261,7 @@ function FolderItem({ folder, depth = 0, selectedId, onSelect, onEdit, onDelete,
                             onAddChild={onAddChild}
                             theme={theme}
                             darkMode={darkMode}
+                            tr={tr}
                         />
                     ))}
                 </div>
@@ -277,6 +279,7 @@ export default function FolderTree({
     onDeleteFolder,
     onAddChildFolder,
 }) {
+    const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
     const [search, setSearch] = useState('');
@@ -328,10 +331,10 @@ export default function FolderTree({
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
                         <div style={{ minWidth: 0, flex: 1 }}>
                             <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.accent }}>
-                                Library
+                                {tr('documentTranslation.folderTree.library')}
                             </div>
                             <div style={{ fontSize: 16, fontWeight: 900, color: theme.text, marginTop: 5 }}>
-                                Smart folders
+                                {tr('documentTranslation.folderTree.smartFolders')}
                             </div>
                         </div>
 
@@ -353,7 +356,7 @@ export default function FolderTree({
                                 flexShrink: 0,
                             }}
                         >
-                            + New
+                            {tr('documentTranslation.folderTree.new')}
                         </button>
                     </div>
 
@@ -375,7 +378,7 @@ export default function FolderTree({
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search folders..."
+                            placeholder={tr('documentTranslation.folderTree.searchPlaceholder')}
                             style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 12.5, color: theme.text, flex: 1, minWidth: 0 }}
                         />
                     </div>
@@ -402,8 +405,8 @@ export default function FolderTree({
                             🏠
                         </div>
                         <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: 12.5, fontWeight: 900, color: !selectedFolder ? theme.accent : theme.textSoft }}>All Files</div>
-                            <div style={{ marginTop: 3, fontSize: 10.5, color: theme.textMute }}>Browse every uploaded document</div>
+                            <div style={{ fontSize: 12.5, fontWeight: 900, color: !selectedFolder ? theme.accent : theme.textSoft }}>{tr('documentTranslation.labels.allFiles')}</div>
+                            <div style={{ marginTop: 3, fontSize: 10.5, color: theme.textMute }}>{tr('documentTranslation.folderTree.browseEveryUploadedDocument')}</div>
                         </div>
                     </button>
                 </div>
@@ -417,10 +420,10 @@ export default function FolderTree({
                                 📂
                             </div>
                             <div style={{ fontSize: 14, fontWeight: 900, color: theme.text }}>
-                                {search ? 'No folders found' : 'No folders yet'}
+                                {search ? tr('documentTranslation.folderTree.empty.noFoldersFound') : tr('documentTranslation.folderTree.empty.noFoldersYet')}
                             </div>
                             <div style={{ marginTop: 6, fontSize: 11.5, color: theme.textMute }}>
-                                {search ? 'Try another keyword.' : 'Create the first folder for cleaner document organization.'}
+                                {search ? tr('documentTranslation.folderTree.empty.tryAnotherKeyword') : tr('documentTranslation.folderTree.empty.createFirstFolderDesc')}
                             </div>
                             {!search && (
                                 <button
@@ -439,7 +442,7 @@ export default function FolderTree({
                                         cursor: 'pointer',
                                     }}
                                 >
-                                    Create first folder
+                                    {tr('documentTranslation.folderTree.empty.createFirstFolder')}
                                 </button>
                             )}
                         </div>
@@ -455,6 +458,7 @@ export default function FolderTree({
                                 onAddChild={onAddChildFolder}
                                 theme={theme}
                                 darkMode={darkMode}
+                                tr={tr}
                             />
                         ))
                     )}
@@ -462,7 +466,7 @@ export default function FolderTree({
 
                 <div style={{ position: 'relative', padding: '12px 16px 14px', borderTop: `1px solid ${theme.border}` }}>
                     <div style={{ fontSize: 11, color: theme.textMute, textAlign: 'center', fontWeight: 700 }}>
-                        {folders.length} folders total
+                        {folders.length} {folders.length === 1 ? tr('documentTranslation.folderTree.units.folder') : tr('documentTranslation.folderTree.units.folders')} {tr('documentTranslation.folderTree.units.total')}
                     </div>
                 </div>
             </div>

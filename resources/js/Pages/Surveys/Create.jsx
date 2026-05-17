@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 function useReactiveTheme() {
     const getDark = () => {
@@ -59,11 +60,11 @@ function getTheme(dark) {
 }
 
 const TYPE_OPTIONS = [
-    { value:'single_choice', label:'Single',  icon:'🔘' },
-    { value:'multi_choice',  label:'Multiple', icon:'☑️' },
-    { value:'yes_no',        label:'Yes/No',   icon:'✅' },
-    { value:'rating',        label:'Rating',   icon:'⭐' },
-    { value:'text',          label:'Text',     icon:'✏️' },
+    { value:'single_choice', labelKey:'surveys.questionTypes.single', label:'Single',  icon:'🔘' },
+    { value:'multi_choice',  labelKey:'surveys.questionTypes.multiple', label:'Multiple', icon:'☑️' },
+    { value:'yes_no',        labelKey:'surveys.questionTypes.yesNo', label:'Yes/No',   icon:'✅' },
+    { value:'rating',        labelKey:'surveys.questionTypes.rating', label:'Rating',   icon:'⭐' },
+    { value:'text',          labelKey:'surveys.questionTypes.text', label:'Text',     icon:'✏️' },
 ];
 
 function newQuestion() {
@@ -95,7 +96,7 @@ function Field({ label, children, error }) {
 }
 
 // ── Question Card ──────────────────────────────────────────────
-function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemove, onMove }) {
+function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemove, onMove, tr }) {
     const showOptions = ['single_choice','multi_choice'].includes(q.type);
     const parentQs    = questions.slice(0, idx);
 
@@ -157,7 +158,7 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
 
                 <span style={{ fontSize:11, fontWeight:600, color:theme.textSoft, flex:1 }}>
                     {TYPE_OPTIONS.find(t=>t.value===q.type)?.icon}{' '}
-                    {TYPE_OPTIONS.find(t=>t.value===q.type)?.label}
+                    {tr(TYPE_OPTIONS.find(t=>t.value===q.type)?.labelKey)}
                     {q.is_required && <span style={{ color:'#ef4444', marginLeft:4 }}>*</span>}
                 </span>
 
@@ -181,16 +182,16 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
             <div style={{ padding:'16px 18px', display:'flex', flexDirection:'column', gap:14 }}>
 
                 {/* Question text */}
-                <Field label="Question">
+                <Field label={tr('surveys.create.fields.question')}>
                     <textarea value={q.question} onChange={e=>onChange(idx,'question',e.target.value)}
-                        placeholder="Type your question here..." rows={2}
+                        placeholder={tr('surveys.create.placeholders.question')} rows={2}
                         style={{...inp(!q.question&&false), resize:'none'}}
                         onFocus={e=>e.target.style.borderColor=theme.borderFocus}
                         onBlur={e=>e.target.style.borderColor=theme.inputBorder}/>
                 </Field>
 
                 {/* Type pills */}
-                <Field label="Type">
+                <Field label={tr('surveys.create.fields.type')}>
                     <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
                         {TYPE_OPTIONS.map(t => {
                             const active = q.type === t.value;
@@ -204,7 +205,7 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
                                     background: active ? `${c}18` : 'transparent',
                                     color: active ? c : theme.textSoft,
                                 }}>
-                                    <span>{t.icon}</span>{t.label}
+                                    <span>{t.icon}</span>{tr(t.labelKey)}
                                 </button>
                             );
                         })}
@@ -222,7 +223,7 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
                                         const opts=[...(q.options||[])];
                                         opts[oi]=e.target.value;
                                         onChange(idx,'options',opts);
-                                    }} placeholder={`Option ${oi+1}`}
+                                    }} placeholder={`${tr('surveys.create.placeholders.option')} ${oi+1}`}
                                     style={{...inp(false), flex:1}}
                                     onFocus={e=>e.target.style.borderColor=theme.borderFocus}
                                     onBlur={e=>e.target.style.borderColor=theme.inputBorder}/>
@@ -242,7 +243,7 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
                             }}
                             onMouseEnter={e=>{e.currentTarget.style.borderColor=theme.primary; e.currentTarget.style.background=theme.primarySoft;}}
                             onMouseLeave={e=>{e.currentTarget.style.borderColor=theme.inputBorder; e.currentTarget.style.background='transparent';}}>
-                                + Add Option
+                                {tr('surveys.create.actions.addOption')}
                             </button>
                         </div>
                     </Field>
@@ -256,31 +257,31 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
                         border:`1px solid ${dark?'rgba(99,102,241,0.2)':'#ddd6fe'}`,
                     }}>
                         <div style={{ fontSize:10, fontWeight:800, textTransform:'uppercase', letterSpacing:'.07em', color:'#6366f1', marginBottom:10 }}>
-                            ⚡ Conditional Logic
+                            ⚡ {tr('surveys.create.labels.conditionalLogic')}
                         </div>
                         <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
-                            <span style={{ fontSize:12, color:theme.textSoft, fontWeight:500, whiteSpace:'nowrap' }}>Show if</span>
+                            <span style={{ fontSize:12, color:theme.textSoft, fontWeight:500, whiteSpace:'nowrap' }}>{tr('surveys.create.labels.showIf')}</span>
                             <select
                                 value={q.depends_on_question_index ?? ''}
                                 onChange={e=>onChange(idx,'depends_on_question_index', e.target.value===''?null:Number(e.target.value))}
                                 style={{ flex:1, minWidth:140, padding:'7px 10px', borderRadius:9, border:`1.5px solid ${dark?'rgba(99,102,241,0.25)':'#c4b5fd'}`, background:dark?'rgba(99,102,241,0.08)':  '#fff', color:theme.text, fontSize:12, fontFamily:'inherit', outline:'none', cursor:'pointer' }}>
-                                <option value=''>Always show</option>
+                                <option value=''>{tr('surveys.create.labels.alwaysShow')}</option>
                                 {parentQs.map((pq,pi)=>(
-                                    <option key={pi} value={pi}>Q{pi+1}: {pq.question?.slice(0,35)||'(empty)'}</option>
+                                    <option key={pi} value={pi}>Q{pi+1}: {pq.question?.slice(0,35)||`{tr('surveys.create.labels.emptyQuestion')}`}</option>
                                 ))}
                             </select>
                             {q.depends_on_question_index !== null && q.depends_on_question_index !== undefined && (
                                 <>
-                                    <span style={{ fontSize:12, color:theme.textSoft, fontWeight:500, whiteSpace:'nowrap' }}>answer is</span>
+                                    <span style={{ fontSize:12, color:theme.textSoft, fontWeight:500, whiteSpace:'nowrap' }}>{tr('surveys.create.labels.answerIs')}</span>
                                     <select
                                         value={q.depends_on_answer ?? ''}
                                         onChange={e=>onChange(idx,'depends_on_answer',e.target.value||null)}
                                         style={{ flex:1, minWidth:120, padding:'7px 10px', borderRadius:9, border:`1.5px solid ${dark?'rgba(99,102,241,0.25)':'#c4b5fd'}`, background:dark?'rgba(99,102,241,0.08)':'#fff', color:theme.text, fontSize:12, fontFamily:'inherit', outline:'none', cursor:'pointer' }}>
-                                        <option value=''>Select answer...</option>
+                                        <option value=''>{tr('surveys.create.placeholders.selectAnswer')}</option>
                                         {(()=>{
                                             const pq = questions[q.depends_on_question_index];
                                             if (!pq) return null;
-                                            if (pq.type === 'yes_no') return ['Yes','No'].map(a=><option key={a} value={a}>{a}</option>);
+                                            if (pq.type === 'yes_no') return [tr('surveys.public.yes'),tr('surveys.public.no')].map(a=><option key={a} value={a}>{a}</option>);
                                             if (pq.type === 'rating') return ['1','2','3','4','5'].map(a=><option key={a} value={a}>★ {a}</option>);
                                             return (pq.options||[]).filter(Boolean).map((a,i)=><option key={i} value={a}>{a}</option>);
                                         })()}
@@ -290,7 +291,7 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
                         </div>
                         {q.depends_on_question_index !== null && q.depends_on_answer && (
                             <div style={{ marginTop:8, fontSize:11, color:'#6366f1', fontWeight:500 }}>
-                                ✓ This question shows only when Q{Number(q.depends_on_question_index)+1} answer is "{q.depends_on_answer}"
+                                ✓ This question shows only when Q{Number(q.depends_on_question_index)+1} {tr('surveys.create.labels.answerIs')} "{q.depends_on_answer}"
                             </div>
                         )}
                     </div>
@@ -306,7 +307,7 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
                         <span style={{ position:'absolute', top:2.5, left:q.is_required?19:2.5, width:16, height:16, borderRadius:'50%', background:'#fff', transition:'left .2s', boxShadow:'0 1px 4px rgba(0,0,0,0.18)' }}/>
                     </button>
                     <span style={{ fontSize:12, fontWeight:600, color:theme.textSoft }}>
-                        {q.is_required ? 'Required' : 'Optional'}
+                        {q.is_required ? tr('surveys.create.labels.required') : tr('surveys.create.labels.optional')}
                     </span>
                 </div>
             </div>
@@ -318,6 +319,7 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
 //  MAIN
 // ══════════════════════════════════════════════════════════════
 export default function SurveysCreate({ mode='create', survey: editSurvey }) {
+    const { t: tr } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -379,13 +381,13 @@ export default function SurveysCreate({ mode='create', survey: editSurvey }) {
 
     const validate = () => {
         const e = {};
-        if (!title.trim()) e.title = 'Survey title is required.';
-        if (!questions.length) e.questions = 'Add at least one question.';
+        if (!title.trim()) e.title = tr('surveys.create.validation.titleRequired');
+        if (!questions.length) e.questions = tr('surveys.create.validation.addQuestion');
         questions.forEach((q, i) => {
-            if (!q.question.trim()) e[`q_${i}`] = 'required';
+            if (!q.question.trim()) e[`q_${i}`] = tr('surveys.create.validation.required');
             if (['single_choice','multi_choice'].includes(q.type)) {
                 const filled = (q.options||[]).filter(o=>o.trim());
-                if (filled.length < 2) e[`q_${i}_opts`] = 'Need at least 2 options';
+                if (filled.length < 2) e[`q_${i}_opts`] = tr('surveys.create.validation.needTwoOptions');
             }
         });
         setErrors(e);
@@ -425,8 +427,8 @@ export default function SurveysCreate({ mode='create', survey: editSurvey }) {
     const isEdit = mode === 'edit';
 console.log('editSurvey questions:', editSurvey?.questions);
     return (
-        <AppLayout title={isEdit ? 'Edit Survey' : 'Create Survey'}>
-            <Head title={isEdit ? 'Edit Survey' : 'Create Survey'}/>
+        <AppLayout title={isEdit ? tr('surveys.create.editSurvey') : tr('surveys.create.createSurvey')}>
+            <Head title={isEdit ? tr('surveys.create.editSurvey') : tr('surveys.create.createSurvey')}/>
             <style>{`
                 @keyframes sv-fade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
                 @keyframes sv-spin { to{transform:rotate(360deg)} }
@@ -455,17 +457,17 @@ console.log('editSurvey questions:', editSurvey?.questions);
                                 </div>
                                 <div>
                                     <div style={{ fontSize:11, fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase', color:'rgba(255,255,255,0.55)' }}>
-                                        Survey Builder
+                                        {tr('surveys.create.surveyBuilder')}
                                     </div>
                                     <div style={{ fontSize:20, fontWeight:900, color:'#fff', letterSpacing:'-0.3px', lineHeight:1.2 }}>
-                                        {isEdit ? 'Edit Survey' : 'New Survey'}
+                                        {isEdit ? tr('surveys.create.editSurvey') : tr('surveys.create.newSurvey')}
                                     </div>
                                 </div>
                             </div>
                             <div style={{ fontSize:13, color:'rgba(255,255,255,0.6)', marginBottom:20, maxWidth:480 }}>
                                 {isEdit
-                                    ? 'Update your survey content, questions, and settings.'
-                                    : 'Build a survey with conditional logic, multiple question types, and smart settings.'}
+                                    ? tr('surveys.create.editSubtitle')
+                                    : tr('surveys.create.createSubtitle')}
                             </div>
                         </div>
                         <button onClick={()=>router.visit('/hr/surveys')} style={{
@@ -475,7 +477,7 @@ console.log('editSurvey questions:', editSurvey?.questions);
                             display:'flex', alignItems:'center', gap:6, flexShrink:0, backdropFilter:'blur(4px)',
                         }}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-                            Back
+                            {tr('surveys.actions.back')}
                         </button>
                     </div>
 
@@ -488,23 +490,23 @@ console.log('editSurvey questions:', editSurvey?.questions);
                     {/* Left — Questions */}
                     <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
-                        {/* Survey Details card */}
+                        {/* {tr('surveys.create.surveyDetails')} card */}
                         <div style={{ background:theme.panel, borderRadius:18, border:`1px solid ${theme.border}`, overflow:'hidden', boxShadow:theme.shadow }}>
                             <div style={{ padding:'14px 20px', borderBottom:`1px solid ${theme.border}`, display:'flex', alignItems:'center', gap:8 }}>
                                 <div style={{ width:28, height:28, borderRadius:8, background:theme.primarySoft, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>📝</div>
-                                <span style={{ fontSize:13, fontWeight:700, color:theme.text }}>Survey Details</span>
+                                <span style={{ fontSize:13, fontWeight:700, color:theme.text }}>{tr('surveys.create.surveyDetails')}</span>
                             </div>
                             <div style={{ padding:'18px 20px', display:'flex', flexDirection:'column', gap:14 }}>
-                                <Field label="Title *" error={errors.title}>
+                                <Field label={tr('surveys.create.fields.titleRequired')} error={errors.title}>
                                     <input value={title} onChange={e=>setTitle(e.target.value)}
-                                        placeholder="e.g. Q2 Employee Satisfaction Survey"
+                                        placeholder={tr('surveys.create.placeholders.title')}
                                         style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:`1.5px solid ${errors.title?theme.danger:theme.inputBorder}`, background:theme.inputBg, color:theme.text, fontSize:13, fontFamily:'inherit', outline:'none', boxSizing:'border-box', transition:'border-color .15s' }}
                                         onFocus={e=>e.target.style.borderColor=theme.borderFocus}
                                         onBlur={e=>e.target.style.borderColor=errors.title?theme.danger:theme.inputBorder}/>
                                 </Field>
-                                <Field label="Description">
+                                <Field label={tr('surveys.create.fields.description')}>
                                     <textarea value={description} onChange={e=>setDescription(e.target.value)}
-                                        placeholder="Optional — briefly describe what this survey is about."
+                                        placeholder={tr('surveys.create.placeholders.description')}
                                         rows={2}
                                         style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:`1.5px solid ${theme.inputBorder}`, background:theme.inputBg, color:theme.text, fontSize:13, fontFamily:'inherit', outline:'none', resize:'none', boxSizing:'border-box' }}
                                         onFocus={e=>e.target.style.borderColor=theme.borderFocus}
@@ -516,7 +518,7 @@ console.log('editSurvey questions:', editSurvey?.questions);
                         {/* Questions */}
                         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 2px' }}>
                             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                                <span style={{ fontSize:14, fontWeight:800, color:theme.text }}>Questions</span>
+                                <span style={{ fontSize:14, fontWeight:800, color:theme.text }}>{tr('surveys.labels.questions')}</span>
                                 <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:99, background:theme.primarySoft, color:theme.primary }}>{questions.length}</span>
                             </div>
                             {errors.questions && <span style={{ fontSize:11, color:theme.danger }}>{errors.questions}</span>}
@@ -530,11 +532,12 @@ console.log('editSurvey questions:', editSurvey?.questions);
                                     onChange={handleQuestionChange}
                                     onRemove={(i)=>setQuestions(prev=>prev.filter((_,x)=>x!==i))}
                                     onMove={handleMove}
+                                    tr={tr}
                                 />
                             </div>
                         ))}
 
-                        {/* Add Question */}
+                        {/* {tr('surveys.create.actions.addQuestion')} */}
                         <button onClick={()=>setQuestions(prev=>[...prev, newQuestion()])} style={{
                             padding:'14px', borderRadius:16, border:`2px dashed ${theme.border}`,
                             background:'transparent', color:theme.primary, fontSize:13, fontWeight:700,
@@ -545,7 +548,7 @@ console.log('editSurvey questions:', editSurvey?.questions);
                         onMouseEnter={e=>{e.currentTarget.style.borderColor=theme.primary;e.currentTarget.style.background=theme.primarySoft;}}
                         onMouseLeave={e=>{e.currentTarget.style.borderColor=theme.border;e.currentTarget.style.background='transparent';}}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Add Question
+                            {tr('surveys.create.actions.addQuestion')}
                         </button>
                     </div>
 
@@ -556,12 +559,12 @@ console.log('editSurvey questions:', editSurvey?.questions);
                         <div style={{ background:theme.panel, borderRadius:18, border:`1px solid ${theme.border}`, overflow:'hidden', boxShadow:theme.shadow }}>
                             <div style={{ padding:'14px 18px', borderBottom:`1px solid ${theme.border}`, display:'flex', alignItems:'center', gap:8 }}>
                                 <div style={{ width:28, height:28, borderRadius:8, background:'rgba(5,150,105,0.12)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>⚙️</div>
-                                <span style={{ fontSize:13, fontWeight:700, color:theme.text }}>Settings</span>
+                                <span style={{ fontSize:13, fontWeight:700, color:theme.text }}>{tr('surveys.create.settings')}</span>
                             </div>
                             <div style={{ padding:'16px 18px', display:'flex', flexDirection:'column', gap:16 }}>
 
                                 {/* Close date */}
-                                <Field label="Close Date">
+                                <Field label={tr('surveys.create.fields.closeDate')}>
                                     <input type="date" value={closesAt} onChange={e=>setClosesAt(e.target.value)}
                                         style={{ width:'100%', padding:'9px 12px', borderRadius:10, border:`1.5px solid ${theme.inputBorder}`, background:theme.inputBg, color:theme.text, fontSize:13, fontFamily:'inherit', outline:'none', boxSizing:'border-box' }}
                                         onFocus={e=>e.target.style.borderColor=theme.borderFocus}
@@ -572,7 +575,7 @@ console.log('editSurvey questions:', editSurvey?.questions);
                                 <div style={{ padding:'12px 14px', borderRadius:12, background:isAnonymous?(dark?'rgba(99,102,241,0.08)':'#f5f3ff'):(dark?theme.panelSoft:theme.cardBg), border:`1px solid ${isAnonymous?(dark?'rgba(99,102,241,0.2)':'#ddd6fe'):theme.border}`, transition:'all .2s' }}>
                                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
                                         <span style={{ fontSize:13, fontWeight:700, color:isAnonymous?'#6366f1':theme.text }}>
-                                            🔒 Anonymous
+                                            🔒 {tr('surveys.labels.anonymous')}
                                         </span>
                                         <button type="button" onClick={()=>setIsAnonymous(v=>!v)} style={{
                                             width:40, height:22, borderRadius:99, border:'none', cursor:'pointer', flexShrink:0,
@@ -584,8 +587,8 @@ console.log('editSurvey questions:', editSurvey?.questions);
                                     </div>
                                     <div style={{ fontSize:11, color:isAnonymous?'#6366f1':theme.textMute, lineHeight:1.5 }}>
                                         {isAnonymous
-                                            ? 'Responses collected without names. HR cannot see who answered.'
-                                            : 'Respondent names are recorded. HR can see who answered.'}
+                                            ? tr('surveys.create.anonymousOn')
+                                            : tr('surveys.create.anonymousOff')}
                                     </div>
                                 </div>
                             </div>
@@ -593,11 +596,11 @@ console.log('editSurvey questions:', editSurvey?.questions);
 
                         {/* Summary card */}
                         <div style={{ background:theme.panel, borderRadius:18, border:`1px solid ${theme.border}`, padding:'16px 18px', boxShadow:theme.shadow }}>
-                            <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:12 }}>Summary</div>
+                            <div style={{ fontSize:11, fontWeight:700, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:12 }}>{tr('surveys.create.summary')}</div>
                             {[
-                                { label:'Questions', value:questions.length, color:theme.primary },
-                                { label:'Required',  value:questions.filter(q=>q.is_required).length, color:'#059669' },
-                                { label:'Conditional', value:questions.filter(q=>q.depends_on_question_index!==null&&q.depends_on_question_index!==undefined).length, color:'#6366f1' },
+                                { label:tr('surveys.labels.questions'), value:questions.length, color:theme.primary },
+                                { label:tr('surveys.create.labels.required'),  value:questions.filter(q=>q.is_required).length, color:'#059669' },
+                                { label:tr('surveys.create.labels.conditional'), value:questions.filter(q=>q.depends_on_question_index!==null&&q.depends_on_question_index!==undefined).length, color:'#6366f1' },
                             ].map(s => (
                                 <div key={s.label} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${theme.border}` }}>
                                     <span style={{ fontSize:12, color:theme.textSoft }}>{s.label}</span>
@@ -618,7 +621,7 @@ console.log('editSurvey questions:', editSurvey?.questions);
                                 transition:'all .15s', opacity:saving?.7:1,
                             }}>
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                                Save as Draft
+                                {tr('surveys.create.actions.saveAsDraft')}
                             </button>
                             <button onClick={()=>handleSubmit('active')} disabled={saving} style={{
                                 width:'100%', padding:'12px',borderRadius:12, border:'none',
@@ -635,7 +638,7 @@ console.log('editSurvey questions:', editSurvey?.questions);
                                     ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{animation:'sv-spin .7s linear infinite'}}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
                                     : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                                 }
-                                {saving ? 'Saving...' : 'Publish Survey'}
+                                {saving ? tr('surveys.create.actions.saving') : tr('surveys.create.actions.publishSurvey')}
                             </button>
                           
                         </div>

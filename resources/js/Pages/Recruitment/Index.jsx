@@ -2,25 +2,26 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { router, useForm } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import { createPortal } from "react-dom";
+import { useTranslation } from "@/Contexts/LanguageContext";
 
 // ── Constants ─────────────────────────────────────────────────────
 const JOB_TYPE_OPTS = [
-    { value:"full_time",  label:"Full Time"  },
-    { value:"part_time",  label:"Part Time"  },
-    { value:"contract",   label:"Contract"   },
-    { value:"internship", label:"Internship" },
+    { value:"full_time",  labelKey:"recruitment.jobTypes.fullTime", label:"Full Time"  },
+    { value:"part_time",  labelKey:"recruitment.jobTypes.partTime", label:"Part Time"  },
+    { value:"contract",   labelKey:"recruitment.jobTypes.contract", label:"Contract"   },
+    { value:"internship", labelKey:"recruitment.jobTypes.internship", label:"Internship" },
 ];
 const APP_STATUS_OPTS = [
-    { value:"new",       label:"New",       color:"#6366f1", bg:"#eef2ff",  darkBg:"rgba(99,102,241,0.16)"  },
-    { value:"reviewing", label:"Reviewing", color:"#d97706", bg:"#fef3c7",  darkBg:"rgba(217,119,6,0.16)"   },
-    { value:"interview", label:"Interview", color:"#0891b2", bg:"#e0f2fe",  darkBg:"rgba(8,145,178,0.16)"   },
-    { value:"accepted",  label:"Accepted",  color:"#059669", bg:"#d1fae5",  darkBg:"rgba(5,150,105,0.16)"   },
-    { value:"rejected",  label:"Rejected",  color:"#dc2626", bg:"#fee2e2",  darkBg:"rgba(220,38,38,0.16)"   },
+    { value:"new",       labelKey:"recruitment.appStatus.new", label:"New",       color:"#6366f1", bg:"#eef2ff",  darkBg:"rgba(99,102,241,0.16)"  },
+    { value:"reviewing", labelKey:"recruitment.appStatus.reviewing", label:"Reviewing", color:"#d97706", bg:"#fef3c7",  darkBg:"rgba(217,119,6,0.16)"   },
+    { value:"interview", labelKey:"recruitment.appStatus.interview", label:"Interview", color:"#0891b2", bg:"#e0f2fe",  darkBg:"rgba(8,145,178,0.16)"   },
+    { value:"accepted",  labelKey:"recruitment.appStatus.accepted", label:"Accepted",  color:"#059669", bg:"#d1fae5",  darkBg:"rgba(5,150,105,0.16)"   },
+    { value:"rejected",  labelKey:"recruitment.appStatus.rejected", label:"Rejected",  color:"#dc2626", bg:"#fee2e2",  darkBg:"rgba(220,38,38,0.16)"   },
 ];
 const JOB_STATUS_OPTS = [
-    { value:"open",   label:"Open",   color:"#059669", bg:"#d1fae5", darkBg:"rgba(5,150,105,0.16)"  },
-    { value:"paused", label:"Paused", color:"#d97706", bg:"#fef3c7", darkBg:"rgba(217,119,6,0.16)"  },
-    { value:"closed", label:"Closed", color:"#6b7280", bg:"#f3f4f6", darkBg:"rgba(107,114,128,0.16)"},
+    { value:"open",   labelKey:"recruitment.jobStatus.open", label:"Open",   color:"#059669", bg:"#d1fae5", darkBg:"rgba(5,150,105,0.16)"  },
+    { value:"paused", labelKey:"recruitment.jobStatus.paused", label:"Paused", color:"#d97706", bg:"#fef3c7", darkBg:"rgba(217,119,6,0.16)"  },
+    { value:"closed", labelKey:"recruitment.jobStatus.closed", label:"Closed", color:"#6b7280", bg:"#f3f4f6", darkBg:"rgba(107,114,128,0.16)"},
 ];
 const sCfg = (val, opts) => opts.find(o => o.value === val) || opts[0];
 const toArr = str => { if (!str) return [""]; const lines = str.split("\n").map(l => l.replace(/^[-•]\s*/, "").trim()).filter(Boolean); return lines.length ? lines : [""]; };
@@ -75,7 +76,7 @@ function getTheme(dark) {
 }
 
 // ── PremiumSelect ──────────────────────────────────────────────────
-function PremiumSelect({ options = [], value = "", onChange, placeholder = "Select…", disabled = false, width = "auto", zIndex = 3000, dark, theme }) {
+function PremiumSelect({ options = [], value = "", onChange, placeholder = "Select…", disabled = false, width = "auto", zIndex = 3000, dark, theme, tr }) {
     const [open, setOpen] = useState(false);
     const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
     const triggerRef = useRef(null);
@@ -116,7 +117,7 @@ function PremiumSelect({ options = [], value = "", onChange, placeholder = "Sele
                 boxShadow: open ? `0 0 0 3px ${dark ? "rgba(139,92,246,0.18)" : "rgba(124,58,237,0.12)"}` : "none",
                 transition: "all 0.16s", opacity: disabled ? 0.5 : 1, outline: "none", fontFamily: "inherit",
             }}>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selected?.label ?? placeholder}</span>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selected ? (selected.labelKey ? (tr(selected.labelKey) === selected.labelKey ? selected.label : tr(selected.labelKey)) : selected.label) : placeholder}</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2.5"
                     style={{ flexShrink: 0, transition: "transform 0.18s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
                     <polyline points="6 9 12 15 18 9"/>
@@ -147,7 +148,7 @@ function PremiumSelect({ options = [], value = "", onChange, placeholder = "Sele
                                     onMouseEnter={e => { if (!isSel && !opt.disabled) e.currentTarget.style.background = dark ? "rgba(255,255,255,0.06)" : "#f5f3ff"; }}
                                     onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = "transparent"; }}
                                 >
-                                    <span>{opt.label}</span>
+                                    <span>{opt.labelKey ? (tr(opt.labelKey) === opt.labelKey ? opt.label : tr(opt.labelKey)) : opt.label}</span>
                                     {isSel && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
                                 </button>
                             );
@@ -165,13 +166,13 @@ function Spinner({ size = 14, color = "#7c3aed" }) {
 }
 
 // ── StatusPill ─────────────────────────────────────────────────────
-function StatusPill({ status, opts, dark, small }) {
+function StatusPill({ status, opts, dark, small, tr }) {
     const cfg = sCfg(status, opts);
     const bg = dark ? cfg.darkBg : cfg.bg;
     return (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: small ? "2px 8px" : "3px 10px", borderRadius: 99, fontSize: small ? 10 : 11, fontWeight: 600, color: cfg.color, background: bg, whiteSpace: "nowrap" }}>
             <span style={{ width: 4, height: 4, borderRadius: "50%", background: cfg.color, flexShrink: 0 }} />
-            {cfg.label}
+            {cfg.labelKey ? (tr(cfg.labelKey) === cfg.labelKey ? cfg.label : tr(cfg.labelKey)) : cfg.label}
         </span>
     );
 }
@@ -203,7 +204,7 @@ function PillBtn({ active, onClick, color, bg, darkBg, label, dark }) {
 }
 
 // ── ListField ──────────────────────────────────────────────────────
-function ListField({ label, required, items, onChange, placeholder, error, theme, dark }) {
+function ListField({ label, required, items, onChange, placeholder, error, theme, dark, tr }) {
     const inp = useInpStyle(theme, dark);
     const add    = () => onChange([...items, ""]);
     const remove = i  => onChange(items.filter((_,idx) => idx !== i));
@@ -212,14 +213,14 @@ function ListField({ label, required, items, onChange, placeholder, error, theme
         <div style={{ marginBottom: 18 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}{required && " *"}</label>
-                <button type="button" onClick={add} style={{ fontSize: 11, color: theme.primary, background: theme.primarySoft, border: "none", padding: "3px 11px", borderRadius: 6, cursor: "pointer", fontWeight: 700, fontFamily: "inherit" }}>+ Add</button>
+                <button type="button" onClick={add} style={{ fontSize: 11, color: theme.primary, background: theme.primarySoft, border: "none", padding: "3px 11px", borderRadius: 6, cursor: "pointer", fontWeight: 700, fontFamily: "inherit" }}>{tr("recruitment.actions.add")}</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                 {items.map((item, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span style={{ color: theme.primary, fontSize: 15, flexShrink: 0, width: 14 }}>•</span>
                         <input value={item} onChange={e => upd(i, e.target.value)}
-                            placeholder={placeholder || "Add item..."}
+                            placeholder={placeholder || tr("recruitment.placeholders.addItem")}
                             style={{ ...inp(error && !item.trim()), flex: 1, padding: "8px 11px" }}
                             onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
                             onBlur={e => { e.target.style.borderColor = error && !item.trim() ? theme.danger : theme.inputBorder; e.target.style.boxShadow = "none"; }} />
@@ -274,6 +275,7 @@ export default function RecruitmentIndex({
     isHR = false,
     hrOffice = null,
 }) {
+    const { t: tr } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
 
@@ -325,9 +327,9 @@ export default function RecruitmentIndex({
     const lbl = { fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 7 };
 
     // Admin ဆိုရင်ဘဲ All Countries dropdown options ထည့်မယ်
-    const officeOpts = [{ value: "all", label: "All Countries" }, ...offices.map(o => ({ value: o.id, label: o.company_name }))];
-    const jobStatusOpts = [{ value: "all", label: "All Status" }, ...JOB_STATUS_OPTS.map(s => ({ value: s.value, label: s.label }))];
-    const appSortOpts = [{ value: "latest", label: "Latest First" }, { value: "name", label: "Name A–Z" }, { value: "score", label: "By Score" }];
+    const officeOpts = [{ value: "all", label: tr("recruitment.filters.allCountries") }, ...offices.map(o => ({ value: o.id, label: o.company_name }))];
+    const jobStatusOpts = [{ value: "all", label: tr("recruitment.filters.allStatus") }, ...JOB_STATUS_OPTS.map(s => ({ value: s.value, labelKey: s.labelKey, label: s.label }))];
+    const appSortOpts = [{ value: "latest", label: tr("recruitment.sort.latestFirst") }, { value: "name", label: tr("recruitment.sort.nameAZ") }, { value: "score", label: tr("recruitment.sort.byScore") }];
 
     function ActionGlyph({ type, color }) {
         if (type === 'edit') {
@@ -352,7 +354,7 @@ export default function RecruitmentIndex({
     }
 
     return (
-        <AppLayout title="Recruitment">
+        <AppLayout title={tr("recruitment.pageTitle")}>
             <style>{`
                 @keyframes rcSpin   { to { transform: rotate(360deg) } }
                 @keyframes rcDropIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
@@ -370,10 +372,10 @@ export default function RecruitmentIndex({
                 {/* ═══ ① STATS — compact horizontal strip ═══ */}
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                     {[
-                        { n: totalJobs,  l: "Total Postings",   icon: "📋", color: theme.primary,  soft: theme.primarySoft  },
-                        { n: openJobs,   l: "Open Positions",   icon: "🟢", color: theme.success,  soft: theme.successSoft  },
-                        { n: totalApps,  l: "Total Applicants", icon: "👥", color: theme.warning,  soft: theme.warningSoft  },
-                        { n: newApps,    l: "New (Unread)",     icon: "🔔", color: theme.primary,  soft: theme.primarySoft  },
+                        { n: totalJobs,  l: tr("recruitment.stats.totalPostings"),   icon: "📋", color: theme.primary,  soft: theme.primarySoft  },
+                        { n: openJobs,   l: tr("recruitment.stats.openPositions"),   icon: "🟢", color: theme.success,  soft: theme.successSoft  },
+                        { n: totalApps,  l: tr("recruitment.stats.totalApplicants"), icon: "👥", color: theme.warning,  soft: theme.warningSoft  },
+                        { n: newApps,    l: tr("recruitment.stats.newUnread"),     icon: "🔔", color: theme.primary,  soft: theme.primarySoft  },
                     ].map(s => (
                         <div key={s.l} style={{
                             display: "flex", alignItems: "center", gap: 10,
@@ -405,8 +407,8 @@ export default function RecruitmentIndex({
                         borderRadius: 10, padding: 3, width: "fit-content", boxShadow: theme.shadow,
                     }}>
                         {[
-                            { k: "jobs",         l: "Job Postings", count: jobs.length  },
-                            { k: "applications", l: "Applications",  count: totalApps   },
+                            { k: "jobs",         l: tr("recruitment.tabs.jobPostings"), count: jobs.length  },
+                            { k: "applications", l: tr("recruitment.tabs.applications"),  count: totalApps   },
                         ].map(t => {
                             const isActive = tab === t.k;
                             return (
@@ -434,9 +436,9 @@ export default function RecruitmentIndex({
                     {tab === "jobs" && (
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             {isAdmin && (
-                                <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width={150} dark={dark} theme={theme} />
+                                <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width={150} dark={dark} theme={theme} tr={tr} />
                             )}
-                            <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width={120} dark={dark} theme={theme} />
+                            <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width={120} dark={dark} theme={theme} tr={tr} />
                             {!isAdmin && (
                                 <button onClick={() => { setEditJob(null); setJobModal(true); }} style={{
                                     padding: "8px 16px", background: theme.primary, border: "none",
@@ -444,7 +446,7 @@ export default function RecruitmentIndex({
                                     cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 5,
                                     boxShadow: `0 4px 14px ${theme.primary}44`,
                                 }}>
-                                    + New Posting
+                                    {tr("recruitment.actions.newPosting")}
                                 </button>
                             )}
                         </div>
@@ -452,13 +454,13 @@ export default function RecruitmentIndex({
 
                     {tab === "applications" && (
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <PremiumSelect options={appSortOpts} value={appSort} onChange={v => setAppSort(v)} width={130} dark={dark} theme={theme} />
+                            <PremiumSelect options={appSortOpts} value={appSort} onChange={v => setAppSort(v)} width={130} dark={dark} theme={theme} tr={tr} />
                             {!isAdmin && selectedApps.length > 0 && (
                                 <button onClick={() => setBulkModal(true)} style={{
                                     padding: "7px 14px", borderRadius: 8, background: theme.primary, border: "none",
                                     color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
                                 }}>
-                                    ✏️ Update {selectedApps.length}
+                                    ✏️ {tr("recruitment.actions.update")} {selectedApps.length}
                                 </button>
                             )}
                         </div>
@@ -474,14 +476,14 @@ export default function RecruitmentIndex({
                         {filteredJobs.length === 0 ? (
                             <div style={{ padding: "56px 24px", textAlign: "center" }}>
                                 <div style={{ fontSize: 32, marginBottom: 10 }}>📋</div>
-                                <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4 }}>No job postings</div>
-                                <div style={{ fontSize: 12, color: theme.textMute }}>Create your first job posting.</div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: theme.text, marginBottom: 4 }}>{tr("recruitment.empty.noJobPostings")}</div>
+                                <div style={{ fontSize: 12, color: theme.textMute }}>{tr("recruitment.empty.createFirstJobPosting")}</div>
                             </div>
                         ) : (
                             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                                 <thead>
                                     <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
-                                        {["Position", "Company", "Type", "Slots", "Applicants", "Deadline", "Status", "Actions"].map(h => (
+                                        {[tr("recruitment.table.position"), tr("recruitment.table.company"), tr("recruitment.table.type"), tr("recruitment.table.slots"), tr("recruitment.table.applicants"), tr("recruitment.table.deadline"), tr("recruitment.table.status"), tr("recruitment.table.actions")].map(h => (
                                             <th key={h} style={{ padding: "9px 14px", textAlign: "left", fontSize: 10, fontWeight: 800, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" }}>{h}</th>
                                         ))}
                                     </tr>
@@ -500,7 +502,7 @@ export default function RecruitmentIndex({
                                             <td style={{ padding: "11px 14px", color: theme.textSoft, fontSize: 12 }}>{job.office?.company_name}</td>
                                             <td style={{ padding: "11px 14px" }}>
                                                 <span style={{ background: theme.primarySoft, color: theme.primary, padding: "2px 8px", borderRadius: 99, fontSize: 10, fontWeight: 700 }}>
-                                                    {JOB_TYPE_OPTS.find(t => t.value === job.type)?.label}
+                                                    {(() => { const opt = JOB_TYPE_OPTS.find(t => t.value === job.type); const v = opt?.labelKey ? tr(opt.labelKey) : opt?.label; return v === opt?.labelKey ? opt?.label : v; })()}
                                                 </span>
                                             </td>
                                             <td style={{ padding: "11px 14px", fontWeight: 700, color: theme.text, fontSize: 12 }}>{job.slots}</td>
@@ -515,18 +517,18 @@ export default function RecruitmentIndex({
                                                 </button>
                                             </td>
                                             <td style={{ padding: "11px 14px", color: theme.textMute, fontSize: 11 }}>{job.deadline || "—"}</td>
-                                            <td style={{ padding: "11px 14px" }}><StatusPill status={job.status} opts={JOB_STATUS_OPTS} dark={dark} small /></td>
+                                            <td style={{ padding: "11px 14px" }}><StatusPill status={job.status} opts={JOB_STATUS_OPTS} dark={dark} small tr={tr} /></td>
                                             <td style={{ padding: "11px 14px" }}>
                                                 {isAdmin ? (
-                                                    <span style={{ fontSize: 11, color: theme.textMute }}>View only</span>
+                                                    <span style={{ fontSize: 11, color: theme.textMute }}>{tr("recruitment.labels.viewOnly")}</span>
                                                 ) : (
                                                     <div style={{ display: "flex", gap: 5 }}>
                                                         <button onClick={() => { setEditJob(job); setJobModal(true); }} style={{
                                                             padding: "4px 10px", borderRadius: 6,
                                                             border: `1px solid ${theme.border}`, background: "transparent",
                                                             color: theme.textSoft, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-                                                        }}>Edit</button>
-                                                        <button onClick={() => setDeleteJobModal(job)} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.dangerSoft}`, background: theme.dangerSoft, color: theme.danger, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Delete</button>
+                                                        }}>{tr("recruitment.actions.edit")}</button>
+                                                        <button onClick={() => setDeleteJobModal(job)} style={{ padding: "4px 10px", borderRadius: 6, border: `1px solid ${theme.dangerSoft}`, background: theme.dangerSoft, color: theme.danger, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr("recruitment.actions.delete")}</button>
                                                     </div>
                                                 )}
                                             </td>
@@ -548,7 +550,7 @@ export default function RecruitmentIndex({
                             <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
                                 <div style={{ position: "relative" }}>
                                     <input value={jobSearch} onChange={e => setJobSearch(e.target.value)}
-                                        placeholder="Search jobs…"
+                                        placeholder={tr("recruitment.placeholders.searchJobs")}
                                         style={{
                                             height: 34, padding: "0 12px 0 30px",
                                             border: `1px solid ${theme.border}`, borderRadius: 8,
@@ -564,9 +566,9 @@ export default function RecruitmentIndex({
                                 </div>
 
                                 {isAdmin && (
-                                    <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width={130} dark={dark} theme={theme} zIndex={4000} />
+                                    <PremiumSelect options={officeOpts} value={filterOffice} onChange={v => setFilterOffice(v)} width={130} dark={dark} theme={theme} zIndex={4000} tr={tr} />
                                 )}
-                                <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width={110} dark={dark} theme={theme} zIndex={4000} />
+                                <PremiumSelect options={jobStatusOpts} value={filterStatus} onChange={v => setFilterStatus(v)} width={110} dark={dark} theme={theme} zIndex={4000} tr={tr} />
 
                                 {/* Separator */}
                                 <div style={{ width: 1, height: 22, background: theme.border, flexShrink: 0 }} />
@@ -625,13 +627,13 @@ export default function RecruitmentIndex({
                                         <div>
                                             <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{selectedJob.title}</span>
                                             <span style={{ fontSize: 12, color: theme.textMute, marginLeft: 8 }}>{selectedJob.office?.company_name}</span>
-                                            <span style={{ fontSize: 12, color: theme.textMute, marginLeft: 6 }}>· <span style={{ fontWeight: 700, color: selectedJobApps.length > 0 ? theme.primary : theme.textMute }}>{selectedJobApps.length} applicant{selectedJobApps.length !== 1 ? "s" : ""}</span></span>
+                                            <span style={{ fontSize: 12, color: theme.textMute, marginLeft: 6 }}>· <span style={{ fontWeight: 700, color: selectedJobApps.length > 0 ? theme.primary : theme.textMute }}>{selectedJobApps.length} {selectedJobApps.length !== 1 ? tr("recruitment.labels.applicants") : tr("recruitment.labels.applicant")}</span></span>
                                         </div>
                                     </div>
 
                                     {/* Filter pills */}
                                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", alignItems: "center" }}>
-                                        {[{ value: "all", label: "All", color: theme.primary, bg: theme.primarySoft, darkBg: theme.primarySoft }, ...APP_STATUS_OPTS].map(s => (
+                                        {[{ value: "all", label: tr("recruitment.status.all"), color: theme.primary, bg: theme.primarySoft, darkBg: theme.primarySoft }, ...APP_STATUS_OPTS].map(s => (
                                             <button key={s.value} type="button"
                                                 onClick={() => { setAppFilter(s.value); setSelectedApps([]); }}
                                                 style={{
@@ -641,7 +643,7 @@ export default function RecruitmentIndex({
                                                     background: appFilter === s.value ? (dark ? s.darkBg : s.bg) : "transparent",
                                                     color: appFilter === s.value ? s.color : theme.textMute,
                                                 }}>
-                                                {s.label}
+                                                {s.labelKey ? (tr(s.labelKey) === s.labelKey ? s.label : tr(s.labelKey)) : s.label}
                                                 {s.value !== "all" && selectedJobApps.filter(a => a.status === s.value).length > 0 && (
                                                     <span style={{ marginLeft: 4, opacity: 0.7 }}>({selectedJobApps.filter(a => a.status === s.value).length})</span>
                                                 )}
@@ -651,7 +653,7 @@ export default function RecruitmentIndex({
                                         {!isAdmin && filteredApps.length > 1 && (
                                             <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: theme.textMute, cursor: "pointer", userSelect: "none", marginLeft: 4 }}>
                                                 <input type="checkbox" checked={allSelected} onChange={toggleAll} style={{ width: 13, height: 13, accentColor: theme.primary, cursor: "pointer" }} />
-                                                All
+                                                {tr("recruitment.status.all")}
                                             </label>
                                         )}
                                     </div>
@@ -664,8 +666,8 @@ export default function RecruitmentIndex({
                                         borderRadius: 12, padding: "44px 24px", textAlign: "center",
                                     }}>
                                         <div style={{ fontSize: 32, marginBottom: 10 }}>📭</div>
-                                        <div style={{ fontSize: 13, fontWeight: 700, color: theme.text, marginBottom: 4 }}>No applications yet</div>
-                                        <div style={{ fontSize: 11, color: theme.textMute }}>Applications will appear here once candidates apply.</div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: theme.text, marginBottom: 4 }}>{tr("recruitment.empty.noApplicationsYet")}</div>
+                                        <div style={{ fontSize: 11, color: theme.textMute }}>{tr("recruitment.empty.applicationsWillAppear")}</div>
                                     </div>
                                 ) : (
                                     <div style={{
@@ -710,7 +712,7 @@ export default function RecruitmentIndex({
                                                             {/* Row 1: name + status */}
                                                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
                                                                 <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>{app.name}</span>
-                                                                <StatusPill status={app.status} opts={APP_STATUS_OPTS} dark={dark} small />
+                                                                <StatusPill status={app.status} opts={APP_STATUS_OPTS} dark={dark} small tr={tr} />
                                                             </div>
 
                                                             {/* Row 2: email · phone · ref · date — inline chips */}
@@ -722,13 +724,13 @@ export default function RecruitmentIndex({
                                                                 <span style={{ fontSize: 10, color: theme.textMute, fontFamily: "monospace", background: dark ? "rgba(255,255,255,0.06)" : "#f3f4f6", padding: "1px 6px", borderRadius: 4 }}>
                                                                     #{app.reference_code}
                                                                 </span>
-                                                                <span style={{ fontSize: 10, color: theme.textMute }}>Applied {app.applied_at}</span>
+                                                                <span style={{ fontSize: 10, color: theme.textMute }}>{tr("recruitment.labels.applied")} {app.applied_at}</span>
                                                             </div>
 
                                                             {/* HR note — inline, no box */}
                                                             {app.hr_note && (
                                                                 <div style={{ display: "inline-flex", alignItems: "baseline", marginBottom: 6 }}>
-                                                                    <span style={{ fontSize: 9, fontWeight: 800, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.5px", marginRight: 6 }}>Note</span>
+                                                                    <span style={{ fontSize: 9, fontWeight: 800, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.5px", marginRight: 6 }}>{tr("recruitment.labels.note")}</span>
                                                                     <span style={{ fontSize: 11, color: theme.textSoft, fontStyle: "italic" }}>{app.hr_note}</span>
                                                                 </div>
                                                             )}
@@ -736,12 +738,12 @@ export default function RecruitmentIndex({
                                                             {/* Interview info — compact, no heavy box */}
                                                             {app.interview && (
                                                                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 5 }}>
-                                                                    <span style={{ fontSize: 10, fontWeight: 700, color: "#0891b2", textTransform: "uppercase", letterSpacing: "0.5px" }}>Interview</span>
+                                                                    <span style={{ fontSize: 10, fontWeight: 700, color: "#0891b2", textTransform: "uppercase", letterSpacing: "0.5px" }}>{tr("recruitment.labels.interview")}</span>
                                                                     <span style={{ fontSize: 11, color: dark ? "#7dd3fc" : "#0c4a6e", fontWeight: 600 }}>📅 {app.interview.scheduled_at}</span>
                                                                     {app.interview.meeting_link && (
                                                                         <a href={app.interview.meeting_link} target="_blank" rel="noopener noreferrer"
                                                                             style={{ fontSize: 11, color: "#0891b2", textDecoration: "none" }}>
-                                                                            🔗 Link
+                                                                            🔗 {tr("recruitment.labels.link")}
                                                                         </a>
                                                                     )}
                                                                     {app.interview.location && (
@@ -803,7 +805,7 @@ export default function RecruitmentIndex({
                                                                         onMouseEnter={e => e.currentTarget.style.opacity = "0.8"}
                                                                         onMouseLeave={e => e.currentTarget.style.opacity = "1"}
                                                                     >
-                                                                        Status
+                                                                        {tr("recruitment.table.status")}
                                                                     </button>
 
                                                                     <button onClick={() => setInterviewModal(app)} style={{
@@ -817,7 +819,7 @@ export default function RecruitmentIndex({
                                                                         onMouseEnter={e => e.currentTarget.style.opacity = "0.8"}
                                                                         onMouseLeave={e => e.currentTarget.style.opacity = "1"}
                                                                     >
-                                                                        {app.interview ? "Reschedule" : "Interview"}
+                                                                        {app.interview ? tr("recruitment.actions.reschedule") : tr("recruitment.labels.interview")}
                                                                     </button>
 
                                                                     {app.status === "interview" && (
@@ -832,7 +834,7 @@ export default function RecruitmentIndex({
                                                                             onMouseEnter={e => e.currentTarget.style.opacity = "0.8"}
                                                                             onMouseLeave={e => e.currentTarget.style.opacity = "1"}
                                                                         >
-                                                                            {app.interview?.score != null ? `⭐ ${app.interview.score}` : "Score"}
+                                                                            {app.interview?.score != null ? `⭐ ${app.interview.score}` : tr("recruitment.labels.score")}
                                                                         </button>
                                                                     )}
 
@@ -872,13 +874,13 @@ export default function RecruitmentIndex({
             </div>
 
             {/* Modals — unchanged */}
-            {jobModal && !isAdmin && <JobModal offices={offices} editJob={editJob} hrOffice={hrOffice} onClose={() => { setJobModal(false); setEditJob(null); }} dark={dark} theme={theme} />}
-            {noteModal && !isAdmin && <StatusModal app={noteModal} onClose={() => setNoteModal(null)} dark={dark} theme={theme} />}
-            {interviewModal && !isAdmin && <InterviewModal app={interviewModal} onClose={() => setInterviewModal(null)} dark={dark} theme={theme} />}
-            {scoreModal && !isAdmin && <ScoreModal app={scoreModal} onClose={() => setScoreModal(null)} dark={dark} theme={theme} />}
-            {bulkModal && !isAdmin && <BulkModal ids={selectedApps} onClose={() => setBulkModal(false)} onDone={() => { setBulkModal(false); setSelectedApps([]); }} dark={dark} theme={theme} />}
-            {deleteModal && !isAdmin && <DeleteModal app={deleteModal} onClose={() => setDeleteModal(null)} />}
-            {deleteJobModal && !isAdmin && <DeleteJobModal job={deleteJobModal} onClose={() => setDeleteJobModal(null)} />}
+            {jobModal && !isAdmin && <JobModal offices={offices} editJob={editJob} hrOffice={hrOffice} onClose={() => { setJobModal(false); setEditJob(null); }} dark={dark} theme={theme} tr={tr} />}
+            {noteModal && !isAdmin && <StatusModal app={noteModal} onClose={() => setNoteModal(null)} dark={dark} theme={theme} tr={tr} />}
+            {interviewModal && !isAdmin && <InterviewModal app={interviewModal} onClose={() => setInterviewModal(null)} dark={dark} theme={theme} tr={tr} />}
+            {scoreModal && !isAdmin && <ScoreModal app={scoreModal} onClose={() => setScoreModal(null)} dark={dark} theme={theme} tr={tr} />}
+            {bulkModal && !isAdmin && <BulkModal ids={selectedApps} onClose={() => setBulkModal(false)} onDone={() => { setBulkModal(false); setSelectedApps([]); }} dark={dark} theme={theme} tr={tr} />}
+            {deleteModal && !isAdmin && <DeleteModal app={deleteModal} onClose={() => setDeleteModal(null)} tr={tr} />}
+            {deleteJobModal && !isAdmin && <DeleteJobModal job={deleteJobModal} onClose={() => setDeleteJobModal(null)} tr={tr} />}
         </AppLayout>
     );
 }
@@ -886,7 +888,7 @@ export default function RecruitmentIndex({
 // ─────────────────────────────────────────────────────────────────
 // JobModal
 // ─────────────────────────────────────────────────────────────────
-function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
+function JobModal({ offices, editJob, hrOffice, onClose, dark, theme, tr }) {
     const isEdit = !!editJob;
     const [descItems,  setDescItems]  = useState(() => toArr(editJob?.description || ""));
     const [reqItems,   setReqItems]   = useState(() => toArr(editJob?.requirements || ""));
@@ -913,13 +915,13 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
 
     const validate = () => {
         const e = {};
-        if (!data.brycen_office_id) e.brycen_office_id = "Please select a company office.";
-        if (!data.type) e.type = "Please select a job type.";
-        if (!data.title.trim()) e.title = "Job title is required.";
-        if (!data.slots || parseInt(data.slots) < 1) e.slots = "At least 1 position required.";
-        if (!negotiate && !data.salary_range.trim()) e.salary_range = "Enter salary range or check Negotiable.";
-        if (!descItems.filter(s => s.trim()).length) e.description = "Add at least one description point.";
-        if (!reqItems.filter(s => s.trim()).length) e.requirements = "Add at least one requirement.";
+        if (!data.brycen_office_id) e.brycen_office_id = tr("recruitment.validation.selectCompanyOffice");
+        if (!data.type) e.type = tr("recruitment.validation.selectJobType");
+        if (!data.title.trim()) e.title = tr("recruitment.validation.jobTitleRequired");
+        if (!data.slots || parseInt(data.slots) < 1) e.slots = tr("recruitment.validation.atLeastOnePosition");
+        if (!negotiate && !data.salary_range.trim()) e.salary_range = tr("recruitment.validation.salaryOrNegotiable");
+        if (!descItems.filter(s => s.trim()).length) e.description = tr("recruitment.validation.descriptionPoint");
+        if (!reqItems.filter(s => s.trim()).length) e.requirements = tr("recruitment.validation.requirementPoint");
         return e;
     };
 
@@ -948,7 +950,7 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
 
     return (
         <ModalShell onClose={onClose} maxWidth={620}>
-            <ModalHeader grad="linear-gradient(135deg,#5b21b6 0%,#7c3aed 60%,#8b5cf6 100%)" icon={isEdit ? "✏️" : "📋"} subtitle={isEdit ? "Edit Posting" : "Job Recruitment"} title={isEdit ? editJob.title : "New Job Posting"} onClose={onClose} />
+            <ModalHeader grad="linear-gradient(135deg,#5b21b6 0%,#7c3aed 60%,#8b5cf6 100%)" icon={isEdit ? "✏️" : "📋"} subtitle={isEdit ? tr("recruitment.modal.editPosting") : tr("recruitment.modal.jobRecruitment")} title={isEdit ? editJob.title : tr("recruitment.modal.newJobPosting")} onClose={onClose} />
             <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, background: theme.surface }}>
                 <div style={{ overflowY: "auto", flex: 1, padding: "24px 26px 16px", scrollbarWidth: "none" }}>
                     
@@ -957,7 +959,7 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
                         - hrOffice မရှိ → dropdown (admin မဝင်သင့်ဘဲ safeguard) */}
                     {hrOffice ? (
                         <div style={{ marginBottom: 20 }}>
-                            <label style={lbl}>Company Office</label>
+                            <label style={lbl}>{tr("recruitment.fields.companyOffice")}</label>
                             <div style={{
                                 padding: "10px 13px", borderRadius: 10,
                                 border: `1.5px solid ${theme.inputBorder}`,
@@ -966,25 +968,25 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
                                 display: "flex", alignItems: "center", gap: 8,
                             }}>
                                 🏢 {hrOffice.company_name}
-                                <span style={{ fontSize: 10, color: theme.textMute, marginLeft: "auto", background: dark ? "rgba(139,92,246,0.16)" : "#ede9fe", color: theme.primary, padding: "2px 8px", borderRadius: 99, fontWeight: 700 }}>Auto-selected</span>
+                                <span style={{ fontSize: 10, color: theme.textMute, marginLeft: "auto", background: dark ? "rgba(139,92,246,0.16)" : "#ede9fe", color: theme.primary, padding: "2px 8px", borderRadius: 99, fontWeight: 700 }}>{tr("recruitment.labels.autoSelected")}</span>
                             </div>
                         </div>
                     ) : (
                         <div style={{ marginBottom: 20 }}>
-                            <label style={lbl}>Company Office *</label>
+                            <label style={lbl}>{tr("recruitment.fields.companyOffice")} *</label>
                             <PremiumSelect options={officeOpts} value={data.brycen_office_id}
                                 onChange={v => { setData("brycen_office_id", v); setErrs(p => ({ ...p, brycen_office_id: undefined })); }}
-                                placeholder="Select office…" width="100%" dark={dark} theme={theme} />
+                                placeholder={tr("recruitment.placeholders.selectOffice")} width="100%" dark={dark} theme={theme} tr={tr} />
                             {errTxt("brycen_office_id")}
                         </div>
                     )}
 
                     {/* Job Type */}
                     <div style={{ marginBottom: 20 }}>
-                        <label style={lbl}>Job Type *</label>
+                        <label style={lbl}>{tr("recruitment.fields.jobType")} *</label>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                             {JOB_TYPE_OPTS.map(t => (
-                                <PillBtn key={t.value} active={data.type === t.value} onClick={() => { setData("type", t.value); setErrs(p => ({ ...p, type: undefined })); }} color={theme.primary} bg={theme.primarySoft} darkBg={theme.primarySoft} label={t.label} dark={dark} />
+                                <PillBtn key={t.value} active={data.type === t.value} onClick={() => { setData("type", t.value); setErrs(p => ({ ...p, type: undefined })); }} color={theme.primary} bg={theme.primarySoft} darkBg={theme.primarySoft} label={tr(t.labelKey)} dark={dark} />
                             ))}
                         </div>
                         {errTxt("type")}
@@ -994,9 +996,9 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
 
                     {/* Title */}
                     <div style={{ marginBottom: 14 }}>
-                        <label style={lbl}>Job Title *</label>
+                        <label style={lbl}>{tr("recruitment.fields.jobTitle")} *</label>
                         <input style={inp(errs.title)} value={data.title} onChange={e => { setData("title", e.target.value); setErrs(p => ({ ...p, title: undefined })); }}
-                            placeholder="e.g. Senior Infrastructure Engineer"
+                            placeholder={tr("recruitment.placeholders.jobTitle")}
                             onFocus={e => { if (!errs.title) { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; } }}
                             onBlur={e => { if (!errs.title) { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; } }} />
                         {errTxt("title")}
@@ -1005,13 +1007,13 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
                     {/* Dept + Slots */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
                         <div>
-                            <label style={lbl}>Department</label>
-                            <input style={inp(false)} value={data.department} onChange={e => setData("department", e.target.value)} placeholder="e.g. Engineering"
+                            <label style={lbl}>{tr("recruitment.fields.department")}</label>
+                            <input style={inp(false)} value={data.department} onChange={e => setData("department", e.target.value)} placeholder={tr("recruitment.placeholders.department")}
                                 onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
                                 onBlur={e => { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; }} />
                         </div>
                         <div>
-                            <label style={lbl}>Positions *</label>
+                            <label style={lbl}>{tr("recruitment.fields.positions")} *</label>
                             <input type="number" style={inp(errs.slots)} value={data.slots} min={1} onChange={e => { setData("slots", e.target.value); setErrs(p => ({ ...p, slots: undefined })); }}
                                 onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
                                 onBlur={e => { e.target.style.borderColor = errs.slots ? theme.danger : theme.inputBorder; e.target.style.boxShadow = "none"; }} />
@@ -1022,19 +1024,19 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
                     {/* Salary + Deadline */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
                         <div>
-                            <label style={lbl}>Salary Range{!negotiate && " *"}</label>
-                            <input style={{ ...inp(errs.salary_range), opacity: negotiate ? 0.45 : 1 }} value={negotiate ? "Negotiable" : data.salary_range}
-                                onChange={e => { setData("salary_range", e.target.value); setErrs(p => ({ ...p, salary_range: undefined })); }} disabled={negotiate} placeholder="e.g. $800 – $1,200"
+                            <label style={lbl}>{tr("recruitment.fields.salaryRange")}{!negotiate && " *"}</label>
+                            <input style={{ ...inp(errs.salary_range), opacity: negotiate ? 0.45 : 1 }} value={negotiate ? tr("recruitment.labels.negotiable") : data.salary_range}
+                                onChange={e => { setData("salary_range", e.target.value); setErrs(p => ({ ...p, salary_range: undefined })); }} disabled={negotiate} placeholder={tr("recruitment.placeholders.salaryRange")}
                                 onFocus={e => { if (!errs.salary_range) { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; } }}
                                 onBlur={e => { e.target.style.borderColor = errs.salary_range ? theme.danger : theme.inputBorder; e.target.style.boxShadow = "none"; }} />
                             <label style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8, cursor: "pointer", fontSize: 13, color: theme.textSoft, userSelect: "none" }}>
                                 <input type="checkbox" checked={negotiate} onChange={e => { setNegotiate(e.target.checked); setErrs(p => ({ ...p, salary_range: undefined })); }} style={{ width: 15, height: 15, accentColor: theme.primary, cursor: "pointer" }} />
-                                Negotiable
+                                {tr("recruitment.labels.negotiable")}
                             </label>
                             {errTxt("salary_range")}
                         </div>
                         <div>
-                            <label style={lbl}>Application Deadline</label>
+                            <label style={lbl}>{tr("recruitment.fields.applicationDeadline")}</label>
                             <input type="date" style={inp(false)} value={data.deadline} onChange={e => setData("deadline", e.target.value)}
                                 onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
                                 onBlur={e => { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; }} />
@@ -1044,22 +1046,58 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
                     {/* Status (edit only) */}
                     {isEdit && (
                         <div style={{ marginBottom: 14 }}>
-                            <label style={lbl}>Posting Status</label>
+                            <label style={lbl}>{tr("recruitment.fields.postingStatus")}</label>
                             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                {JOB_STATUS_OPTS.map(s => <PillBtn key={s.value} active={data.status === s.value} onClick={() => setData("status", s.value)} color={s.color} bg={s.bg} darkBg={s.darkBg} label={s.label} dark={dark} />)}
+                                {JOB_STATUS_OPTS.map(s => <PillBtn key={s.value} active={data.status === s.value} onClick={() => setData("status", s.value)} color={s.color} bg={s.bg} darkBg={s.darkBg} label={s.labelKey ? (tr(s.labelKey) === s.labelKey ? s.label : tr(s.labelKey)) : s.label} dark={dark} />)}
                             </div>
                         </div>
                     )}
 
                     <div style={{ height: 1, background: theme.border, margin: "8px 0 20px" }} />
-                    <ListField label="Description" required items={descItems} onChange={v => { setDescItems(v); setErrs(p => ({ ...p, description: undefined })); }} placeholder="e.g. Lead a team of engineers..." error={errs.description} theme={theme} dark={dark} />
-                    <ListField label="Requirements" required items={reqItems} onChange={v => { setReqItems(v); setErrs(p => ({ ...p, requirements: undefined })); }} placeholder="e.g. 3+ years of experience in..." error={errs.requirements} theme={theme} dark={dark} />
-                    <ListField label="Responsibilities" items={respItems} onChange={setRespItems} placeholder="e.g. Review and approve pull requests..." theme={theme} dark={dark} />
+                        <ListField
+                            label={tr("recruitment.fields.description")}
+                            required
+                            items={descItems}
+                            onChange={v => {
+                                setDescItems(v);
+                                setErrs(p => ({ ...p, description: undefined }));
+                            }}
+                            placeholder={tr("recruitment.placeholders.descriptionPoint")}
+                            error={errs.description}
+                            theme={theme}
+                            dark={dark}
+                            tr={tr}
+                        />
+
+                        <ListField
+                            label={tr("recruitment.fields.requirements")}
+                            required
+                            items={reqItems}
+                            onChange={v => {
+                                setReqItems(v);
+                                setErrs(p => ({ ...p, requirements: undefined }));
+                            }}
+                            placeholder={tr("recruitment.placeholders.requirementPoint")}
+                            error={errs.requirements}
+                            theme={theme}
+                            dark={dark}
+                            tr={tr}
+                        />
+
+                        <ListField
+                            label={tr("recruitment.fields.responsibilities")}
+                            items={respItems}
+                            onChange={setRespItems}
+                            placeholder={tr("recruitment.placeholders.responsibilityPoint")}
+                            theme={theme}
+                            dark={dark}
+                            tr={tr}
+                        />
                 </div>
                 <div style={{ padding: "14px 26px", borderTop: `1px solid ${theme.border}`, display: "flex", gap: 10, justifyContent: "flex-end", background: theme.surface, flexShrink: 0 }}>
-                    <button type="button" onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                    <button type="button" onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr("recruitment.actions.cancel")}</button>
                     <button type="submit" disabled={submitting} style={{ padding: "10px 26px", border: "none", borderRadius: 10, background: theme.primary, color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: submitting ? 0.7 : 1 }}>
-                        {submitting ? "Saving…" : isEdit ? "Save Changes" : "Create Job Posting"}
+                        {submitting ? tr("recruitment.actions.saving") : isEdit ? tr("recruitment.actions.saveChanges") : tr("recruitment.actions.createJobPosting")}
                     </button>
                 </div>
             </form>
@@ -1070,30 +1108,30 @@ function JobModal({ offices, editJob, hrOffice, onClose, dark, theme }) {
 // ─────────────────────────────────────────────────────────────────
 // StatusModal
 // ─────────────────────────────────────────────────────────────────
-function StatusModal({ app, onClose, dark, theme }) {
+function StatusModal({ app, onClose, dark, theme, tr }) {
     const { data, setData, patch, processing } = useForm({ status: app.status || "new", hr_note: app.hr_note || "" });
     const inp = useInpStyle(theme, dark);
     const submit = (e) => { e.preventDefault(); patch(`/recruitment/applications/${app.id}`, { preserveScroll: true, onSuccess: onClose }); };
     return (
         <ModalShell onClose={onClose} maxWidth={460}>
-            <ModalHeader grad="linear-gradient(135deg,#5b21b6 0%,#7c3aed 60%,#8b5cf6 100%)" icon="👤" subtitle="Application" title={app.name} onClose={onClose} />
+            <ModalHeader grad="linear-gradient(135deg,#5b21b6 0%,#7c3aed 60%,#8b5cf6 100%)" icon="👤" subtitle={tr("recruitment.modal.application")} title={app.name} onClose={onClose} />
             <form onSubmit={submit} style={{ background: theme.surface, padding: "24px 26px 0", display: "flex", flexDirection: "column" }}>
                 <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 20 }}>{app.job_posting?.title || ""} · {app.job_posting?.office?.company_name || ""}</div>
                 <div style={{ marginBottom: 20 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 8 }}>Status</label>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 8 }}>{tr("recruitment.table.status")}</label>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {APP_STATUS_OPTS.map(s => <PillBtn key={s.value} active={data.status === s.value} onClick={() => setData("status", s.value)} color={s.color} bg={s.bg} darkBg={s.darkBg} label={s.label} dark={dark} />)}
+                        {APP_STATUS_OPTS.map(s => <PillBtn key={s.value} active={data.status === s.value} onClick={() => setData("status", s.value)} color={s.color} bg={s.bg} darkBg={s.darkBg} label={s.labelKey ? (tr(s.labelKey) === s.labelKey ? s.label : tr(s.labelKey)) : s.label} dark={dark} />)}
                     </div>
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 7 }}>HR Note</label>
-                    <textarea style={{ ...inp(false), minHeight: 72, resize: "vertical" }} value={data.hr_note} onChange={e => setData("hr_note", e.target.value)} placeholder="Internal note about this applicant..."
+                    <label style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 7 }}>{tr("recruitment.fields.hrNote")}</label>
+                    <textarea style={{ ...inp(false), minHeight: 72, resize: "vertical" }} value={data.hr_note} onChange={e => setData("hr_note", e.target.value)} placeholder={tr("recruitment.placeholders.hrNote")}
                         onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
                         onBlur={e => { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; }} />
                 </div>
                 <div style={{ padding: "16px 0 24px", display: "flex", gap: 10, justifyContent: "flex-end" }}>
-                    <button type="button" onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-                    <button type="submit" disabled={processing} style={{ padding: "10px 26px", border: "none", borderRadius: 10, background: theme.primary, color: "#fff", fontSize: 13, fontWeight: 700, cursor: processing ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: processing ? 0.7 : 1 }}>{processing ? "Saving…" : "Save Changes"}</button>
+                    <button type="button" onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr("recruitment.actions.cancel")}</button>
+                    <button type="submit" disabled={processing} style={{ padding: "10px 26px", border: "none", borderRadius: 10, background: theme.primary, color: "#fff", fontSize: 13, fontWeight: 700, cursor: processing ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: processing ? 0.7 : 1 }}>{processing ? tr("recruitment.actions.saving") : tr("recruitment.actions.saveChanges")}</button>
                 </div>
             </form>
         </ModalShell>
@@ -1104,7 +1142,7 @@ function StatusModal({ app, onClose, dark, theme }) {
 // InterviewModal
 // ─────────────────────────────────────────────────────────────────
 const PLATFORM_LABELS = { zoom: "Zoom", google_meet: "Google Meet", teams: "Microsoft Teams", physical: "Physical / Onsite", other: "Other" };
-function InterviewModal({ app, onClose, dark, theme }) {
+function InterviewModal({ app, onClose, dark, theme, tr }) {
     const existing = app.interview;
     const [submitting, setSubmitting] = useState(false);
     const [errors, setErrors] = useState({});
@@ -1114,8 +1152,8 @@ function InterviewModal({ app, onClose, dark, theme }) {
 
     const validate = () => {
         const e = {};
-        if (!data.scheduled_at) { e.scheduled_at = "Please select a date and time."; }
-        else if (new Date(data.scheduled_at) <= new Date()) { e.scheduled_at = "Interview must be scheduled for a future date and time."; }
+        if (!data.scheduled_at) { e.scheduled_at = tr("recruitment.validation.selectDateTime"); }
+        else if (new Date(data.scheduled_at) <= new Date()) { e.scheduled_at = tr("recruitment.validation.interviewFuture"); }
         return e;
     };
     const submit = (e) => {
@@ -1126,7 +1164,7 @@ function InterviewModal({ app, onClose, dark, theme }) {
         router.post(`/recruitment/applications/${app.id}/interview`, data, {
             preserveScroll: true,
             onSuccess: () => { setSubmitting(false); onClose(); },
-            onError: errs => { setSubmitting(false); const mapped = {}; if (errs.scheduled_at) mapped.scheduled_at = "Interview must be in the future."; if (errs.meeting_link) mapped.meeting_link = errs.meeting_link; setErrors(mapped); },
+            onError: errs => { setSubmitting(false); const mapped = {}; if (errs.scheduled_at) mapped.scheduled_at = tr("recruitment.validation.interviewFuture"); if (errs.meeting_link) mapped.meeting_link = errs.meeting_link; setErrors(mapped); },
         });
     };
     const errTxt = key => errors[key] ? <div style={{ fontSize: 11, color: theme.danger, marginTop: 5, display: "flex", alignItems: "center", gap: 4 }}><span>⚠</span> {errors[key]}</div> : null;
@@ -1134,33 +1172,33 @@ function InterviewModal({ app, onClose, dark, theme }) {
 
     return (
         <ModalShell onClose={onClose} maxWidth={540}>
-            <ModalHeader grad="linear-gradient(135deg,#0369a1,#0891b2)" icon="📅" subtitle={existing ? "Reschedule Interview" : "Schedule Interview"} title={app.name} onClose={onClose} />
+            <ModalHeader grad="linear-gradient(135deg,#0369a1,#0891b2)" icon="📅" subtitle={existing ? tr("recruitment.modal.rescheduleInterview") : tr("recruitment.modal.scheduleInterview")} title={app.name} onClose={onClose} />
             <form onSubmit={submit} style={{ background: theme.surface, display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
                 <div style={{ overflowY: "auto", flex: 1, padding: "24px 26px 16px", scrollbarWidth: "none" }}>
                     <div style={{ marginBottom: 16 }}>
-                        <label style={lbl}>Date & Time *</label>
+                        <label style={lbl}>{tr("recruitment.fields.dateTime")} *</label>
                         <input type="datetime-local" style={inp(errors.scheduled_at)} value={data.scheduled_at} onChange={e => set("scheduled_at", e.target.value)}
                             onFocus={e => { if (!errors.scheduled_at) { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; } }}
                             onBlur={e => { if (!errors.scheduled_at) { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; } }} />
                         {errTxt("scheduled_at")}
                     </div>
                     <div style={{ marginBottom: 16 }}>
-                        <label style={lbl}>Interview Type *</label>
+                        <label style={lbl}>{tr("recruitment.fields.interviewType")} *</label>
                         <div style={{ display: "flex", gap: 8 }}>
-                            {["online", "onsite"].map(t => <PillBtn key={t} active={data.type === t} onClick={() => set("type", t)} color="#0891b2" bg="#e0f2fe" darkBg="rgba(8,145,178,0.16)" label={t === "online" ? "💻 Online" : "🏢 Onsite"} dark={dark} />)}
+                            {["online", "onsite"].map(t => <PillBtn key={t} active={data.type === t} onClick={() => set("type", t)} color="#0891b2" bg="#e0f2fe" darkBg="rgba(8,145,178,0.16)" label={t === "online" ? `💻 ${tr("recruitment.labels.online")}` : `🏢 ${tr("recruitment.labels.onsite")}`} dark={dark} />)}
                         </div>
                     </div>
                     {data.type === "online" && (
                         <div style={{ marginBottom: 16 }}>
-                            <label style={lbl}>Platform</label>
+                            <label style={lbl}>{tr("recruitment.fields.platform")}</label>
                             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                {["zoom", "google_meet", "teams", "other"].map(p => <PillBtn key={p} active={data.platform === p} onClick={() => set("platform", p)} color="#0891b2" bg="#e0f2fe" darkBg="rgba(8,145,178,0.16)" label={PLATFORM_LABELS[p]} dark={dark} />)}
+                                {["zoom", "google_meet", "teams", "other"].map(p => <PillBtn key={p} active={data.platform === p} onClick={() => set("platform", p)} color="#0891b2" bg="#e0f2fe" darkBg="rgba(8,145,178,0.16)" label={tr(`recruitment.platforms.${p}`)} dark={dark} />)}
                             </div>
                         </div>
                     )}
                     {data.type === "online" ? (
                         <div style={{ marginBottom: 16 }}>
-                            <label style={lbl}>Meeting Link</label>
+                            <label style={lbl}>{tr("recruitment.fields.meetingLink")}</label>
                             <input style={inp(errors.meeting_link)} value={data.meeting_link} onChange={e => set("meeting_link", e.target.value)} placeholder="https://zoom.us/j/..."
                                 onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
                                 onBlur={e => { e.target.style.borderColor = errors.meeting_link ? theme.danger : theme.inputBorder; e.target.style.boxShadow = "none"; }} />
@@ -1168,31 +1206,31 @@ function InterviewModal({ app, onClose, dark, theme }) {
                         </div>
                     ) : (
                         <div style={{ marginBottom: 16 }}>
-                            <label style={lbl}>Location</label>
-                            <input style={inp(false)} value={data.location} onChange={e => set("location", e.target.value)} placeholder="Office address or room number"
+                            <label style={lbl}>{tr("recruitment.fields.location")}</label>
+                            <input style={inp(false)} value={data.location} onChange={e => set("location", e.target.value)} placeholder={tr("recruitment.placeholders.location")}
                                 onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
                                 onBlur={e => { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; }} />
                         </div>
                     )}
                     <div style={{ marginBottom: 16 }}>
-                        <label style={lbl}>Interviewer Name</label>
-                        <input style={inp(false)} value={data.interviewer_name} onChange={e => set("interviewer_name", e.target.value)} placeholder="e.g. Daw Aye Aye (HR Manager)"
+                        <label style={lbl}>{tr("recruitment.fields.interviewerName")}</label>
+                        <input style={inp(false)} value={data.interviewer_name} onChange={e => set("interviewer_name", e.target.value)} placeholder={tr("recruitment.placeholders.interviewerName")}
                             onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
                             onBlur={e => { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; }} />
                     </div>
                     <div style={{ marginBottom: 14 }}>
-                        <label style={lbl}>Note to Candidate</label>
-                        <textarea style={{ ...inp(false), minHeight: 80, resize: "vertical" }} value={data.note_to_candidate} onChange={e => set("note_to_candidate", e.target.value)} placeholder="What to prepare, dress code, documents to bring..."
+                        <label style={lbl}>{tr("recruitment.fields.noteToCandidate")}</label>
+                        <textarea style={{ ...inp(false), minHeight: 80, resize: "vertical" }} value={data.note_to_candidate} onChange={e => set("note_to_candidate", e.target.value)} placeholder={tr("recruitment.placeholders.noteToCandidate")}
                             onFocus={e => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = `0 0 0 3px ${theme.primarySoft}`; }}
                             onBlur={e => { e.target.style.borderColor = theme.inputBorder; e.target.style.boxShadow = "none"; }} />
                     </div>
                     <div style={{ background: dark ? "rgba(52,211,153,0.08)" : "#f0fdf4", border: `1px solid ${dark ? "rgba(52,211,153,0.2)" : "#bbf7d0"}`, borderRadius: 8, padding: "10px 14px", fontSize: 12, color: dark ? "#34d399" : "#166534", display: "flex", alignItems: "center", gap: 8 }}>
-                        <span>✉️</span> An invitation email will be sent automatically to <strong>{app.email}</strong>
+                        <span>✉️</span> {tr("recruitment.messages.invitationEmailSent")}  <strong>{app.email}</strong>
                     </div>
                 </div>
                 <div style={{ padding: "14px 26px 22px", borderTop: `1px solid ${theme.border}`, display: "flex", gap: 10, justifyContent: "flex-end", background: theme.surface, flexShrink: 0 }}>
-                    <button type="button" onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-                    <button type="submit" disabled={submitting} style={{ padding: "10px 26px", border: "none", borderRadius: 10, background: "#0891b2", color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: submitting ? 0.7 : 1 }}>{submitting ? "Scheduling…" : existing ? "Reschedule & Send Email" : "Schedule & Send Email"}</button>
+                    <button type="button" onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr("recruitment.actions.cancel")}</button>
+                    <button type="submit" disabled={submitting} style={{ padding: "10px 26px", border: "none", borderRadius: 10, background: "#0891b2", color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: submitting ? 0.7 : 1 }}>{submitting ? tr("recruitment.actions.scheduling") : existing ? tr("recruitment.actions.rescheduleSendEmail") : tr("recruitment.actions.scheduleSendEmail")}</button>
                 </div>
             </form>
         </ModalShell>
@@ -1202,7 +1240,7 @@ function InterviewModal({ app, onClose, dark, theme }) {
 // ─────────────────────────────────────────────────────────────────
 // ScoreModal
 // ─────────────────────────────────────────────────────────────────
-function ScoreModal({ app, onClose, dark, theme }) {
+function ScoreModal({ app, onClose, dark, theme, tr }) {
     const existing = app.interview;
     const [submitting, setSubmitting] = useState(false);
     const [data, setDataState] = useState({ score: existing?.score ?? 70, strengths: existing?.strengths || "", weaknesses: existing?.weaknesses || "", recommendation: existing?.recommendation || "proceed", internal_note: existing?.internal_note || "" });
@@ -1210,28 +1248,28 @@ function ScoreModal({ app, onClose, dark, theme }) {
     const inp = useInpStyle(theme, dark);
     const submit = (e) => { e.preventDefault(); setSubmitting(true); router.post(`/recruitment/applications/${app.id}/score`, data, { preserveScroll: true, onSuccess: () => { setSubmitting(false); onClose(); }, onError: () => setSubmitting(false) }); };
     const scoreColor = data.score >= 70 ? "#059669" : data.score >= 50 ? "#d97706" : "#dc2626";
-    const recOpts = [{ value: "proceed", label: "✅ Proceed", color: "#059669", bg: "#d1fae5", darkBg: "rgba(5,150,105,0.16)" }, { value: "hold", label: "⏸ Hold", color: "#d97706", bg: "#fef3c7", darkBg: "rgba(217,119,6,0.16)" }, { value: "reject", label: "❌ Reject", color: "#dc2626", bg: "#fee2e2", darkBg: "rgba(220,38,38,0.16)" }];
+    const recOpts = [{ value: "proceed", label: `✅ ${tr("recruitment.recommendations.proceed")}`, color: "#059669", bg: "#d1fae5", darkBg: "rgba(5,150,105,0.16)" }, { value: "hold", label: `⏸ ${tr("recruitment.recommendations.hold")}`, color: "#d97706", bg: "#fef3c7", darkBg: "rgba(217,119,6,0.16)" }, { value: "reject", label: `❌ ${tr("recruitment.recommendations.reject")}`, color: "#dc2626", bg: "#fee2e2", darkBg: "rgba(220,38,38,0.16)" }];
     const lbl = { fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 7 };
     return (
         <ModalShell onClose={onClose} maxWidth={500}>
-            <ModalHeader grad="linear-gradient(135deg,#d97706,#f59e0b)" icon="⭐" subtitle="Interview Score" title={app.name} onClose={onClose} />
+            <ModalHeader grad="linear-gradient(135deg,#d97706,#f59e0b)" icon="⭐" subtitle={tr("recruitment.modal.interviewScore")} title={app.name} onClose={onClose} />
             <form onSubmit={submit} style={{ background: theme.surface, display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
                 <div style={{ overflowY: "auto", flex: 1, padding: "24px 26px 16px", scrollbarWidth: "none" }}>
                     <div style={{ marginBottom: 24 }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                            <label style={lbl}>Score *</label>
+                            <label style={lbl}>{tr("recruitment.labels.score")} *</label>
                             <div style={{ fontSize: 28, fontWeight: 800, color: scoreColor, letterSpacing: "-0.04em" }}>{data.score}<span style={{ fontSize: 14, fontWeight: 400, color: theme.textMute }}>/100</span></div>
                         </div>
                         <input type="range" min={0} max={100} step={1} value={data.score} onChange={e => set("score", parseInt(e.target.value))} style={{ width: "100%", accentColor: scoreColor, cursor: "pointer" }} />
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: theme.textMute, marginTop: 4 }}><span>Poor</span><span>Average</span><span>Excellent</span></div>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: theme.textMute, marginTop: 4 }}><span>{tr("recruitment.score.poor")}</span><span>{tr("recruitment.score.average")}</span><span>{tr("recruitment.score.excellent")}</span></div>
                     </div>
                     <div style={{ marginBottom: 18 }}>
-                        <label style={lbl}>Recommendation *</label>
+                        <label style={lbl}>{tr("recruitment.fields.recommendation")} *</label>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                             {recOpts.map(r => <PillBtn key={r.value} active={data.recommendation === r.value} onClick={() => set("recommendation", r.value)} color={r.color} bg={r.bg} darkBg={r.darkBg} label={r.label} dark={dark} />)}
                         </div>
                     </div>
-                    {[["strengths", "Strengths", "What stood out positively..."], ["weaknesses", "Areas for Improvement", "Skills gaps or concerns..."], ["internal_note", "Internal Note", "HR internal notes (not visible to candidate)..."]].map(([k, label, ph]) => (
+                    {[[ "strengths", tr("recruitment.fields.strengths"), tr("recruitment.placeholders.strengths") ], [ "weaknesses", tr("recruitment.fields.areasForImprovement"), tr("recruitment.placeholders.weaknesses") ], [ "internal_note", tr("recruitment.fields.internalNote"), tr("recruitment.placeholders.internalNote") ]].map(([k, label, ph]) => (
                         <div key={k} style={{ marginBottom: 14 }}>
                             <label style={lbl}>{label}</label>
                             <textarea style={{ ...inp(false), minHeight: 68, resize: "vertical" }} value={data[k]} onChange={e => set(k, e.target.value)} placeholder={ph}
@@ -1241,8 +1279,8 @@ function ScoreModal({ app, onClose, dark, theme }) {
                     ))}
                 </div>
                 <div style={{ padding: "14px 26px 22px", borderTop: `1px solid ${theme.border}`, display: "flex", gap: 10, justifyContent: "flex-end", background: theme.surface, flexShrink: 0 }}>
-                    <button type="button" onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-                    <button type="submit" disabled={submitting} style={{ padding: "10px 26px", border: "none", borderRadius: 10, background: "#d97706", color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: submitting ? 0.7 : 1 }}>{submitting ? "Saving…" : "Save Score"}</button>
+                    <button type="button" onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr("recruitment.actions.cancel")}</button>
+                    <button type="submit" disabled={submitting} style={{ padding: "10px 26px", border: "none", borderRadius: 10, background: "#d97706", color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: submitting ? 0.7 : 1 }}>{submitting ? tr("recruitment.actions.saving") : tr("recruitment.actions.saveScore")}</button>
                 </div>
             </form>
         </ModalShell>
@@ -1252,21 +1290,21 @@ function ScoreModal({ app, onClose, dark, theme }) {
 // ─────────────────────────────────────────────────────────────────
 // BulkModal
 // ─────────────────────────────────────────────────────────────────
-function BulkModal({ ids, onClose, onDone, dark, theme }) {
+function BulkModal({ ids, onClose, onDone, dark, theme, tr }) {
     const [status, setStatus] = useState("reviewing");
     const [submitting, setSubmitting] = useState(false);
     const submit = () => { setSubmitting(true); router.post("/recruitment/applications/bulk-update", { ids, status }, { preserveScroll: true, onSuccess: onDone, onError: () => setSubmitting(false) }); };
     return (
         <ModalShell onClose={onClose} maxWidth={420}>
-            <ModalHeader grad="linear-gradient(135deg,#5b21b6 0%,#7c3aed 100%)" icon="✏️" subtitle="Bulk Action" title={`Update ${ids.length} Applicant${ids.length !== 1 ? "s" : ""}`} onClose={onClose} />
+            <ModalHeader grad="linear-gradient(135deg,#5b21b6 0%,#7c3aed 100%)" icon="✏️" subtitle={tr("recruitment.modal.bulkAction")} title={`${tr("recruitment.actions.update")} ${ids.length} ${ids.length !== 1 ? tr("recruitment.labels.applicants") : tr("recruitment.labels.applicant")}`} onClose={onClose} />
             <div style={{ background: theme.surface, padding: "24px 26px" }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 10 }}>Set Status To</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: 10 }}>{tr("recruitment.fields.setStatusTo")}</label>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
-                    {APP_STATUS_OPTS.map(s => <PillBtn key={s.value} active={status === s.value} onClick={() => setStatus(s.value)} color={s.color} bg={s.bg} darkBg={s.darkBg} label={s.label} dark={dark} />)}
+                    {APP_STATUS_OPTS.map(s => <PillBtn key={s.value} active={status === s.value} onClick={() => setStatus(s.value)} color={s.color} bg={s.bg} darkBg={s.darkBg} label={s.labelKey ? (tr(s.labelKey) === s.labelKey ? s.label : tr(s.labelKey)) : s.label} dark={dark} />)}
                 </div>
                 <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-                    <button onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-                    <button onClick={submit} disabled={submitting} style={{ padding: "10px 26px", border: "none", borderRadius: 10, background: theme.primary, color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: submitting ? 0.7 : 1 }}>{submitting ? "Updating…" : "Apply to All"}</button>
+                    <button onClick={onClose} style={{ padding: "10px 22px", border: `1.5px solid ${theme.border}`, borderRadius: 10, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr("recruitment.actions.cancel")}</button>
+                    <button onClick={submit} disabled={submitting} style={{ padding: "10px 26px", border: "none", borderRadius: 10, background: theme.primary, color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: submitting ? 0.7 : 1 }}>{submitting ? tr("recruitment.actions.updating") : tr("recruitment.actions.applyToAll")}</button>
                 </div>
             </div>
         </ModalShell>
@@ -1276,7 +1314,7 @@ function BulkModal({ ids, onClose, onDone, dark, theme }) {
 // ─────────────────────────────────────────────────────────────────
 // DeleteModal
 // ─────────────────────────────────────────────────────────────────
-function DeleteModal({ app, onClose }) {
+function DeleteModal({ app, onClose, tr }) {
     const [submitting, setSubmitting] = useState(false);
     const confirm = () => { setSubmitting(true); router.delete(`/recruitment/applications/${app.id}`, { preserveScroll: true, onSuccess: onClose, onError: () => setSubmitting(false) }); };
     const initials  = app.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
@@ -1287,8 +1325,8 @@ function DeleteModal({ app, onClose }) {
                 <div style={{ height: 4, background: "linear-gradient(90deg,#dc2626,#ef4444)" }} />
                 <div style={{ padding: "28px 28px 24px" }}>
                     <div style={{ width: 52, height: 52, borderRadius: 14, background: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, marginBottom: 18 }}>🗑️</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: "#111827", marginBottom: 8 }}>Delete Application</div>
-                    <div style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.65, marginBottom: 20 }}>This will permanently delete the application and CV file. <strong style={{ color: "#dc2626" }}>Cannot be undone.</strong></div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "#111827", marginBottom: 8 }}>{tr("recruitment.modal.deleteApplication")}</div>
+                    <div style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.65, marginBottom: 20 }}>{tr("recruitment.delete.applicationWarning")} <strong style={{ color: "#dc2626" }}>{tr("recruitment.delete.cannotBeUndone")}</strong></div>
                     <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
                         <div style={{ width: 38, height: 38, borderRadius: 10, background: avatarBg, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>{initials}</div>
                         <div>
@@ -1297,8 +1335,8 @@ function DeleteModal({ app, onClose }) {
                         </div>
                     </div>
                     <div style={{ background: "#fff7f7", border: "1px solid #fecaca", borderRadius: 10, padding: "12px 16px", marginBottom: 20 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: "#dc2626", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Will be deleted</div>
-                        {["Application record & all details", "Uploaded CV file", "Interview record & score"].map((item, i) => (
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#dc2626", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>{tr("recruitment.delete.willBeDeleted")}</div>
+                        {[tr("recruitment.delete.applicationRecord"), tr("recruitment.delete.uploadedCv"), tr("recruitment.delete.interviewRecord")].map((item, i) => (
                             <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: i < 2 ? 6 : 0 }}>
                                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#dc2626", flexShrink: 0 }} />
                                 <span style={{ fontSize: 13, color: "#6b7280" }}>{item}</span>
@@ -1306,9 +1344,9 @@ function DeleteModal({ app, onClose }) {
                         ))}
                     </div>
                     <div style={{ display: "flex", gap: 10 }}>
-                        <button onClick={onClose} style={{ flex: 1, padding: 11, border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                        <button onClick={onClose} style={{ flex: 1, padding: 11, border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr("recruitment.actions.cancel")}</button>
                         <button onClick={confirm} disabled={submitting} style={{ flex: 1, padding: 11, border: "none", borderRadius: 10, background: submitting ? "#fca5a5" : "#dc2626", color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                            {submitting ? "Deleting…" : "🗑️ Delete Permanently"}
+                            {submitting ? tr("recruitment.actions.deleting") : `🗑️ ${tr("recruitment.actions.deletePermanently")}`}
                         </button>
                     </div>
                 </div>
@@ -1320,7 +1358,7 @@ function DeleteModal({ app, onClose }) {
 // ─────────────────────────────────────────────────────────────────
 // DeleteJobModal
 // ─────────────────────────────────────────────────────────────────
-function DeleteJobModal({ job, onClose }) {
+function DeleteJobModal({ job, onClose, tr }) {
     const [submitting, setSubmitting] = useState(false);
     const appCount = job.applications_count || 0;
     const confirm = () => { setSubmitting(true); router.delete(`/recruitment/jobs/${job.id}`, { preserveScroll: true, onSuccess: onClose, onError: () => setSubmitting(false) }); };
@@ -1330,26 +1368,26 @@ function DeleteJobModal({ job, onClose }) {
                 <div style={{ height: 4, background: "linear-gradient(90deg,#dc2626,#ef4444)" }} />
                 <div style={{ padding: "28px 28px 24px" }}>
                     <div style={{ width: 52, height: 52, borderRadius: 14, background: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, marginBottom: 18 }}>📋</div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: "#111827", marginBottom: 8 }}>Delete Job Posting</div>
-                    <div style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.65, marginBottom: 20 }}>Are you sure? <strong style={{ color: "#dc2626" }}>This action cannot be undone.</strong></div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "#111827", marginBottom: 8 }}>{tr("recruitment.modal.deleteJobPosting")}</div>
+                    <div style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.65, marginBottom: 20 }}>{tr("recruitment.delete.areYouSure")} <strong style={{ color: "#dc2626" }}>{tr("recruitment.delete.cannotBeUndone")}</strong></div>
                     <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
                         <div style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 4 }}>{job.title}</div>
-                        <div style={{ fontSize: 12, color: "#6b7280" }}>{job.office?.company_name} · {job.slots} position{job.slots > 1 ? "s" : ""}</div>
+                        <div style={{ fontSize: 12, color: "#6b7280" }}>{job.office?.company_name} · {job.slots} {job.slots > 1 ? tr("recruitment.labels.positions") : tr("recruitment.labels.position")}</div>
                     </div>
                     {appCount > 0 ? (
                         <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderLeft: "4px solid #f59e0b", borderRadius: "0 10px 10px 0", padding: "12px 14px", marginBottom: 24, display: "flex", gap: 10 }}>
                             <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
-                            <div><div style={{ fontSize: 12, fontWeight: 700, color: "#d97706" }}>{appCount} application{appCount > 1 ? "s" : ""} will also be deleted</div><div style={{ fontSize: 11, color: "#92400e", marginTop: 2 }}>All CVs, interviews, and scores will be permanently removed.</div></div>
+                            <div><div style={{ fontSize: 12, fontWeight: 700, color: "#d97706" }}>{appCount} {appCount > 1 ? tr("recruitment.labels.applications") : tr("recruitment.labels.application")} {tr("recruitment.delete.willAlsoBeDeleted")}</div><div style={{ fontSize: 11, color: "#92400e", marginTop: 2 }}>{tr("recruitment.delete.allDataRemoved")}</div></div>
                         </div>
                     ) : (
                         <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, padding: "10px 14px", marginBottom: 24, display: "flex", gap: 8, alignItems: "center" }}>
-                            <span>✅</span><span style={{ fontSize: 12, color: "#166534" }}>No applications — safe to delete.</span>
+                            <span>✅</span><span style={{ fontSize: 12, color: "#166534" }}>{tr("recruitment.delete.noApplicationsSafe")}</span>
                         </div>
                     )}
                     <div style={{ display: "flex", gap: 10 }}>
-                        <button onClick={onClose} style={{ flex: 1, padding: 11, border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                        <button onClick={onClose} style={{ flex: 1, padding: 11, border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr("recruitment.actions.cancel")}</button>
                         <button onClick={confirm} disabled={submitting} style={{ flex: 1, padding: 11, border: "none", borderRadius: 10, background: submitting ? "#fca5a5" : "#dc2626", color: "#fff", fontSize: 13, fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                            {submitting ? "Deleting…" : "🗑️ Delete Posting"}
+                            {submitting ? tr("recruitment.actions.deleting") : `🗑️ ${tr("recruitment.actions.deletePosting")}`}
                         </button>
                     </div>
                 </div>

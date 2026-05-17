@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 const showToast = (msg, type = 'success') =>
     window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type } }));
@@ -60,22 +61,18 @@ function fmtDate(d) {
 function fmtMoney(n, currency = '') {
     if (!n && n !== 0) return '—';
     const num = Number(n);
-    // .00 ဆိုရင် integer ပြ၊ .50 ကဲ့သို့ decimal ရှိမှ decimal ပြ
     const formatted = Number.isInteger(num)
         ? num.toLocaleString('en-US')
-        : num.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+        : num.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
     return currency ? `${currency} ${formatted}` : formatted;
 }
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const STATUS_CFG = {
-    pending:  { label:'Pending',  color:'#d97706', bg:'#fffbeb', bgDark:'rgba(217,119,6,0.16)' },
-    approved: { label:'Approved', color:'#059669', bg:'#ecfdf5', bgDark:'rgba(5,150,105,0.16)' },
-    rejected: { label:'Rejected', color:'#ef4444', bg:'#fef2f2', bgDark:'rgba(239,68,68,0.16)' },
+    pending:  { color:'#d97706', bg:'#fffbeb', bgDark:'rgba(217,119,6,0.16)' },
+    approved: { color:'#059669', bg:'#ecfdf5', bgDark:'rgba(5,150,105,0.16)' },
+    rejected: { color:'#ef4444', bg:'#fef2f2', bgDark:'rgba(239,68,68,0.16)' },
 };
 
 const CAT_COLORS = {
@@ -101,7 +98,7 @@ function Avatar({ name, url, size=34, theme }) {
     return <div style={{width:size,height:size,borderRadius:'50%',background:bg,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.36,fontWeight:800,color:'#fff'}}>{initials}</div>;
 }
 
-// ── Premium Dropdown (portal-based) ──────────────────────────
+// ── Premium Dropdown ──────────────────────────────────────────
 function PremiumDropdown({ options, value, onChange, theme, dark, width, placeholder='Select...' }) {
     const [open, setOpen] = useState(false);
     const [pos, setPos]   = useState({top:0,left:0,width:0});
@@ -176,14 +173,14 @@ function PremiumDropdown({ options, value, onChange, theme, dark, width, placeho
     );
 }
 
-// ── Approver Select (premium with avatar) ─────────────────────
-function ApproverSelect({ approvers, value, onChange, error, theme, dark }) {
+// ── ApproverSelect ────────────────────────────────────────────
+function ApproverSelect({ approvers, value, onChange, error, theme, dark, tFn }) {
     const [open, setOpen] = useState(false);
-    const [pos,  setPos]  = useState({ top: 0, left: 0, width: 0, above: false });
+    const [pos,  setPos]  = useState({ top:0, left:0, width:0, above:false });
     const triggerRef = useRef(null);
     const menuRef    = useRef(null);
     const sel = approvers.find(a => String(a.id) === String(value));
- 
+
     useEffect(() => {
         const fn = e => {
             if (triggerRef.current?.contains(e.target) || menuRef.current?.contains(e.target)) return;
@@ -192,126 +189,74 @@ function ApproverSelect({ approvers, value, onChange, error, theme, dark }) {
         document.addEventListener('mousedown', fn);
         return () => document.removeEventListener('mousedown', fn);
     }, []);
- 
+
     function handleOpen() {
         const rect = triggerRef.current?.getBoundingClientRect();
         if (rect) {
-            const ITEM_H  = 54;
-            const PAD     = 6;
-            const MENU_H  = Math.min(approvers.length * ITEM_H + PAD * 2, 260);
-            const GAP     = 6;
-            const spaceBelow = window.innerHeight - rect.bottom;
-            const spaceAbove = rect.top;
-            const above = spaceBelow < MENU_H + GAP || spaceAbove > spaceBelow + 40;
-            setPos({
-                top:   above ? rect.top  - MENU_H - GAP : rect.bottom + GAP,
-                left:  rect.left,
-                width: rect.width,
-                above,
-            });
+            const ITEM_H=54, PAD=6, MENU_H=Math.min(approvers.length*ITEM_H+PAD*2,260), GAP=6;
+            const spaceBelow=window.innerHeight-rect.bottom;
+            const spaceAbove=rect.top;
+            const above=spaceBelow<MENU_H+GAP||spaceAbove>spaceBelow+40;
+            setPos({ top:above?rect.top-MENU_H-GAP:rect.bottom+GAP, left:rect.left, width:rect.width, above });
         }
-        setOpen(v => !v);
+        setOpen(v=>!v);
     }
- 
+
     return (
         <>
-            <button
-                ref={triggerRef}
-                type="button"
-                onClick={handleOpen}
-                style={{
-                    width: '100%', height: 44, padding: '0 13px',
-                    borderRadius: 12,
-                    border: `1.5px solid ${error ? theme.danger : open ? theme.primary : theme.inputBorder}`,
-                    background: dark ? theme.inputBg : (error ? '#fff9f9' : '#fff'),
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                    cursor: 'pointer', fontSize: 13,
-                    boxShadow: open
-                        ? `0 0 0 3px ${theme.primary}22`
-                        : error ? `0 0 0 3px ${theme.danger}22` : 'none',
-                    transition: 'all 0.15s', outline: 'none',
-                }}
-            >
+            <button ref={triggerRef} type="button" onClick={handleOpen} style={{
+                width:'100%', height:44, padding:'0 13px', borderRadius:12,
+                border:`1.5px solid ${error?theme.danger:open?theme.primary:theme.inputBorder}`,
+                background:dark?theme.inputBg:(error?'#fff9f9':'#fff'),
+                display:'flex', alignItems:'center', justifyContent:'space-between', gap:10,
+                cursor:'pointer', fontSize:13,
+                boxShadow:open?`0 0 0 3px ${theme.primary}22`:error?`0 0 0 3px ${theme.danger}22`:'none',
+                transition:'all 0.15s', outline:'none',
+            }}>
                 {sel ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,minWidth:0}}>
                         <Avatar name={sel.name} url={sel.avatar_url} size={24} theme={theme}/>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {sel.name}
-                        </span>
+                        <span style={{fontSize:13,fontWeight:700,color:theme.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{sel.name}</span>
                     </div>
                 ) : (
-                    <span style={{ fontSize: 13, color: theme.textMute }}>— Select approver —</span>
+                    <span style={{fontSize:13,color:theme.textMute}}>{tFn('expense.modal.approverPlaceholder')}</span>
                 )}
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2.5"
-                    style={{ flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none', color: theme.textMute }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                    style={{flexShrink:0,transition:'transform 0.2s',transform:open?'rotate(180deg)':'none',color:theme.textMute}}>
                     <polyline points="6 9 12 15 18 9"/>
                 </svg>
             </button>
- 
             {open && createPortal(
-                <div
-                    ref={menuRef}
-                    className="ex-hide"
-                    style={{
-                        position: 'fixed',          // ← fixed: escapes modal overflow
-                        top:   pos.top,
-                        left:  pos.left,
-                        width: pos.width,
-                        background: dark ? '#111e38' : '#fff',
-                        border: `1px solid ${theme.borderStrong}`,
-                        borderRadius: 14,
-                        boxShadow: theme.shadow,
-                        zIndex: 99999,
-                        maxHeight: 260,
-                        overflowY: 'auto',
-                        padding: 6,
-                        animation: pos.above ? 'exDropUp 0.16s ease' : 'exDrop 0.16s ease',
-                    }}
-                >
-                    {approvers.length === 0 ? (
-                        <div style={{ padding: '14px 12px', fontSize: 12, color: theme.textMute, textAlign: 'center' }}>
-                            No approvers available
+                <div ref={menuRef} className="ex-hide" style={{
+                    position:'fixed', top:pos.top, left:pos.left, width:pos.width,
+                    background:dark?'#111e38':'#fff', border:`1px solid ${theme.borderStrong}`,
+                    borderRadius:14, boxShadow:theme.shadow, zIndex:99999,
+                    maxHeight:260, overflowY:'auto', padding:6,
+                    animation:pos.above?'exDropUp 0.16s ease':'exDrop 0.16s ease',
+                }}>
+                    {approvers.length===0 ? (
+                        <div style={{padding:'14px 12px',fontSize:12,color:theme.textMute,textAlign:'center'}}>
+                            {tFn('expense.noApproversAvailable')}
                         </div>
                     ) : approvers.map(a => {
-                        const active = String(a.id) === String(value);
+                        const active = String(a.id)===String(value);
                         return (
-                            <button
-                                key={a.id}
-                                type="button"
-                                onClick={() => { onChange(String(a.id)); setOpen(false); }}
+                            <button key={a.id} type="button" onClick={()=>{onChange(String(a.id));setOpen(false);}}
                                 style={{
-                                    width: '100%',
-                                    background: active ? (dark ? `${theme.primary}22` : theme.primarySoft) : 'transparent',
-                                    border: 'none', padding: '8px 10px', borderRadius: 9,
-                                    cursor: 'pointer', textAlign: 'left',
-                                    display: 'flex', alignItems: 'center', gap: 10,
-                                    transition: 'background 0.12s', marginBottom: 2,
+                                    width:'100%', background:active?(dark?`${theme.primary}22`:theme.primarySoft):'transparent',
+                                    border:'none', padding:'8px 10px', borderRadius:9, cursor:'pointer',
+                                    textAlign:'left', display:'flex', alignItems:'center', gap:10,
+                                    transition:'background 0.12s', marginBottom:2,
                                 }}
-                                onMouseEnter={e => { if (!active) e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.06)' : theme.panelSoft; }}
-                                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+                                onMouseEnter={e=>{if(!active)e.currentTarget.style.background=dark?'rgba(255,255,255,0.06)':theme.panelSoft;}}
+                                onMouseLeave={e=>{if(!active)e.currentTarget.style.background='transparent';}}
                             >
                                 <Avatar name={a.name} url={a.avatar_url} size={32} theme={theme}/>
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{
-                                        fontSize: 13, fontWeight: 700,
-                                        color: active ? theme.primary : theme.text,
-                                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                    }}>
-                                        {a.name}
-                                    </div>
-                                    {a.role?.name && (
-                                        <div style={{ fontSize: 10, color: theme.textMute, marginTop: 1 }}>
-                                            {a.role.name}
-                                        </div>
-                                    )}
+                                <div style={{flex:1,minWidth:0}}>
+                                    <div style={{fontSize:13,fontWeight:700,color:active?theme.primary:theme.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.name}</div>
+                                    {a.role?.name && <div style={{fontSize:10,color:theme.textMute,marginTop:1}}>{a.role.name}</div>}
                                 </div>
-                                {active && (
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                        stroke={theme.primary} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
-                                )}
+                                {active && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                             </button>
                         );
                     })}
@@ -322,19 +267,15 @@ function ApproverSelect({ approvers, value, onChange, error, theme, dark }) {
     );
 }
 
-// ── Stat Card ─────────────────────────────────────────────────
+// ── StatCard ──────────────────────────────────────────────────
 function StatCard({ icon, label, value, color, soft, theme, dark, sub }) {
     return (
         <div className="ex-stat-card" style={{
-            background:dark?theme.panelSolid:'#fff',
-            border:`1px solid ${theme.border}`,
-            borderRadius:16, padding:'16px 20px',
-            display:'flex', alignItems:'center', gap:14,
+            background:dark?theme.panelSolid:'#fff', border:`1px solid ${theme.border}`,
+            borderRadius:16, padding:'16px 20px', display:'flex', alignItems:'center', gap:14,
             boxShadow:theme.shadowSoft, transition:'all 0.15s', cursor:'default',
         }}>
-            <div style={{width:44,height:44,borderRadius:14,background:soft,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>
-                {icon}
-            </div>
+            <div style={{width:44,height:44,borderRadius:14,background:soft,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{icon}</div>
             <div>
                 <div style={{fontSize:20,fontWeight:900,color,lineHeight:1.1}}>{value}</div>
                 <div style={{fontSize:11,color:theme.textMute,fontWeight:600,marginTop:2}}>{label}</div>
@@ -344,335 +285,165 @@ function StatCard({ icon, label, value, color, soft, theme, dark, sub }) {
     );
 }
 
-// ── Expense Row ───────────────────────────────────────────────
-function ExpenseRow({ req, dark, theme, canViewAll, userId, onApprove, onReject, onDelete, isLast }) {
+// ── ExpenseRow ────────────────────────────────────────────────
+function ExpenseRow({ req, dark, theme, canViewAll, userId, onApprove, onReject, onDelete, isLast, tFn }) {
     const sc      = STATUS_CFG[req.status] || STATUS_CFG.pending;
     const catC    = CAT_COLORS[req.category] || CAT_COLORS.other;
     const catIcon = CAT_ICONS[req.category]  || '📋';
     const isMine      = req.user_id === userId;
     const showActions = canViewAll && req.status === 'pending' && !isMine;
     const showDelete  = isMine && req.status === 'pending';
- 
-    const chipLabel = {
-        fontSize: 9, fontWeight: 800,
-        textTransform: 'uppercase', letterSpacing: '0.5px',
-        marginRight: 5, color: theme.textMute,
-    };
-    const chipValue = { fontSize: 12, fontWeight: 700 };
- 
+
+    const statusLabel = tFn(`expense.stats.${req.status}`) || req.status;
+    const catLabel = tFn(`expense.category.${req.category}`) || req.category;
+
+    const chipLabel = { fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.5px', marginRight:5, color:theme.textMute };
+    const chipValue = { fontSize:12, fontWeight:700 };
+
     return (
         <div
-            style={{
-                display: 'flex', alignItems: 'stretch',
-                borderBottom: isLast ? 'none' : `1px solid ${theme.border}`,
-                transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            style={{ display:'flex', alignItems:'stretch', borderBottom:isLast?'none':`1px solid ${theme.border}`, transition:'background 0.15s' }}
+            onMouseEnter={e=>e.currentTarget.style.background=theme.rowHover}
+            onMouseLeave={e=>e.currentTarget.style.background='transparent'}
         >
-            {/* Left accent bar — category color */}
-            <div style={{ width: 3, flexShrink: 0, background: catC.color }} />
- 
-            <div style={{ flex: 1, padding: '13px 18px', minWidth: 0 }}>
- 
-                {/* ── Row 1: title · status · category  /  right: awaiting/actions/delete ── */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
- 
-                    {/* Left */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        {/* category icon */}
-                        <span style={{
-                            fontSize: 14, width: 26, height: 26, flexShrink: 0,
-                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            background: dark ? catC.bgDark : catC.bg,
-                            borderRadius: 7,
-                        }}>
-                            {catIcon}
-                        </span>
- 
-                        <span style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>
-                            {req.title}
-                        </span>
- 
-                        <span style={{
-                            fontSize: 10, fontWeight: 700, borderRadius: 99, padding: '2px 8px',
-                            background: dark ? sc.bgDark : sc.bg, color: sc.color,
-                        }}>
-                            {sc.label}
-                        </span>
- 
-                        <span style={{
-                            fontSize: 10, fontWeight: 600, color: theme.textMute,
-                        }}>
-                            {req.category?.charAt(0).toUpperCase() + req.category?.slice(1)}
-                        </span>
+            <div style={{width:3,flexShrink:0,background:catC.color}}/>
+            <div style={{flex:1,padding:'13px 18px',minWidth:0}}>
+
+                {/* Row 1 */}
+                <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:10}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                        <span style={{fontSize:14,width:26,height:26,flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',background:dark?catC.bgDark:catC.bg,borderRadius:7}}>{catIcon}</span>
+                        <span style={{fontSize:13,fontWeight:700,color:theme.text}}>{req.title}</span>
+                        <span style={{fontSize:10,fontWeight:700,borderRadius:99,padding:'2px 8px',background:dark?sc.bgDark:sc.bg,color:sc.color}}>{statusLabel}</span>
+                        <span style={{fontSize:10,fontWeight:600,color:theme.textMute}}>{catLabel}</span>
                     </div>
- 
-                    {/* Right */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
- 
-                        {/* Awaiting stacked */}
-                        {req.status === 'pending' && !showActions && (
-                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Awaiting</div>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: '#2563eb' }}>
-                                    {req.approver?.name || 'HR'}
-                                </div>
+                    <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+                        {req.status==='pending'&&!showActions && (
+                            <div style={{textAlign:'right',lineHeight:1.5}}>
+                                <div style={{fontSize:10,color:theme.textMute,fontWeight:500}}>{tFn('expense.row.awaiting')}</div>
+                                <div style={{fontSize:12,fontWeight:800,color:'#2563eb'}}>{req.approver?.name||tFn('expense.row.noApprover')}</div>
                             </div>
                         )}
- 
-                        {/* Approved by */}
-                        {req.status === 'approved' && req.approver && (
-                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Approved by</div>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.success }}>
-                                    {req.approver.name}
-                                </div>
+                        {req.status==='approved'&&req.approver && (
+                            <div style={{textAlign:'right',lineHeight:1.5}}>
+                                <div style={{fontSize:10,color:theme.textMute,fontWeight:500}}>{tFn('expense.row.approvedBy')}</div>
+                                <div style={{fontSize:12,fontWeight:800,color:theme.success}}>{req.approver.name}</div>
                             </div>
                         )}
- 
-                        {/* Rejected by */}
-                        {req.status === 'rejected' && req.approver && (
-                            <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>Rejected by</div>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.danger }}>
-                                    {req.approver.name}
-                                </div>
+                        {req.status==='rejected'&&req.approver && (
+                            <div style={{textAlign:'right',lineHeight:1.5}}>
+                                <div style={{fontSize:10,color:theme.textMute,fontWeight:500}}>{tFn('expense.row.rejectedBy')}</div>
+                                <div style={{fontSize:12,fontWeight:800,color:theme.danger}}>{req.approver.name}</div>
                             </div>
                         )}
- 
-                        {/* Approve / Reject pill buttons */}
                         {showActions && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                                <button
-                                    onClick={onApprove}
-                                    style={{
-                                        background: dark
-                                            ? 'linear-gradient(135deg,#065f46,#059669)'
-                                            : 'linear-gradient(135deg,#059669,#10b981)',
-                                        border: 'none', borderRadius: 20,
-                                        padding: '6px 16px', fontSize: 11, fontWeight: 700,
-                                        cursor: 'pointer', color: '#fff',
-                                        display: 'flex', alignItems: 'center', gap: 5,
-                                        boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
-                                        transition: 'opacity 0.15s',
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                                >
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" strokeWidth="3"
-                                        strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
-                                    Approve
+                            <div style={{display:'flex',alignItems:'center',gap:7}}>
+                                <button onClick={onApprove} style={{background:dark?'linear-gradient(135deg,#065f46,#059669)':'linear-gradient(135deg,#059669,#10b981)',border:'none',borderRadius:20,padding:'6px 16px',fontSize:11,fontWeight:700,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',gap:5,boxShadow:'0 2px 8px rgba(16,185,129,0.35)',transition:'opacity 0.15s'}}
+                                    onMouseEnter={e=>e.currentTarget.style.opacity='0.88'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    {tFn('expense.btn.approve')}
                                 </button>
-                                <button
-                                    onClick={onReject}
-                                    style={{
-                                        background: dark
-                                            ? 'linear-gradient(135deg,rgba(220,38,38,0.28),rgba(239,68,68,0.22))'
-                                            : 'linear-gradient(135deg,#fef2f2,#fee2e2)',
-                                        border: 'none', borderRadius: 20,
-                                        padding: '6px 16px', fontSize: 11, fontWeight: 700,
-                                        cursor: 'pointer', color: dark ? '#f87171' : '#dc2626',
-                                        display: 'flex', alignItems: 'center', gap: 5,
-                                        boxShadow: dark
-                                            ? '0 2px 8px rgba(248,113,113,0.15)'
-                                            : '0 2px 8px rgba(220,38,38,0.10)',
-                                        transition: 'opacity 0.15s',
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.opacity = '0.82'}
-                                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                                >
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"/>
-                                        <line x1="6" y1="6" x2="18" y2="18"/>
-                                    </svg>
-                                    Reject
+                                <button onClick={onReject} style={{background:dark?'linear-gradient(135deg,rgba(220,38,38,0.28),rgba(239,68,68,0.22))':'linear-gradient(135deg,#fef2f2,#fee2e2)',border:'none',borderRadius:20,padding:'6px 16px',fontSize:11,fontWeight:700,cursor:'pointer',color:dark?'#f87171':'#dc2626',display:'flex',alignItems:'center',gap:5,boxShadow:dark?'0 2px 8px rgba(248,113,113,0.15)':'0 2px 8px rgba(220,38,38,0.10)',transition:'opacity 0.15s'}}
+                                    onMouseEnter={e=>e.currentTarget.style.opacity='0.82'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                    {tFn('expense.btn.reject')}
                                 </button>
                             </div>
                         )}
- 
-                        {/* Delete — no border, faint icon */}
                         {showDelete && (
-                            <button
-                                onClick={onDelete}
-                                title="Delete request"
-                                style={{
-                                    width: 28, height: 28, borderRadius: 7,
-                                    background: 'transparent', border: 'none',
-                                    cursor: 'pointer',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    transition: 'all 0.15s', flexShrink: 0,
-                                    color: dark ? 'rgba(248,113,113,0.4)' : '#fca5a5',
-                                }}
-                                onMouseEnter={e => {
-                                    e.currentTarget.style.background = dark ? 'rgba(248,113,113,0.16)' : '#fee2e2';
-                                    e.currentTarget.style.color = dark ? '#f87171' : '#dc2626';
-                                }}
-                                onMouseLeave={e => {
-                                    e.currentTarget.style.background = 'transparent';
-                                    e.currentTarget.style.color = dark ? 'rgba(248,113,113,0.4)' : '#fca5a5';
-                                }}
-                            >
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" strokeWidth="2.2"
-                                    strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                                    <path d="M10 11v6M14 11v6"/>
-                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                                </svg>
+                            <button onClick={onDelete} title="Delete request" style={{width:28,height:28,borderRadius:7,background:'transparent',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s',flexShrink:0,color:dark?'rgba(248,113,113,0.4)':'#fca5a5'}}
+                                onMouseEnter={e=>{e.currentTarget.style.background=dark?'rgba(248,113,113,0.16)':'#fee2e2';e.currentTarget.style.color=dark?'#f87171':'#dc2626';}}
+                                onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color=dark?'rgba(248,113,113,0.4)':'#fca5a5';}}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                             </button>
                         )}
                     </div>
                 </div>
- 
-                {/* ── Employee row (HR/admin view) ── */}
-                {canViewAll && req.user && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+
+                {/* Employee row */}
+                {canViewAll&&req.user && (
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginTop:8}}>
                         <Avatar name={req.user.name} url={req.user.avatar_url} size={22} theme={theme}/>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{req.user.name}</span>
-                        {req.user.department && (
-                            <span style={{ fontSize: 11, color: theme.textMute }}>{req.user.department}</span>
-                        )}
+                        <span style={{fontSize:12,fontWeight:700,color:theme.text}}>{req.user.name}</span>
+                        {req.user.department && <span style={{fontSize:11,color:theme.textMute}}>{req.user.department}</span>}
                     </div>
                 )}
- 
-                {/* ── Date · Amount · Reimbursed chip row ── */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 9, flexWrap: 'wrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                        <span style={{ ...chipLabel }}>Date</span>
-                        <span style={{ ...chipValue, color: theme.text }}>{fmtDate(req.expense_date)}</span>
+
+                {/* Date · Amount · Reimbursed */}
+                <div style={{display:'flex',alignItems:'center',gap:14,marginTop:9,flexWrap:'wrap'}}>
+                    <span style={{display:'inline-flex',alignItems:'baseline'}}>
+                        <span style={{...chipLabel}}>{tFn('expense.row.date')}</span>
+                        <span style={{...chipValue,color:theme.text}}>{fmtDate(req.expense_date)}</span>
                     </span>
- 
-                    <span style={{ color: theme.border, fontSize: 12 }}>·</span>
- 
-                    <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                        <span style={{ ...chipLabel, color: catC.color }}>Amount</span>
-                        <span style={{ ...chipValue, color: catC.color }}>
-                            {fmtMoney(req.amount, req.currency)}
-                        </span>
+                    <span style={{color:theme.border,fontSize:12}}>·</span>
+                    <span style={{display:'inline-flex',alignItems:'baseline'}}>
+                        <span style={{...chipLabel,color:catC.color}}>{tFn('expense.row.amount')}</span>
+                        <span style={{...chipValue,color:catC.color}}>{fmtMoney(req.amount,req.currency)}</span>
                     </span>
- 
                     {req.reimbursed_at && (
                         <>
-                            <span style={{ color: theme.border, fontSize: 12 }}>·</span>
-                            <span style={{
-                                fontSize: 10, fontWeight: 700, color: theme.success,
-                                background: dark ? theme.successSoft : '#ecfdf5',
-                                borderRadius: 99, padding: '2px 8px',
-                            }}>
-                                ✓ Reimbursed
-                            </span>
+                            <span style={{color:theme.border,fontSize:12}}>·</span>
+                            <span style={{fontSize:10,fontWeight:700,color:theme.success,background:dark?theme.successSoft:'#ecfdf5',borderRadius:99,padding:'2px 8px'}}>{tFn('expense.row.reimbursed')}</span>
                         </>
                     )}
                 </div>
- 
-                {/* ── Description ── */}
+
+                {/* Description */}
                 {req.description && (
-                    <div style={{ display: 'inline-flex', alignItems: 'baseline', marginTop: 6 }}>
-                        <span style={{ ...chipLabel }}>Note</span>
-                        <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft, lineHeight: 1.5 }}>
-                            {req.description}
-                        </span>
+                    <div style={{display:'inline-flex',alignItems:'baseline',marginTop:6}}>
+                        <span style={{...chipLabel}}>{tFn('expense.row.note')}</span>
+                        <span style={{fontSize:12,fontWeight:500,color:theme.textSoft,lineHeight:1.5}}>{req.description}</span>
                     </div>
                 )}
- 
-                {/* ── Attachments — Download pill buttons ── */}
-                {req.attachments?.length > 0 && (
-                    <div style={{ display: 'flex', gap: 6, marginTop: 7, flexWrap: 'wrap' }}>
-                        {req.attachments.map((f, i) => (
-                            <a
-                                key={i}
-                                href={`/payroll/expenses/${req.id}/attachments/${i}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                                    padding: '5px 12px', borderRadius: 20,
-                                    background: dark
-                                        ? 'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(37,99,235,0.12))'
-                                        : 'linear-gradient(135deg,#eff6ff,#dbeafe)',
-                                    color: dark ? '#60a5fa' : '#2563eb',
-                                    fontSize: 11, fontWeight: 700,
-                                    textDecoration: 'none',
-                                    boxShadow: dark
-                                        ? '0 1px 6px rgba(59,130,246,0.15)'
-                                        : '0 1px 4px rgba(37,99,235,0.10)',
-                                    transition: 'opacity 0.15s',
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
-                                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                            >
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" strokeWidth="2.5"
-                                    strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                                {f.name?.length > 20 ? f.name.slice(0, 18) + '…' : (f.name || `File ${i + 1}`)}
+
+                {/* Attachments */}
+                {req.attachments?.length>0 && (
+                    <div style={{display:'flex',gap:6,marginTop:7,flexWrap:'wrap'}}>
+                        {req.attachments.map((f,i)=>(
+                            <a key={i} href={`/payroll/expenses/${req.id}/attachments/${i}`} target="_blank" rel="noopener noreferrer"
+                                style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 12px',borderRadius:20,background:dark?'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(37,99,235,0.12))':'linear-gradient(135deg,#eff6ff,#dbeafe)',color:dark?'#60a5fa':'#2563eb',fontSize:11,fontWeight:700,textDecoration:'none',boxShadow:dark?'0 1px 6px rgba(59,130,246,0.15)':'0 1px 4px rgba(37,99,235,0.10)',transition:'opacity 0.15s'}}
+                                onMouseEnter={e=>e.currentTarget.style.opacity='0.8'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                {f.name?.length>20?f.name.slice(0,18)+'…':(f.name||`File ${i+1}`)}
                             </a>
                         ))}
                     </div>
                 )}
- 
-                {/* ── Rejection reason ── */}
-                {req.status === 'rejected' && req.rejection_reason && (
-                    <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5, marginTop: 7 }}>
-                        <span style={{
-                            fontSize: 9, fontWeight: 800,
-                            textTransform: 'uppercase', letterSpacing: '0.5px',
-                            marginRight: 5, color: theme.danger,
-                        }}>Rejected</span>
-                        <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft }}>
-                            {req.rejection_reason}
-                        </span>
+
+                {/* Rejection reason */}
+                {req.status==='rejected'&&req.rejection_reason && (
+                    <div style={{display:'inline-flex',alignItems:'baseline',gap:5,marginTop:7}}>
+                        <span style={{fontSize:9,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.5px',marginRight:5,color:theme.danger}}>{tFn('expense.row.rejected')}</span>
+                        <span style={{fontSize:12,fontWeight:500,color:theme.textSoft}}>{req.rejection_reason}</span>
                     </div>
                 )}
 
-                {/* ── Approver note ── */}
-                {req.status === 'approved' && req.hr_note && (
-                    <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5, marginTop: 7 }}>
-                        <span style={{
-                            fontSize: 9, fontWeight: 800,
-                            textTransform: 'uppercase', letterSpacing: '0.5px',
-                            marginRight: 5, color: theme.success,
-                        }}>Note</span>
-                        <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft }}>
-                            {req.hr_note}
-                        </span>
+                {/* Approver note */}
+                {req.status==='approved'&&req.hr_note && (
+                    <div style={{display:'inline-flex',alignItems:'baseline',gap:5,marginTop:7}}>
+                        <span style={{fontSize:9,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.5px',marginRight:5,color:theme.success}}>{tFn('expense.row.note')}</span>
+                        <span style={{fontSize:12,fontWeight:500,color:theme.textSoft}}>{req.hr_note}</span>
                     </div>
                 )}
- 
             </div>
         </div>
     );
 }
 
-// ── Request Modal ─────────────────────────────────────────────
-function RequestModal({ open, onClose, approvers, categories, dark, theme, userRole }) {
+// ── RequestModal ──────────────────────────────────────────────
+function RequestModal({ open, onClose, approvers, categories, dark, theme, userRole, tFn }) {
     if (!open) return null;
     return createPortal(
-        <RequestModalInner onClose={onClose} approvers={approvers} categories={categories} dark={dark} theme={theme} userRole={userRole}/>,
+        <RequestModalInner onClose={onClose} approvers={approvers} categories={categories} dark={dark} theme={theme} userRole={userRole} tFn={tFn}/>,
         document.body
     );
 }
 
-function RequestModalInner({ onClose, approvers, categories, dark, theme, userRole }) {
-    // Admin = auto approve, no approver needed
+function RequestModalInner({ onClose, approvers, categories, dark, theme, userRole, tFn }) {
     const isAdmin = userRole === 'admin';
-    // HR = selects Admin as approver
-    // Employee/Management = selects HR as approver
-    const approverLabel = userRole === 'hr' ? 'Admin (Approver)' : 'HR (Approver)';
+    const approverLabel = userRole === 'hr' ? tFn('expense.modal.approverAdmin') : tFn('expense.modal.approverHr');
 
-    const [form, setForm]     = useState({
-        title:'', description:'', amount:'', category:'other',
-        expense_date:'', approver_id: String(approvers[0]?.id || ''),
-    });
+    const [form, setForm]     = useState({ title:'', description:'', amount:'', category:'other', expense_date:'', approver_id:String(approvers[0]?.id||'') });
     const [files, setFiles]       = useState([]);
     const [previews, setPreviews] = useState([]);
     const [errors, setErrors]     = useState({});
@@ -682,7 +453,7 @@ function RequestModalInner({ onClose, approvers, categories, dark, theme, userRo
 
     useEffect(() => {
         if (!catOpen) return;
-        const h = e => { if (catRef.current && !catRef.current.contains(e.target)) setCatOpen(false); };
+        const h = e => { if (catRef.current&&!catRef.current.contains(e.target)) setCatOpen(false); };
         document.addEventListener('mousedown', h);
         return () => document.removeEventListener('mousedown', h);
     }, [catOpen]);
@@ -692,22 +463,18 @@ function RequestModalInner({ onClose, approvers, categories, dark, theme, userRo
     const handleFiles = e => {
         const newFiles = Array.from(e.target.files);
         setFiles(p=>[...p,...newFiles]);
-        setPreviews(p=>[...p,...newFiles.map(f=>({
-            name:f.name,
-            size:f.size<1024?`${f.size} B`:f.size<1048576?`${(f.size/1024).toFixed(1)} KB`:`${(f.size/1048576).toFixed(1)} MB`,
-            type:f.type,
-        }))]);
+        setPreviews(p=>[...p,...newFiles.map(f=>({ name:f.name, size:f.size<1024?`${f.size} B`:f.size<1048576?`${(f.size/1024).toFixed(1)} KB`:`${(f.size/1048576).toFixed(1)} MB`, type:f.type }))]);
         e.target.value='';
     };
     const removeFile = i => { setFiles(p=>p.filter((_,j)=>j!==i)); setPreviews(p=>p.filter((_,j)=>j!==i)); };
 
     const validate = () => {
         const e = {};
-        if (!form.title.trim()) e.title='Title is required.';
-        if (!form.amount||isNaN(form.amount)||Number(form.amount)<=0) e.amount='Enter a valid amount.';
-        if (!form.expense_date) e.expense_date='Expense date is required.';
-        if (!form.category) e.category='Category is required.';
-        if (!isAdmin && !form.approver_id) e.approver_id='Please select an approver.';
+        if (!form.title.trim()) e.title=tFn('expense.validation.titleRequired');
+        if (!form.amount||isNaN(form.amount)||Number(form.amount)<=0) e.amount=tFn('expense.validation.amountInvalid');
+        if (!form.expense_date) e.expense_date=tFn('expense.validation.dateRequired');
+        if (!form.category) e.category=tFn('expense.validation.categoryRequired');
+        if (!isAdmin&&!form.approver_id) e.approver_id=tFn('expense.validation.approverRequired');
         return e;
     };
 
@@ -718,39 +485,33 @@ function RequestModalInner({ onClose, approvers, categories, dark, theme, userRo
         const fd = new FormData();
         Object.entries(form).forEach(([k,v])=>{ if(v) fd.append(k,v); });
         files.forEach(f=>fd.append('attachments[]',f));
-
         fetch('/payroll/expenses', {
             method:'POST', body:fd,
-            headers:{
-                'X-Requested-With':'XMLHttpRequest',
-                'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content||'',
-                'Accept':'application/json',
-            }
+            headers:{ 'X-Requested-With':'XMLHttpRequest', 'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content||'', 'Accept':'application/json' }
         })
         .then(async r => {
             const data = await r.json();
-            if (!r.ok || data.errors) {
-                const errs = data.errors||{};
+            if (!r.ok||data.errors) {
+                const errs=data.errors||{};
                 if (Object.keys(errs).length) setErrors(errs);
-                else showToast(data.message||'Something went wrong.','error');
+                else showToast(data.message||tFn('expense.actionError'),'error');
                 setSaving(false); return;
             }
             showToast(data.message||'Expense submitted! ✅');
             onClose(true);
         })
-        .catch(()=>{ showToast('Network error. Please try again.','error'); setSaving(false); });
+        .catch(()=>{ showToast(tFn('expense.networkError'),'error'); setSaving(false); });
     };
 
     const inp = err => ({
         width:'100%', padding:'10px 13px', borderRadius:10, fontSize:13,
         border:`1.5px solid ${err?theme.danger:theme.inputBorder}`,
         background:dark?theme.inputBg:(err?'#fff9f9':'#fff'),
-        color:theme.text, outline:'none', boxSizing:'border-box',
-        fontFamily:'inherit', transition:'border-color 0.15s',
+        color:theme.text, outline:'none', boxSizing:'border-box', fontFamily:'inherit', transition:'border-color 0.15s',
     });
     const lbl = { display:'block', fontSize:11, fontWeight:700, color:theme.textMute, marginBottom:5, textTransform:'uppercase', letterSpacing:'0.06em' };
 
-    const catOptions = Object.entries(categories).map(([k,v])=>({value:k, label:`${CAT_ICONS[k]||'📋'} ${v}`}));
+    const catOptions = Object.entries(categories).map(([k,v])=>({value:k, label:`${CAT_ICONS[k]||'📋'} ${tFn(`expense.category.${k}`)||v}`}));
     const selCat = catOptions.find(o=>o.value===form.category);
 
     return (
@@ -758,47 +519,38 @@ function RequestModalInner({ onClose, approvers, categories, dark, theme, userRo
             style={{position:'fixed',inset:0,background:theme.overlay,backdropFilter:'blur(6px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:16}}>
             <div style={{background:dark?'#0f1b34':'#fff',borderRadius:22,width:'100%',maxWidth:520,maxHeight:'92vh',display:'flex',flexDirection:'column',overflow:'hidden',boxShadow:theme.shadow,border:`1px solid ${theme.border}`,animation:'exPopIn 0.22s ease'}}>
 
-                {/* Header */}
                 <div style={{background:theme.modalHeader,padding:'20px 24px 18px',flexShrink:0}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                         <div style={{display:'flex',gap:14,alignItems:'center'}}>
                             <div style={{width:44,height:44,borderRadius:14,background:'rgba(255,255,255,0.18)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>💸</div>
                             <div>
-                                <div style={{fontSize:10,color:'rgba(255,255,255,0.55)',fontWeight:700,letterSpacing:'1px',textTransform:'uppercase',marginBottom:3}}>Expense Request</div>
-                                <div style={{fontSize:17,fontWeight:900,color:'#fff'}}>Submit Expense</div>
+                                <div style={{fontSize:10,color:'rgba(255,255,255,0.55)',fontWeight:700,letterSpacing:'1px',textTransform:'uppercase',marginBottom:3}}>{tFn('expense.modal.header')}</div>
+                                <div style={{fontSize:17,fontWeight:900,color:'#fff'}}>{tFn('expense.modal.title')}</div>
                             </div>
                         </div>
                         <button onClick={()=>onClose(false)} style={{width:32,height:32,borderRadius:10,background:'rgba(255,255,255,0.16)',border:'none',cursor:'pointer',fontSize:20,color:'rgba(255,255,255,0.85)',display:'flex',alignItems:'center',justifyContent:'center'}}>×</button>
                     </div>
                 </div>
 
-                {/* Body */}
                 <div className="ex-hide" style={{padding:'22px 24px',overflowY:'auto',flex:1,display:'flex',flexDirection:'column',gap:14}}>
-
                     <div>
-                        <label style={lbl}>Title <span style={{color:theme.danger}}>*</span></label>
-                        <input value={form.title} onChange={e=>set('title',e.target.value)} placeholder="e.g. Client dinner, Taxi to airport…" style={inp(errors.title)}/>
-                        {errors.title && <p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.title}</p>}
+                        <label style={lbl}>{tFn('expense.modal.titleLabel')} <span style={{color:theme.danger}}>*</span></label>
+                        <input value={form.title} onChange={e=>set('title',e.target.value)} placeholder={tFn('expense.modal.titlePlaceholder')} style={inp(errors.title)}/>
+                        {errors.title&&<p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.title}</p>}
                     </div>
 
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
                         <div>
-                            <label style={lbl}>Amount <span style={{color:theme.danger}}>*</span></label>
+                            <label style={lbl}>{tFn('expense.modal.amountLabel')} <span style={{color:theme.danger}}>*</span></label>
                             <input type="number" min="0.01" step="0.01" value={form.amount} onChange={e=>set('amount',e.target.value)} placeholder="0.00" style={inp(errors.amount)}/>
-                            {errors.amount && <p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.amount}</p>}
+                            {errors.amount&&<p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.amount}</p>}
                         </div>
                         <div>
-                            <label style={lbl}>Category <span style={{color:theme.danger}}>*</span></label>
+                            <label style={lbl}>{tFn('expense.modal.categoryLabel')} <span style={{color:theme.danger}}>*</span></label>
                             <div ref={catRef} style={{position:'relative'}}>
-                                <button type="button" onClick={()=>setCatOpen(v=>!v)} style={{
-                                    ...inp(errors.category), display:'flex', alignItems:'center', justifyContent:'space-between',
-                                    cursor:'pointer', border:`1.5px solid ${catOpen?theme.primary:(errors.category?theme.danger:theme.inputBorder)}`,
-                                    boxShadow:catOpen?`0 0 0 3px ${theme.primary}22`:'none',
-                                }}>
-                                    <span style={{color:selCat?theme.text:theme.textMute}}>{selCat?.label||'Select…'}</span>
-                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{transform:catOpen?'rotate(180deg)':'none',transition:'transform 0.18s',color:theme.textMute}}>
-                                        <polyline points="6 9 12 15 18 9"/>
-                                    </svg>
+                                <button type="button" onClick={()=>setCatOpen(v=>!v)} style={{...inp(errors.category),display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',border:`1.5px solid ${catOpen?theme.primary:(errors.category?theme.danger:theme.inputBorder)}`,boxShadow:catOpen?`0 0 0 3px ${theme.primary}22`:'none'}}>
+                                    <span style={{color:selCat?theme.text:theme.textMute}}>{selCat?.label||tFn('expense.modal.categoryPlaceholder')}</span>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{transform:catOpen?'rotate(180deg)':'none',transition:'transform 0.18s',color:theme.textMute}}><polyline points="6 9 12 15 18 9"/></svg>
                                 </button>
                                 {catOpen && (
                                     <div className="ex-hide" style={{position:'absolute',top:'calc(100% + 5px)',left:0,right:0,zIndex:500,background:dark?'#111e38':'#fff',border:`1px solid ${theme.borderStrong}`,borderRadius:12,boxShadow:theme.shadow,maxHeight:220,overflowY:'auto',animation:'exDrop 0.14s ease'}}>
@@ -808,8 +560,7 @@ function RequestModalInner({ onClose, approvers, categories, dark, theme, userRo
                                                 <button key={opt.value} type="button" onClick={()=>{set('category',opt.value);setCatOpen(false);}}
                                                     style={{width:'100%',background:active?(dark?`${theme.primary}22`:theme.primarySoft):'transparent',border:'none',padding:'9px 13px',fontSize:12,fontWeight:active?700:500,color:active?theme.primary:theme.textSoft,cursor:'pointer',textAlign:'left',display:'flex',alignItems:'center',gap:7,transition:'background 0.1s'}}
                                                     onMouseEnter={e=>{if(!active)e.currentTarget.style.background=dark?'rgba(255,255,255,0.05)':'#f8fafc';}}
-                                                    onMouseLeave={e=>{if(!active)e.currentTarget.style.background='transparent';}}
-                                                >
+                                                    onMouseLeave={e=>{if(!active)e.currentTarget.style.background='transparent';}}>
                                                     {active&&<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
                                                     {opt.label}
                                                 </button>
@@ -818,63 +569,48 @@ function RequestModalInner({ onClose, approvers, categories, dark, theme, userRo
                                     </div>
                                 )}
                             </div>
-                            {errors.category && <p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.category}</p>}
+                            {errors.category&&<p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.category}</p>}
                         </div>
                     </div>
 
                     <div>
-                        <label style={lbl}>Expense Date <span style={{color:theme.danger}}>*</span></label>
+                        <label style={lbl}>{tFn('expense.modal.expenseDateLabel')} <span style={{color:theme.danger}}>*</span></label>
                         <input type="date" value={form.expense_date} max={new Date().toISOString().slice(0,10)} onChange={e=>set('expense_date',e.target.value)} style={inp(errors.expense_date)}/>
-                        {errors.expense_date && <p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.expense_date}</p>}
+                        {errors.expense_date&&<p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.expense_date}</p>}
                     </div>
 
                     <div>
-                        <label style={lbl}>Description <span style={{color:theme.textMute,fontWeight:400,textTransform:'none'}}>(optional)</span></label>
-                        <textarea value={form.description} onChange={e=>set('description',e.target.value)} rows={2} placeholder="Additional details about this expense…" style={{...inp(false),resize:'none',lineHeight:1.6}}/>
+                        <label style={lbl}>{tFn('expense.modal.descriptionLabel')} <span style={{color:theme.textMute,fontWeight:400,textTransform:'none'}}>{tFn('expense.modal.optional')}</span></label>
+                        <textarea value={form.description} onChange={e=>set('description',e.target.value)} rows={2} placeholder={tFn('expense.modal.descriptionPlaceholder')} style={{...inp(false),resize:'none',lineHeight:1.6}}/>
                     </div>
 
-                    {/* Approver — shown only for non-admin */}
                     {!isAdmin && (
                         <div>
-                            <label style={lbl}>
-                                {approverLabel} <span style={{color:theme.danger}}>*</span>
-                            </label>
-                            {approvers.length > 0 ? (
-                                <ApproverSelect
-                                    approvers={approvers}
-                                    value={form.approver_id}
-                                    onChange={v=>set('approver_id',v)}
-                                    error={errors.approver_id}
-                                    theme={theme}
-                                    dark={dark}
-                                />
+                            <label style={lbl}>{approverLabel} <span style={{color:theme.danger}}>*</span></label>
+                            {approvers.length>0 ? (
+                                <ApproverSelect approvers={approvers} value={form.approver_id} onChange={v=>set('approver_id',v)} error={errors.approver_id} theme={theme} dark={dark} tFn={tFn}/>
                             ) : (
                                 <div style={{padding:'10px 13px',borderRadius:10,background:dark?theme.dangerSoft:'#fef2f2',border:`1px solid ${theme.danger}22`,fontSize:12,color:theme.danger}}>
-                                    ⚠ No {userRole==='hr'?'admin':'HR'} users found in your country.
+                                    ⚠ {tFn('expense.modal.approverNone').replace('{role}', userRole==='hr'?'admin':'HR')}
                                 </div>
                             )}
-                            {errors.approver_id && <p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.approver_id}</p>}
+                            {errors.approver_id&&<p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.approver_id}</p>}
                         </div>
                     )}
 
-                    {/* Admin auto-approve notice */}
                     {isAdmin && (
                         <div style={{background:dark?theme.successSoft:'#ecfdf5',border:`1px solid ${dark?'rgba(16,185,129,0.3)':'#6ee7b7'}`,borderRadius:10,padding:'9px 13px',fontSize:12,color:theme.success,fontWeight:600}}>
-                            ✓ As Admin, this request will be auto-approved instantly.
+                            {tFn('expense.modal.autoApprove')}
                         </div>
                     )}
 
-                    {/* File upload */}
                     <div>
-                        <label style={lbl}>
-                            Attachments
-                            <span style={{color:theme.textMute,fontWeight:400,textTransform:'none'}}> — receipts, invoices, docs (max 5)</span>
-                        </label>
+                        <label style={lbl}>{tFn('expense.modal.attachmentsLabel')}<span style={{color:theme.textMute,fontWeight:400,textTransform:'none'}}>{tFn('expense.modal.attachmentsSub')}</span></label>
                         <label style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',border:`2px dashed ${theme.inputBorder}`,borderRadius:12,cursor:'pointer',background:dark?'rgba(255,255,255,0.02)':'#fafafa',transition:'all 0.15s'}}
                             onMouseEnter={e=>{e.currentTarget.style.borderColor=theme.primary;e.currentTarget.style.background=dark?theme.primarySoft:'#f5f3ff';}}
                             onMouseLeave={e=>{e.currentTarget.style.borderColor=theme.inputBorder;e.currentTarget.style.background=dark?'rgba(255,255,255,0.02)':'#fafafa';}}>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="2" strokeLinecap="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                            <span style={{fontSize:12,color:theme.textMute}}>Click to upload files</span>
+                            <span style={{fontSize:12,color:theme.textMute}}>{tFn('expense.modal.attachmentsClick')}</span>
                             <input type="file" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" onChange={handleFiles} style={{display:'none'}} disabled={files.length>=5}/>
                         </label>
                         {previews.length>0 && (
@@ -892,12 +628,11 @@ function RequestModalInner({ onClose, approvers, categories, dark, theme, userRo
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div style={{padding:'14px 24px',borderTop:`1px solid ${theme.border}`,display:'flex',justifyContent:'flex-end',gap:10,flexShrink:0,background:dark?'rgba(255,255,255,0.02)':'#f8fafc'}}>
-                    <button onClick={()=>onClose(false)} disabled={saving} style={{padding:'9px 18px',borderRadius:10,border:`1px solid ${theme.border}`,background:dark?theme.panelSoft:'#fff',color:theme.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+                    <button onClick={()=>onClose(false)} disabled={saving} style={{padding:'9px 18px',borderRadius:10,border:`1px solid ${theme.border}`,background:dark?theme.panelSoft:'#fff',color:theme.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>{tFn('expense.btn.cancel')}</button>
                     <button onClick={handleSubmit} disabled={saving} style={{padding:'9px 22px',borderRadius:10,border:'none',background:saving?theme.textMute:theme.modalHeader,color:'#fff',fontSize:13,fontWeight:800,cursor:saving?'not-allowed':'pointer',opacity:saving?0.65:1,display:'flex',alignItems:'center',gap:8,boxShadow:saving?'none':`0 6px 18px ${theme.primary}35`,transition:'all 0.15s'}}>
                         {saving&&<span style={{width:13,height:13,border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',borderRadius:'50%',display:'inline-block',animation:'exSpin 0.7s linear infinite'}}/>}
-                        {saving?'Submitting…':'Submit Request'}
+                        {saving?tFn('expense.btn.submitting'):tFn('expense.btn.submitRequest')}
                     </button>
                 </div>
             </div>
@@ -905,12 +640,16 @@ function RequestModalInner({ onClose, approvers, categories, dark, theme, userRo
     );
 }
 
-// ── Confirm Modal ─────────────────────────────────────────────
-function ConfirmModal({ type, req, loading, dark, theme, onCancel, onConfirm }) {
+// ── ConfirmModal ──────────────────────────────────────────────
+function ConfirmModal({ type, req, loading, dark, theme, onCancel, onConfirm, tFn }) {
     const isApprove = type==='approve';
     const isDelete  = type==='delete';
     const [note, setNote]     = useState('');
     const [reason, setReason] = useState('');
+
+    const title = isDelete ? tFn('expense.confirm.deleteTitle') : isApprove ? tFn('expense.confirm.approveTitle') : tFn('expense.confirm.rejectTitle');
+    const body  = isDelete ? tFn('expense.confirm.deleteBody') : isApprove ? tFn('expense.confirm.approveBody') : tFn('expense.confirm.rejectBody');
+    const confirmLabel = isDelete ? tFn('expense.confirm.confirmDelete') : isApprove ? tFn('expense.confirm.confirmApprove') : tFn('expense.confirm.confirmReject');
 
     return createPortal(
         <div style={{position:'fixed',inset:0,background:theme.overlay,backdropFilter:'blur(6px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:16}}>
@@ -922,12 +661,8 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onConfirm }) 
                             {isDelete?'🗑':isApprove?'✓':'✕'}
                         </div>
                         <div>
-                            <div style={{fontSize:16,fontWeight:900,color:theme.text}}>
-                                {isDelete?'Delete Request':isApprove?'Approve Expense':'Reject Expense'}
-                            </div>
-                            <div style={{fontSize:11,color:theme.textMute,marginTop:2}}>
-                                {isDelete?'This cannot be undone.':isApprove?'Employee will be notified.':'Provide a reason for rejection.'}
-                            </div>
+                            <div style={{fontSize:16,fontWeight:900,color:theme.text}}>{title}</div>
+                            <div style={{fontSize:11,color:theme.textMute,marginTop:2}}>{body}</div>
                         </div>
                     </div>
 
@@ -941,30 +676,30 @@ function ConfirmModal({ type, req, loading, dark, theme, onCancel, onConfirm }) 
                     {isApprove && (
                         <div>
                             <label style={{display:'block',fontSize:11,fontWeight:700,color:theme.textMute,marginBottom:5,textTransform:'uppercase',letterSpacing:'0.06em'}}>
-                                Note <span style={{fontWeight:400,textTransform:'none'}}>(optional)</span>
+                                {tFn('expense.confirm.noteLabel')} <span style={{fontWeight:400,textTransform:'none'}}>{tFn('expense.confirm.noteOptional')}</span>
                             </label>
-                            <textarea value={note} onChange={e=>setNote(e.target.value)} rows={2} placeholder="Add a note for the employee…"
+                            <textarea value={note} onChange={e=>setNote(e.target.value)} rows={2} placeholder={tFn('expense.confirm.notePlaceholder')}
                                 style={{width:'100%',padding:'9px 12px',borderRadius:10,border:`1.5px solid ${theme.inputBorder}`,background:dark?theme.inputBg:'#fff',color:theme.text,fontSize:12,outline:'none',boxSizing:'border-box',resize:'none',fontFamily:'inherit'}}/>
                         </div>
                     )}
 
-                    {!isApprove && !isDelete && (
+                    {!isApprove&&!isDelete && (
                         <div>
                             <label style={{display:'block',fontSize:11,fontWeight:700,color:theme.textMute,marginBottom:5,textTransform:'uppercase',letterSpacing:'0.06em'}}>
-                                Rejection Reason <span style={{color:theme.danger}}>*</span>
+                                {tFn('expense.confirm.reasonLabel')} <span style={{color:theme.danger}}>*</span>
                             </label>
-                            <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={2} placeholder="Why is this being rejected?…"
+                            <textarea value={reason} onChange={e=>setReason(e.target.value)} rows={2} placeholder={tFn('expense.confirm.reasonPlaceholder')}
                                 style={{width:'100%',padding:'9px 12px',borderRadius:10,border:`1.5px solid ${reason.trim()?theme.inputBorder:theme.danger}`,background:dark?theme.inputBg:'#fff',color:theme.text,fontSize:12,outline:'none',boxSizing:'border-box',resize:'none',fontFamily:'inherit'}}/>
                         </div>
                     )}
 
                     <div style={{display:'flex',justifyContent:'flex-end',gap:10,paddingTop:4}}>
-                        <button onClick={onCancel} disabled={loading} style={{padding:'9px 18px',borderRadius:10,border:`1px solid ${theme.border}`,background:dark?theme.panelSoft:'#fff',color:theme.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+                        <button onClick={onCancel} disabled={loading} style={{padding:'9px 18px',borderRadius:10,border:`1px solid ${theme.border}`,background:dark?theme.panelSoft:'#fff',color:theme.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>{tFn('expense.btn.cancel')}</button>
                         <button
                             onClick={()=>{ if(!isApprove&&!isDelete&&!reason.trim()) return; onConfirm({hr_note:note,rejection_reason:reason}); }}
                             disabled={loading||(!isApprove&&!isDelete&&!reason.trim())}
                             style={{padding:'9px 20px',borderRadius:10,border:'none',background:isApprove?'linear-gradient(135deg,#059669,#10b981)':'linear-gradient(135deg,#dc2626,#ef4444)',color:'#fff',fontSize:13,fontWeight:800,cursor:loading?'not-allowed':'pointer',opacity:loading?0.6:1,boxShadow:isApprove?'0 4px 14px rgba(5,150,105,0.35)':'0 4px 14px rgba(220,38,38,0.35)'}}>
-                            {loading?'Processing…':isDelete?'🗑 Delete':isApprove?'✓ Approve':'✕ Reject'}
+                            {loading ? tFn('expense.btn.processing') : confirmLabel}
                         </button>
                     </div>
                 </div>
@@ -984,6 +719,7 @@ export default function ExpenseRequestIndex({
     const theme   = useMemo(()=>getTheme(dark),[dark]);
     const { auth } = usePage().props;
     const userId  = auth?.user?.id;
+    const { t: tFn } = useTranslation();
 
     const [mainTab,       setMainTab]       = useState('my');
     const [month,         setMonth]         = useState(selectedMonth||new Date().getMonth()+1);
@@ -1004,22 +740,17 @@ export default function ExpenseRequestIndex({
         if (!confirmModal) return;
         setActionLoading(true);
         const {type,req} = confirmModal;
-
         if (type==='delete') {
             router.delete(`/payroll/expenses/${req.id}`,{
                 onSuccess:()=>{ setConfirmModal(null); setActionLoading(false); },
-                onError:()=>{ setActionLoading(false); showToast('Could not delete.','error'); },
+                onError:()=>{ setActionLoading(false); showToast(tFn('expense.deleteError'),'error'); },
             });
             return;
         }
-
-        const url = type==='approve'
-            ? `/payroll/expenses/${req.id}/approve`
-            : `/payroll/expenses/${req.id}/reject`;
-
+        const url = type==='approve' ? `/payroll/expenses/${req.id}/approve` : `/payroll/expenses/${req.id}/reject`;
         router.patch(url, type==='approve'?{hr_note}:{rejection_reason}, {
             onSuccess:()=>{ setConfirmModal(null); setActionLoading(false); },
-            onError:()=>{ setActionLoading(false); showToast('Something went wrong.','error'); },
+            onError:()=>{ setActionLoading(false); showToast(tFn('expense.actionError'),'error'); },
         });
     };
 
@@ -1028,32 +759,33 @@ export default function ExpenseRequestIndex({
     const approvalRequests = allRequests.filter(r=>r.approver_id===userId&&r.user_id!==userId&&r.status==='pending');
     const displayList      = mainTab==='approvals'?approvalRequests:mainTab==='all'?allRequests:myRequests;
 
-    const monthOpts  = MONTHS.map((m,i)=>({value:i+1,label:m}));
+    const localMonths = tFn('expense.months');
+    const monthOpts  = (Array.isArray(localMonths) ? localMonths : MONTHS).map((m,i)=>({value:i+1,label:m}));
     const yearOpts   = [2024,2025,2026,2027].map(y=>({value:y,label:String(y)}));
     const statusOpts = [
-        {value:'',label:'All Status'},
-        {value:'pending',label:'⏳ Pending'},
-        {value:'approved',label:'✅ Approved'},
-        {value:'rejected',label:'✕ Rejected'},
+        {value:'',    label:tFn('expense.filters.allStatus')},
+        {value:'pending',  label:`⏳ ${tFn('expense.stats.pending')}`},
+        {value:'approved', label:`✅ ${tFn('expense.stats.approved')}`},
+        {value:'rejected', label:`✕ ${tFn('expense.stats.rejected')}`},
     ];
 
     const tabs = [
-        {key:'my',label:'My Requests',count:myRequests.length,alert:false},
-        ...(canViewAll?[{key:'approvals',label:'Pending Approvals',count:pendingCount,alert:pendingCount>0}]:[]),
-        ...(canViewAll?[{key:'all',label:'All Requests',count:requests?.total||0,alert:false}]:[]),
+        {key:'my',        label:tFn('expense.tabs.my'),        count:myRequests.length,          alert:false},
+        ...(canViewAll?[{key:'approvals', label:tFn('expense.tabs.approvals'), count:pendingCount, alert:pendingCount>0}]:[]),
+        ...(canViewAll?[{key:'all',       label:tFn('expense.tabs.all'),       count:requests?.total||0, alert:false}]:[]),
     ];
 
-    const selMonthLabel = MONTHS[(month||1)-1];
+    const selMonthLabel = (Array.isArray(localMonths) ? localMonths : MONTHS)[(month||1)-1];
     const reimbursementDisplay = Number(stats.total_amount??0).toLocaleString('en-US',{minimumFractionDigits:2});
 
     return (
         <AppLayout title="Expense Request">
             <Head title="Expense Request"/>
             <style>{`
-                @keyframes exDropUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-                @keyframes exDrop  { from{opacity:0;transform:translateY(-7px);}to{opacity:1;transform:translateY(0);} }
-                @keyframes exPopIn { from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);} }
-                @keyframes exSpin  { to{transform:rotate(360deg);} }
+                @keyframes exDropUp { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);} }
+                @keyframes exDrop   { from{opacity:0;transform:translateY(-7px);}to{opacity:1;transform:translateY(0);} }
+                @keyframes exPopIn  { from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);} }
+                @keyframes exSpin   { to{transform:rotate(360deg);} }
                 .ex-hide::-webkit-scrollbar{display:none;}.ex-hide{scrollbar-width:none;-ms-overflow-style:none;}
                 .ex-stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.12) !important;}
             `}</style>
@@ -1062,11 +794,11 @@ export default function ExpenseRequestIndex({
 
                 {/* Stats */}
                 <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(175px,1fr))',gap:12}}>
-                    <StatCard icon="💸" label={`Total · ${selMonthLabel}`} value={stats.total??0} color={theme.primary} soft={theme.primarySoft} theme={theme} dark={dark}/>
-                    <StatCard icon="⏳" label={`Pending · ${selMonthLabel}`} value={stats.pending??0} color={theme.warning} soft={theme.warningSoft} theme={theme} dark={dark}/>
-                    <StatCard icon="✅" label={`Approved · ${selMonthLabel}`} value={stats.approved??0} color={theme.success} soft={theme.successSoft} theme={theme} dark={dark}/>
-                    <StatCard icon="✕" label={`Rejected · ${selMonthLabel}`} value={stats.rejected??0} color={theme.danger} soft={theme.dangerSoft} theme={theme} dark={dark}/>
-                    <StatCard icon="💰" label="Unreimbursed" value={reimbursementDisplay} color="#059669" soft={theme.successSoft} theme={theme} dark={dark} sub="All-time · approved, not paid"/>
+                    <StatCard icon="💸" label={`${tFn('expense.stats.total')} · ${selMonthLabel}`}    value={stats.total??0}   color={theme.primary} soft={theme.primarySoft} theme={theme} dark={dark}/>
+                    <StatCard icon="⏳" label={`${tFn('expense.stats.pending')} · ${selMonthLabel}`}  value={stats.pending??0} color={theme.warning} soft={theme.warningSoft} theme={theme} dark={dark}/>
+                    <StatCard icon="✅" label={`${tFn('expense.stats.approved')} · ${selMonthLabel}`} value={stats.approved??0} color={theme.success} soft={theme.successSoft} theme={theme} dark={dark}/>
+                    <StatCard icon="✕"  label={`${tFn('expense.stats.rejected')} · ${selMonthLabel}`} value={stats.rejected??0} color={theme.danger} soft={theme.dangerSoft} theme={theme} dark={dark}/>
+                    <StatCard icon="💰" label={tFn('expense.stats.unreimbursed')} value={reimbursementDisplay} color="#059669" soft={theme.successSoft} theme={theme} dark={dark} sub={tFn('expense.stats.unreimbursedSub')}/>
                 </div>
 
                 {/* Filters + Add */}
@@ -1081,7 +813,7 @@ export default function ExpenseRequestIndex({
                         onMouseLeave={e=>e.currentTarget.style.transform='translateY(0)'}
                         style={{background:`linear-gradient(135deg,${theme.primary},${dark?'#6d28d9':'#4f46e5'})`,color:'#fff',border:'none',borderRadius:12,padding:'10px 20px',fontSize:13,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:8,boxShadow:`0 8px 22px ${theme.primary}44`,transition:'all 0.15s'}}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Submit Expense
+                        {tFn('expense.btn.submit')}
                     </button>
                 </div>
 
@@ -1107,15 +839,15 @@ export default function ExpenseRequestIndex({
                         <div style={{padding:'56px 24px',textAlign:'center'}}>
                             <div style={{fontSize:40,marginBottom:12}}>{mainTab==='approvals'?'🎉':'💸'}</div>
                             <div style={{fontSize:14,fontWeight:600,color:theme.textSoft,marginBottom:4}}>
-                                {mainTab==='approvals'?'No pending approvals':'No expense requests found'}
+                                {mainTab==='approvals' ? tFn('expense.empty.noPendingApprovals') : tFn('expense.empty.noExpenses')}
                             </div>
                             <div style={{fontSize:12,color:theme.textMute}}>
-                                {mainTab==='approvals'?'All caught up!':'Click "Submit Expense" to add a new request.'}
+                                {mainTab==='approvals' ? tFn('expense.empty.allCaughtUp') : tFn('expense.empty.noExpensesSub')}
                             </div>
                         </div>
                     ) : displayList.map((req,idx)=>(
                         <ExpenseRow key={req.id} req={req} dark={dark} theme={theme}
-                            canViewAll={canViewAll} userId={userId}
+                            canViewAll={canViewAll} userId={userId} tFn={tFn}
                             onApprove={()=>setConfirmModal({type:'approve',req})}
                             onReject={()=>setConfirmModal({type:'reject',req})}
                             onDelete={()=>setConfirmModal({type:'delete',req})}
@@ -1123,7 +855,7 @@ export default function ExpenseRequestIndex({
                         />
                     ))}
 
-                    {mainTab==='all' && requests?.last_page>1 && (
+                    {mainTab==='all'&&requests?.last_page>1 && (
                         <div style={{display:'flex',justifyContent:'center',gap:6,padding:'16px 20px',borderTop:`1px solid ${theme.border}`}}>
                             {Array.from({length:requests.last_page},(_,i)=>i+1).map(pg=>{
                                 const a=requests.current_page===pg;
@@ -1138,11 +870,11 @@ export default function ExpenseRequestIndex({
                 open={showModal}
                 onClose={saved=>{setShowModal(false);if(saved)router.reload({only:['requests','stats']});}}
                 approvers={approvers} categories={categories}
-                dark={dark} theme={theme} userRole={userRole}
+                dark={dark} theme={theme} userRole={userRole} tFn={tFn}
             />
             {confirmModal && (
                 <ConfirmModal type={confirmModal.type} req={confirmModal.req}
-                    loading={actionLoading} dark={dark} theme={theme}
+                    loading={actionLoading} dark={dark} theme={theme} tFn={tFn}
                     onCancel={()=>setConfirmModal(null)} onConfirm={handleConfirm}
                 />
             )}

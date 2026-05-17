@@ -2,48 +2,48 @@
   "nav": {
     "groups": {
       "MAIN": "CHÍNH",
-      "AI WORKSPACE": "KHÔNG GIAN AI",
+      "AI WORKSPACE": "KHÔNG GIAN LÀM VIỆC AI",
       "OPERATIONS": "VẬN HÀNH",
       "PEOPLE & HR": "NHÂN SỰ",
       "WORK MANAGEMENT": "QUẢN LÝ CÔNG VIỆC",
       "PAYROLL": "BẢNG LƯƠNG"
     },
     "items": {
-      "Dashboard": "Trang chủ",
+      "Dashboard": "Bảng điều khiển",
       "My Profile": "Hồ sơ của tôi",
       "Requirement Analysis": "Phân tích yêu cầu",
-      "Proposal Generator": "Tạo đề xuất",
+      "Proposal Generator": "Bộ tạo đề xuất",
       "Project Management": "Quản lý dự án",
       "My Assignments": "Nhiệm vụ của tôi",
-      "P&L Report": "Báo cáo lãi/lỗ",
-      "Document Translation": "Dịch tài liệu",
-      "Smart Mail": "Email",
+      "P&L Report": "Báo cáo P&L",
+      "Document Translation": "Dịch thuật tài liệu",
+      "Smart Mail": "Thư thông minh",
       "AI Chat": "Trò chuyện AI",
-      "Trip Schedule": "Lịch chuyến đi",
+      "Trip Schedule": "Lịch trình chuyến đi",
       "Surveys": "Khảo sát",
-      "HR Alerts": "Cảnh báo HR",
+      "HR Alerts": "Cảnh báo nhân sự",
       "Performance Review": "Đánh giá hiệu suất",
       "Recruitment": "Tuyển dụng",
       "User & Roles": "Người dùng & Vai trò",
-      "HR Policy": "Chính sách HR",
+      "HR Policy": "Chính sách nhân sự",
       "Project Assignment": "Phân công dự án",
       "Bookings": "Đặt chỗ",
       "Attendance": "Chấm công",
-      "Check In/Out Request": "Yêu cầu vào/ra",
+      "Check In/Out Request": "Yêu cầu Check In/Out",
       "Leave Request": "Yêu cầu nghỉ phép",
       "Overtime Request": "Yêu cầu tăng ca",
       "Expense Request": "Yêu cầu chi phí",
       "Employee Salary": "Lương nhân viên",
       "Payroll": "Bảng lương",
       "Payslip": "Phiếu lương",
-      "Bank Export": "Xuất ngân hàng"
+      "Bank Export": "Xuất dữ liệu ngân hàng"
     },
     "signOut": "Đăng xuất",
     "endSession": "Kết thúc phiên hiện tại"
   },
   "roles": {
     "admin": "Quản trị viên",
-    "hr": "Quản lý HR",
+    "hr": "Quản lý nhân sự",
     "management": "Ban quản lý",
     "employee": "Nhân viên",
     "driver": "Tài xế"
@@ -56,5 +56,3996 @@
     "vi": "Tiếng Việt",
     "ko": "한국어",
     "ja": "日本語"
+  },
+  "dash": {
+    "announcement": "Thông báo",
+    "by": "Bởi",
+    "deleteAnnouncement": "Xóa thông báo",
+    "announcementDeleted": "Đã xóa thông báo.",
+    "failedToDelete": "Xóa thất bại.",
+    "networkError": "Lỗi mạng.",
+    "seeLess": "Thu gọn",
+    "seeMore": "Xem thêm",
+    "attachment": "Tệp đính kèm",
+    "download": "Tải xuống",
+    "link": "Liên kết",
+    "newAnnouncement": "Thông báo mới",
+    "title": "Tiêu đề",
+    "content": "Nội dung",
+    "announcementTitlePlaceholder": "Tiêu đề thông báo...",
+    "announcementContentPlaceholder": "Viết thông báo của bạn...",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "attachmentsOptional": "Tệp đính kèm (tùy chọn)",
+    "attachFilePlaceholder": "Đính kèm tệp (PDF, Word, Excel, Hình ảnh, ZIP — tối đa 20MB)",
+    "linkPlaceholder": "Hoặc dán một liên kết (https://...)",
+    "cancel": "Hủy",
+    "publish": "Đăng",
+    "publishing": "Đang đăng...",
+    "announcementPublished": "Đã đăng thông báo!",
+    "failed": "Thất bại.",
+    "required": "Bắt buộc",
+    "typeLeave": "NGHỈ PHÉP",
+    "typeOT": "TĂNG CA",
+    "typeAttendance": "CHẤM CÔNG",
+    "typeExpense": "CHI PHÍ",
+    "total": "tổng cộng",
+    "timeNotRecorded": "Chưa ghi nhận thời gian",
+    "attendanceCorrection": "Sửa đổi chấm công",
+    "approve": "Phê duyệt",
+    "reject": "Từ chối",
+    "leaveRequest": "Yêu cầu nghỉ phép",
+    "overtimeRequest": "Yêu cầu tăng ca",
+    "attendanceRequest": "Yêu cầu chấm công",
+    "expenseRequest": "Yêu cầu chi phí",
+    "request": "Yêu cầu",
+    "leaveType": "Loại nghỉ phép",
+    "totalDays": "Tổng số ngày",
+    "days": "ngày",
+    "note": "Ghi chú",
+    "document": "Tài liệu",
+    "date": "Ngày",
+    "workHours": "Giờ làm việc",
+    "checkIn": "Check in",
+    "checkOut": "Check out",
+    "late": "Đi muộn",
+    "amount": "Số tiền",
+    "category": "Danh mục",
+    "expenseDate": "Ngày phát sinh chi phí",
+    "description": "Mô tả",
+    "attachments": "Tệp đính kèm",
+    "noteOptional": "Ghi chú (tùy chọn)",
+    "noteForEmployee": "Thêm ghi chú cho nhân viên…",
+    "rejectionReason": "Lý do từ chối",
+    "rejectionReasonPlaceholder": "Tại sao yêu cầu này bị từ chối?…",
+    "rejectionReasonRequired": "Lý do từ chối là bắt buộc",
+    "confirmApproval": "Xác nhận phê duyệt",
+    "confirmRejection": "Xác nhận từ chối",
+    "requestedBy": "Người yêu cầu",
+    "requestDetails": "Chi tiết yêu cầu",
+    "processing": "Đang xử lý…",
+    "segmentsAdjust": "Phân đoạn — điều chỉnh giờ đã duyệt",
+    "req": "yêu cầu",
+    "hrs": "giờ",
+    "totalApproved": "Tổng số đã duyệt",
+    "pendingApprovals": "Phê duyệt đang chờ",
+    "all": "Tất cả",
+    "leave": "Nghỉ phép",
+    "ot": "Tăng ca",
+    "attendance": "Chấm công",
+    "expense": "Chi phí",
+    "allCaughtUp": "Đã xử lý xong!",
+    "noPendingApprovals": "Hiện tại không có phê duyệt nào đang chờ.",
+    "unknownRequestType": "Loại yêu cầu không xác định.",
+    "actionFailed": "Thao tác thất bại.",
+    "noLeaveData": "Không có dữ liệu nghỉ phép trong tháng này",
+    "noOTData": "Không có dữ liệu dự án tăng ca trong tháng này",
+    "noPayrollData": "Không có dữ liệu lương",
+    "latest": "Mới nhất",
+    "weekday": "Ngày trong tuần",
+    "today": "Hôm nay",
+    "weekend": "Cuối tuần",
+    "noLateArrivals": "Không có đi muộn trong tháng này",
+    "kpi": {
+      "headcount": "Số lượng nhân sự",
+      "presentToday": "Có mặt hôm nay",
+      "onLeaveToday": "Nghỉ phép hôm nay",
+      "allPending": "Tất cả đang chờ",
+      "otHoursMonth": "Giờ tăng ca / tháng",
+      "leaveRate": "Tỷ lệ nghỉ phép",
+      "ofWorkingDays": "số ngày làm việc",
+      "turnoverQ": "Tỷ lệ nghỉ việc Q",
+      "countries": "Quốc gia",
+      "allOffices": "Tất cả văn phòng"
+    },
+    "approved": "Đã phê duyệt",
+    "resigned": "đã nghỉ việc",
+    "leaveUsageThisMonth": "Sử dụng nghỉ phép tháng này",
+    "top20ByDays": "Top 20 nhân viên theo số ngày nghỉ",
+    "otByProject": "Tăng ca theo dự án đang hoạt động",
+    "top10OTHours": "Top 10 · số giờ được duyệt tháng này",
+    "monthlyAttendance": "Chấm công hàng tháng",
+    "dailyPresentCount": "số lượng có mặt hàng ngày",
+    "payrollTrend": "Xu hướng lương",
+    "last6Months": "6 tháng qua · tổng lương ròng",
+    "employmentMix": "Cơ cấu hình thức làm việc",
+    "byTypeActive": "Theo loại — nhân viên đang làm việc",
+    "permanent": "Chính thức",
+    "probation": "Thử việc",
+    "contract": "Hợp đồng",
+    "departmentHeadcount": "Số lượng nhân sự theo phòng ban",
+    "noData": "Không có dữ liệu",
+    "lateCheckIn": "Tần suất check-in muộn",
+    "lateCheckInSubtitle": "Tháng này · sắp xếp theo số lần giảm dần · top 20",
+    "probationEndingSoon": "Sắp hết hạn thử việc",
+    "within10Days": "Trong vòng 10 ngày",
+    "contractExpiring": "Hợp đồng sắp hết hạn",
+    "within30Days": "Trong vòng 30 ngày",
+    "noAlerts": "Không có cảnh báo",
+    "birthdaysThisWeek": "Sinh nhật trong tuần này",
+    "noBirthdays": "Không có sinh nhật trong tuần này",
+    "checkBackNextWeek": "Hãy kiểm tra lại vào tuần sau!",
+    "onLeaveToday": "Nghỉ phép hôm nay",
+    "employeesOnLeave": "nhân viên nghỉ phép đã duyệt",
+    "approvedLeaveCoveringToday": "Nghỉ phép đã duyệt bao gồm hôm nay",
+    "upcomingHolidays": "Ngày lễ sắp tới",
+    "noUpcomingHolidays": "Không có ngày lễ sắp tới",
+    "noOneOnLeave": "Không có ai nghỉ phép hôm nay",
+    "showLess": "▲ Thu gọn",
+    "showMore": "▼ Hiển thị thêm {{count}}",
+    "importAttendance": "Nhập dữ liệu chấm công",
+    "goodMorning": "Chào buổi sáng",
+    "goodAfternoon": "Chào buổi chiều",
+    "goodEvening": "Chào buổi tối",
+    "personal": "cá nhân",
+    "dashboard": "bảng điều khiển",
+    "pending": "Đang chờ duyệt",
+    "present": "Có mặt",
+    "staff": "Nhân viên",
+    "checkedIn": "Đã check in",
+    "notCheckedIn": "Chưa check in",
+    "out": "Ra ngoài",
+    "currentlyAtWork": "Hiện đang làm việc",
+    "todayIsWorkingDay": "Hôm nay là ngày làm việc",
+    "warning": "Cảnh báo",
+    "daysAbsent": "ngày vắng mặt",
+    "absenceWarning": "Cảnh báo vắng mặt",
+    "lateArrivalWarning": "Cảnh báo đi muộn",
+    "markAsRead": "Đánh dấu là đã đọc",
+    "marking": "Đang đánh dấu…",
+    "emp": {
+      "presentDays": "Số ngày có mặt",
+      "otThisMonth": "Tăng ca tháng này",
+      "pendingLeave": "Nghỉ phép chờ duyệt",
+      "absentDays": "Số ngày vắng mặt",
+      "lateArrivals": "Số lần đi muộn"
+    },
+    "thisMonth": "Tháng này",
+    "awaitingApproval": "Đang chờ phê duyệt",
+    "submitted": "Đã nộp",
+    "myPendingRequests": "Yêu cầu đang chờ duyệt của tôi",
+    "waitingForApproval": "Đang chờ phê duyệt",
+    "latestPayslip": "Phiếu lương mới nhất",
+    "hideAmounts": "Ẩn số tiền",
+    "showAmounts": "Hiển thị số tiền",
+    "netSalary": "Lương ròng",
+    "baseSalary": "Lương cơ bản",
+    "otPay": "Lương tăng ca",
+    "allowances": "Phụ cấp",
+    "deductions": "Khoản khấu trừ",
+    "leaveBalances": "Số dư nghỉ phép",
+    "remainingDays": "Số ngày còn lại",
+    "myWeeklyAttendance": "Chấm công hàng tuần của tôi",
+    "workHoursPerDay": "Số giờ làm việc mỗi ngày"
+  },
+  "profile": {
+    "pageTitle": "Hồ sơ của tôi",
+    "sections": {
+      "personalInformation": "Thông tin cá nhân",
+      "workInformation": "Thông tin công việc",
+      "salaryInformation": "Thông tin lương"
+    },
+    "fields": {
+      "fullName": "Họ và tên",
+      "email": "Email",
+      "phone": "Điện thoại",
+      "dateOfBirth": "Ngày sinh",
+      "country": "Quốc gia",
+      "position": "Chức vụ",
+      "department": "Phòng ban",
+      "joinDate": "Ngày vào làm",
+      "employment": "Hình thức làm việc",
+      "contractEnd": "Ngày hết hạn hợp đồng",
+      "role": "Vai trò",
+      "baseSalary": "Lương cơ bản",
+      "bank": "Ngân hàng",
+      "accountName": "Tên tài khoản",
+      "accountNo": "Số tài khoản",
+      "branch": "Chi nhánh",
+      "effectiveDate": "Ngày hiệu lực",
+      "allowances": "Phụ cấp"
+    },
+    "actions": {
+      "show": "Hiển thị",
+      "hide": "Ẩn"
+    },
+    "status": {
+      "active": "Đang hoạt động"
+    },
+    "employmentTypes": {
+      "probation": "Thử việc",
+      "permanent": "Chính thức",
+      "contract": "Hợp đồng"
+    },
+    "countries": {
+      "myanmar": "Myanmar",
+      "vietnam": "Việt Nam",
+      "korea": "Hàn Quốc",
+      "cambodia": "Campuchia",
+      "japan": "Nhật Bản"
+    },
+    "tenure": {
+      "year": "Năm",
+      "month": "Tháng",
+      "day": "Ngày",
+      "today": "Hôm nay"
+    },
+    "messages": {
+      "revealSalary": "Hiển thị lương để xem giá trị phụ cấp",
+      "noPayrollProfile": "Chưa được chỉ định hồ sơ lương. Vui lòng liên hệ nhân sự để biết chi tiết."
+    },
+    "fallback": {
+      "employee": "Nhân viên"
+    }
+  },
+  "attendance": {
+    "pageTitle": "Chấm công",
+    "selectEmployee": "Chọn nhân viên",
+    "addAttendance": "Thêm chấm công",
+    "editAttendance": "Sửa chấm công",
+    "updateAttendanceRecord": "Cập nhật bản ghi chấm công",
+    "recordEmployeeAttendance": "Ghi nhận chấm công nhân viên",
+    "addRecord": "Thêm bản ghi",
+    "monthlySummary": "Tóm tắt hàng tháng",
+    "workingDays": "Ngày làm việc",
+    "workingDaysLower": "ngày làm việc",
+    "present": "Có mặt",
+    "absent": "Vắng mặt",
+    "lateDays": "Số ngày đi muộn",
+    "otHours": "Giờ tăng ca",
+    "leaveDays": "Số ngày nghỉ",
+    "totalLate": "Tổng số đi muộn",
+    "workHours": "Giờ làm việc",
+    "holidays": "Ngày lễ",
+    "employee": "Nhân viên",
+    "status": "Trạng thái",
+    "checkIn": "Check In",
+    "checkOut": "Check Out",
+    "shortHours": "Thiếu giờ",
+    "late": "Đi muộn",
+    "overtimeDetail": "CHI TIẾT TĂNG CA",
+    "note": "GHI CHÚ",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "deleteAttendance": "Xóa chấm công?",
+    "cancel": "Hủy",
+    "deleting": "Đang xóa...",
+    "yesDelete": "Có, Xóa",
+    "save": "Lưu",
+    "saving": "Đang lưu...",
+    "date": "Ngày",
+    "lateMin": "Đi muộn (phút)",
+    "auto": "TỰ ĐỘNG",
+    "lunch": "Nghỉ trưa",
+    "start": "Bắt đầu",
+    "requiredNote": "Ghi chú bắt buộc...",
+    "weekend": "Cuối tuần",
+    "publicHoliday": "Ngày lễ công cộng",
+    "noAttendanceRequired": "Không yêu cầu chấm công",
+    "futureDate": "Ngày trong tương lai",
+    "absentNoRecord": "Vắng mặt — Không có bản ghi",
+    "clickDayDetails": "Nhấp vào một ngày để xem chi tiết",
+    "exceedsStandard": "Vượt quá tiêu chuẩn :hours giờ. Hãy cân nhắc yêu cầu tăng ca.",
+    "mustBeLater": "Phải từ :time trở đi",
+    "mustBeEarlier": "Phải từ :time trở về trước",
+    "amHalfLeaveCheckIn": "Nghỉ nửa ngày buổi sáng — check-in phải từ :time trở đi",
+    "pmHalfLeaveCheckIn": "Nghỉ nửa ngày buổi chiều — check-in phải trước :time",
+    "pmHalfLeaveCheckOut": "Nghỉ nửa ngày buổi chiều — check-out phải từ :time trở về trước",
+    "actions": {
+      "addAttendance": "Thêm chấm công",
+      "addRecord": "Thêm bản ghi",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "cancel": "Hủy",
+      "deleting": "Đang xóa...",
+      "yesDelete": "Có, Xóa",
+      "save": "Lưu",
+      "saving": "Đang lưu..."
+    },
+    "stats": {
+      "workingDays": "Ngày làm việc",
+      "present": "Có mặt",
+      "absent": "Vắng mặt",
+      "lateDays": "Số ngày đi muộn",
+      "otHours": "Giờ tăng ca",
+      "leaveDays": "Số ngày nghỉ",
+      "totalLate": "Tổng số đi muộn",
+      "workHours": "Giờ làm việc",
+      "holidays": "Ngày lễ"
+    },
+    "fields": {
+      "employee": "Nhân viên",
+      "status": "Trạng thái",
+      "checkIn": "Check In",
+      "checkOut": "Check Out",
+      "checkInTime": "Giờ Check In",
+      "checkOutTime": "Giờ Check Out",
+      "workHours": "Giờ làm việc",
+      "shortHours": "Thiếu giờ",
+      "late": "Đi muộn",
+      "otHours": "Giờ tăng ca",
+      "date": "Ngày",
+      "lateMin": "Đi muộn (phút)",
+      "note": "Ghi chú"
+    },
+    "labels": {
+      "weekend": "Cuối tuần",
+      "publicHoliday": "Ngày lễ công cộng",
+      "overtimeDetail": "CHI TIẾT TĂNG CA",
+      "note": "GHI CHÚ",
+      "auto": "TỰ ĐỘNG",
+      "lunch": "Nghỉ trưa",
+      "start": "Bắt đầu"
+    },
+    "summary": {
+      "monthlySummary": "Tóm tắt hàng tháng"
+    },
+    "placeholders": {
+      "select": "Chọn...",
+      "selectEmployee": "Chọn nhân viên",
+      "auto": "TỰ ĐỘNG",
+      "requiredNote": "Ghi chú bắt buộc..."
+    },
+    "validation": {
+      "employeeRequired": "Nhân viên là bắt buộc",
+      "dateRequired": "Ngày là bắt buộc",
+      "checkInRequired": "Check In là bắt buộc",
+      "checkOutRequired": "Check Out là bắt buộc",
+      "workHoursRequired": "Giờ làm việc là bắt buộc",
+      "lateMinutesRequired": "Số phút đi muộn là bắt buộc",
+      "noteRequired": "Ghi chú là bắt buộc",
+      "hhmmFormat": "Thời gian phải đúng định dạng HH:MM",
+      "amHalfCheckIn": "Nghỉ nửa ngày buổi sáng — check-in phải từ :time trở đi",
+      "pmHalfCheckIn": "Nghỉ nửa ngày buổi chiều — check-in phải trước :time",
+      "pmHalfCheckOut": "Nghỉ nửa ngày buổi chiều — check-out phải từ :time trở về trước"
+    },
+    "errors": {
+      "somethingWrong": "Đã xảy ra lỗi.",
+      "employeeRequired": "Nhân viên là bắt buộc",
+      "dateRequired": "Ngày là bắt buộc",
+      "checkInRequired": "Check In là bắt buộc",
+      "checkOutRequired": "Check Out là bắt buộc",
+      "workHoursRequired": "Giờ làm việc là bắt buộc",
+      "lateMinutesRequired": "Số phút đi muộn là bắt buộc",
+      "noteRequired": "Ghi chú là bắt buộc"
+    },
+    "modal": {
+      "addTitle": "Thêm chấm công",
+      "editTitle": "Sửa chấm công",
+      "recordSubtitle": "Ghi nhận chấm công nhân viên",
+      "updateSubtitle": "Cập nhật bản ghi chấm công"
+    },
+    "deleteConfirm": {
+      "title": "Xóa chấm công?"
+    },
+    "units": {
+      "short": "thiếu",
+      "min": "phút"
+    },
+    "messages": {
+      "somethingWentWrong": "Đã xảy ra lỗi.",
+      "exceedsStandard": "Vượt quá tiêu chuẩn :hours giờ. Hãy cân nhắc yêu cầu tăng ca.",
+      "noAttendanceRequired": "Không yêu cầu chấm công",
+      "futureDate": "Ngày trong tương lai",
+      "absentNoRecord": "Vắng mặt — Không có bản ghi",
+      "clickDayDetails": "Nhấp vào một ngày để xem chi tiết"
+    },
+    "hints": {
+      "mustBeOrLater": "Phải từ :time trở đi",
+      "mustBeOrEarlier": "Phải từ :time trở về trước"
+    },
+    "months": {
+      "January": "Tháng 1",
+      "February": "Tháng 2",
+      "March": "Tháng 3",
+      "April": "Tháng 4",
+      "May": "Tháng 5",
+      "June": "Tháng 6",
+      "July": "Tháng 7",
+      "August": "Tháng 8",
+      "September": "Tháng 9",
+      "October": "Tháng 10",
+      "November": "Tháng 11",
+      "December": "Tháng 12",
+      "january": "Tháng 1",
+      "february": "Tháng 2",
+      "march": "Tháng 3",
+      "april": "Tháng 4",
+      "may": "Tháng 5",
+      "june": "Tháng 6",
+      "july": "Tháng 7",
+      "august": "Tháng 8",
+      "september": "Tháng 9",
+      "october": "Tháng 10",
+      "november": "Tháng 11",
+      "december": "Tháng 12"
+    },
+    "days": {
+      "Sun": "CN",
+      "Mon": "T2",
+      "Tue": "T3",
+      "Wed": "T4",
+      "Thu": "T5",
+      "Fri": "T6",
+      "Sat": "T7",
+      "sun": "CN",
+      "mon": "T2",
+      "tue": "T3",
+      "wed": "T4",
+      "thu": "T5",
+      "fri": "T6",
+      "sat": "T7"
+    },
+    "leaveTypes": {
+      "annual": "Nghỉ phép năm",
+      "medical": "Nghỉ ốm",
+      "emergency": "Nghỉ khẩn cấp",
+      "unpaid": "Nghỉ không lương",
+      "maternity": "Nghỉ thai sản",
+      "paternity": "Nghỉ thai sản (nam)",
+      "leave": "Nghỉ phép",
+      "amHalf": "Nửa ngày sáng",
+      "pmHalf": "Nửa ngày chiều",
+      "fullDay": "Cả ngày",
+      "amHalfDay": "Nửa ngày sáng",
+      "pmHalfDay": "Nửa ngày chiều",
+      "fullDayLeave": "Nghỉ cả ngày",
+      "halfDayLeave": "Nghỉ phép :type"
+    },
+    "leaveDayTypes": {
+      "amHalf": "Nửa ngày sáng",
+      "pmHalf": "Nửa ngày chiều",
+      "fullDay": "Cả ngày",
+      "amHalfDay": "Nửa ngày sáng",
+      "pmHalfDay": "Nửa ngày chiều"
+    },
+    "table": {
+      "in": "Vào",
+      "out": "Ra",
+      "wh": "Giờ LM",
+      "ot": "Tăng ca",
+      "short": "Thiếu"
+    },
+    "shortLabels": {
+      "in": "Vào",
+      "out": "Ra",
+      "wh": "Giờ LM",
+      "leave": "Phép",
+      "ot": "Tăng ca",
+      "late": "Muộn",
+      "short": "Thiếu"
+    },
+    "statusLabels": {
+      "present": "Có mặt",
+      "absent": "Vắng mặt",
+      "late": "Đi muộn",
+      "halfDay": "Nửa ngày",
+      "otOnly": "Chỉ tăng ca"
+    },
+    "status": {
+      "present": "Có mặt",
+      "absent": "Vắng mặt",
+      "late": "Đi muộn",
+      "halfDay": "Nửa ngày",
+      "otOnly": "Chỉ tăng ca"
+    }
+  },
+  "attendanceRequest": {
+    "pageTitle": "Yêu cầu Check In/Out",
+    "modal": {
+      "badge": "Yêu cầu chấm công"
+    },
+    "fields": {
+      "date": "Ngày",
+      "approver": "Người duyệt",
+      "requestType": "Loại yêu cầu",
+      "requestedCheckIn": "Giờ Check In yêu cầu",
+      "requestedCheckOut": "Giờ Check Out yêu cầu",
+      "reason": "Lý do"
+    },
+    "placeholders": {
+      "selectApprover": "Chọn người duyệt",
+      "reason": "Vì sao bạn muốn cập nhật check in/out?"
+    },
+    "requestTypes": {
+      "checkInOnly": "Chỉ Check In",
+      "checkOutOnly": "Chỉ Check Out",
+      "both": "Cả Check In/Out",
+      "bothShort": "Cả hai",
+      "inOnly": "Chỉ In",
+      "outOnly": "Chỉ Out"
+    },
+    "preview": {
+      "workSchedule": "Lịch làm việc",
+      "lunchBreak": "Nghỉ trưa",
+      "autoPreview": "Xem trước tự động"
+    },
+    "actions": {
+      "cancel": "Hủy",
+      "submitRequest": "Gửi yêu cầu",
+      "submitting": "Đang gửi...",
+      "requestCheckInOut": "Yêu cầu Check In/Out",
+      "approve": "Duyệt",
+      "approving": "Đang duyệt...",
+      "reject": "Từ chối",
+      "rejecting": "Đang từ chối...",
+      "delete": "Xóa",
+      "deleting": "Đang xóa...",
+      "deleteRequest": "Xóa yêu cầu"
+    },
+    "status": {
+      "pending": "Đang chờ",
+      "approved": "Đã duyệt",
+      "rejected": "Đã từ chối",
+      "autoApproved": "Tự động duyệt"
+    },
+    "filters": {
+      "allStatus": "Tất cả trạng thái"
+    },
+    "tabs": {
+      "myRequests": "Yêu cầu của tôi",
+      "pendingApprovals": "Đang chờ duyệt",
+      "allRequests": "Tất cả yêu cầu"
+    },
+    "empty": {
+      "noPendingApprovals": "Không có yêu cầu chờ duyệt",
+      "noRequestsFound": "Không tìm thấy yêu cầu Check In/Out",
+      "allCaughtUp": "Đã xử lý hết!",
+      "clickToSubmit": "Nhấn \"Yêu cầu Check In/Out\" để gửi yêu cầu mới."
+    },
+    "confirm": {
+      "deleteTitle": "Xóa yêu cầu",
+      "approveTitle": "Duyệt yêu cầu",
+      "rejectTitle": "Từ chối yêu cầu",
+      "deleteSubtext": "Hành động này không thể hoàn tác",
+      "notifySubtext": "Nhân viên sẽ được thông báo",
+      "yourRequest": "Yêu cầu của bạn"
+    },
+    "labels": {
+      "awaiting": "Đang chờ",
+      "approvedBy": "Duyệt bởi",
+      "rejectedBy": "Từ chối bởi",
+      "late": "Trễ"
+    },
+    "shortLabels": {
+      "in": "IN",
+      "out": "OUT",
+      "wh": "Giờ làm"
+    },
+    "validation": {
+      "dateRequired": "Vui lòng chọn ngày",
+      "checkInRequired": "Vui lòng nhập giờ Check In",
+      "checkOutRequired": "Vui lòng nhập giờ Check Out",
+      "checkOutLater": "Giờ Check Out phải sau giờ Check In",
+      "reasonRequired": "Vui lòng nhập lý do",
+      "approverRequired": "Vui lòng chọn người duyệt",
+      "validationError": "Lỗi xác thực"
+    },
+    "messages": {
+      "requestNoLongerExists": "Yêu cầu không còn tồn tại. Có thể người gửi đã xóa.",
+      "requestDeleteFailed": "Yêu cầu không còn tồn tại hoặc không thể xóa."
+    },
+    "months": {
+      "January": "Tháng 1",
+      "February": "Tháng 2",
+      "March": "Tháng 3",
+      "April": "Tháng 4",
+      "May": "Tháng 5",
+      "June": "Tháng 6",
+      "July": "Tháng 7",
+      "August": "Tháng 8",
+      "September": "Tháng 9",
+      "October": "Tháng 10",
+      "November": "Tháng 11",
+      "December": "Tháng 12"
+    }
+  },
+"overtime": {
+    "pageTitle": "Yêu cầu làm thêm giờ",
+    "headTitle": "Làm thêm giờ",
+    "titleShort": "Làm thêm giờ",
+    "status": {
+      "pending": "Đang chờ",
+      "approved": "Đã duyệt",
+      "rejected": "Đã từ chối"
+    },
+    "labels": {
+      "publicHoliday": "Ngày lễ",
+      "weekend": "Cuối tuần",
+      "weekday": "Ngày thường",
+      "day": "Ngày",
+      "night": "Đêm",
+      "all": "Tất cả",
+      "shift": "ca",
+      "awaiting": "Đang chờ",
+      "approvedBy": "Duyệt bởi",
+      "rejectedBy": "Từ chối bởi",
+      "project": "Dự án",
+      "date": "Ngày",
+      "time": "Thời gian",
+      "total": "Tổng",
+      "reason": "Lý do",
+      "approver": "Người duyệt",
+      "req": "yêu cầu",
+      "totalApproved": "Tổng đã duyệt:"
+    },
+    "actions": {
+      "approve": "Duyệt",
+      "reject": "Từ chối",
+      "deleteRequest": "Xóa yêu cầu",
+      "requestOvertime": "Yêu cầu làm thêm giờ",
+      "cancel": "Hủy",
+      "submitting": "Đang gửi...",
+      "submitRequest": "Gửi yêu cầu",
+      "deleting": "Đang xóa...",
+      "delete": "Xóa",
+      "approving": "Đang duyệt…",
+      "approveWithIcon": "✓ Duyệt",
+      "rejecting": "Đang từ chối…",
+      "rejectWithIcon": "✕ Từ chối"
+    },
+    "filters": {
+      "allStatus": "Tất cả trạng thái"
+    },
+    "tabs": {
+      "myRequests": "Yêu cầu của tôi",
+      "pendingApprovals": "Chờ phê duyệt",
+      "allRequests": "Tất cả yêu cầu"
+    },
+    "empty": {
+      "noPendingApprovals": "Không có yêu cầu chờ duyệt",
+      "noOvertimeRequestsFound": "Không tìm thấy yêu cầu làm thêm giờ",
+      "allCaughtUp": "Đã xử lý hết!",
+      "clickRequestOvertime": "Nhấn \"Yêu cầu làm thêm giờ\" để gửi yêu cầu mới.",
+      "noActiveProjectsAssigned": "Bạn chưa được gán dự án đang hoạt động",
+      "noApproverAvailable": "Không có người duyệt",
+      "noApproverFound": "Không tìm thấy người duyệt cho chi nhánh của bạn. Vui lòng liên hệ HR."
+    },
+    "messages": {
+      "requestCouldNotBeDeleted": "Không thể xóa yêu cầu.",
+      "adminAutoApproved": "Vì bạn là admin, yêu cầu này sẽ được tự động duyệt.",
+      "requestNoLongerExists": "Yêu cầu không còn tồn tại. Có thể đã bị xóa."
+    },
+    "modal": {
+      "overtimeManagement": "Quản lý làm thêm giờ"
+    },
+    "fields": {
+      "startDate": "Ngày bắt đầu",
+      "startTime": "Giờ bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "endTime": "Giờ kết thúc"
+    },
+    "validation": {
+      "startDateRequired": "Vui lòng nhập ngày bắt đầu.",
+      "startTimeRequired": "Vui lòng nhập giờ bắt đầu.",
+      "endDateRequired": "Vui lòng nhập ngày kết thúc.",
+      "endTimeRequired": "Vui lòng nhập giờ kết thúc.",
+      "reasonRequired": "Vui lòng nhập lý do.",
+      "selectApprover": "Vui lòng chọn người duyệt.",
+      "selectProjectForOT": "Vui lòng chọn dự án cho OT này.",
+      "endAfterStart": "Thời gian kết thúc phải sau thời gian bắt đầu.",
+      "endTimeAfterStartTime": "Giờ kết thúc phải sau giờ bắt đầu."
+    },
+    "summary": {
+      "multiDay": "Nhiều ngày · {{days}} ngày",
+      "sameDayOT": "OT trong ngày",
+      "totalHours": "Tổng {{hrs}}",
+      "autoSplitPerShift": "Tự động chia theo ca"
+    },
+    "placeholders": {
+      "selectApprover": "Chọn người duyệt",
+      "pleaseSelectProject": "— Vui lòng chọn dự án —",
+      "selectProject": "Chọn dự án...",
+      "describeReason": "Mô tả lý do làm thêm giờ..."
+    },
+    "confirm": {
+      "deleteOvertimeRequest": "Xóa yêu cầu làm thêm giờ",
+      "approveOvertime": "Duyệt làm thêm giờ",
+      "rejectOvertime": "Từ chối làm thêm giờ",
+      "actionCannotBeUndone": "Không thể hoàn tác thao tác này",
+      "adjustApprovedHours": "Điều chỉnh giờ duyệt theo từng phần nếu cần",
+      "employeeWillBeNotified": "Nhân viên sẽ được thông báo",
+      "yourRequest": "Yêu cầu của bạn",
+      "segmentsAdjustHours": "Các phần — điều chỉnh giờ nếu cần"
+    },
+    "units": {
+      "hrs": "giờ"
+    },
+    "policyTitles": {
+      "Day_Weekday_OT": "OT ban ngày ngày thường",
+      "Night_Weekday_OT": "OT ban đêm ngày thường",
+      "Day_Weekend_OT": "OT ban ngày cuối tuần",
+      "Night_Weekend_OT": "OT ban đêm cuối tuần",
+      "Public_Holiday_OT": "OT ngày lễ"
+    },
+    "months": {
+      "January": "Tháng 1",
+      "February": "Tháng 2",
+      "March": "Tháng 3",
+      "April": "Tháng 4",
+      "May": "Tháng 5",
+      "June": "Tháng 6",
+      "July": "Tháng 7",
+      "August": "Tháng 8",
+      "September": "Tháng 9",
+      "October": "Tháng 10",
+      "November": "Tháng 11",
+      "December": "Tháng 12"
+    }
+  },
+"leaveRequest": {
+  "pageTitle": "Yêu cầu nghỉ phép",
+  "months": {
+    "January": "Tháng 1",
+    "February": "Tháng 2",
+    "March": "Tháng 3",
+    "April": "Tháng 4",
+    "May": "Tháng 5",
+    "June": "Tháng 6",
+    "July": "Tháng 7",
+    "August": "Tháng 8",
+    "September": "Tháng 9",
+    "October": "Tháng 10",
+    "November": "Tháng 11",
+    "December": "Tháng 12"
+  },
+  "modal": {
+    "badge": "Quản lý nghỉ phép"
+  },
+  "actions": {
+    "requestLeave": "Yêu cầu nghỉ phép",
+    "submitRequest": "Gửi yêu cầu",
+    "submitting": "Đang gửi...",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "deleting": "Đang xóa...",
+    "deleteRequest": "Xóa yêu cầu",
+    "approve": "Duyệt",
+    "approving": "Đang duyệt...",
+    "reject": "Từ chối",
+    "rejecting": "Đang từ chối..."
+  },
+  "fields": {
+    "employee": "Nhân viên",
+    "leaveType": "Loại nghỉ phép",
+    "dayType": "Loại ngày nghỉ",
+    "date": "Ngày",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "reason": "Lý do",
+    "approver": "Người duyệt",
+    "supportingDocument": "Tài liệu hỗ trợ"
+  },
+  "placeholders": {
+    "selectApprover": "Chọn người duyệt",
+    "reason": "Nhập lý do..."
+  },
+  "filters": {
+    "allStatus": "Tất cả trạng thái"
+  },
+  "tabs": {
+    "myRequests": "Yêu cầu của tôi",
+    "pendingApprovals": "Chờ duyệt",
+    "allRequests": "Tất cả yêu cầu"
+  },
+  "status": {
+    "pending": "Đang chờ",
+    "approved": "Đã duyệt",
+    "rejected": "Đã từ chối"
+  },
+  "dayTypes": {
+    "full_day": "Cả ngày",
+    "half_day_am": "Nửa ngày sáng",
+    "half_day_pm": "Nửa ngày chiều"
+  },
+  "empty": {
+    "noRequestsFound": "Không tìm thấy yêu cầu nghỉ phép",
+    "noPendingApprovals": "Không có yêu cầu chờ duyệt",
+    "allCaughtUp": "Đã xử lý xong!",
+    "clickToSubmit": "Nhấn \"Yêu cầu nghỉ phép\" để gửi yêu cầu mới."
+  },
+  "labels": {
+    "used": "đã dùng",
+    "total": "tổng",
+    "availableBalance": "Số ngày phép còn lại",
+    "approvedBy": "Duyệt bởi",
+    "rejectedBy": "Từ chối bởi",
+    "awaiting": "Đang chờ",
+    "from": "Từ",
+    "to": "Đến",
+    "days": "ngày",
+    "downloadDocument": "Tải tài liệu",
+    "required": "Bắt buộc",
+    "optional": "Tùy chọn",
+    "doc": "Tài liệu",
+    "absent": "Vắng mặt",
+    "unpaid": "không lương"
+  },
+  "units": {
+    "day": "ngày",
+    "days": "ngày",
+    "daysShort": "ngày",
+    "half": "nửa",
+    "halfDay": "nửa ngày"
+  },
+  "preview": {
+    "totalLeaveDays": "Tổng số ngày nghỉ:"
+  },
+  "upload": {
+    "dropToUpload": "Thả để tải lên",
+    "dropFileHereOr": "Thả file vào đây hoặc",
+    "browse": "chọn file",
+    "fileHint": "PDF, JPG, PNG · tối đa 5MB",
+    "ready": "Sẵn sàng"
+  },
+  "confirm": {
+    "deleteTitle": "Xóa yêu cầu nghỉ phép",
+    "approveTitle": "Duyệt yêu cầu nghỉ phép",
+    "rejectTitle": "Từ chối yêu cầu nghỉ phép",
+    "deleteSubtext": "Hành động này không thể hoàn tác",
+    "notifySubtext": "Nhân viên sẽ được thông báo"
+  },
+  "validation": {
+    "leaveTypeRequired": "Loại nghỉ phép là bắt buộc",
+    "startDateRequired": "Ngày bắt đầu là bắt buộc",
+    "endDateRequired": "Ngày kết thúc là bắt buộc",
+    "reasonRequired": "Lý do là bắt buộc",
+    "approverRequired": "Vui lòng chọn người duyệt",
+    "endDateAfterStart": "Ngày kết thúc phải sau ngày bắt đầu",
+    "documentRequired": "Tài liệu hỗ trợ là bắt buộc cho loại nghỉ phép này.",
+    "fileType": "Chỉ cho phép PDF, JPG, PNG.",
+    "fileSize": "File phải nhỏ hơn 5MB.",
+    "validationError": "Lỗi xác thực"
+  },
+  "messages": {
+    "noLeaveTypes": "Chưa cấu hình loại nghỉ phép. Vui lòng liên hệ HR.",
+    "balanceExceeded": "Vượt quá số ngày phép — sẽ được tự động tách",
+    "noBalance": "Không còn số dư :type",
+    "requestNoLongerExists": "Yêu cầu không còn tồn tại. Có thể đã bị xóa.",
+    "requestDeleteFailed": "Không thể xóa yêu cầu."
+  }
+},
+  "employeeSalary": {
+    "pageTitle": "Lương nhân viên",
+    "employment": {
+      "probation": "Thử việc",
+      "permanent": "Chính thức",
+      "contract": "Hợp đồng"
+    },
+    "fields": {
+      "employee": "Nhân viên",
+      "position": "Vị trí",
+      "department": "Phòng ban",
+      "employment": "Loại hợp đồng",
+      "joined": "Ngày vào làm",
+      "baseSalary": "Lương cơ bản",
+      "allowances": "Phụ cấp",
+      "bankInformation": "Thông tin ngân hàng",
+      "bank": "Ngân hàng",
+      "accountHolderName": "Tên chủ tài khoản",
+      "accountNumber": "Số tài khoản",
+      "salary": "Lương",
+      "actions": "Thao tác"
+    },
+    "stats": {
+      "total": "Tổng",
+      "withBank": "Có ngân hàng",
+      "missingBank": "Thiếu ngân hàng"
+    },
+    "actions": {
+      "addProfile": "Thêm hồ sơ",
+      "cancel": "Hủy",
+      "saving": "Đang lưu…",
+      "saveProfile": "Lưu hồ sơ",
+      "updateProfile": "Cập nhật hồ sơ",
+      "removing": "Đang xóa…",
+      "removeProfile": "Xóa hồ sơ"
+    },
+    "placeholders": {
+      "selectEmployeeDash": "— Chọn nhân viên —",
+      "searchEmployee": "Tìm nhân viên…",
+      "fullName": "Họ tên",
+      "accountNumber": "Số tài khoản"
+    },
+    "validation": {
+      "selectEmployee": "Vui lòng chọn nhân viên.",
+      "validSalaryAmount": "Vui lòng nhập mức lương hợp lệ."
+    },
+    "messages": {
+      "salaryProfileUpdated": "Đã cập nhật hồ sơ lương.",
+      "salaryProfileSaved": "Đã lưu hồ sơ lương.",
+      "somethingWentWrong": "Đã xảy ra lỗi.",
+      "selectAllowancesApply": "Chọn phụ cấp áp dụng cho nhân viên này.",
+      "salaryProfileRemoved": "Đã xóa hồ sơ lương.",
+      "failedToRemoveProfile": "Không thể xóa hồ sơ."
+    },
+    "empty": {
+      "noEmployeesFound": "Không tìm thấy nhân viên",
+      "noResultsFound": "Không tìm thấy kết quả",
+      "noSalaryProfilesYet": "Chưa có hồ sơ lương",
+      "tryDifferentSearchTerm": "Thử từ khóa khác.",
+      "clickAddProfile": "Nhấn \"Thêm hồ sơ\" để gán lương."
+    },
+    "labels": {
+      "optionalDash": "— tùy chọn",
+      "notSet": "Chưa thiết lập"
+    },
+    "modal": {
+      "addSalaryProfile": "Thêm hồ sơ lương",
+      "setupSalaryAllowancesBank": "Thiết lập lương, phụ cấp và thông tin ngân hàng.",
+      "editSalaryProfile": "Sửa hồ sơ lương",
+      "updateSalaryAllowancesBank": "Cập nhật lương, phụ cấp hoặc thông tin ngân hàng.",
+      "removeProfile": "Xóa hồ sơ",
+      "deactivateSalaryProfile": "Hồ sơ lương sẽ bị vô hiệu hóa."
+    },
+    "confirm": {
+      "deactivateProfileWarning": "Hồ sơ lương sẽ bị vô hiệu hóa. Các bản ghi payroll trước đây vẫn được giữ nguyên."
+    }
+  },
+"expense": {
+    "stats": {
+      "total": "Tổng",
+      "pending": "Đang chờ",
+      "approved": "Đã duyệt",
+      "rejected": "Đã từ chối",
+      "unreimbursed": "Chưa hoàn tiền",
+      "unreimbursedSub": "Toàn thời gian · đã duyệt, chưa trả"
+    },
+    "tabs": {
+      "my": "Yêu cầu của tôi",
+      "approvals": "Chờ phê duyệt",
+      "all": "Tất cả yêu cầu"
+    },
+    "filters": {
+      "allStatus": "Tất cả trạng thái"
+    },
+    "btn": {
+      "submit": "Nộp chi phí",
+      "cancel": "Hủy",
+      "submitRequest": "Nộp yêu cầu",
+      "submitting": "Đang nộp…",
+      "approve": "Duyệt",
+      "reject": "Từ chối",
+      "delete": "Xóa yêu cầu",
+      "processing": "Đang xử lý…"
+    },
+    "row": {
+      "awaiting": "Đang chờ",
+      "approvedBy": "Duyệt bởi",
+      "rejectedBy": "Từ chối bởi",
+      "date": "Ngày",
+      "amount": "Số tiền",
+      "note": "Ghi chú",
+      "rejected": "Từ chối",
+      "reimbursed": "✓ Đã hoàn tiền",
+      "noApprover": "HR"
+    },
+    "empty": {
+      "noPendingApprovals": "Không có chờ duyệt",
+      "allCaughtUp": "Đã xong!",
+      "noExpenses": "Không có yêu cầu chi phí",
+      "noExpensesSub": "Nhấn \"Nộp chi phí\" để thêm mới."
+    },
+    "modal": {
+      "header": "Yêu cầu chi phí",
+      "title": "Nộp chi phí",
+      "titleLabel": "Tiêu đề",
+      "titlePlaceholder": "VD: Ăn tối khách hàng, Taxi sân bay…",
+      "amountLabel": "Số tiền",
+      "categoryLabel": "Danh mục",
+      "categoryPlaceholder": "Chọn…",
+      "expenseDateLabel": "Ngày chi phí",
+      "descriptionLabel": "Mô tả",
+      "descriptionPlaceholder": "Chi tiết thêm về khoản chi phí…",
+      "attachmentsLabel": "Tệp đính kèm",
+      "attachmentsSub": "— hóa đơn, chứng từ (tối đa 5)",
+      "attachmentsClick": "Nhấn để tải tệp lên",
+      "approverHr": "HR (Người duyệt)",
+      "approverAdmin": "Quản trị viên (Người duyệt)",
+      "approverPlaceholder": "— Chọn người duyệt —",
+      "approverNone": "Không có {role} trong quốc gia của bạn.",
+      "autoApprove": "✓ Với tư cách Admin, yêu cầu này sẽ được duyệt tự động.",
+      "optional": "(tùy chọn)"
+    },
+    "confirm": {
+      "deleteTitle": "Xóa yêu cầu",
+      "deleteBody": "Không thể hoàn tác.",
+      "approveTitle": "Duyệt chi phí",
+      "approveBody": "Nhân viên sẽ được thông báo.",
+      "rejectTitle": "Từ chối chi phí",
+      "rejectBody": "Cung cấp lý do từ chối.",
+      "noteLabel": "Ghi chú",
+      "noteOptional": "(tùy chọn)",
+      "notePlaceholder": "Thêm ghi chú cho nhân viên…",
+      "reasonLabel": "Lý do từ chối",
+      "reasonPlaceholder": "Tại sao từ chối?…",
+      "confirmDelete": "🗑 Xóa",
+      "confirmApprove": "✓ Duyệt",
+      "confirmReject": "✕ Từ chối"
+    },
+    "category": {
+      "transport": "Đi lại",
+      "meal": "Ăn uống",
+      "accommodation": "Chỗ ở",
+      "equipment": "Thiết bị",
+      "medical": "Y tế",
+      "training": "Đào tạo",
+      "communication": "Liên lạc",
+      "other": "Khác"
+    },
+    "validation": {
+      "titleRequired": "Tiêu đề là bắt buộc.",
+      "amountInvalid": "Nhập số tiền hợp lệ.",
+      "dateRequired": "Ngày chi phí là bắt buộc.",
+      "categoryRequired": "Danh mục là bắt buộc.",
+      "approverRequired": "Vui lòng chọn người duyệt."
+    },
+    "noApproversAvailable": "Không có người duyệt",
+    "networkError": "Lỗi mạng. Vui lòng thử lại.",
+    "deleteError": "Không thể xóa.",
+    "actionError": "Có lỗi xảy ra.",
+    "months": [
+      "Tháng 1",
+      "Tháng 2",
+      "Tháng 3",
+      "Tháng 4",
+      "Tháng 5",
+      "Tháng 6",
+      "Tháng 7",
+      "Tháng 8",
+      "Tháng 9",
+      "Tháng 10",
+      "Tháng 11",
+      "Tháng 12"
+    ]
+  },
+  "payslip": {
+    "pageTitle": "Phiếu lương",
+    "fields": {
+      "employee": "Nhân viên",
+      "payPeriod": "Kỳ lương",
+      "netSalary": "Lương thực nhận",
+      "detail": "Chi tiết",
+      "download": "Tải xuống"
+    },
+    "filters": {
+      "allMonths": "Tất cả tháng",
+      "allPeriods": "Tất cả kỳ"
+    },
+    "cycles": {
+      "semiMonthly": "Nửa tháng",
+      "tenDay": "10 ngày",
+      "monthly": "Hàng tháng"
+    },
+    "stats": {
+      "payslips": "Phiếu lương",
+      "totalNet": "Tổng thực nhận",
+      "employees": "Nhân viên",
+      "avgNet": "TB thực nhận",
+      "highest": "Cao nhất",
+      "total": "Tổng"
+    },
+    "actions": {
+      "loading": "Đang tải…",
+      "refreshIcon": "🔄",
+      "refresh": "Làm mới",
+      "preparing": "Đang chuẩn bị…",
+      "allPdfsZipIcon": "📦",
+      "allPdfsZip": "Tất cả PDF (ZIP)",
+      "allExcelIcon": "📊",
+      "allExcel": "Tất cả Excel",
+      "pdf": "PDF",
+      "excel": "Excel"
+    },
+    "labels": {
+      "details": "CHI TIẾT",
+      "payslip": "Phiếu lương",
+      "payslips": "Phiếu lương",
+      "period": "Kỳ",
+      "missing": "Thiếu",
+      "late": "Muộn",
+      "ofBaseSalary": "của lương cơ bản",
+      "fixedAmount": "Số tiền cố định"
+    },
+    "shortLabels": {
+      "in": "Vào",
+      "out": "Ra"
+    },
+    "status": {
+      "paid": "Đã trả",
+      "confirmed": "Đã xác nhận"
+    },
+    "placeholders": {
+      "searchEmployee": "Tìm nhân viên…"
+    },
+    "messages": {
+      "downloadedSuccessfully": "Đã tải phiếu lương",
+      "downloadFailed": "Tải xuống thất bại",
+      "failedToLoadDetail": "Không thể tải chi tiết",
+      "failedToLoadPayslips": "Không thể tải phiếu lương",
+      "loadingPayslips": "Đang tải phiếu lương…"
+    },
+    "empty": {
+      "noShortRecords": "Không có bản ghi thiếu giờ.",
+      "noLateRecords": "Không có bản ghi đi muộn.",
+      "noRecords": "Không có bản ghi.",
+      "noOTRecords": "Không có bản ghi OT.",
+      "noAllowanceDetails": "Không có chi tiết phụ cấp.",
+      "noBonusDetails": "Không có chi tiết thưởng.",
+      "noExpenseDetails": "Không có chi tiết chi phí.",
+      "noResultsFor": "Không có kết quả cho",
+      "noConfirmedPayslips": "Không tìm thấy phiếu lương đã xác nhận",
+      "tryAdjustingPeriod": "Thử điều chỉnh bộ lọc kỳ ở trên."
+    },
+    "detail": {
+      "insufficientHours": "Thiếu giờ làm",
+      "workingHours": "Giờ làm việc",
+      "lateArrival": "Đi muộn",
+      "attendance": "Chấm công",
+      "workingDays": "Ngày làm việc",
+      "present": "Có mặt",
+      "absent": "Vắng mặt",
+      "late": "Muộn",
+      "paidLeave": "Nghỉ có lương",
+      "unpaidLeave": "Nghỉ không lương",
+      "overtime": "Làm thêm giờ",
+      "earnings": "Thu nhập",
+      "baseSalary": "Lương cơ bản",
+      "allowances": "Phụ cấp",
+      "overtimePay": "Tiền OT",
+      "bonus": "Thưởng",
+      "bonuses": "Thưởng",
+      "expenseReimbursement": "Hoàn ứng chi phí",
+      "totalBeforeDeductions": "Tổng trước khấu trừ",
+      "deductions": "Khấu trừ",
+      "totalDeductions": "Tổng khấu trừ",
+      "netSalary": "LƯƠNG THỰC NHẬN",
+      "leaveRecords": "Bản ghi nghỉ phép",
+      "otRecords": "Bản ghi OT",
+      "otPayThisPeriod": "Tiền OT kỳ này",
+      "breakdown": "Chi tiết",
+      "totalAllowances": "Tổng phụ cấp",
+      "totalBonus": "Tổng thưởng",
+      "approvedExpenses": "Chi phí đã duyệt",
+      "totalReimbursement": "Tổng hoàn ứng",
+      "salaryDetail": "Chi tiết lương"
+    },
+    "dayTypes": {
+      "fullDay": "Cả ngày",
+      "amHalf": "Nửa ngày sáng",
+      "pmHalf": "Nửa ngày chiều",
+      "halfDay": "Nửa ngày"
+    },
+    "units": {
+      "days": "ngày",
+      "min": "phút"
+    },
+    "months": {
+      "January": "Tháng 1",
+      "February": "Tháng 2",
+      "March": "Tháng 3",
+      "April": "Tháng 4",
+      "May": "Tháng 5",
+      "June": "Tháng 6",
+      "July": "Tháng 7",
+      "August": "Tháng 8",
+      "September": "Tháng 9",
+      "October": "Tháng 10",
+      "November": "Tháng 11",
+      "December": "Tháng 12"
+    }
+  },
+"bankExport": {
+  "payPeriodFilter": "Bộ lọc kỳ lương",
+  "year": "Năm",
+  "month": "Tháng",
+  "period": "Kỳ",
+  "employee": "Nhân viên",
+  "allEmployees": "Tất cả nhân viên",
+  "loading": "Đang tải…",
+  "refresh": "Làm mới",
+  "record": "Bản ghi",
+  "records": "Bản ghi",
+  "readyForTransfer": "sẵn sàng chuyển khoản",
+  "noConfirmedRecords": "Không tìm thấy bản ghi đã xác nhận",
+  "exporting": "Đang xuất…",
+  "generating": "Đang tạo…",
+  "sendToBank": "Gửi tới ngân hàng",
+  "saving": "Đang lưu…",
+  "markAllPaid": "Đánh dấu tất cả đã trả",
+  "loadingRecords": "Đang tải bản ghi…",
+  "noConfirmedPayroll": "Không có bản ghi lương đã xác nhận",
+  "emptyStateDesc": "Bản ghi lương phải được <strong>xác nhận</strong> trước khi hiển thị ở đây.<br />Vào Payroll → Preview &amp; Approve để xác nhận bản ghi.",
+  "colEmployee": "Nhân viên",
+  "colBank": "Ngân hàng",
+  "colAccount": "Số tài khoản",
+  "colDept": "Phòng ban",
+  "colStatus": "Trạng thái",
+  "colNetSalary": "Lương thực lĩnh",
+  "notSet": "Chưa thiết lập",
+  "statusPaid": "Đã trả",
+  "statusConfirmed": "Đã xác nhận",
+  "paid": "Đã trả",
+  "infoNote": "Chỉ bao gồm các bản ghi lương đã <strong>xác nhận</strong>. Thông tin tài khoản ngân hàng lấy từ hồ sơ lương nhân viên. Nhân viên thiếu thông tin ngân hàng được đánh dấu ⚠.",
+  "bankTransfer": "CHUYỂN KHOẢN NGÂN HÀNG",
+  "sendPdfToBank": "Gửi PDF tới ngân hàng",
+  "modalDesc1": "File PDF chuyển khoản ngân hàng cho",
+  "modalDesc2": "sẽ được gửi dưới dạng tệp đính kèm email.",
+  "total": "Tổng cộng",
+  "employees": "nhân viên",
+  "bankEmailLabel": "Địa chỉ email ngân hàng",
+  "bankEmailPlaceholder": "vd. finance@ababank.com",
+  "cancel": "Hủy",
+  "sending": "Đang gửi…",
+  "sendPdf": "Gửi PDF",
+  "failedToLoad": "Tải preview thất bại",
+  "downloadFailed": "Tải xuống thất bại",
+  "downloadedSuccess": "đã tải xuống thành công!",
+  "failed": "Thất bại",
+  "markedAsPaid": "Đã đánh dấu là đã trả",
+  "recordsMarkedPaid": "bản ghi đã được đánh dấu đã trả",
+  "failedToSend": "Gửi thất bại",
+  "sentSuccess": "PDF đã gửi tới ngân hàng thành công! ✉️"
+},
+  "payroll": {
+    "steps": {
+      "attendance": {
+        "label": "Nhập chấm công",
+        "summary": "Tải mẫu · điền giờ vào/ra · tải lên"
+      },
+      "calculate": {
+        "label": "Tính lương",
+        "summary": "Tính dựa trên chấm công, nghỉ phép, OT & chính sách HR"
+      },
+      "preview": {
+        "label": "Xem trước & Phê duyệt",
+        "summary": "Kiểm tra chi tiết lương · thêm thưởng · phê duyệt"
+      }
+    },
+    "sidebar": {
+      "workflow": "Quy trình",
+      "stepsDone": "bước hoàn thành",
+      "completed": "Hoàn thành",
+      "inProgress": "Đang thực hiện..."
+    },
+    "period": {
+      "payPeriod": "Kỳ lương",
+      "period": "Kỳ",
+      "semiMonthly": "NỬA THÁNG",
+      "tenDay": "10 NGÀY",
+      "monthly": "HÀNG THÁNG"
+    },
+    "status": {
+      "draft": "Nháp",
+      "calculated": "Đã tính",
+      "approved": "Đã duyệt",
+      "confirmed": "Đã xác nhận",
+      "paid": "Đã trả"
+    },
+    "btn": {
+      "downloadTemplate": "Tải mẫu",
+      "downloading": "Đang tải...",
+      "uploadSave": "Tải lên & Lưu",
+      "uploading": "Đang tải lên...",
+      "refresh": "Tải lại",
+      "approveAll": "Duyệt tất cả",
+      "approving": "Đang duyệt...",
+      "confirmFinalize": "Xác nhận & Kết thúc",
+      "confirming": "Đang xác nhận...",
+      "approve": "Duyệt",
+      "detail": "Chi tiết",
+      "close": "Đóng",
+      "cancel": "Hủy",
+      "calculate": "Tính",
+      "calculating": "Đang tính...",
+      "calculateAll": "Tính tất cả",
+      "continue": "Tiếp tục"
+    },
+    "attendance": {
+      "stepDownload": "Tải xuống",
+      "stepDownloadDesc": "Lấy mẫu Excel có sẵn nhân viên & ngày",
+      "stepFill": "Điền giờ vào/ra",
+      "stepFillDesc": "Nhập giờ (HH:MM). Bỏ qua cuối tuần.",
+      "stepUpload": "Tải lên",
+      "stepUploadDesc": "Giờ làm & phút trễ tự động tính khi lưu",
+      "downloaded": "Đã tải mẫu.",
+      "saved": "Đã lưu",
+      "skipped": "Đã bỏ qua"
+    },
+    "calculate": {
+      "allEmployees": "Tất cả nhân viên",
+      "singleEmployee": "Một nhân viên",
+      "selectEmployee": "Chọn nhân viên",
+      "selectEmployeeFirst": "Vui lòng chọn nhân viên trước.",
+      "calculated": "đã tính",
+      "employees": "nhân viên",
+      "done": "hoàn thành",
+      "stopped": "Đã dừng.",
+      "allDone": "Tất cả nhân viên đã tính:",
+      "noPeriodWarning": "Chưa cấu hình kỳ lương. Vào HR Policy → Cài đặt chung."
+    },
+    "preview": {
+      "loading": "Đang tải bản ghi...",
+      "noRecords": "Chưa có bản ghi. Hãy tính lương trước (Bước 2).",
+      "loadFailed": "Không tải được bản ghi",
+      "approved": "đã duyệt"
+    },
+    "table": {
+      "employee": "Nhân viên",
+      "presentWd": "Có mặt / Ngày làm",
+      "leave": "Nghỉ phép",
+      "late": "Trễ",
+      "ot": "OT",
+      "base": "Lương cơ bản",
+      "allowances": "Phụ cấp",
+      "deductions": "Khấu trừ",
+      "bonus": "Thưởng",
+      "netSalary": "Lương thuần",
+      "status": "Trạng thái"
+    },
+    "confirm": {
+      "approveAllTitle": "Duyệt tất cả bảng lương",
+      "finalizeTitle": "Xác nhận & Kết thúc lương",
+      "approveOneTitle": "Duyệt lương nhân viên",
+      "approveAllMsg": "Bạn có chắc muốn duyệt tất cả",
+      "finalizeMsg": "Thao tác này sẽ khóa tất cả",
+      "approveOneMsg": "Bạn có chắc muốn duyệt lương cho",
+      "recordsFor": "bản ghi cho",
+      "yesApproveAll": "Duyệt tất cả",
+      "yesConfirmLock": "🔒 Xác nhận & Khóa",
+      "yesApprove": "Duyệt"
+    },
+    "detail": {
+      "salaryDetail": "Chi tiết lương",
+      "attendance": "Chấm công",
+      "workingDays": "Ngày làm việc",
+      "present": "Có mặt",
+      "absent": "Vắng mặt",
+      "late": "Trễ",
+      "days": "ngày",
+      "paidLeave": "Nghỉ có lương",
+      "unpaidLeave": "Nghỉ không lương",
+      "overtime": "Giờ tăng ca",
+      "earnings": "Thu nhập",
+      "baseSalary": "Lương cơ bản",
+      "allowances": "Phụ cấp",
+      "overtimePay": "Lương OT",
+      "bonus": "Thưởng",
+      "expenseReimbursement": "Hoàn chi phí",
+      "totalBeforeDeductions": "Tổng trước khấu trừ",
+      "deductions": "Khấu trừ",
+      "insufficientHours": "Thiếu giờ làm",
+      "lateArrival": "Đi trễ",
+      "totalDeductions": "Tổng khấu trừ",
+      "netSalary": "LƯƠNG THUẦN",
+      "workingHours": "Giờ làm việc",
+      "in": "Vào",
+      "out": "Ra",
+      "missing": "Thiếu",
+      "noShortRecords": "Không có bản ghi thiếu giờ.",
+      "noLateRecords": "Không có bản ghi trễ.",
+      "leaveRecords": "Bản ghi nghỉ phép",
+      "noRecords": "Không có bản ghi.",
+      "otRecords": "Bản ghi OT",
+      "noOtRecords": "Không có bản ghi OT.",
+      "otPayPeriod": "Lương OT (kỳ này)",
+      "breakdown": "Chi tiết",
+      "noAllowanceDetails": "Không có chi tiết phụ cấp.",
+      "totalAllowances": "Tổng phụ cấp",
+      "bonuses": "Thưởng",
+      "noBonusDetails": "Không có chi tiết thưởng.",
+      "totalBonus": "Tổng thưởng",
+      "approvedExpenses": "Chi phí đã duyệt",
+      "noExpenseDetails": "Không có chi tiết chi phí.",
+      "totalReimbursement": "Tổng hoàn trả"
+    },
+    "dayType": {
+      "fullDay": "Cả ngày",
+      "halfDayAm": "Nửa ngày sáng",
+      "halfDayPm": "Nửa ngày chiều",
+      "halfDay": "Nửa ngày"
+    }
+  },
+"hrAlerts": {
+    "pageTitle": "Cảnh báo HR",
+    "description": "Thư cảnh báo do AI tạo cho các vi phạm chấm công",
+    "status": {
+      "pending": "Đang chờ",
+      "sent": "Đã gửi",
+      "dismissed": "Đã bỏ qua",
+      "all": "Tất cả"
+    },
+    "types": {
+      "lateAlert": "Cảnh báo đi muộn",
+      "absentAlert": "Cảnh báo vắng mặt"
+    },
+    "summary": {
+      "pendingAlerts": "Cảnh báo đang chờ",
+      "lateWarnings": "Cảnh báo đi muộn",
+      "absentWarnings": "Cảnh báo vắng mặt",
+      "warningsSent": "Cảnh báo đã gửi",
+      "dismissed": "Đã bỏ qua"
+    },
+    "labels": {
+      "late": "đi muộn",
+      "absent": "vắng mặt",
+      "sentBy": "Gửi bởi",
+      "period": "Kỳ",
+      "warningLetter": "Thư cảnh báo"
+    },
+    "actions": {
+      "sendWarning": "Gửi cảnh báo",
+      "dismiss": "Bỏ qua",
+      "hideLetter": "Ẩn thư",
+      "viewLetter": "Xem thư",
+      "cancel": "Hủy",
+      "sending": "Đang gửi...",
+      "dismissing": "Đang bỏ qua...",
+      "checking": "Đang kiểm tra...",
+      "runCheckNow": "Kiểm tra ngay"
+    },
+    "modal": {
+      "sendWarningLetter": "Gửi thư cảnh báo",
+      "editWarningLetter": "Sửa thư cảnh báo",
+      "aiDraftNote": "Bản nháp do AI tạo — xem lại trước khi gửi",
+      "dismissAlert": "Bỏ qua cảnh báo",
+      "noWarningWillBeSent": "Sẽ không gửi thư cảnh báo"
+    },
+    "empty": {
+      "noPendingAlerts": "Không có cảnh báo đang chờ",
+      "noAlertsFound": "Không tìm thấy cảnh báo",
+      "allAttendanceWithinThresholds": "Tất cả chấm công đều trong ngưỡng!",
+      "tryDifferentFilter": "Thử bộ lọc khác."
+    },
+    "units": {
+      "days": "ngày"
+    },
+    "monthsShort": {
+      "Jan": "Thg 1",
+      "Feb": "Thg 2",
+      "Mar": "Thg 3",
+      "Apr": "Thg 4",
+      "May": "Thg 5",
+      "Jun": "Thg 6",
+      "Jul": "Thg 7",
+      "Aug": "Thg 8",
+      "Sep": "Thg 9",
+      "Oct": "Thg 10",
+      "Nov": "Thg 11",
+      "Dec": "Thg 12"
+    }
+  },
+"projectAssignments": {
+  "pageTitle": "Phân công dự án",
+  "actions": { "allProjects": "Tất cả dự án" },
+  "sections": { "activeUpcoming": "Đang chạy & sắp tới" },
+  "placeholders": { "searchMembers": "Tìm thành viên…" },
+  "filters": {
+    "all": "Tất cả",
+    "twoHours": "2 giờ",
+    "fourHours": "4 giờ",
+    "sixHours": "6 giờ"
+  },
+  "workload": {
+    "free": "Rảnh",
+    "light": "Nhẹ",
+    "moderate": "Trung bình",
+    "heavy": "Nặng",
+    "full": "Đầy"
+  },
+  "status": {
+    "active": "Đang chạy",
+    "upcoming": "Sắp tới",
+    "completed": "Hoàn thành",
+    "cancelled": "Đã hủy"
+  },
+  "stats": {
+    "totalMembers": "Tổng thành viên",
+    "activeEmployees": "Nhân viên đang hoạt động",
+    "available": "Sẵn sàng",
+    "zeroAssignedToday": "0 giờ được phân công hôm nay",
+    "utilization": "Mức sử dụng",
+    "activeProjects": "Dự án đang chạy",
+    "currentlyRunning": "Hiện đang chạy"
+  },
+  "labels": {
+    "teamMembers": "Thành viên nhóm",
+    "team": "Nhóm",
+    "open": "trống",
+    "openSlot": "Vị trí trống",
+    "assignments": "Phân công",
+    "dailyCapacity": "Năng lực mỗi ngày",
+    "used": "đã dùng",
+    "dueToday": "Đến hạn hôm nay",
+    "noEndDate": "Không có ngày kết thúc"
+  },
+  "empty": {
+    "noMembersFound": "Không tìm thấy thành viên",
+    "noMembersYet": "Chưa có thành viên",
+    "noAssignmentsYet": "Chưa có phân công",
+    "noActiveUpcomingProjects": "Không có dự án đang chạy hoặc sắp tới"
+  },
+  "units": {
+    "member": "thành viên",
+    "members": "thành viên",
+    "perDay": "mỗi ngày",
+    "today": "hôm nay",
+    "daysLeftSuffix": "ngày còn lại"
+  }
+},
+"bookings": {
+    "heroSubtitle": "Đặt tài nguyên",
+    "heroTitle": "Phòng họp & Xe công ty",
+    "heroDesc": "Đặt phòng họp và xe công ty cho nhu cầu công việc của bạn.",
+    "today": "Hôm nay",
+    "rooms": "Phòng",
+    "cars": "Xe",
+    "tabCalendar": "Lịch",
+    "tabMyBookings": "Lịch đặt của tôi",
+    "tabMyInvitations": "Lời mời của tôi",
+    "tabDriverNotes": "Ghi chú của tài xế",
+    "tabManageResources": "Quản lý tài nguyên",
+    "bookRoom": "Đặt phòng",
+    "bookCar": "Đặt xe",
+    "loadingSchedule": "Đang tải lịch trình…",
+    "free": "Trống",
+    "floor": "Tầng",
+    "seats": "Chỗ ngồi",
+    "capacity": "Sức chứa",
+    "passengers": "hành khách",
+    "driver": "Tài xế",
+    "location": "Vị trí",
+    "rules": "Quy định",
+    "noRoomsYet": "Chưa có phòng họp nào được đăng ký",
+    "noCarsYet": "Chưa có xe nào được đăng ký",
+    "goToManage": "Đi đến Quản lý tài nguyên để thêm mới",
+    "openEnded": "chưa xác định thời gian về",
+    "onTheWay": "Đang di chuyển",
+    "returning": "Đang quay về",
+    "requestCar": "Yêu cầu xe công ty",
+    "reserveRoom": "Đặt phòng họp",
+    "step1": "Bước 1 — Chọn Ngày & Giờ",
+    "step2": "Bước 2 — Chọn Tài nguyên",
+    "step3": "Bước 3 — Xác nhận & Gửi",
+    "date": "Ngày",
+    "startTime": "Giờ bắt đầu",
+    "endTime": "Giờ kết thúc",
+    "returnUnknown": "Không rõ thời gian về",
+    "openEndedDesc": "Chưa xác định thời gian về — vào danh sách chờ nếu xe đang đi",
+    "waitlistWarning": "Nếu có lịch đặt khác chưa có thời gian về, yêu cầu của bạn sẽ được thêm vào danh sách chờ.",
+    "numAttendees": "Số lượng người tham gia",
+    "attendeesHint": "tùy chọn — lọc theo sức chứa chỗ ngồi",
+    "continueAvailable": "Tiếp tục — Xem phòng/xe trống",
+    "back": "Quay lại",
+    "checkingAvailability": "Đang kiểm tra tình trạng trống…",
+    "noResourcesFound": "Không tìm thấy {{type}} nào.",
+    "selected": "Đã chọn",
+    "available": "Có sẵn",
+    "currentlyOut": "Hiện đang đi",
+    "freeFrom": "Trống từ",
+    "unavailable": "Không có sẵn",
+    "continueDetails": "Tiếp tục — Thêm chi tiết",
+    "attendees": "người tham gia",
+    "tripType": "Loại chuyến đi",
+    "oneWay": "Một chiều",
+    "oneWayDesc": "Từ A đến B, không quay về",
+    "multiStop": "Nhiều điểm dừng",
+    "multiStopDesc": "Nhiều điểm đến",
+    "pickupDrop": "Đón / Trả",
+    "pickupDropDesc": "Tài xế đón hoặc trả tận nơi",
+    "departureLocation": "Điểm khởi hành",
+    "departurePlaceholder": "vd: Sảnh văn phòng, Tòa nhà A",
+    "destination": "Điểm đến",
+    "destinationPlaceholder": "vd: Sân bay, Khách sạn",
+    "officeLobbyPlaceholder": "vd: Sảnh văn phòng",
+    "stops": "Các điểm dừng",
+    "addStop": "Thêm điểm dừng",
+    "stop": "Điểm dừng",
+    "returnToDeparture": "Quay lại điểm khởi hành",
+    "returnToDepartureDesc": "Tài xế quay lại điểm xuất phát sau điểm dừng cuối",
+    "returnTimeEstimated": "Thời gian về (ước tính)",
+    "pickupPoint": "Điểm đón / Điểm khởi hành",
+    "pickupPlaceholder": "vd: Địa chỉ nhà, Sảnh khách sạn",
+    "pickupDestPlaceholder": "vd: Văn phòng, Sân bay, Địa điểm khách hàng",
+    "driverWaitsReturns": "Tài xế chờ & đưa về",
+    "driverWaitsDesc": "Tài xế ở lại điểm đến và đưa bạn quay về",
+    "expectedReturnTime": "Thời gian quay về dự kiến",
+    "participants": "Người tham gia",
+    "purposeLabel": "Mục đích / Lý do *",
+    "purposeCarPlaceholder": "vd: Đón sân bay, Gặp khách hàng, Việc vặt…",
+    "purposeRoomPlaceholder": "vd: Họp nhóm hàng tuần, Thuyết trình khách hàng, Hội thảo…",
+    "confirming": "Đang xác nhận…",
+    "joinWaitlist": "Tham gia danh sách chờ",
+    "confirmBooking": "Xác nhận đặt lịch",
+    "nameRequired": "Tên *",
+    "roomNamePlaceholder": "vd: Phòng họp A, Phòng hội nghị",
+    "carNamePlaceholder": "vd: Toyota Camry 2023",
+    "floorLocation": "Tầng / Vị trí",
+    "parkingLocation": "Vị trí đỗ xe",
+    "floorPlaceholder": "vd: Tầng 2",
+    "parkingPlaceholder": "vd: Bãi đỗ xe B1",
+    "seatCapacity": "Sức chứa chỗ ngồi",
+    "passengerCapacity": "Sức chứa hành khách",
+    "plateRequired": "Biển số xe *",
+    "assignedDriver": "Tài xế được phân công *",
+    "selectDriver": "Chọn tài xế…",
+    "roomRules": "Quy định phòng họp",
+    "usageNotes": "Ghi chú sử dụng",
+    "roomRulesPlaceholder": "vd: Không mang đồ ăn vào phòng, Tối đa 2 giờ mỗi lần đặt",
+    "usageNotesPlaceholder": "vd: Đổ đầy xăng khi trả, Vệ sinh nội thất sau khi sử dụng",
+    "active": "Đang hoạt động",
+    "activeDesc": "Tài nguyên không hoạt động sẽ bị ẩn khỏi danh sách đặt",
+    "inactive": "Không hoạt động",
+    "reactivate": "Kích hoạt lại",
+    "cancel": "Hủy",
+    "saving": "Đang lưu…",
+    "saveChanges": "Lưu thay đổi",
+    "registerResource": "Đăng ký tài nguyên",
+    "registerNewResource": "Đăng ký tài nguyên mới",
+    "resourceManagement": "Quản lý tài nguyên",
+    "meetingRoom": "Phòng họp",
+    "companyCar": "Xe công ty",
+    "edit": "Chỉnh sửa",
+    "room": "Phòng",
+    "car": "Xe",
+    "reasonRequired": "Vui lòng nhập lý do.",
+    "bookingRejected": "Đã từ chối yêu cầu đặt.",
+    "failedToReject": "Từ chối yêu cầu thất bại.",
+    "rejectBooking": "Từ chối yêu cầu đặt",
+    "hrAction": "Thao tác của HR",
+    "rejectingDesc": "Đang từ chối",
+    "bookingFor": "yêu cầu đặt cho",
+    "reasonForRejection": "Lý do từ chối *",
+    "rejectReasonPlaceholder": "Giải thích lý do không thể phê duyệt yêu cầu đặt này…",
+    "rejecting": "Đang từ chối…",
+    "reason": "Lý do",
+    "rejected": "Đã từ chối",
+    "cancelNote": "Ghi chú hủy",
+    "approve": "Phê duyệt",
+    "reject": "Từ chối",
+    "markReturned": "Đánh dấu đã trả xe",
+    "cancelBooking": "Hủy yêu cầu đặt",
+    "failedToApprove": "Phê duyệt thất bại.",
+    "confirmCancellation": "Xác nhận hủy",
+    "cancelThisBooking": "Hủy yêu cầu đặt này?",
+    "cancelWarning": "Yêu cầu đặt này sẽ bị hủy và không thể hoàn tác.",
+    "keepBooking": "Giữ lịch đặt",
+    "cancelling": "Đang hủy…",
+    "yesCancel": "Có, Hủy",
+    "failedToCancel": "Hủy thất bại.",
+    "bookingDetail": "Chi tiết yêu cầu đặt",
+    "bookingInfo": "Thông tin đặt lịch",
+    "time": "Thời gian",
+    "purpose": "Mục đích",
+    "tripInfo": "Thông tin chuyến đi",
+    "type": "Loại",
+    "from": "Từ",
+    "return": "Quay về",
+    "yesTBD": "Có (Sẽ xác định sau)",
+    "carInfo": "Thông tin xe",
+    "plate": "Biển số",
+    "parking": "Nơi đỗ xe",
+    "roomInfo": "Thông tin phòng",
+    "people": "Người tham gia",
+    "organizer": "Người tổ chức",
+    "loading": "Đang tải…",
+    "failedToLoad": "Tải dữ liệu thất bại.",
+    "statusPending": "Chờ duyệt",
+    "statusApproved": "Đã phê duyệt",
+    "statusRejected": "Đã từ chối",
+    "statusCancelled": "Đã hủy",
+    "statusWaitlisted": "Trong danh sách chờ",
+    "statusCompleted": "Đã hoàn thành",
+    "busy": "bận",
+    "scheduleConflict": "Trùng lịch trình",
+    "checkingSchedule": "Đang kiểm tra lịch trình…",
+    "searchByNameEmail": "Tìm theo tên hoặc email…",
+    "noPendingApprovals": "Không có phê duyệt nào đang chờ",
+    "allCaughtUp": "Đã xử lý xong tất cả!",
+    "noUpcoming": "Không có lịch đặt {{type}} nào sắp tới",
+    "clickToStart": "Nhấp vào \"{{type}}\" để bắt đầu.",
+    "noInvitationsOn": "Không có lời mời nào vào ngày",
+    "selectDateForInvitations": "Chọn một ngày trên lịch để xem lời mời.",
+    "noDriverNotesOn": "Không có ghi chú tài xế vào ngày",
+    "notesAppearAfterTrips": "Ghi chú sẽ xuất hiện ở đây sau khi chuyến đi hoàn thành.",
+    "leftANote": "đã để lại một ghi chú",
+    "noRoomsYetManage": "Chưa có phòng họp nào — nhấp vào + Đăng ký tài nguyên để thêm mới",
+    "noCarsYetManage": "Chưa có xe nào — nhấp vào + Đăng ký tài nguyên để thêm mới",
+    "meetingRooms": "Phòng họp",
+    "companyCars": "Xe công ty",
+    "confirmDelete": "Xác nhận xóa",
+    "deleteResource": "Xóa",
+    "deleteResourceWarning": "Hành động này sẽ xóa vĩnh viễn",
+    "deleteResourceWarning2": "và tất cả dữ liệu liên quan. Bạn nên chuyển trạng thái thành Không hoạt động để bảo toàn lịch sử đặt lịch.",
+    "deletePermanently": "Xóa vĩnh viễn",
+    "failedToDelete": "Xóa thất bại.",
+    "failedToSave": "Lưu tài nguyên thất bại.",
+    "carMarkedReturned": "Đã đánh dấu xe đã được trả thành công.",
+    "myRoomBooking": "Lịch đặt phòng của tôi",
+    "myCarBooking": "Lịch đặt xe của tôi",
+    "errorPurpose": "Vui lòng nhập mục đích",
+    "errorResource": "Vui lòng chọn tài nguyên",
+    "errorPickup": "Vui lòng nhập điểm đón",
+    "errorDeparture": "Vui lòng nhập điểm khởi hành",
+    "errorDestination": "Vui lòng nhập điểm đến",
+    "errorStops": "Vui lòng nhập tất cả các điểm dừng",
+    "errorStopsMin": "Yêu cầu ít nhất một điểm dừng",
+    "errorEndTime": "Thời gian kết thúc phải sau thời gian bắt đầu.",
+    "errorName": "Vui lòng nhập tên",
+    "errorPlate": "Vui lòng nhập biển số xe",
+    "errorDriver": "Vui lòng chỉ định tài xế",
+    "errorCapacity": "Sức chứa phải tối thiểu là 1",
+    "submitFailed": "Gửi thất bại. Vui lòng thử lại sau."
+  },
+"performance": {
+    "pageTitle": "Đánh giá hiệu suất",
+    "labels": {
+      "metrics": "Chỉ số",
+      "analysisResults": "Kết quả phân tích",
+      "employeeMetrics": "Chỉ số nhân viên",
+      "employees": "nhân viên"
+    },
+    "metrics": {
+      "late": "Đi muộn",
+      "absent": "Vắng mặt",
+      "leave": "Nghỉ phép",
+      "overtime": "Làm thêm giờ"
+    },
+    "ratings": {
+      "Excellent": "Xuất sắc",
+      "Good": "Tốt",
+      "Average": "Trung bình",
+      "NeedsImprovement": "Cần cải thiện",
+      "Poor": "Kém"
+    },
+    "placeholders": {
+      "year": "Năm",
+      "country": "Quốc gia"
+    },
+    "actions": {
+      "exportPdf": "Xuất PDF",
+      "analyzing": "Đang phân tích",
+      "aiAnalysis": "Phân tích AI"
+    },
+    "kpis": {
+      "totalEmployees": "Tổng nhân viên",
+      "avgLateDays": "TB ngày đi muộn",
+      "avgAbsentDays": "TB ngày vắng",
+      "avgLeaveDays": "TB ngày nghỉ",
+      "avgOTHours": "TB giờ OT"
+    },
+    "table": {
+      "employee": "Nhân viên",
+      "dept": "Phòng ban",
+      "attendance": "Chấm công",
+      "lateDays": "Ngày đi muộn",
+      "absent": "Vắng mặt",
+      "leaveDays": "Ngày nghỉ",
+      "leave": "Nghỉ phép",
+      "otHours": "Giờ OT",
+      "otHrs": "Giờ OT",
+      "rating": "Xếp loại",
+      "remark": "Nhận xét",
+      "score": "Điểm",
+      "aiRemark": "Nhận xét AI"
+    },
+    "empty": {
+      "noEmployeeData": "Không tìm thấy dữ liệu nhân viên cho bộ lọc đã chọn."
+    },
+    "pdf": {
+      "hrPerformanceReport": "Báo cáo hiệu suất HR",
+      "annualPerformanceReview": "Đánh giá hiệu suất hàng năm",
+      "ratingDistribution": "Phân bố xếp loại",
+      "confidentialHrDocument": "Tài liệu HR bảo mật",
+      "generatedBySmartHr": "Tạo bởi Smart HR",
+      "printSavePdf": "In / Lưu dưới dạng PDF"
+    }
+  },
+"projects": {
+  "pageTitle": "프로젝트",
+  "appTitle": "프로젝트 배정",
+  "actions": {
+    "backToAssignments": "배정으로 돌아가기",
+    "createProject": "프로젝트 생성",
+    "update": "업데이트",
+    "create": "프로젝트 생성",
+    "cancel": "취소",
+    "delete": "삭제",
+    "view": "보기",
+    "yesUpdate": "업데이트"
+  },
+  "modal": {
+    "newProject": "새 프로젝트",
+    "editProject": "프로젝트 수정",
+    "confirmUpdate": "업데이트 확인",
+    "deleteProject": "프로젝트를 삭제하시겠습니까?",
+    "updateSubtitle": "아래 프로젝트 세부 정보를 업데이트하세요",
+    "createSubtitle": "아래 프로젝트 세부 정보를 입력하세요",
+    "confirmUpdateMessage": "이 프로젝트를 업데이트하시겠습니까",
+    "deleteMessage": "및 모든 배정이 영구적으로 삭제됩니다.",
+    "cannotBeUndone": "이 작업은 되돌릴 수 없습니다."
+  },
+  "fields": {
+    "projectName": "프로젝트 이름",
+    "description": "설명",
+    "status": "상태",
+    "startDate": "시작일",
+    "endDate": "종료일",
+    "optional": "선택"
+  },
+  "placeholders": {
+    "projectName": "예: CRM System v2",
+    "description": "간단한 프로젝트 설명…",
+    "searchProjects": "프로젝트 검색…"
+  },
+  "status": {
+    "all": "전체",
+    "active": "진행 중",
+    "upcoming": "예정",
+    "completed": "완료",
+    "cancelled": "취소됨"
+  },
+  "table": {
+    "project": "프로젝트",
+    "status": "상태",
+    "duration": "기간",
+    "members": "멤버",
+    "daysLeft": "남은 일수",
+    "actions": "작업",
+    "from": "시작",
+    "to": "종료"
+  },
+  "empty": {
+    "noProjectsFound": "프로젝트를 찾을 수 없습니다",
+    "tryDifferentSearch": "다른 검색어를 시도하세요"
+  },
+  "pagination": {
+    "prev": "이전",
+    "next": "다음"
+  },
+  "validation": {
+    "required": "필수",
+    "endDateAfterStart": "종료일은 시작일 이후여야 합니다"
+  },
+  "messages": {
+    "created": "프로젝트가 성공적으로 생성되었습니다!",
+    "updated": "프로젝트가 성공적으로 업데이트되었습니다!",
+    "deleted": "프로젝트가 성공적으로 삭제되었습니다.",
+    "createFailed": "프로젝트 생성에 실패했습니다. 다시 시도하세요.",
+    "updateFailed": "프로젝트 업데이트에 실패했습니다. 다시 시도하세요.",
+    "deleteFailed": "프로젝트 삭제에 실패했습니다."
+  },
+  "loading": {
+    "creating": "생성 중…",
+    "updating": "업데이트 중…",
+    "deleting": "삭제 중…"
+  },
+  "units": {
+    "project": "프로젝트",
+    "projects": "프로젝트",
+    "dayOverdue": "일 지남",
+    "dueToday": "오늘 마감",
+    "dayLeft": "일 남음",
+    "daysLeft": "일 남음"
+  }
+},
+  "surveys": {
+    "actions": {
+      "back": "Quay lại",
+      "cancel": "Hủy",
+      "delete": "Xóa"
+    },
+    "labels": {
+      "anonymous": "Ẩn danh",
+      "questions": "Câu hỏi",
+      "questionsLower": "câu hỏi",
+      "responses": "Phản hồi",
+      "responsesLower": "phản hồi",
+      "closes": "Đóng lúc",
+      "by": "bởi"
+    },
+    "status": {
+      "all": "Tất cả",
+      "draft": "Bản nháp",
+      "active": "Đang hoạt động",
+      "closed": "Đã đóng"
+    },
+    "questionTypes": {
+      "single": "Một lựa chọn",
+      "multiple": "Nhiều lựa chọn",
+      "yesNo": "Có/Không",
+      "rating": "Đánh giá",
+      "text": "Văn bản",
+      "singleChoice": "Một lựa chọn",
+      "multiChoice": "Nhiều lựa chọn",
+      "textAnswer": "Câu trả lời tự luận"
+    },
+    "closed": {
+      "headTitle": "Khảo sát đã đóng",
+      "title": "Khảo sát đã đóng",
+      "message": "Khảo sát này không còn nhận phản hồi nữa. Thời hạn nộp bài đã kết thúc.",
+      "responsesNoLongerCollected": "Phản hồi không còn được thu thập nữa",
+      "contactHr": "Liên hệ với nhân sự (HR) nếu bạn có bất kỳ câu hỏi nào 💜"
+    },
+    "create": {
+      "createSurvey": "Tạo khảo sát",
+      "editSurvey": "Chỉnh sửa khảo sát",
+      "newSurvey": "Khảo sát mới",
+      "surveyBuilder": "Trình tạo khảo sát",
+      "createSubtitle": "Xây dựng khảo sát với logic điều kiện, nhiều loại câu hỏi và cài đặt thông minh.",
+      "editSubtitle": "Cập nhật nội dung, câu hỏi và cài đặt khảo sát của bạn.",
+      "surveyDetails": "Chi tiết khảo sát",
+      "settings": "Cài đặt",
+      "summary": "Tổng quan",
+      "fields": {
+        "question": "Câu hỏi",
+        "type": "Loại",
+        "titleRequired": "Tiêu đề *",
+        "description": "Mô tả",
+        "closeDate": "Ngày đóng",
+        "title": "Tiêu đề"
+      },
+      "placeholders": {
+        "question": "Nhập câu hỏi của bạn tại đây...",
+        "option": "Tùy chọn",
+        "selectAnswer": "Chọn câu trả lời...",
+        "title": "Ví dụ: Khảo sát mức độ hài lòng của nhân viên Quý 2",
+        "description": "Không bắt buộc — mô tả ngắn gọn nội dung của cuộc khảo sát này."
+      },
+      "labels": {
+        "conditionalLogic": "Logic điều kiện",
+        "showIf": "Hiển thị nếu",
+        "alwaysShow": "Luôn hiển thị",
+        "emptyQuestion": "(trống)",
+        "answerIs": "câu trả lời là",
+        "questionShowsOnlyWhen": "Câu hỏi này chỉ hiển thị khi",
+        "required": "Bắt buộc",
+        "optional": "Không bắt buộc",
+        "conditional": "Điều kiện"
+      },
+      "actions": {
+        "addOption": "+ Thêm tùy chọn",
+        "addQuestion": "Thêm câu hỏi",
+        "saveAsDraft": "Lưu thành bản nháp",
+        "saving": "Đang lưu...",
+        "publishSurvey": "Phát hành khảo sát"
+      },
+      "validation": {
+        "titleRequired": "Tiêu đề khảo sát là bắt buộc.",
+        "addQuestion": "Vui lòng thêm ít nhất một câu hỏi.",
+        "required": "bắt buộc",
+        "needTwoOptions": "Cần ít nhất 2 tùy chọn"
+      },
+      "anonymousOn": "Phản hồi được thu thập ẩn danh. Nhân sự (HR) không thể xem ai đã trả lời.",
+      "anonymousOff": "Tên người trả lời được ghi lại. Nhân sự (HR) có thể xem ai đã trả lời."
+    },
+    "index": {
+      "pageTitle": "Khảo sát",
+      "copySurveyLink": "Sao chép liên kết khảo sát",
+      "copied": "Đã sao chép!",
+      "copyLink": "Sao chép liên kết",
+      "results": "Kết quả",
+      "activate": "Kích hoạt",
+      "close": "Đóng",
+      "createSurvey": "Tạo khảo sát",
+      "noSurveysFound": "Không tìm thấy khảo sát nào",
+      "createFirstSurvey": "Nhấp vào \"Tạo khảo sát\" để tạo khảo sát đầu tiên của bạn.",
+      "stats": {
+        "totalSurveys": "Tổng số khảo sát",
+        "totalResponses": "Tổng số phản hồi"
+      }
+    },
+    "public": {
+      "validation": {
+        "questionRequired": "Câu hỏi này là bắt buộc."
+      },
+      "errors": {
+        "somethingWentWrong": "Đã có lỗi xảy ra.",
+        "connectionError": "Lỗi kết nối. Vui lòng thử lại."
+      },
+      "alreadySubmitted": "Đã nộp",
+      "alreadySharedPrefix": "Bạn đã chia sẻ ý kiến phản hồi cho",
+      "onlyOnce": "Mỗi người chỉ có thể trả lời một lần.",
+      "anonymousRecorded": "Phản hồi ẩn danh của bạn đã được ghi lại.",
+      "responseSaved": "Phản hồi của bạn đã được lưu.",
+      "thankYouParticipating": "Cảm ơn bạn đã tham gia 💜",
+      "thankYouTitle": "Cảm ơn bạn!",
+      "responseRecorded": "Đã ghi nhận phản hồi!",
+      "feedbackSubmitted": "Phản hồi của bạn đã được gửi. Chúng tôi trân trọng thời gian và đóng góp của bạn — điều này giúp chúng tôi cải thiện tốt hơn.",
+      "submittedAnonymously": "Đã gửi ẩn danh — danh tính của bạn được bảo vệ.",
+      "employeeSurvey": "Khảo sát nhân viên",
+      "allQuestionsAnswered": "✓ Đã trả lời tất cả câu hỏi",
+      "of": "trên",
+      "answered": "đã trả lời",
+      "poor": "Kém",
+      "excellent": "Xuất sắc",
+      "shareThoughts": "Chia sẻ ý kiến của bạn tại đây...",
+      "submittingResponse": "Đang gửi phản hồi của bạn...",
+      "sendFeedback": "Gửi phản hồi",
+      "anonymousConfidential": "Phản hồi của bạn là ẩn danh và bảo mật.",
+      "nameRecorded": "Tên của bạn sẽ được ghi lại cùng với phản hồi.",
+      "yes": "Có",
+      "no": "Không"
+    },
+    "results": {
+      "pageTitle": "Kết quả khảo sát",
+      "avg": "Trung bình",
+      "noTextAnswersYet": "Chưa có câu trả lời tự luận nào.",
+      "unknown": "Không xác định",
+      "avgCompletion": "Tỷ lệ hoàn thành TB",
+      "exportCsv": "Xuất file CSV",
+      "questionResults": "Kết quả câu hỏi",
+      "individualResponses": "Phản hồi cá nhân",
+      "aiInsight": "Thông tin chi tiết từ AI",
+      "noResponsesYet": "Chưa có phản hồi nào.",
+      "aiAnalysis": "Phân tích bằng AI",
+      "generated": "Đã tạo",
+      "analyzing": "Đang phân tích...",
+      "regenerate": "Tạo lại",
+      "generateInsight": "Tạo thông tin chi tiết",
+      "noInsightGeneratedYet": "Chưa có thông tin chi tiết nào được tạo",
+      "collectResponsesBeforeInsights": "Thu thập các phản hồi trước khi tạo thông tin chi tiết bằng AI.",
+      "clickGenerateInsight": "Nhấp vào \"Tạo thông tin chi tiết\" để phân tích tất cả các phản hồi bằng AI."
+    }
+  },
+"projectShow": {
+  "appTitle": "Phân công dự án",
+  "actions": {
+    "backToProjects": "Quay lại dự án",
+    "assignMember": "Phân công thành viên",
+    "assigning": "Đang phân công...",
+    "assignAnyway": "Vẫn phân công",
+    "updateHours": "Cập nhật giờ",
+    "cancel": "Hủy",
+    "update": "Cập nhật",
+    "updating": "Đang cập nhật...",
+    "removing": "Đang xóa...",
+    "yesRemove": "Xóa"
+  },
+  "status": {
+    "active": "Đang chạy",
+    "upcoming": "Sắp tới",
+    "completed": "Hoàn thành",
+    "cancelled": "Đã hủy",
+    "removed": "Đã xóa"
+  },
+  "stats": {
+    "totalMembers": "Tổng thành viên",
+    "active": "Đang chạy",
+    "upcoming": "Sắp tới",
+    "estimatedHours": "Giờ ước tính"
+  },
+  "tabs": {
+    "members": "Thành viên",
+    "activityLog": "Nhật ký hoạt động"
+  },
+  "table": {
+    "member": "Thành viên",
+    "period": "Thời gian",
+    "hoursPerDay": "Giờ/ngày",
+    "status": "Trạng thái",
+    "assignedBy": "Phân công bởi",
+    "notes": "Ghi chú",
+    "actions": "Hành động"
+  },
+  "fields": {
+    "member": "Thành viên",
+    "project": "Dự án",
+    "priority": "Ưu tiên",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "hoursPerDay": "Giờ mỗi ngày",
+    "status": "Trạng thái",
+    "notes": "Ghi chú"
+  },
+  "labels": {
+    "from": "TỪ",
+    "to": "ĐẾN",
+    "createdBy": "Tạo bởi",
+    "timeline": "Tiến độ",
+    "available": "Khả dụng",
+    "current": "Hiện tại",
+    "submittingWillAdd": "Khi gửi sẽ cộng thêm",
+    "total": "tổng",
+    "already": "đã có",
+    "used": "đã dùng",
+    "on": "Trên",
+    "activeProjects": "dự án đang chạy",
+    "dailyLimit": "giới hạn mỗi ngày",
+    "optional": "tùy chọn",
+    "priorityOrder": "Thứ tự ưu tiên",
+    "priority": "Ưu tiên",
+    "thisProject": "dự án này"
+  },
+  "modal": {
+    "assignTitle": "Phân công thành viên",
+    "assignSubtitle": "Thêm thành viên vào",
+    "editAssignmentTitle": "Sửa phân công"
+  },
+  "confirm": {
+    "removeTitle": "Xóa thành viên?",
+    "removeMessage": "Xóa",
+    "cannotUndo": "Hành động này không thể hoàn tác."
+  },
+  "empty": {
+    "noMembersAssigned": "Chưa có thành viên được phân công",
+    "noActivityYet": "Chưa có hoạt động"
+  },
+  "placeholders": {
+    "selectMember": "Chọn thành viên...",
+    "optionalNotes": "Ghi chú tùy chọn..."
+  },
+  "messages": {
+    "alreadyAssigned": "Đã được phân công vào dự án này",
+    "capacityOk": "Sức chứa phù hợp",
+    "overCapacity": "Vượt quá sức chứa",
+    "exceedsDailyLimit": "Vượt quá giới hạn mỗi ngày",
+    "noOtherAssignments": "Không có phân công khác",
+    "thisWillBe": "điều này sẽ là",
+    "selectHoursAbove": "Chọn số giờ ở trên",
+    "priorityHint": "P1 = ca buổi sáng. Ưu tiên cao hơn nghĩa là khung giờ được phân công sẽ muộn hơn trong ngày."
+  },
+  "validation": {
+    "selectMember": "Vui lòng chọn thành viên",
+    "selectHoursPerDay": "Vui lòng chọn số giờ mỗi ngày",
+    "startDateRequired": "Ngày bắt đầu là bắt buộc",
+    "endDateRequired": "Ngày kết thúc là bắt buộc",
+    "endDateAfterStart": "Ngày kết thúc phải sau ngày bắt đầu"
+  },
+  "logs": {
+    "assigned": "đã phân công",
+    "editedAssignmentOf": "đã sửa phân công của",
+    "removed": "đã xóa"
+  },
+  "units": {
+    "hoursPerDay": "giờ/ngày",
+    "perDay": "mỗi ngày"
+  }
+},
+  "recruitment": {
+    "actions": {
+      "add": "Thêm",
+      "applyToAll": "Áp dụng cho tất cả",
+      "cancel": "Hủy",
+      "createJobPosting": "Tạo tin tuyển dụng",
+      "delete": "Xóa",
+      "deletePermanently": "Xóa vĩnh viễn",
+      "deletePosting": "Xóa tin đăng",
+      "deleting": "Đang xóa",
+      "edit": "Chỉnh sửa",
+      "newPosting": "Tin đăng mới",
+      "reschedule": "Đổi lịch",
+      "rescheduleSendEmail": "Đổi lịch và gửi email",
+      "saveChanges": "Lưu thay đổi",
+      "saveScore": "Lưu điểm số",
+      "saving": "Đang lưu",
+      "scheduleSendEmail": "Lên lịch và gửi email",
+      "scheduling": "Đang lên lịch",
+      "update": "Cập nhật",
+      "updating": "Đang cập nhật"
+    },
+    "delete": {
+      "allDataRemoved": "Tất cả dữ liệu đã bị xóa",
+      "applicationRecord": "Hồ sơ ứng tuyển",
+      "applicationWarning": "Cảnh báo ứng tuyển",
+      "areYouSure": "Bạn có chắc chắn không",
+      "cannotBeUndone": "Không thể hoàn tác",
+      "interviewRecord": "Hồ sơ phỏng vấn",
+      "noApplicationsSafe": "Không có hồ sơ ứng tuyển (An toàn)",
+      "uploadedCv": "CV đã tải lên",
+      "willAlsoBeDeleted": "Cũng sẽ bị xóa",
+      "willBeDeleted": "Sẽ bị xóa"
+    },
+    "empty": {
+      "applicationsWillAppear": "Các hồ sơ ứng tuyển sẽ xuất hiện ở đây",
+      "createFirstJobPosting": "Tạo tin tuyển dụng đầu tiên",
+      "noApplicationsYet": "Chưa có hồ sơ ứng tuyển nào",
+      "noJobPostings": "Không có tin tuyển dụng nào"
+    },
+    "fields": {
+      "applicationDeadline": "Hạn chót ứng tuyển",
+      "areasForImprovement": "Điểm cần cải thiện",
+      "companyOffice": "Văn phòng công ty",
+      "dateTime": "Ngày giờ",
+      "department": "Phòng ban",
+      "description": "Mô tả",
+      "hrNote": "Ghi chú của HR",
+      "internalNote": "Ghi chú nội bộ",
+      "interviewType": "Hình thức phỏng vấn",
+      "interviewerName": "Tên người phỏng vấn",
+      "jobTitle": "Chức danh công việc",
+      "jobType": "Loại hình công việc",
+      "location": "Địa điểm",
+      "meetingLink": "Liên kết cuộc họp",
+      "noteToCandidate": "Ghi chú gửi ứng viên",
+      "platform": "Nền tảng",
+      "positions": "Vị trí",
+      "postingStatus": "Trạng thái tin đăng",
+      "recommendation": "Đề xuất",
+      "requirements": "Yêu cầu",
+      "responsibilities": "Trách nhiệm",
+      "salaryRange": "Mức lương",
+      "setStatusTo": "Đặt trạng thái thành",
+      "strengths": "Điểm mạnh"
+    },
+    "filters": {
+      "allCountries": "Tất cả quốc gia",
+      "allStatus": "Tất cả trạng thái"
+    },
+    "labels": {
+      "applicant": "Ứng viên",
+      "applicants": "Các ứng viên",
+      "application": "Hồ sơ ứng tuyển",
+      "applications": "Hồ sơ ứng tuyển",
+      "applied": "Đã ứng tuyển",
+      "autoSelected": "Tự động chọn",
+      "interview": "Phỏng vấn",
+      "link": "Liên kết",
+      "negotiable": "Thỏa thuận",
+      "note": "Ghi chú",
+      "online": "Trực tuyến",
+      "onsite": "Trực tiếp",
+      "position": "Vị trí",
+      "positions": "Các vị trí",
+      "score": "Điểm số",
+      "viewOnly": "Chỉ xem"
+    },
+    "messages": {
+      "invitationEmailSent": "Đã gửi email mời"
+    },
+    "modal": {
+      "application": "Hồ sơ ứng tuyển",
+      "bulkAction": "Thao tác hàng loạt",
+      "deleteApplication": "Xóa hồ sơ ứng tuyển",
+      "deleteJobPosting": "Xóa tin tuyển dụng",
+      "editPosting": "Chỉnh sửa tin đăng",
+      "interviewScore": "Điểm phỏng vấn",
+      "jobRecruitment": "Tuyển dụng việc làm",
+      "newJobPosting": "Tin tuyển dụng mới",
+      "rescheduleInterview": "Đổi lịch phỏng vấn",
+      "scheduleInterview": "Lên lịch phỏng vấn"
+    },
+    "pageTitle": "Tuyển dụng",
+    "placeholders": {
+      "addItem": "Thêm mục",
+      "department": "Phòng ban",
+      "descriptionPoint": "Chi tiết mô tả",
+      "hrNote": "Ghi chú của HR",
+      "internalNote": "Ghi chú nội bộ",
+      "interviewerName": "Tên người phỏng vấn",
+      "jobTitle": "Chức danh công việc",
+      "location": "Địa điểm",
+      "noteToCandidate": "Ghi chú gửi ứng viên",
+      "requirementPoint": "Chi tiết yêu cầu",
+      "responsibilityPoint": "Chi tiết trách nhiệm",
+      "salaryRange": "Mức lương",
+      "searchJobs": "Tìm kiếm việc làm",
+      "selectOffice": "Chọn văn phòng",
+      "strengths": "Điểm mạnh",
+      "weaknesses": "Điểm yếu"
+    },
+    "recommendations": {
+      "hold": "Cân nhắc",
+      "proceed": "Tiếp tục",
+      "reject": "Từ chối"
+    },
+    "score": {
+      "average": "Trung bình",
+      "excellent": "Xuất sắc",
+      "poor": "Kém"
+    },
+    "sort": {
+      "byScore": "Theo điểm số",
+      "latestFirst": "Mới nhất trước",
+      "nameAZ": "Tên A-Z"
+    },
+    "stats": {
+      "newUnread": "Mới/Chưa đọc",
+      "openPositions": "Vị trí đang tuyển",
+      "totalApplicants": "Tổng số ứng viên",
+      "totalPostings": "Tổng số tin đăng"
+    },
+    "status": {
+      "all": "Tất cả"
+    },
+    "table": {
+      "actions": "Hành động",
+      "applicants": "Ứng viên",
+      "company": "Công ty",
+      "deadline": "Hạn chót",
+      "position": "Vị trí",
+      "slots": "Số lượng tuyển",
+      "status": "Trạng thái",
+      "type": "Loại hình"
+    },
+    "tabs": {
+      "applications": "Hồ sơ ứng tuyển",
+      "jobPostings": "Tin tuyển dụng"
+    },
+    "validation": {
+      "atLeastOnePosition": "Ít nhất một vị trí",
+      "descriptionPoint": "Chi tiết mô tả",
+      "interviewFuture": "Thời gian phỏng vấn phải ở tương lai",
+      "jobTitleRequired": "Chức danh công việc là bắt buộc",
+      "requirementPoint": "Chi tiết yêu cầu",
+      "salaryOrNegotiable": "Mức lương hoặc Thỏa thuận",
+      "selectCompanyOffice": "Vui lòng chọn văn phòng công ty",
+      "selectDateTime": "Vui lòng chọn ngày giờ",
+      "selectJobType": "Vui lòng chọn loại hình công việc"
+    },
+    "jobTypes": {
+    "fullTime": "Toàn thời gian",
+    "partTime": "Bán thời gian",
+    "contract": "Hợp đồng",
+    "internship": "Thực tập"
+  },
+  "jobStatus": {
+    "open": "Đang mở",
+    "paused": "Tạm dừng",
+    "closed": "Đã đóng"
+  },
+  "appStatus": {
+    "new": "Mới",
+    "reviewing": "Đang xem xét",
+    "interview": "Phỏng vấn",
+    "accepted": "Đã chấp nhận",
+    "rejected": "Đã từ chối"
+  },
+  "platforms": {
+    "zoom": "Zoom",
+    "google_meet": "Google Meet",
+    "teams": "Microsoft Teams",
+    "physical": "Trực tiếp / Tại văn phòng",
+    "other": "Khác"
+  }
+  },
+  "userRoles": {
+    "pageTitle": "Người dùng & Vai trò",
+    "hero": {
+      "eyebrow": "Quản lý người dùng",
+      "title": "Tổng quan workspace cao cấp",
+      "desc": "Giữ nguyên flow và logic, nâng cấp giao diện sạch hơn và chuyên nghiệp hơn."
+    },
+    "stats": {
+      "members": "Thành viên",
+      "totalRegisteredUsers": "Tổng người dùng đã đăng ký",
+      "active": "đang hoạt động"
+    },
+    "filters": {
+      "allCountries": "Tất cả quốc gia",
+      "allRoles": "Tất cả vai trò"
+    },
+    "placeholders": {
+      "searchByNameOrEmail": "Tìm theo tên hoặc email...",
+      "selectRole": "Chọn vai trò...",
+      "selectCountry": "Chọn quốc gia...",
+      "fullName": "John Doe",
+      "email": "john@vibeme.ai",
+      "department": "Engineering",
+      "position": "Senior Developer"
+    },
+    "actions": {
+      "addNewUser": "Thêm người dùng mới",
+      "cancel": "Hủy",
+      "saving": "Đang lưu...",
+      "createUser": "Tạo người dùng",
+      "updateUser": "Cập nhật người dùng",
+      "deleting": "Đang xóa...",
+      "yesDelete": "Có, xóa"
+    },
+    "labels": {
+      "result": "kết quả",
+      "results": "kết quả",
+      "found": "được tìm thấy",
+      "liveDirectory": "Danh bạ trực tiếp",
+      "autoAssigned": "Tự động gán"
+    },
+    "table": {
+      "teamMembers": "Thành viên nhóm",
+      "user": "Người dùng",
+      "country": "Quốc gia",
+      "role": "Vai trò",
+      "department": "Phòng ban",
+      "position": "Chức vụ",
+      "phone": "Điện thoại",
+      "dateOfBirth": "Ngày sinh",
+      "employment": "Loại nhân sự",
+      "joined": "Ngày vào làm",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "fields": {
+      "fullName": "Họ và tên",
+      "emailAddress": "Địa chỉ email",
+      "dateOfBirth": "Ngày sinh",
+      "country": "Quốc gia",
+      "newPassword": "Mật khẩu mới",
+      "password": "Mật khẩu",
+      "role": "Vai trò",
+      "department": "Phòng ban",
+      "position": "Chức vụ",
+      "phone": "Điện thoại",
+      "joinedDate": "Ngày vào làm",
+      "employmentType": "Loại nhân sự",
+      "contractEndDate": "Ngày kết thúc hợp đồng",
+      "profilePhoto": "Ảnh đại diện",
+      "activeStatus": "Trạng thái hoạt động"
+    },
+    "empty": {
+      "noUsersFound": "Không tìm thấy người dùng",
+      "tryAdjusting": "Thử điều chỉnh tìm kiếm hoặc bộ lọc."
+    },
+    "modal": {
+      "addNewUser": "Thêm người dùng mới",
+      "userManagement": "Quản lý người dùng",
+      "editUser": "Sửa người dùng",
+      "updateProfile": "Cập nhật hồ sơ",
+      "confirmDelete": "Xác nhận xóa",
+      "dangerZone": "Vùng nguy hiểm"
+    },
+    "confirm": {
+      "deleteUser": "Xóa người dùng?",
+      "areYouSureDeletePrefix": "Bạn có chắc muốn xóa",
+      "cannotBeUndone": "Thao tác này không thể hoàn tác."
+    },
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Không hoạt động"
+    }
+  },
+  "driverSchedule": {
+    "pageTitle": "Lịch chuyến đi",
+    "driverStatus": {
+      "start": "Chưa bắt đầu",
+      "onTheWay": "Đang di chuyển",
+      "returned": "Đang quay về",
+      "ended": "Đã hoàn tất"
+    },
+    "bookingStatus": {
+      "approved": "Đã duyệt",
+      "waitlisted": "Danh sách chờ",
+      "completed": "Đã hoàn tất",
+      "cancelled": "Đã hủy"
+    },
+    "tripTypes": {
+      "oneWay": "Một chiều",
+      "multiStop": "Nhiều điểm dừng",
+      "pickup": "Đón / Trả",
+      "roundTrip": "Khứ hồi",
+      "waitReturn": "Chờ và quay về"
+    },
+    "stats": {
+      "total": "Tổng",
+      "active": "Đang chạy",
+      "done": "Hoàn tất"
+    },
+    "tabs": {
+      "tripInfo": "Thông tin chuyến",
+      "passengers": "Hành khách",
+      "notes": "Ghi chú"
+    },
+    "labels": {
+      "type": "Loại",
+      "from": "Từ",
+      "return": "Quay về",
+      "stops": "Điểm dừng",
+      "cancelReason": "Lý do hủy",
+      "organizer": "Người tổ chức",
+      "passenger": "Hành khách",
+      "todayUpper": "HÔM NAY"
+    },
+    "fields": {
+      "reasonRequired": "Lý do *"
+    },
+    "actions": {
+      "back": "Quay lại",
+      "confirmCancel": "Xác nhận hủy",
+      "cancelling": "Đang hủy…",
+      "skip": "Bỏ qua",
+      "saving": "Đang lưu…",
+      "saveNote": "Lưu ghi chú",
+      "cancelTrip": "Hủy chuyến",
+      "startTrip": "Bắt đầu chuyến",
+      "markReturning": "Đánh dấu đang quay về",
+      "endTrip": "Kết thúc chuyến",
+      "today": "Hôm nay"
+    },
+    "cancelModal": {
+      "title": "Hủy đặt xe"
+    },
+    "noteModal": {
+      "tripCompleted": "Chuyến đi đã hoàn tất!",
+      "addNoteOptional": "Thêm ghi chú (tùy chọn)"
+    },
+    "placeholders": {
+      "cancelReason": "Ví dụ: xe hỏng, lỗi động cơ…",
+      "note": "Ví dụ: kẹt xe, đã đổ xăng…"
+    },
+    "validation": {
+      "reasonRequired": "Vui lòng nhập lý do."
+    },
+    "messages": {
+      "failedTryAgain": "Thao tác thất bại. Vui lòng thử lại.",
+      "tripTimePassed": "Thời gian chuyến đi đã qua. Bạn không thể bắt đầu chuyến này nữa.",
+      "tripCompleted": "Chuyến đi đã hoàn tất",
+      "loadingSchedule": "Đang tải lịch…"
+    },
+    "empty": {
+      "noCarAssigned": "Chưa được gán xe",
+      "contactHrCarAssigned": "Liên hệ HR để được gán xe.",
+      "noTripDetails": "Chưa có chi tiết chuyến đi.",
+      "notesAfterTripEnds": "Ghi chú sẽ hiển thị sau khi chuyến đi kết thúc.",
+      "noBookingsOn": "Không có đặt xe vào",
+      "freeOnThisDay": "Bạn rảnh vào ngày này."
+    },
+    "units": {
+      "seats": "chỗ"
+    }
+  },
+  "requirement": {
+    "common": {
+      "status": {
+        "pending": "Đang chờ",
+        "analyzing": "Đang phân tích",
+        "completed": "Hoàn tất",
+        "failed": "Thất bại"
+      },
+      "complexity": {
+        "simple": "Đơn giản",
+        "medium": "Trung bình",
+        "complex": "Phức tạp",
+        "enterprise": "Enterprise"
+      }
+    },
+    "list": {
+      "pageTitle": "Phân tích yêu cầu",
+      "hero": {
+        "eyebrow": "Phân tích yêu cầu",
+        "title": "Workspace phân tích yêu cầu AI cao cấp",
+        "desc": "Tạo, phân tích, chạy lại và xem lại requirement analysis với flow gọn gàng ở cả light/dark mode."
+      },
+      "stats": {
+        "total": "Tổng",
+        "allAnalyses": "Tất cả phân tích",
+        "waitingQueue": "Hàng chờ",
+        "inProgress": "Đang xử lý",
+        "readyToReview": "Sẵn sàng review",
+        "needsRetry": "Cần thử lại"
+      },
+      "analysisDirectory": "Danh sách phân tích",
+      "liveAnalysisList": "Danh sách phân tích trực tiếp",
+      "labels": {
+        "feasibility": "Tính khả thi"
+      }
+    },
+    "modal": {
+      "title": "Phân tích yêu cầu mới",
+      "subtitle": "AI sẽ tự động phân tích và cung cấp insight.",
+      "steps": {
+        "clientInfo": "Thông tin khách hàng",
+        "projectDetails": "Chi tiết dự án",
+        "requirements": "Yêu cầu"
+      }
+    },
+    "fields": {
+      "companyName": "Tên công ty",
+      "contactPerson": "Người liên hệ",
+      "industry": "Ngành",
+      "email": "Email",
+      "phone": "Điện thoại",
+      "projectTitle": "Tiêu đề dự án",
+      "projectDescription": "Mô tả dự án",
+      "platform": "Nền tảng",
+      "expectedUsers": "Người dùng dự kiến",
+      "budgetRange": "Ngân sách",
+      "expectedDeadline": "Hạn dự kiến",
+      "coreFeatures": "Tính năng chính",
+      "integrationNeeds": "Nhu cầu tích hợp",
+      "specialRequirements": "Yêu cầu đặc biệt / Ghi chú"
+    },
+    "placeholders": {
+      "companyName": "Acme Corporation",
+      "contactPerson": "John Smith",
+      "industry": "e.g. Healthcare, Finance",
+      "email": "john@company.com",
+      "phone": "+1 234 567 8900",
+      "projectTitle": "e.g. Hospital Management System",
+      "projectDescription": "Describe what the client needs in detail (min. 20 characters)...",
+      "selectPlatform": "Select platform...",
+      "expectedUsers": "e.g. 500",
+      "selectBudget": "Select budget...",
+      "integrationNeeds": "e.g. Integrate with existing ERP, payment gateway, SMS service...",
+      "specialRequirements": "Any other specific requirements, constraints, or notes...",
+      "searchProjectClient": "Search by project or client..."
+    },
+    "platforms": {
+      "web": "Web",
+      "mobile": "Mobile",
+      "both": "Both",
+      "desktop": "Desktop"
+    },
+    "features": {
+      "userAuthentication": "User Authentication",
+      "dashboardAnalytics": "Dashboard & Analytics",
+      "rolePermissions": "Role & Permissions",
+      "notifications": "Notifications",
+      "fileUpload": "File Upload",
+      "paymentIntegration": "Payment Integration",
+      "apiIntegration": "API Integration",
+      "reportingExport": "Reporting & Export",
+      "multiLanguage": "Multi-language",
+      "mobileResponsive": "Mobile Responsive",
+      "realTimeUpdates": "Real-time Updates",
+      "searchFilter": "Search & Filter"
+    },
+    "validation": {
+      "companyNameRequired": "Company name is required.",
+      "contactPersonRequired": "Contact person is required.",
+      "validEmail": "Please enter a valid email address.",
+      "projectTitleRequired": "Project title is required.",
+      "projectDescriptionRequired": "Project description is required.",
+      "descriptionMin": "Description must be at least 20 characters.",
+      "budgetRequired": "Please select a budget range.",
+      "deadlineRequired": "Please set an expected deadline.",
+      "coreFeatureRequired": "Please select at least one core feature."
+    },
+    "actions": {
+      "newAnalysis": "Phân tích mới",
+      "cancel": "Hủy",
+      "back": "Quay lại",
+      "next": "Tiếp",
+      "analyzing": "Đang phân tích...",
+      "submitAnalyze": "Gửi & phân tích",
+      "delete": "Xóa",
+      "view": "Xem",
+      "rerun": "Chạy lại",
+      "reanalyze": "Re-analyze",
+      "generateProposal": "Generate Proposal",
+      "retryAnalysis": "Retry Analysis"
+    },
+    "messages": {
+      "submitted": "Requirement submitted and AI analysis started.",
+      "deleted": "Deleted successfully"
+    },
+    "hints": {
+      "selectAtLeastOne": "(select at least one)"
+    },
+    "filters": {
+      "allStatus": "Tất cả trạng thái"
+    },
+    "labels": {
+      "result": "result",
+      "results": "results",
+      "found": "found",
+      "duration": "Duration"
+    },
+    "table": {
+      "project": "Dự án",
+      "client": "Khách hàng",
+      "platform": "Nền tảng",
+      "complexity": "Độ phức tạp",
+      "feasibility": "Tính khả thi",
+      "status": "Trạng thái",
+      "date": "Ngày",
+      "actions": "Thao tác"
+    },
+    "empty": {
+      "noAnalyses": "No analyses yet",
+      "clickNewAnalysis": "Click New Analysis to get started."
+    },
+    "confirm": {
+      "deleteAnalysis": "Xóa phân tích?",
+      "cannotBeUndone": "Thao tác này không thể hoàn tác."
+    },
+    "detail": {
+      "pageTitle": "Requirement Detail",
+      "timeline": {
+        "feasible": "Feasible",
+        "tight": "Tight",
+        "unrealistic": "Unrealistic"
+      },
+      "budget": {
+        "under": "Under Budget",
+        "within": "Within Budget",
+        "over": "Over Budget"
+      },
+      "feasibility": {
+        "highlyFeasible": "Highly Feasible",
+        "moderatelyFeasible": "Moderately Feasible",
+        "challenging": "Challenging",
+        "score": "Feasibility Score"
+      },
+      "states": {
+        "aiAnalyzing": "AI is analyzing...",
+        "pleaseWait": "Please wait while we process the requirements.",
+        "analysisFailed": "Analysis failed",
+        "somethingWrong": "Something went wrong. Please try again.",
+        "pendingAnalysis": "Pending analysis",
+        "startShortly": "Analysis will start shortly."
+      },
+      "sections": {
+        "aiSummary": "AI Summary",
+        "coreModules": "Core Modules",
+        "projectTimeline": "Project Timeline",
+        "riskAssessment": "Risk Assessment",
+        "recommendations": "Recommendations",
+        "clarificationsNeeded": "Clarifications Needed",
+        "quickOverview": "Quick Overview",
+        "assessments": "Assessments",
+        "techStack": "Tech Stack",
+        "recommendedTeam": "Recommended Team",
+        "clientInfo": "Client Info"
+      },
+      "quick": {
+        "users": "Users",
+        "budget": "Budget",
+        "deadline": "Deadline",
+        "timeline": "Timeline"
+      }
+    }
+  },
+"documentTranslation": {
+      "pageTitle": "Dịch thuật tài liệu",
+      "hero": {
+        "eyebrow": "Dịch thuật tài liệu",
+        "title": "Không gian làm việc dịch thuật cao cấp",
+        "desc": "Cùng luồng logic, cùng các tuyến đường, cùng các hành động tải lên và thư mục. Được nâng cấp thành một giao diện chuyên nghiệp, gọn gàng hơn, hoạt động tốt ở cả chế độ sáng và tối.",
+        "demoMode": "API hiện chưa được cấu hình, vì vậy trang sẽ duy trì ở chế độ dùng thử."
+      },
+      "actions": {
+        "uploadDocument": "Tải lên tài liệu",
+        "cancel": "Hủy",
+        "deleting": "Đang xóa...",
+        "yesDelete": "Có, xóa",
+        "download": "Tải xuống",
+        "close": "Đóng",
+        "delete": "Xóa"
+      },
+      "stats": {
+        "totalFiles": "Tổng số tệp",
+        "allUploadedDocuments": "Tất cả tài liệu đã tải lên",
+        "completed": "Đã hoàn thành",
+        "readyToReview": "Sẵn sàng để xem lại hoặc tải xuống",
+        "translating": "Đang dịch",
+        "jobsRunning": "Các tác vụ hiện đang chạy",
+        "failed": "Thất bại",
+        "needsReview": "Cần xem lại hoặc thử lại"
+      },
+      "labels": {
+        "allFiles": "Tất cả các tệp",
+        "uploadedBy": "Được tải lên bởi"
+      },
+      "loading": {
+        "files": "Đang tải các tệp",
+        "fetchingFolder": "Đang lấy nội dung thư mục"
+      },
+      "messages": {
+        "unableLoadFolder": "Không thể tải nội dung thư mục.",
+        "unableRefreshFolder": "Không thể làm mới nội dung thư mục.",
+        "unableRefreshDocumentList": "Không thể làm mới danh sách tài liệu.",
+        "folderDeleted": "Xóa thư mục thành công.",
+        "folderDeleteFailed": "Xóa thư mục thất bại.",
+        "documentDeleteFailed": "Xóa tài liệu thất bại."
+      },
+      "delete": {
+        "dangerZone": "Vùng nguy hiểm",
+        "deleteFolder": "Xóa thư mục",
+        "confirmTitle": "Xóa thư mục này?",
+        "confirmPrefix": "Bạn chuẩn bị xóa",
+        "confirmSuffix": "Tất cả các tệp bên trong thư mục này cũng sẽ bị xóa vĩnh viễn."
+      },
+      "upload": {
+        "eyebrow": "Dịch thuật tài liệu",
+        "title": "Không gian làm việc tải lên",
+        "fileIntake": "Tiếp nhận tệp",
+        "dropBrowse": "Thả tệp vào đây hoặc duyệt tệp",
+        "acceptedTypes": "PDF, DOC, DOCX, TXT, PNG, JPG, JPEG",
+        "maxSize": "Tối đa 20MB",
+        "replaceHint": "Nhấp để thay thế hoặc kéo một tệp khác vào đây.",
+        "metadata": "Siêu dữ liệu",
+        "saveToFolder": "Lưu vào thư mục",
+        "rootNoFolder": "Gốc (Không có thư mục)",
+        "tags": "Thẻ",
+        "tagsPlaceholder": "hr, report, 2026",
+        "languageDirection": "Hướng ngôn ngữ",
+        "sourceLanguage": "Ngôn ngữ nguồn",
+        "translateTo": "Dịch sang",
+        "apiNotConfigured": "API chưa được cấu hình",
+        "imageCannotTranslate": "Không thể dịch các tệp hình ảnh. Chỉ hỗ trợ các tệp dạng văn bản (TXT, DOC, DOCX, PDF).",
+        "visibilityTitle": "Chế độ hiển thị",
+        "apiDemoNotice": "API dịch thuật chưa được cấu hình. Tài liệu vẫn có thể được tải lên và lưu trữ bằng luồng hiện tại.",
+        "uploading": "Đang tải lên...",
+        "uploadDocument": "Tải lên tài liệu",
+        "uploadFailed": "Tải lên thất bại. Vui lòng thử lại.",
+        "visibility": {
+          "private": "Riêng tư",
+          "onlyYou": "Chỉ mình bạn",
+          "branch": "Chi nhánh của tôi",
+          "yourBranch": "Chi nhánh của bạn",
+          "all": "Tất cả chi nhánh",
+          "everyone": "Mọi người"
+        },
+        "languages": {
+          "en": "Tiếng Anh",
+          "ja": "Tiếng Nhật",
+          "my": "Tiếng Myanmar",
+          "km": "Tiếng Khmer",
+          "vi": "Tiếng Việt",
+          "ko": "Tiếng Hàn"
+        }
+      },
+      "languages": {
+        "en": "Tiếng Anh",
+        "ja": "Tiếng Nhật",
+        "my": "Tiếng Myanmar",
+        "km": "Tiếng Khmer",
+        "vi": "Tiếng Việt",
+        "ko": "Tiếng Hàn"
+      },
+      "fileNotes": {
+        "portableDocument": "Tài liệu di động",
+        "editableDocument": "Tài liệu có thể chỉnh sửa",
+        "plainText": "Văn bản thuần túy",
+        "imageFile": "Tệp hình ảnh"
+      },
+      "status": {
+        "pending": "Đang chờ",
+        "translating": "Đang dịch",
+        "completed": "Đã hoàn thành",
+        "failed": "Thất bại"
+      },
+      "statusNotes": {
+        "waitingInQueue": "Đang chờ trong hàng đợi",
+        "jobsRunning": "Các tác vụ hiện đang chạy",
+        "downloadsAvailable": "Có sẵn bản tải xuống",
+        "needsReview": "Cần xem lại hoặc thử lại"
+      },
+      "downloadModal": {
+        "eyebrow": "Tải xuống",
+        "title": "Chọn phiên bản tệp",
+        "originalFile": "Tệp gốc",
+        "translatedVersions": "Các phiên bản đã dịch",
+        "translated": "Đã dịch"
+      },
+      "deleteDocument": {
+        "confirmTitle": "Xóa tài liệu?",
+        "confirmPrefix": "Hành động này sẽ xóa",
+        "confirmSuffix": "và tất cả các phiên bản dịch liên kết với nó."
+      },
+      "filters": {
+        "allStatuses": "Tất cả trạng thái",
+        "allFileTypes": "Tất cả loại tệp"
+      },
+      "library": {
+        "eyebrow": "Thư viện tài liệu",
+        "visibleFile": "tệp hiển thị",
+        "visibleFiles": "tệp hiển thị",
+        "flowPreserved": "Giữ nguyên cùng một tuyến đường/luồng API"
+      },
+      "statsShort": {
+        "total": "Tổng cộng",
+        "completed": "Đã hoàn thành",
+        "running": "Đang chạy",
+        "failed": "Thất bại"
+      },
+      "placeholders": {
+        "searchDocuments": "Tìm kiếm tài liệu, người tải lên, thẻ..."
+      },
+      "view": {
+        "grid": "Lưới",
+        "list": "Danh sách"
+      },
+      "empty": {
+        "noDocumentsFound": "Không tìm thấy tài liệu nào",
+        "tryAdjusting": "Hãy thử điều chỉnh tìm kiếm hoặc bộ lọc."
+      },
+      "table": {
+        "document": "Tài liệu",
+        "status": "Trạng thái",
+        "languages": "Ngôn ngữ",
+        "created": "Đã tạo",
+        "uploader": "Người tải lên",
+        "tags": "Thẻ",
+        "actions": "Hành động"
+      },
+      "folderModal": {
+        "header": {
+          "eyebrow": "Không gian làm việc thư mục",
+          "editTitle": "Chỉnh sửa thư mục",
+          "createTitle": "Tạo thư mục",
+          "parent": "Thư mục cha",
+          "rootLevel": "Thư mục cấp gốc"
+        },
+        "fields": {
+          "folderName": "Tên thư mục",
+          "description": "Mô tả",
+          "visibility": "Chế độ hiển thị",
+          "folderColor": "Màu sắc thư mục",
+          "folderIcon": "Biểu tượng thư mục"
+        },
+        "placeholders": {
+          "folderName": "Nhập tên thư mục",
+          "description": "Mô tả ngắn tùy chọn"
+        },
+        "visibility": {
+          "allBranches": "Tất cả chi nhánh",
+          "allBranchesDesc": "Hiển thị cho tất cả chi nhánh",
+          "myBranch": "Chi nhánh của tôi",
+          "myBranchDesc": "Chỉ hiển thị cho chi nhánh của bạn",
+          "private": "Riêng tư",
+          "privateDesc": "Chỉ mình bạn nhìn thấy"
+        },
+        "actions": {
+          "saving": "Đang lưu...",
+          "updateFolder": "Cập nhật thư mục",
+          "createFolder": "Tạo thư mục"
+        },
+        "messages": {
+          "updateFailed": "Cập nhật thư mục thất bại.",
+          "createFailed": "Tạo thư mục thất bại."
+        }
+      },
+      "folderTree": {
+        "actions": {
+          "more": "Thêm",
+          "addSubfolder": "Thêm thư mục con",
+          "editFolder": "Chỉnh sửa thư mục",
+          "deleteFolder": "Xóa thư mục"
+        },
+        "library": "Thư viện",
+        "smartFolders": "Thư mục thông minh",
+        "new": "+ Mới",
+        "searchPlaceholder": "Tìm kiếm thư mục...",
+        "browseEveryUploadedDocument": "Duyệt qua tất cả tài liệu đã tải lên",
+        "empty": {
+          "noFoldersFound": "Không tìm thấy thư mục nào",
+          "noFoldersYet": "Chưa có thư mục nào",
+          "tryAnotherKeyword": "Hãy thử từ khóa khác.",
+          "createFirstFolderDesc": "Tạo thư mục đầu tiên để sắp xếp tài liệu gọn gàng hơn.",
+          "createFirstFolder": "Tạo thư mục đầu tiên"
+        },
+        "units": {
+          "file": "tệp",
+          "files": "tệp",
+          "subfolder": "thư mục con",
+          "subfolders": "thư mục con",
+          "folder": "thư mục",
+          "folders": "thư mục",
+          "total": "tổng số"
+        },
+        "fileNotes": {
+          "portableDocument": "Tài liệu di động",
+          "editableDocument": "Tài liệu có thể chỉnh sửa",
+          "plainText": "Văn bản thuần túy",
+          "imageFile": "Tệp hình ảnh"
+        },
+        "status": {
+          "pending": "Đang chờ",
+          "translating": "Đang dịch",
+          "completed": "Đã hoàn thành",
+          "failed": "Thất bại"
+        },
+        "statusNotes": {
+          "waitingInQueue": "Đang chờ trong hàng đợi",
+          "jobsRunning": "Các tác vụ hiện đang chạy",
+          "downloadsAvailable": "Có sẵn bản tải xuống",
+          "needsReviewOrRetry": "Cần xem lại hoặc thử lại"
+        }
+      }
+  },
+"proposalGenerator": {
+  "pageTitle": "Trình tạo đề xuất",
+  "title": "Không gian làm việc đề xuất AI cao cấp",
+  "description": "Phù hợp với hành vi chế độ sáng và tối của RequirementAnalysis, trong khi vẫn giữ nguyên các tuyến đề xuất và luồng API.",
+  "actions": {
+    "generateProposal": "Tạo đề xuất",
+    "resetFilters": "Đặt lại bộ lọc",
+    "cancel": "Hủy",
+    "generating": "Đang tạo...",
+    "deleting": "Đang xóa...",
+    "yesDelete": "Có, Xóa"
+  },
+  "status": {
+    "draft": "Bản nháp",
+    "sent": "Đã gửi",
+    "accepted": "Đã chấp nhận",
+    "rejected": "Bị từ chối"
+  },
+  "languages": {
+    "english": "Tiếng Anh",
+    "myanmar": "Tiếng Myanmar",
+    "khmer": "Tiếng Khmer",
+    "vietnamese": "Tiếng Việt",
+    "korean": "Tiếng Hàn",
+    "japanese": "Tiếng Nhật"
+  },
+  "templates": {
+    "executive": { "label": "Điều hành", "desc": "Cảm giác sang trọng cao cấp tông tối" },
+    "magazine": { "label": "Tạp chí", "desc": "Trình bày biên tập táo bạo" },
+    "minimal": { "label": "Tối giản", "desc": "Bố cục lấy cảm hứng từ Thụy Sĩ sạch sẽ" }
+  },
+  "stats": {
+    "total": "Tổng số",
+    "draft": "Bản nháp",
+    "sent": "Đã gửi",
+    "accepted": "Đã chấp nhận",
+    "rejected": "Bị từ chối",
+    "allGenerated": "Tất cả đề xuất đã tạo",
+    "waitingNextAction": "Đang chờ hành động tiếp theo",
+    "sharedWithClients": "Đã chia sẻ với khách hàng",
+    "readyToCelebrate": "Sẵn sàng để ăn mừng",
+    "needsRevision": "Cần sửa đổi"
+  },
+  "placeholders": {
+    "search": "Tìm kiếm theo số đề xuất, dự án hoặc khách hàng...",
+    "chooseAnalysis": "Chọn một phân tích đã hoàn thành..."
+  },
+  "filters": {
+    "allStatus": "Tất cả trạng thái"
+  },
+  "sections": {
+    "directory": "Thư mục đề xuất"
+  },
+  "labels": {
+    "liveProposalList": "Danh sách đề xuất trực tiếp",
+    "clientProfileLinked": "Hồ sơ khách hàng được liên kết từ phân tích yêu cầu",
+    "resultFound": "kết quả được tìm thấy",
+    "resultsFound": "kết quả được tìm thấy"
+  },
+  "table": {
+    "proposalNo": "Số đề xuất #",
+    "project": "Dự án",
+    "client": "Khách hàng",
+    "language": "Ngôn ngữ",
+    "status": "Trạng thái",
+    "date": "Ngày",
+    "actions": "Hành động"
+  },
+  "empty": {
+    "noProposalsYet": "Chưa có đề xuất nào",
+    "clickGenerate": "Nhấp vào Tạo đề xuất để bắt đầu.",
+    "noCompletedAnalyses": "Chưa có phân tích nào được hoàn thành."
+  },
+  "modal": {
+    "generateTitle": "Tạo đề xuất",
+    "generateSubtitle": "Cùng tuyến đường và luồng API, phù hợp với hệ thống chủ đề của RequirementAnalysis."
+  },
+  "fields": {
+    "selectProject": "Chọn dự án",
+    "templateStyle": "Phong cách mẫu"
+  },
+  "messages": {
+    "generated": "Tạo đề xuất thành công.",
+    "deleted": "Xóa đề xuất thành công.",
+    "deleteFailed": "Không thể xóa đề xuất.",
+    "pdfCompatibility": "Các đề xuất được tạo bằng tiếng Anh để có khả năng tương thích PDF tốt nhất."
+  },
+  "validation": {
+    "selectAnalysis": "Vui lòng chọn một phân tích dự án trước."
+  },
+  "confirm": {
+    "title": "Xác nhận xóa",
+    "subtitle": "Vùng nguy hiểm",
+    "deleteTitle": "Xóa đề xuất?",
+    "deleteMessage": "Bạn có chắc chắn muốn xóa",
+    "thisProposal": "đề xuất này",
+    "cannotUndo": "Hành động này không thể hoàn tác."
+  },
+  "common": {
+    "unknown": "Không xác định",
+    "unknownClient": "Khách hàng không xác định",
+    "untitledProject": "Dự án chưa có tiêu đề",
+    "investmentNotAvailable": "Khoản đầu tư không khả dụng"
+  }
+},
+"proposalDetail": {
+  "pageTitle": "Chi tiết đề xuất",
+  "description": "Không gian làm việc xem lại đề xuất cao cấp với chuyển đổi mẫu, xem trước, xuất PDF, cập nhật trạng thái và tạo lại trong khi vẫn giữ nguyên các tuyến đường và logic backend.",
+  "actions": {
+    "back": "Quay lại",
+    "regenerate": "Tạo lại",
+    "regenerating": "Đang tạo lại...",
+    "downloadPdf": "Tải xuống PDF",
+    "updating": "Đang cập nhật...",
+    "minimize": "Thu nhỏ",
+    "maximize": "Phóng to",
+    "markAccepted": "Đánh dấu là đã chấp nhận"
+  },
+  "status": {
+    "draft": "Bản nháp",
+    "sent": "Đã gửi",
+    "accepted": "Đã chấp nhận",
+    "rejected": "Bị từ chối"
+  },
+  "languages": {
+    "english": "Tiếng Anh",
+    "myanmar": "Tiếng Myanmar",
+    "khmer": "Tiếng Khmer",
+    "vietnamese": "Tiếng Việt",
+    "korean": "Tiếng Hàn",
+    "japanese": "Tiếng Nhật"
+  },
+  "templates": {
+    "executive": { "label": "Điều hành", "desc": "Sang trọng tông tối" },
+    "magazine": { "label": "Tạp chí", "desc": "Biên tập táo bạo" },
+    "minimal": { "label": "Tối giản", "desc": "Lưới Thụy Sĩ" }
+  },
+  "preview": {
+    "livePreview": "Xem trước đề xuất trực tiếp"
+  },
+  "sections": {
+    "proposalStatus": "Trạng thái đề xuất",
+    "clientSummary": "Tóm tắt khách hàng",
+    "proposalInsights": "Thông tin chi tiết về đề xuất",
+    "readyDelivery": "Sẵn sàng bàn giao chính thức?"
+  },
+  "labels": {
+    "template": "Mẫu"
+  },
+  "fields": {
+    "company": "Công ty",
+    "industry": "Ngành nghề",
+    "email": "Email",
+    "project": "Dự án",
+    "language": "Ngôn ngữ",
+    "investment": "Khoản đầu tư",
+    "validity": "Thời hạn hiệu lực"
+  },
+  "messages": {
+    "readyDeliveryDesc": "Xem lại bản xem trước mẫu đã chọn, xác nhận chi tiết khách hàng, sau đó cập nhật trạng thái hoặc tải xuống tệp PDF cuối cùng."
+  },
+  "common": {
+    "notSpecified": "Chưa được chỉ định",
+    "na": "N/A",
+    "unknownClient": "Khách hàng không xác định",
+    "untitledProject": "Dự án chưa có tiêu đề"
+  }
+},
+  "projects": {
+    "appTitle": "Quản lý Dự án",
+    "status": {
+      "all": "Tất cả",
+      "active": "Đang hoạt động",
+      "upcoming": "Sắp diễn ra",
+      "completed": "Đã hoàn thành",
+      "cancelled": "Đã hủy"
+    },
+    "modal": {
+      "newProject": "Dự án mới",
+      "editProject": "Chỉnh sửa Dự án",
+      "deleteProject": "Xóa Dự án",
+      "cannotBeUndone": "Hành động này không thể hoàn tác"
+    },
+    "actions": {
+      "cancel": "Hủy",
+      "create": "Tạo Dự án",
+      "update": "Cập nhật Dự án",
+      "createProject": "+ Dự án mới",
+      "yesDelete": "Có, Xóa"
+    },
+    "loading": {
+      "creating": "Đang tạo…",
+      "updating": "Đang cập nhật…",
+      "deleting": "Đang xóa…"
+    },
+    "fields": {
+      "projectName": "Tên dự án",
+      "description": "Mô tả",
+      "status": "Trạng thái",
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "client": "Khách hàng",
+      "contractValue": "Giá trị hợp đồng",
+      "currency": "Tiền tệ",
+      "teamSize": "Số lượng thành viên"
+    },
+    "sections": {
+      "contractBudget": "Hợp đồng & Ngân sách"
+    },
+    "client": {
+      "noClient": "— Không có khách hàng —"
+    },
+    "labels": {
+      "orTypeManually": "HOẶC NHẬP THỦ CÔNG"
+    },
+    "placeholders": {
+      "projectName": "ví dụ: Hệ thống CRM v2",
+      "description": "Mô tả ngắn gọn...",
+      "selectClient": "Chọn khách hàng hiện có...",
+      "clientNameManual": "Hoặc nhập tên khách hàng thủ công...",
+      "teamSize": "ví dụ: 4",
+      "searchProjects": "Tìm kiếm theo tên dự án..."
+    },
+    "validation": {
+      "required": "Bắt buộc",
+      "clientRequired": "Vui lòng chọn hoặc nhập tên khách hàng",
+      "endDateAfterStart": "Phải sau ngày bắt đầu",
+      "validNumber": "Phải là một số hợp lệ"
+    },
+    "stats": {
+      "totalProjects": "Tổng số dự án",
+      "totalContractValue": "Tổng giá trị hợp đồng"
+    },
+    "table": {
+      "project": "Dự án",
+      "client": "Khách hàng",
+      "contractValue": "Giá trị hợp đồng",
+      "timeline": "Thời gian",
+      "team": "Đội ngũ",
+      "status": "Trạng thái",
+      "actions": "Hành động"
+    },
+    "confirm": {
+      "deleteQuestion": "Bạn có chắc chắn muốn xóa"
+    },
+    "empty": {
+      "noProjectsMatch": "Không có dự án nào khớp với bộ lọc của bạn.",
+      "noProjectsYet": "Chưa có dự án nào — hãy tạo dự án đầu tiên của bạn."
+    },
+    "units": {
+      "person": "người"
+    }
+  },
+  "plReport": {
+    "pageTitle": "Báo cáo Lãi & Lỗ",
+    "header": {
+      "title": "Bảng điều khiển Lãi & Lỗ",
+      "subtitle": "Doanh thu · Chi phí dự án · Chi phí chung · Lợi nhuận ròng"
+    },
+    "filters": {
+      "from": "Từ",
+      "to": "Đến"
+    },
+    "actions": {
+      "applyFilter": "Áp dụng bộ lọc",
+      "back": "Quay lại"
+    },
+    "kpi": {
+      "totalRevenue": "Tổng doanh thu",
+      "projectCost": "Chi phí dự án",
+      "overheadCost": "Chi phí chung",
+      "grossProfit": "Lợi nhuận gộp",
+      "netProfit": "Lợi nhuận ròng",
+      "outstanding": "Còn lại"
+    },
+    "labels": {
+      "margin": "Biên lợi nhuận",
+      "of": "của",
+      "contract": "Hợp đồng",
+      "beforeOverhead": "Trước chi phí chung",
+      "totalOverhead": "Tổng chi phí chung",
+      "cost": "Chi phí",
+      "total": "Tổng"
+    },
+    "cards": {
+      "operatingIncomeTitle": "Thu nhập hoạt động & chi phí",
+      "operatingIncomeSub": "Doanh thu · Tổng chi phí · Biên lợi nhuận ròng — theo tháng",
+      "periodComparisonTitle": "So sánh kỳ",
+      "periodComparisonSub": "Kỳ này so với kỳ trước",
+      "grossProfitTrendTitle": "Xu hướng lợi nhuận gộp",
+      "grossProfitTrendSub": "Lợi nhuận gộp · Biên lợi nhuận gộp — theo tháng",
+      "expenseBreakdownTitle": "Phân tích chi phí",
+      "expenseBreakdownSub": "Lương · OT · Nghỉ phép · Chi phí chung",
+      "revenueByProjectTitle": "Doanh thu theo dự án",
+      "revenueByProjectSub": "Nhấp vào dự án để xem chi tiết đầy đủ",
+      "overheadByDepartmentTitle": "Chi phí chung theo phòng ban",
+      "overheadByDepartmentSub": "Chi phí lương nhân sự không thuộc dự án trong kỳ này"
+    },
+    "chart": {
+      "revenue": "Doanh thu",
+      "totalCost": "Tổng chi phí",
+      "netMarginPercent": "Biên lợi nhuận ròng",
+      "grossProfit": "Lợi nhuận gộp",
+      "marginPercent": "Biên lợi nhuận",
+      "grossMarginPercent": "Biên lợi nhuận gộp",
+      "cost": "Chi phí",
+      "profit": "Lợi nhuận"
+    },
+    "expense": {
+      "salary": "Lương",
+      "overhead": "Chi phí chung",
+      "ot": "OT",
+      "leave": "Nghỉ phép"
+    },
+    "empty": {
+      "noPayrollData": "Không có dữ liệu lương đã xác nhận. Vui lòng xác nhận bảng lương trước.",
+      "noDataAvailable": "Không có dữ liệu",
+      "noProjects": "Không có dự án",
+      "noOverheadData": "Không có dữ liệu chi phí chung"
+    },
+    "units": {
+      "member": "thành viên",
+      "members": "thành viên",
+      "day": "ngày",
+      "days": "ngày"
+    },
+    "status": {
+      "active": "Đang hoạt động",
+      "upcoming": "Sắp tới",
+      "completed": "Hoàn thành"
+    },
+    "departments": {
+      "HR": "HR",
+      "IT": "IT",
+      "BPO": "BPO",
+      "SST": "SST",
+      "Driver": "Tài xế",
+      "Other": "Khác"
+    },
+    "show": {
+      "ongoing": "Đang tiếp tục",
+      "contract": "Hợp đồng",
+      "confirmedMonth": "tháng đã xác nhận",
+      "confirmedMonths": "tháng đã xác nhận",
+      "monthlyBreakdown": "Phân tích theo tháng",
+      "revenueCostTrend": "Xu hướng doanh thu và chi phí",
+      "memberCost": "Chi phí thành viên",
+      "kpi": {
+        "salaryCost": "Chi phí lương",
+        "otCost": "Chi phí OT",
+        "leaveCost": "Chi phí nghỉ phép",
+        "netLoss": "Lỗ ròng"
+      },
+      "table": {
+        "month": "Tháng"
+      },
+      "empty": {
+        "projectNotFound": "Không tìm thấy dự án.",
+        "noProjectPayrollData": "Chưa có dữ liệu lương đã xác nhận cho dự án này.",
+        "noMemberData": "Không có dữ liệu thành viên cho tháng này."
+      }
+    },
+    "months": {
+      "full": {
+        "1": "Tháng 1",
+        "2": "Tháng 2",
+        "3": "Tháng 3",
+        "4": "Tháng 4",
+        "5": "Tháng 5",
+        "6": "Tháng 6",
+        "7": "Tháng 7",
+        "8": "Tháng 8",
+        "9": "Tháng 9",
+        "10": "Tháng 10",
+        "11": "Tháng 11",
+        "12": "Tháng 12"
+      },
+      "short": {
+        "1": "Tháng 1",
+        "2": "Tháng 2",
+        "3": "Tháng 3",
+        "4": "Tháng 4",
+        "5": "Tháng 5",
+        "6": "Tháng 6",
+        "7": "Tháng 7",
+        "8": "Tháng 8",
+        "9": "Tháng 9",
+        "10": "Tháng 10",
+        "11": "Tháng 11",
+        "12": "Tháng 12"
+      }
+    }
+  },
+  "aiChat": {
+    "pageTitle": "AI Chat",
+    "common": {
+      "you": "Bạn"
+    },
+    "languages": {
+      "en": "English",
+      "ja": "Japanese",
+      "my": "Burmese",
+      "km": "Khmer",
+      "vi": "Vietnamese",
+      "ko": "Korean"
+    },
+    "actions": {
+      "react": "React",
+      "translate": "Dịch",
+      "translating": "Translating...",
+      "translatingEllipsis": "Translating…",
+      "reply": "Trả lời",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "back": "← Back",
+      "cancel": "Hủy",
+      "startChat": "Bắt đầu chat",
+      "createGroup": "Tạo nhóm",
+      "startChatting": "Bắt đầu chat",
+      "newConversation": "New Conversation",
+      "unblockUser": "Unblock User",
+      "blockUser": "Block User",
+      "deleteConversation": "Xóa cuộc trò chuyện",
+      "previous": "Previous",
+      "next": "Next",
+      "tapToRetry": "Tap to retry",
+      "unblock": "Unblock",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "leave": "Leave",
+      "remove": "Remove",
+      "add": "Add",
+      "yesDelete": "Có, xóa"
+    },
+    "tabs": {
+      "all": "Tất cả",
+      "unread": "Chưa đọc",
+      "direct": "Direct",
+      "group": "Group"
+    },
+    "placeholders": {
+      "searchConversations": "Search conversations...",
+      "groupName": "Group name...",
+      "searchUsers": "Search users...",
+      "searchInConversation": "Search in conversation...",
+      "editMessage": "Edit message...",
+      "messageName": "Message {name}...",
+      "searchUsersToAdd": "Search users to add..."
+    },
+    "empty": {
+      "noMessagesYet": "Chưa có tin nhắn",
+      "noConversationsYet": "Chưa có cuộc trò chuyện",
+      "zeroResults": "0 results",
+      "startConversation": "Start the conversation!",
+      "sayHiTo": "Say hi to {name}",
+      "selectConversation": "Chọn một cuộc trò chuyện",
+      "chooseChat": "Chọn một chat hoặc bắt đầu chat mới",
+      "noImagesYet": "No images yet",
+      "noVideosYet": "No videos yet",
+      "noAudioYet": "No audio yet",
+      "noFilesYet": "No files yet",
+      "allUsersInGroup": "All users are already in this group",
+      "noUsersFound": "No users found"
+    },
+    "status": {
+      "online": "● Online",
+      "onlinePlain": "Online",
+      "typing": "đang nhập...",
+      "loadingMessages": "Loading messages..."
+    },
+    "labels": {
+      "members": "members",
+      "edited": "edited",
+      "editingMessage": "Editing message",
+      "replyingTo": "Replying to {name}"
+    },
+    "tooltips": {
+      "clickToRemove": "Click to remove",
+      "recordVoice": "Record voice message",
+      "stop": "Stop",
+      "editGroupInfo": "Edit group info",
+      "searchMessages": "Search messages",
+      "attachFile": "Attach file",
+      "sendSticker": "Send sticker"
+    },
+    "modal": {
+      "newConversation": "Cuộc trò chuyện mới"
+    },
+    "media": {
+      "title": "Media & Files",
+      "images": "Images",
+      "videos": "Videos",
+      "audio": "Audio",
+      "files": "Files"
+    },
+    "group": {
+      "clickChangePhoto": "Click to change photo",
+      "groupName": "Group Name",
+      "members": "Members",
+      "addMembers": "Add Members",
+      "transferAdminToLeave": "Transfer admin to leave"
+    },
+    "block": {
+      "youBlockedUser": "You have blocked this user",
+      "youHaveBeenBlocked": "You have been blocked",
+      "unblockToSend": "Unblock them to send messages again.",
+      "cannotSend": "You cannot send messages to this person."
+    },
+    "confirm": {
+      "deleteQuestion": "Are you sure you want to delete your conversation with",
+      "deleteWarning": "This will permanently delete all messages, files, and media in this conversation. This action cannot be undone."
+    },
+    "alerts": {
+      "microphoneDenied": "Microphone access denied"
+    }
+  },
+  "smartMail": {
+    "pageTitle": "Smart Mail",
+    "labels": {
+      "mail": "Email",
+      "demoMode": "Chế độ Demo",
+      "unread": "chưa đọc",
+      "noSubject": "(Không có chủ đề)",
+      "to": "Đến",
+      "cc": "CC",
+      "bcc": "BCC",
+      "subject": "Chủ đề",
+      "unknown": "Không xác định",
+      "noContent": "(Không có nội dung)",
+      "attachments": "Tệp đính kèm",
+      "demoNoApiKey": "Chế độ thử nghiệm — không có API key"
+    },
+    "actions": {
+      "mailSettings": "Cài đặt thư",
+      "dismiss": "Bỏ qua",
+      "viewMail": "Xem thư",
+      "compose": "Soạn thư",
+      "syncing": "Đang đồng bộ...",
+      "syncInbox": "Đồng bộ hộp thư đến",
+      "loading": "Đang tải...",
+      "loadMore": "Tải thêm",
+      "cancel": "Hủy",
+      "delete": "Xóa",
+      "star": "Gắn dấu sao",
+      "unstar": "Hủy gắn dấu sao",
+      "reply": "Trả lời",
+      "forward": "Chuyển tiếp",
+      "translate": "Dịch",
+      "translating": "Đang dịch...",
+      "original": "Bản gốc",
+      "download": "Tải xuống",
+      "testConnection": "Kiểm tra kết nối",
+      "testing": "Đang kiểm tra...",
+      "saveSettings": "Lưu cài đặt",
+      "saving": "Đang lưu...",
+      "minimize": "Thu nhỏ",
+      "maximize": "Phóng to",
+      "writing": "Đang viết...",
+      "improving": "Đang cải thiện...",
+      "preview": "Xem trước"
+    },
+    "notifications": {
+      "newMail": "Thư mới"
+    },
+    "sidebar": {
+      "mailbox": "Hộp thư",
+      "inbox": "Hộp thư đến",
+      "sent": "Đã gửi",
+      "starred": "Đã gắn dấu sao",
+      "connectedAccount": "Tài khoản đã kết nối",
+      "synced": "Đã đồng bộ"
+    },
+    "status": {
+      "connected": "Đã kết nối",
+      "notConnected": "Chưa kết nối"
+    },
+    "empty": {
+      "inboxEmpty": "Hộp thư đến của bạn trống",
+      "inboxSub": "Thư mới sẽ xuất hiện ở đây",
+      "sentEmpty": "Chưa có thư đã gửi",
+      "sentSub": "Thư đã gửi sẽ xuất hiện ở đây",
+      "starredEmpty": "Không có thư gắn dấu sao",
+      "starredSub": "Gắn dấu sao cho các thư quan trọng để tìm thấy chúng ở đây",
+      "noTemplatesAvailable": "Không có mẫu sẵn có"
+    },
+    "messages": {
+      "mailDeleted": "Đã xóa thư.",
+      "connectionFailed": "Kết nối thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.",
+      "networkError": "Lỗi mạng. Vui lòng thử lại.",
+      "accountUpdated": "Cập nhật tài khoản thư thành công!",
+      "accountConnected": "Kết nối tài khoản thư thành công!",
+      "connectionSuccessful": "Kết nối thành công!",
+      "demoTranslation": "Chế độ thử nghiệm — cấu hình API để dịch thực tế",
+      "translationFailed": "Dịch thất bại.",
+      "mailSent": "Gửi thư thành công! ✉️",
+      "failedToSend": "Gửi thất bại."
+    },
+    "confirm": {
+      "deleteMailTitle": "Xóa thư này?",
+      "cannotBeUndone": "Hành động này không thể hoàn tác."
+    },
+    "placeholders": {
+      "searchMails": "Tìm kiếm thư...",
+      "selectLeaveType": "Chọn loại nghỉ phép...",
+      "selectSession": "Chọn buổi...",
+      "enterField": "Nhập {field}...",
+      "typeEmailSearch": "Nhập email + Enter, hoặc tìm kiếm...",
+      "emailSubject": "Tiêu đề email...",
+      "describeEmail": "Mô tả nội dung cần viết...",
+      "writeMessage": "Viết thư của bạn..."
+    },
+    "validation": {
+      "validEmailExample": "Vui lòng nhập địa chỉ email hợp lệ (ví dụ: you@gmail.com)",
+      "appPasswordRequired": "Vui lòng nhập Mật khẩu ứng dụng trước khi kiểm tra.",
+      "recipientRequired": "Vui lòng thêm ít nhất một người nhận."
+    },
+    "setup": {
+      "title": "Cài đặt Email",
+      "updateAccount": "Cập nhật tài khoản thư",
+      "connectEmail": "Kết nối Email của bạn",
+      "subtitle": "Kết nối email của bạn để gửi và nhận thư trực tiếp từ Smart HR",
+      "chooseProvider": "Chọn nhà cung cấp",
+      "generateAppPassword": "Tạo mật khẩu ứng dụng",
+      "smtpSend": "SMTP (Gửi)",
+      "imapReceive": "IMAP (Nhận)",
+      "serverConfiguration": "Cấu hình máy chủ",
+      "securityNote": "Mật khẩu của bạn được mã hóa bằng AES-256 và được lưu trữ an toàn. Chúng tôi không bao giờ chia sẻ thông tin đăng nhập của bạn.",
+      "help": {
+        "gmail": "Gmail yêu cầu Mật khẩu ứng dụng. Hãy bật xác thực 2 bước (2FA) trước, sau đó tạo một mật khẩu ứng dụng.",
+        "outlook": "Sử dụng mật khẩu Outlook của bạn hoặc Mật khẩu ứng dụng nếu đã bật xác thực 2 bước (2FA).",
+        "yahoo": "Yahoo yêu cầu Mật khẩu ứng dụng. Hãy tạo một mật khẩu trong cài đặt bảo mật tài khoản của bạn.",
+        "other": "Nhập chi tiết máy chủ thư của bạn một cách thủ công."
+      }
+    },
+    "fields": {
+      "displayName": "Tên hiển thị",
+      "emailAddress": "Địa chỉ Email",
+      "appPassword": "Mật khẩu ứng dụng",
+      "smtpHost": "SMTP Host",
+      "imapHost": "IMAP Host",
+      "port": "Cổng"
+    },
+    "hints": {
+      "leaveBlankKeepCurrent": "để trống để giữ nguyên hiện tại"
+    },
+    "view": {
+      "selectMail": "Chọn một thư để đọc",
+      "clickMailFromList": "Nhấp vào bất kỳ thư nào từ danh sách",
+      "translatedLabel": "Đã dịch sang tiếng {language}",
+      "showingTranslation": "Đang hiển thị bản dịch tiếng {language}"
+    },
+    "languages": {
+      "en": "Tiếng Anh",
+      "ja": "Tiếng Nhật",
+      "my": "Tiếng Myanmar",
+      "km": "Tiếng Khmer",
+      "vi": "Tiếng Việt",
+      "ko": "Tiếng Hàn"
+    },
+    "compose": {
+      "newMessage": "Tin nhắn mới",
+      "templates": "Mẫu sẵn có",
+      "template": "Mẫu",
+      "applyTemplate": "Áp dụng mẫu",
+      "applyToBody": "Áp dụng vào nội dung",
+      "toolbar": {
+        "bold": "In đậm",
+        "italic": "In nghiêng",
+        "underline": "Gạch chân",
+        "strike": "Gạch ngang",
+        "bulletList": "Danh sách dấu chấm",
+        "numbered": "Danh sách số",
+        "left": "Canh trái",
+        "center": "Canh giữa",
+        "right": "Canh phải",
+        "bulletListShort": "• Danh sách",
+        "numberedListShort": "1. Danh sách"
+      },
+      "fontSizes": {
+        "1": "Nhỏ",
+        "3": "Bình thường",
+        "5": "Lớn",
+        "7": "Rất lớn"
+      },
+      "ai": {
+        "write": "Viết",
+        "improve": "Cải thiện",
+        "translate": "Dịch",
+        "improveContent": "Cải thiện nội dung",
+        "improveHint": "Viết lại bản nháp hiện tại của bạn một cách chuyên nghiệp"
+      },
+      "tones": {
+        "professional": "Chuyên nghiệp",
+        "friendly": "Thân thiện",
+        "formal": "Trang trọng",
+        "casual": "Thông thường",
+        "persuasive": "Thuyết phục"
+      },
+      "vars": {
+        "date": "Ngày",
+        "from_date": "Từ ngày",
+        "to_date": "Đến ngày",
+        "deadline": "Hạn chót",
+        "effective_date": "Ngày có hiệu lực",
+        "start_date": "Ngày bắt đầu",
+        "leave_type": "Loại nghỉ phép",
+        "session": "Buổi"
+      }
+    }
+  },
+  "common": {
+    "actions": "Hành động",
+    "active": "Hoạt động",
+    "cancel": "Hủy",
+    "day": "Ngày",
+    "delete": "Xóa",
+    "disabled": "Vô hiệu hóa",
+    "edit": "Chỉnh sửa",
+    "hour": "Giờ",
+    "inactive": "Không hoạt động",
+    "minute": "Phút",
+    "required": "Bắt buộc",
+    "select": "Chọn...",
+    "selectTime": "Chọn thời gian...",
+    "status": "Trạng thái",
+    "thisActionCannotBeUndone": "Hành động này không thể hoàn tác.",
+    "type": "Loại",
+    "update": "Cập nhật",
+    "value": "Giá trị",
+    "yesDelete": "Có, Xóa",
+    "deleting": "Đang xóa...",
+    "no": "Không",
+    "saving": "Đang lưu...",
+    "night": "Ban đêm"
+  },
+  "hrPolicy": {
+    "allowance": {
+      "allowanceName": "Tên phụ cấp",
+      "allowanceType": "Loại phụ cấp",
+      "deleteAllowance": "Xóa phụ cấp",
+      "editAllowance": "Chỉnh sửa phụ cấp",
+      "quickSelect": "Chọn nhanh",
+      "addAllowance": "Thêm phụ cấp",
+      "amount": "Số tiền",
+      "allowanceNamePlaceholder": "ví dụ: Phụ cấp nhà ở, Phụ cấp đi lại...",
+      "createFirstAllowance": "Nhấn nút bên dưới để tạo phụ cấp đầu tiên",
+      "noAllowancesYet": "Chưa cấu hình phụ cấp nào",
+      "ratePercent": "Mức (%)",
+      "updateAllowance": "Cập nhật phụ cấp"
+    },
+    "delete": {
+      "areYouSureDelete": "Bạn có chắc chắn muốn xóa"
+    },
+    "bonus": {
+      "addBonusType": "Thêm loại thưởng",
+      "bonusName": "Tên khoản thưởng",
+      "bonusSchedules": "Lịch trình thưởng",
+      "calculationType": "Loại tính toán",
+      "deleteBonusType": "Xóa loại thưởng",
+      "editBonusType": "Chỉnh sửa loại thưởng",
+      "frequency": {
+        "_self": "Tần suất",
+        "once": "Một lần",
+        "quarterly": "Hàng quý",
+        "yearly": "Hàng năm"
+      },
+      "notes": "Ghi chú",
+      "bonusNamePlaceholder": "ví dụ: Thưởng năm, Thưởng hiệu suất",
+      "percentOfSalary": "Phần trăm lương",
+      "fixedAmount": "Số tiền cố định",
+      "updateBonusType": "Cập nhật loại thưởng",
+      "noBonusTypesYet": "Chưa cấu hình loại thưởng nào",
+      "createFirstBonusType": "Nhấn nút bên dưới để tạo loại thưởng đầu tiên"
+    },
+    "common": {
+      "flat": "Cố định",
+      "flatLower": "cố định",
+      "percentageLower": "phần trăm",
+      "percentage": "Phần trăm"
+    },
+    "currency": {
+      "currencyName": "Tên tiền tệ",
+      "deleteCurrency": "Xóa tiền tệ",
+      "editCurrency": "Chỉnh sửa tiền tệ",
+      "addCurrency": "Thêm tiền tệ",
+      "addNewCurrency": "Thêm tiền tệ mới",
+      "createFirstCurrency": "Nhấn nút bên dưới để tạo tiền tệ đầu tiên",
+      "currencyCode": "Mã tiền tệ",
+      "currencyCodePlaceholder": "ví dụ: USD, KHR, MMK",
+      "currencyCodeShort": "Mã",
+      "currencyNamePlaceholder": "ví dụ: US Dollar, Cambodian Riel",
+      "noCurrenciesConfigured": "Chưa cấu hình tiền tệ nào",
+      "updateCurrency": "Cập nhật tiền tệ"
+    },
+    "deduction": {
+      "addDeduction": "Thêm khoản khấu trừ",
+      "deductionName": "Tên khoản khấu trừ",
+      "deleteDeduction": "Xóa khoản khấu trừ",
+      "editDeduction": "Chỉnh sửa khoản khấu trừ",
+      "rateAmount": "Tỷ lệ / Số tiền",
+      "addDeductionRule": "Thêm quy tắc khấu trừ",
+      "createFirstDeduction": "Nhấn nút bên dưới để tạo quy tắc khấu trừ đầu tiên",
+      "deductionNamePlaceholder": "ví dụ: Thuế thu nhập, NSSF, Khấu trừ tùy chỉnh...",
+      "deductionType": "Loại khấu trừ",
+      "noDeductionsYet": "Chưa cấu hình khoản khấu trừ nào",
+      "quickSelectPreset": "Chọn nhanh Preset",
+      "rate": "Mức",
+      "ratePercent": "Mức (%)",
+      "updateDeduction": "Cập nhật khấu trừ"
+    },
+    "holiday": {
+      "addHoliday": "Thêm ngày lễ",
+      "date": "Ngày",
+      "deleteHoliday": "Xóa ngày lễ",
+      "editHoliday": "Sửa ngày lễ",
+      "holidayName": "Tên ngày lễ",
+      "recurring": "Lặp lại",
+      "clickAddHoliday": "Nhấn Thêm ngày lễ để bắt đầu",
+      "holidayNamePlaceholder": "ví dụ: Tết Khmer, Quốc Khánh",
+      "holidaysIn": "Ngày lễ trong",
+      "noPublicHolidaysFor": "Không có ngày lễ công cộng cho năm này -",
+      "oneTime": "Một lần",
+      "recurringAnnually": "Lặp lại hàng năm",
+      "repeatsEveryYear": "Lặp lại mỗi năm",
+      "updateHoliday": "Cập nhật ngày lễ"
+    },
+    "leave": {
+      "leaveType": "Loại nghỉ phép",
+      "paidLeave": "Nghỉ phép có lương",
+      "requiresDocument": "Yêu cầu tài liệu chứng minh",
+      "addLeavePolicy": "Thêm loại nghỉ phép",
+      "allGenders": "Tất cả",
+      "applicableGender": "Giới tính áp dụng",
+      "carryOver": "Chuyển tiếp",
+      "carryOverDays": "Số ngày chuyển tiếp",
+      "createFirstLeaveType": "Nhấp vào bên dưới để thêm loại nghỉ phép đầu tiên của bạn",
+      "daysPerYear": "Số ngày mỗi năm",
+      "daysPerYearShort": "Ngày/Năm",
+      "deleteLeavePolicy": "Xóa loại nghỉ phép",
+      "document": "Tài liệu",
+      "editLeavePolicy": "Chỉnh sửa loại nghỉ phép",
+      "female": "Nữ",
+      "gender": "Giới tính",
+      "leaveTypePlaceholder": "Ví dụ: Nghỉ phép năm, Nghỉ ốm, Thai sản",
+      "male": "Nam",
+      "noLeavePoliciesYet": "Chưa có loại nghỉ phép nào được cấu hình",
+      "paid": "Có lương",
+      "selectGender": "Chọn giới tính...",
+      "unpaid": "Không lương",
+      "updateLeaveType": "Cập nhật loại nghỉ phép"
+    },
+    "overtime": {
+      "multiplier": "Hệ số nhân",
+      "publicHoliday": "Ngày lễ công cộng",
+      "rateType": "Loại tỷ lệ",
+      "weekday": "Ngày thường",
+      "weekend": "Cuối tuần",
+      "addOtRate": "Thêm mức OT",
+      "allDay": "Cả ngày",
+      "allFiveConfigured": "Đã cấu hình đủ 5 loại OT",
+      "allFiveConfiguredShort": "Đã cấu hình đủ 5 loại!",
+      "appliesTo": "Áp dụng cho",
+      "deleteOtRate": "Xóa mức OT",
+      "editOtRate": "Sửa mức OT",
+      "editRatesHint": "Bạn có thể chỉnh sửa từng mức bằng nút Edit phía trên.",
+      "flatAmount": "Số tiền cố định",
+      "multiplierValue": "Giá trị nhân",
+      "noRatesConfigured": "Chưa cấu hình mức OT nào",
+      "rate": "Mức",
+      "remaining": "còn lại",
+      "selectOtType": "Chọn loại OT",
+      "selectStandardTypes": "Chọn từ 5 loại OT tiêu chuẩn bên dưới",
+      "shift": "Ca làm",
+      "title": "Tiêu đề",
+      "updateOtRate": "Cập nhật mức OT"
+    },
+    "pageTitle": "Cấu hình chính sách nhân sự",
+    "presets": {
+      "13th_Month_Salary": "Lương tháng 13",
+      "Absence_Deduction": "Khấu trừ vắng mặt",
+      "Annual_Bonus": "Thưởng hàng năm",
+      "Annual_Leave": "Nghỉ phép năm",
+      "Bereavement_Leave": "Nghỉ việc tang",
+      "Cambodian_Riel": "Riel Campuchia",
+      "Compensation_Leave": "Nghỉ bù",
+      "Day_Weekday_OT": "Tăng ca ngày thường - Ban ngày",
+      "Day_Weekend_OT": "Tăng ca cuối tuần - Ban ngày",
+      "Emergency_Leave": "Nghỉ khẩn cấp",
+      "Festival_Bonus": "Thưởng dịp lễ",
+      "Hardship_Allowance": "Phụ cấp độc hại/khó khăn",
+      "Health_Insurance": "Bảo hiểm y tế",
+      "Housing_Allowance": "Phụ cấp nhà ở",
+      "Income_Tax": "Thuế thu nhập",
+      "Japanese_Yen": "Yên Nhật",
+      "Korean_Won": "Won Hàn Quốc",
+      "Marriage_Leave": "Nghỉ kết hôn",
+      "Maternity_Leave": "Nghỉ thai sản",
+      "Meal_Allowance": "Phụ cấp ăn uống",
+      "Medical_Allowance": "Phụ cấp y tế",
+      "Myanmar_Kyat": "Kyat Myanmar",
+      "NSSF": "Quỹ An sinh Xã hội Quốc gia (NSSF)",
+      "Night_Weekday_OT": "Tăng ca ngày thường - Ban đêm",
+      "Night_Weekend_OT": "Tăng ca cuối tuần - Ban đêm",
+      "Overtime_Allowance": "Phụ cấp tăng ca",
+      "Paternity_Leave": "Nghỉ thai sản nam",
+      "Pension_Fund": "Quỹ hưu trí",
+      "Performance_Bonus": "Thưởng hiệu suất",
+      "Phone_Allowance": "Phụ cấp điện thoại",
+      "Public_Holiday": "Ngày lễ công cộng",
+      "Public_Holiday_OT": "Tăng ca ngày lễ",
+      "Retention_Bonus": "Thưởng giữ chân nhân sự",
+      "SSB": "Ủy ban An sinh Xã hội (SSB)",
+      "Sick_Leave": "Nghỉ ốm",
+      "Social_Security": "Bảo hiểm xã hội",
+      "Transport_Allowance": "Phụ cấp đi lại",
+      "US_Dollar": "Đô la Mỹ",
+      "Union_Fee": "Kinh phí công đoàn",
+      "Unpaid_Leave": "Nghỉ không lương",
+      "Vietnamese_Dong": "Đồng Việt Nam",
+      "Year_End_Bonus": "Thưởng cuối năm"
+    },
+    "salary": {
+      "bank": "Ngân hàng",
+      "currency": "Tiền tệ",
+      "dailyRate": "Lương theo ngày",
+      "dayShift": "Ca ngày",
+      "everyMonth": "Hàng tháng",
+      "everyTenDays": "Mỗi 10 ngày",
+      "everyThreeMonths": "Mỗi 3 tháng",
+      "hourlyRate": "Lương theo giờ",
+      "lateDeduction": "Khấu trừ đi muộn",
+      "lunchBreak": "Nghỉ trưa",
+      "monthly": "Hàng tháng",
+      "nightShift": "Ca đêm",
+      "onceAMonth": "Mỗi tháng một lần",
+      "onceAYear": "Mỗi năm một lần",
+      "otBase": "Lương cơ sở tăng ca",
+      "payCycle": "Chu kỳ trả lương",
+      "probation": "Thử việc",
+      "semiMonthly": "Nửa tháng một lần",
+      "specialBonus": "Thưởng đặc biệt",
+      "tenDay": "10 ngày",
+      "threePeriodsMonth": "Ba kỳ một tháng",
+      "twiceAMonth": "Hai lần một tháng",
+      "twoPeriodsMonth": "Hai kỳ một tháng",
+      "workHours": "Giờ làm việc"
+    },
+    "saved": "Đã lưu",
+    "sections": {
+      "allowance": "Phụ cấp",
+      "bonus": "Khen thưởng",
+      "currency": "Cấu hình tiền tệ",
+      "deduction": "Quy tắc khấu trừ",
+      "holiday": "Ngày lễ công cộng",
+      "leave": "Chính sách nghỉ phép",
+      "overtime": "Chính sách tăng ca",
+      "salary": "Quy tắc tiền lương"
+    },
+    "summaries": {
+      "allowance": "Nhà ở · Đi lại · Ăn uống · Tùy chỉnh",
+      "bonus": "Các loại thưởng · Lịch trình · Thời điểm chi trả",
+      "currency": "Mã · Ký hiệu · Định dạng thập phân",
+      "deduction": "Thuế · Bảo hiểm xã hội · Các dòng động",
+      "holiday": "Quốc gia · Lặp lại · Bộ lọc năm",
+      "leave": "Các loại nghỉ phép · Có lương/Không lương · Chuyển tiếp",
+      "overtime": "Tỷ lệ ngày thường · Cuối tuần · Ngày lễ",
+      "salary": "Chu kỳ trả lương · Ngày chốt công · Quy tắc ca làm việc"
+    },
+    "validation": {
+      "allowanceNameRequired": "Tên phụ cấp là bắt buộc.",
+      "bonusNameRequired": "Tên khoản thưởng là bắt buộc.",
+      "carryOverRequired": "Số ngày chuyển tiếp là bắt buộc.",
+      "currencyCodeRequired": "Mã tiền tệ là bắt buộc.",
+      "currencyNameRequired": "Tên tiền tệ là bắt buộc.",
+      "dateRequired": "Ngày là bắt buộc.",
+      "daysPerYearRequired": "Số ngày mỗi năm là bắt buộc.",
+      "deductionNameRequired": "Tên khoản khấu trừ là bắt buộc.",
+      "holidayNameRequired": "Tên ngày lễ là bắt buộc.",
+      "leaveTypeRequired": "Tên loại nghỉ phép là bắt buộc.",
+      "maxTenCharacters": "Tối đa 10 ký tự.",
+      "mustBeAtLeastOneDay": "Phải có ít nhất 1 ngày.",
+      "mustBeZeroOrGreater": "Phải từ 0 trở lên.",
+      "rateAmountRequired": "Tỷ lệ / Số tiền là bắt buộc.",
+      "rateRequired": "Tỷ lệ là bắt buộc.",
+      "selectOtType": "Vui lòng chọn loại tăng ca.",
+      "validNumber": "Vui lòng nhập một số hợp lệ.",
+      "valueRequired": "Giá trị là bắt buộc."
+    },
+    "setupDescription": "Thiết lập nghỉ phép, tăng ca, quy tắc tính lương và các cấu hình khác cho tổ chức của bạn",
+    "completed": "đã hoàn thành",
+    "country": "Quốc gia",
+    "notConfigured": "Chưa cấu hình",
+    "step": "Bước",
+    "of": "trên"
   }
 }

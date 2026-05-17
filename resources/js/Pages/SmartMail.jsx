@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { usePage, router } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 import AppLayout from '@/Layouts/AppLayout';
 import MailSetup from '@/Components/SmartMail/MailSetup';
 import MailSidebar from '@/Components/SmartMail/MailSidebar';
@@ -203,7 +204,7 @@ function Toast({ message, type, onClose, theme }) {
 }
 
 // ── New Mail Notification ─────────────────────────────────────
-function NewMailNotif({ mail, onClose, onView, theme }) {
+function NewMailNotif({ mail, onClose, onView, theme, tr }) {
     useEffect(() => { const t = setTimeout(onClose, 6000); return () => clearTimeout(t); }, []);
     if (!mail) return null;
 
@@ -228,7 +229,7 @@ function NewMailNotif({ mail, onClose, onView, theme }) {
                     justifyContent: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0,
                 }}>{initial}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: theme.primary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>New Mail</div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: theme.primary, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>{tr('smartMail.notifications.newMail')}</div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: theme.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {mail.from_name || mail.from_address}
                     </div>
@@ -236,7 +237,7 @@ function NewMailNotif({ mail, onClose, onView, theme }) {
                 <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.textMute, fontSize: 16 }}>×</button>
             </div>
             <div style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft, marginBottom: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {typeof mail.subject === 'string' ? mail.subject : '(No Subject)'}
+                {typeof mail.subject === 'string' ? mail.subject : tr('smartMail.labels.noSubject')}
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={onClose} style={{
@@ -244,19 +245,19 @@ function NewMailNotif({ mail, onClose, onView, theme }) {
                     border: `1px solid ${theme.border}`,
                     background: theme.panelSoft, color: theme.textSoft,
                     fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                }}>Dismiss</button>
+                }}>{tr('smartMail.actions.dismiss')}</button>
                 <button onClick={() => { onView(); onClose(); }} style={{
                     flex: 1, padding: '8px', borderRadius: 10, border: 'none',
                     background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
                     color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                }}>View Mail</button>
+                }}>{tr('smartMail.actions.viewMail')}</button>
             </div>
         </div>
     );
 }
 
 // ── Settings Modal ────────────────────────────────────────────
-function SettingsModal({ open, onClose, mailSetting, theme, onShowToast }) {
+function SettingsModal({ open, onClose, mailSetting, theme, onShowToast, tr }) {
     if (!open) return null;
     return (
         <div style={{
@@ -294,6 +295,7 @@ function SettingsModal({ open, onClose, mailSetting, theme, onShowToast }) {
                         onClose();
                         router.reload({ only: ['mailSetting'] });
                     }}
+                    tr={tr}
                 />
             </div>
         </div>
@@ -305,6 +307,7 @@ export default function SmartMail({
     mailSetting = null, inbox = [], sent = [], unreadCount = 0,
     templates = [], systemUsers = [], leaveTypes = [], needsSetup = false, hasApi = false,
 }) {
+    const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
@@ -462,7 +465,7 @@ export default function SmartMail({
     // NeedsSetup screen
     if (needsSetup) {
         return (
-            <AppLayout title="Smart Mail">
+            <AppLayout title={tr("smartMail.pageTitle")}>
                 <style>{`@keyframes slideIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }`}</style>
                 <Toast message={toast?.msg} type={toast?.type} onClose={() => setToast(null)} theme={theme} />
                 <div style={{
@@ -472,14 +475,14 @@ export default function SmartMail({
                     boxShadow: theme.shadow,
                     overflow: 'hidden',
                 }}>
-                    <MailSetup mailSetting={mailSetting} />
+                    <MailSetup mailSetting={mailSetting} tr={tr} />
                 </div>
             </AppLayout>
         );
     }
 
     return (
-        <AppLayout title="Smart Mail">
+        <AppLayout title={tr("smartMail.pageTitle")}>
             <style>{`
                 @keyframes slideIn  { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
                 @keyframes slideUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
@@ -494,6 +497,7 @@ export default function SmartMail({
                 onClose={() => setNewMailNotif(null)}
                 onView={() => { setActiveTab('inbox'); setSelectedMail(newMailNotif); }}
                 theme={theme}
+                tr={tr}
             />
 
             {/* Page wrapper */}
@@ -521,16 +525,16 @@ export default function SmartMail({
                         }}>📬</div>
                         <div>
                             <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.primary, marginBottom: 3 }}>
-                                Smart Mail
+                                {tr('smartMail.pageTitle')}
                             </div>
                             <div style={{ fontSize: 18, fontWeight: 900, color: theme.text, lineHeight: 1.1 }}>
-                                {mailSetting?.mail_name || 'Mail'}
+                                {mailSetting?.mail_name || tr('smartMail.labels.mail')}
                             </div>
                             <div style={{ fontSize: 12, color: theme.textMute, marginTop: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <span>{mailSetting?.mail_address}</span>
                                 {!hasApi && (
                                     <span style={{ padding: '1px 8px', borderRadius: 99, background: theme.warningSoft, color: theme.warning, fontSize: 10, fontWeight: 800 }}>
-                                        Demo Mode
+                                        {tr('smartMail.labels.demoMode')}
                                     </span>
                                 )}
                             </div>
@@ -547,7 +551,7 @@ export default function SmartMail({
                                 fontSize: 12, fontWeight: 800,
                                 border: `1px solid ${theme.primary}30`,
                             }}>
-                                {unreadMails} unread
+                                {unreadMails} {tr('smartMail.labels.unread')}
                             </div>
                         )}
                         <UIButton variant="ghost" theme={theme} onClick={() => setShowSettings(true)} style={{ height: 38 }}>
@@ -555,7 +559,7 @@ export default function SmartMail({
                                 <circle cx="12" cy="12" r="3"/>
                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                             </svg>
-                            Mail Settings
+                            {tr('smartMail.actions.mailSettings')}
                         </UIButton>
                     </div>
                 </div>
@@ -586,6 +590,7 @@ export default function SmartMail({
                         syncing={syncing}
                         theme={theme}
                         darkMode={darkMode}
+                        tr={tr}
                     />
                     <MailList
                         mails={currentMails}
@@ -597,6 +602,7 @@ export default function SmartMail({
                         onStarMail={handleStarMail}
                         theme={theme}
                         darkMode={darkMode}
+                        tr={tr}
                     />
                     <MailView
                         mail={selectedMail}
@@ -606,6 +612,7 @@ export default function SmartMail({
                         onShowToast={showToast}
                         theme={theme}
                         darkMode={darkMode}
+                        tr={tr}
                     />
                 </div>
             </div>
@@ -622,6 +629,7 @@ export default function SmartMail({
                 forwardMail={forwardMail}
                 theme={theme}
                 darkMode={darkMode}
+                tr={tr}
             />
 
             <SettingsModal
@@ -630,6 +638,7 @@ export default function SmartMail({
                 mailSetting={mailSetting}
                 theme={theme}
                 onShowToast={showToast}
+                tr={tr}
             />
         </AppLayout>
     );

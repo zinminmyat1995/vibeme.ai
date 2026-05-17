@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Head, router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
+import { useTranslation } from "@/Contexts/LanguageContext";
 import {
     LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer,
@@ -47,8 +48,8 @@ const T = (dark) => dark ? {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const fmt = (n, cur = "USD") => n == null ? "—" :
-    new Intl.NumberFormat("en-US", { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(n);
+const fmt = (n, cur = "USD", locale = "en-US") => n == null ? "—" :
+    new Intl.NumberFormat(locale, { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(n);
 
 const fmtK = (n) => {
     if (n == null) return "—";
@@ -72,8 +73,12 @@ const STATUS_STYLE = {
     completed: { bg: "rgba(148,163,184,0.15)", color: "#475569" },
 };
 
+const monthName = (tr, month, type = "short") => tr(`plReport.months.${type}.${month}`) || "";
+const monthLabel = (tr, item) => item?.month ? `${monthName(tr, item.month, "short")} ${item.year ?? ""}`.trim() : item?.label;
+
+
 // ── Chart Tooltip ─────────────────────────────────────────────────────────────
-function ChartTip({ active, payload, label, currency }) {
+function ChartTip({ active, payload, label, currency, locale }) {
     if (!active || !payload?.length) return null;
     return (
         <div style={{
@@ -86,7 +91,7 @@ function ChartTip({ active, payload, label, currency }) {
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
                     <span style={{ width: 7, height: 7, borderRadius: 2, background: p.color, display: "inline-block", flexShrink: 0 }} />
                     <span style={{ color: "#94a3b8" }}>{p.name}:</span>
-                    <span style={{ color: "#f1f5f9", fontWeight: 500 }}>{fmt(p.value, currency)}</span>
+                    <span style={{ color: "#f1f5f9", fontWeight: 500 }}>{fmt(p.value, currency, locale)}</span>
                 </div>
             ))}
         </div>
@@ -116,6 +121,8 @@ export default function PLReportShow({
     latestMonth = null,
     filter = {},  
 }) {
+    const { t: tr, locale = "en" } = useTranslation();
+    const fmtMoney = (n, cur = "USD") => fmt(n, cur, locale === "ja" ? "ja-JP" : locale === "ko" ? "ko-KR" : locale === "vi" ? "vi-VN" : "en-US");
     const dark = useTheme();
     const t    = useMemo(() => T(dark), [dark]);
     const cur  = project?.currency ?? "USD";
@@ -127,34 +134,34 @@ export default function PLReportShow({
     const selMonth = months[selIdx] ?? latestMonth;
 
     const trendData = months.map(m => ({
-        label:    m.label,
-        Revenue:  m.revenue,
-        Cost:     m.total_cost,
-        Profit:   m.profit,
+        label: monthLabel(tr, m),
+        revenue: m.revenue,
+        cost: m.total_cost,
+        profit: m.profit,
     }));
 
     const stSt = STATUS_STYLE[project.status] ?? STATUS_STYLE.completed;
 
     if (!project?.id) {
         return (
-            <AppLayout title="P&L Report">
-                <Head title="P&L" />
+            <AppLayout title={tr("plReport.pageTitle")}>
+                <Head title={tr("plReport.pageTitle")} />
                 <div style={{ background: t.surface, border: `0.5px solid ${t.border}`, borderRadius: 12, padding: "48px 20px", textAlign: "center", color: t.textMute, fontSize: 13 }}>
-                    Project not found.
+                    {tr('plReport.show.empty.projectNotFound')}
                 </div>
             </AppLayout>
         );
     }
 
     return (
-        <AppLayout title={`P&L — ${project.name}`}>
-            <Head title={`P&L — ${project.name}`} />
+        <AppLayout title={`${tr("plReport.pageTitle")} — ${project.name}`}>
+            <Head title={`${tr("plReport.pageTitle")} — ${project.name}`} />
             <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 80 }}>
 
                 {/* ── Header ── */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 
-                    {/* Row 1 — Back button */}
+                    {/* Row 1 — {tr('plReport.actions.back')} button */}
                     <div>
                         <button
                             onClick={() => router.get("/hr/pl-report", {
@@ -176,7 +183,7 @@ export default function PLReportShow({
                             <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
                                 <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
-                            Back
+                            {tr('plReport.actions.back')}
                         </button>
                     </div>
 
@@ -203,7 +210,7 @@ export default function PLReportShow({
                                     background: stSt.bg, color: stSt.color,
                                     textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0,
                                 }}>
-                                    {project.status}
+                                    {tr(`plReport.status.${project.status}`) || project.status}
                                 </span>
                             </div>
                             {/* Meta Info Pills — REPLACE ဒီ section တစ်ခုကိုပဲ */}
@@ -229,7 +236,7 @@ export default function PLReportShow({
                                         />
                                     </svg>
                                     <span style={{ fontSize: 12, fontWeight: 500, color: t.textSoft }}>
-                                        {project.start_date} → {project.end_date ?? "Ongoing"}
+                                        {project.start_date} → {project.end_date ?? tr('plReport.show.ongoing')}
                                     </span>
                                 </div>
 
@@ -247,9 +254,9 @@ export default function PLReportShow({
                                             strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
                                         />
                                     </svg>
-                                    <span style={{ fontSize: 12, color: dark ? "#a5b4fc" : "#4338ca" }}>Contract:</span>
+                                    <span style={{ fontSize: 12, color: dark ? "#a5b4fc" : "#4338ca" }}>{tr('plReport.show.contract')}:</span>
                                     <strong style={{ fontSize: 12, fontWeight: 700, color: dark ? "#e0e7ff" : "#1e1b4b" }}>
-                                        {fmt(project.contract_value, cur)}
+                                        {fmtMoney(project.contract_value, cur)}
                                     </strong>
                                 </div>
 
@@ -270,7 +277,7 @@ export default function PLReportShow({
                                         {months.length}
                                     </div>
                                     <span style={{ fontSize: 12, fontWeight: 500, color: dark ? "#6ee7b7" : "#065f46" }}>
-                                        Confirmed month{months.length !== 1 ? "s" : ""}
+                                        {months.length !== 1 ? tr('plReport.show.confirmedMonths') : tr('plReport.show.confirmedMonth')}
                                     </span>
                                 </div>
                             </div>
@@ -282,7 +289,7 @@ export default function PLReportShow({
 
                 {months.length === 0 ? (
                     <div style={{ background: t.surface, border: `0.5px solid ${t.border}`, borderRadius: 12, padding: "48px 20px", textAlign: "center", color: t.textMute, fontSize: 13 }}>
-                        No confirmed payroll data yet for this project.
+                        {tr('plReport.show.empty.noProjectPayrollData')}
                     </div>
                 ) : (
                     <>
@@ -292,13 +299,13 @@ export default function PLReportShow({
                             borderRadius: 12, padding: "14px 16px", boxShadow: t.shadow,
                             display: "flex", gap: 10, flexWrap: "wrap",
                         }}>
-                            <KPI label="Total Revenue"  value={fmt(overallPL.revenue, cur)}     color="#534AB7"   t={t} />
-                            <KPI label="Salary Cost"    value={fmt(overallPL.salary_cost, cur)} color="#7F77DD"   t={t} />
-                            <KPI label="OT Cost"        value={fmt(overallPL.ot_cost, cur)}     color={t.warning} t={t} />
-                            <KPI label="Leave Cost"     value={fmt(overallPL.leave_cost, cur)}  color={t.success} t={t} />
+                            <KPI label={tr("plReport.kpi.totalRevenue")}  value={fmtMoney(overallPL.revenue, cur)}     color="#534AB7"   t={t} />
+                            <KPI label={tr("plReport.show.kpi.salaryCost")}    value={fmtMoney(overallPL.salary_cost, cur)} color="#7F77DD"   t={t} />
+                            <KPI label={tr("plReport.show.kpi.otCost")}        value={fmtMoney(overallPL.ot_cost, cur)}     color={t.warning} t={t} />
+                            <KPI label={tr("plReport.show.kpi.leaveCost")}     value={fmtMoney(overallPL.leave_cost, cur)}  color={t.success} t={t} />
                             <KPI
-                                label={isProfit ? "Net Profit" : "Net Loss"}
-                                value={`${isProfit ? "+" : ""}${fmt(overallPL.profit, cur)}`}
+                                label={isProfit ? tr("plReport.kpi.netProfit") : tr("plReport.show.kpi.netLoss")}
+                                value={`${isProfit ? "+" : ""}${fmtMoney(overallPL.profit, cur)}`}
                                 color={profitClr} t={t}
                             />
                         </div>
@@ -316,7 +323,7 @@ export default function PLReportShow({
                                     fontSize: 12, fontWeight: 500, color: t.text,
                                     display: "flex", alignItems: "center", gap: 6,
                                 }}>
-                                    📅 Monthly breakdown
+                                    📅 {tr('plReport.show.monthlyBreakdown')}
                                 </div>
 
                                 {/* Column headers */}
@@ -327,11 +334,11 @@ export default function PLReportShow({
                                     textTransform: "uppercase", letterSpacing: "0.07em",
                                     background: t.soft,
                                 }}>
-                                    <div>Month</div>
-                                    <div style={{ textAlign: "right" }}>Revenue</div>
-                                    <div style={{ textAlign: "right" }}>Cost</div>
-                                    <div style={{ textAlign: "right" }}>Profit</div>
-                                    <div style={{ textAlign: "right" }}>Margin</div>
+                                    <div>{tr('plReport.show.table.month')}</div>
+                                    <div style={{ textAlign: "right" }}>{tr('plReport.chart.revenue')}</div>
+                                    <div style={{ textAlign: "right" }}>{tr('plReport.chart.cost')}</div>
+                                    <div style={{ textAlign: "right" }}>{tr('plReport.chart.profit')}</div>
+                                    <div style={{ textAlign: "right" }}>{tr('plReport.labels.margin')}</div>
                                 </div>
 
                                 {months.map((m, idx) => {
@@ -359,16 +366,16 @@ export default function PLReportShow({
                                             onMouseLeave={e => { if (!sel) e.currentTarget.style.background = "transparent"; }}
                                         >
                                             <div style={{ fontSize: 12, fontWeight: sel ? 500 : 400, color: t.text }}>
-                                                {m.label}
+                                                {monthLabel(tr, m)}
                                             </div>
                                             <div style={{ textAlign: "right", fontSize: 12, fontWeight: 500, color: "#534AB7" }}>
-                                                {fmt(m.revenue, cur)}
+                                                {fmtMoney(m.revenue, cur)}
                                             </div>
                                             <div style={{ textAlign: "right", fontSize: 12, color: t.warning }}>
-                                                {fmt(m.total_cost, cur)}
+                                                {fmtMoney(m.total_cost, cur)}
                                             </div>
                                             <div style={{ textAlign: "right", fontSize: 12, fontWeight: 500, color: mP ? t.success : t.danger }}>
-                                                {mP ? "+" : ""}{fmt(m.profit, cur)}
+                                                {mP ? "+" : ""}{fmtMoney(m.profit, cur)}
                                             </div>
                                             <div style={{ textAlign: "right" }}>
                                                 {mg != null ? (
@@ -388,9 +395,9 @@ export default function PLReportShow({
                                     display: "flex", justifyContent: "space-between", alignItems: "center",
                                     padding: "10px 14px", fontSize: 12,
                                 }}>
-                                    <span style={{ color: t.textMute }}>Total ({months.length} months)</span>
+                                    <span style={{ color: t.textMute }}>{tr('plReport.labels.total')} ({months.length} {months.length !== 1 ? tr('plReport.show.confirmedMonths') : tr('plReport.show.confirmedMonth')})</span>
                                     <span style={{ fontWeight: 500, color: profitClr }}>
-                                        {isProfit ? "+" : ""}{fmt(overallPL.profit, cur)}
+                                        {isProfit ? "+" : ""}{fmtMoney(overallPL.profit, cur)}
                                     </span>
                                 </div>
                             </div>
@@ -401,15 +408,15 @@ export default function PLReportShow({
                                 borderRadius: 12, padding: "14px 16px", boxShadow: t.shadow,
                             }}>
                                 <div style={{ fontSize: 12, fontWeight: 500, color: t.text, marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                                    📈 Revenue vs cost trend
+                                    📈 {tr('plReport.show.revenueCostTrend')}
                                 </div>
 
                                 {/* Chart legend */}
                                 <div style={{ display: "flex", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
                                     {[
-                                        { color: "#AFA9EC", label: "Revenue" },
-                                        { color: "#EF9F27", label: "Cost" },
-                                        { color: "#1D9E75", label: "Profit" },
+                                        { color: "#AFA9EC", label: tr("plReport.chart.revenue") },
+                                        { color: "#EF9F27", label: tr("plReport.chart.cost") },
+                                        { color: "#1D9E75", label: tr("plReport.chart.profit") },
                                     ].map((item, i) => (
                                         <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11 }}>
                                             <div style={{ width: 16, height: 2, background: item.color, borderRadius: 2 }} />
@@ -420,7 +427,7 @@ export default function PLReportShow({
 
                                 {trendData.length === 0 ? (
                                     <div style={{ height: 180, display: "flex", alignItems: "center", justifyContent: "center", color: t.textMute, fontSize: 12 }}>
-                                        No data available
+                                        {tr('plReport.empty.noDataAvailable')}
                                     </div>
                                 ) : trendData.length === 1 ? (
                                     <ResponsiveContainer width="100%" height={190}>
@@ -429,10 +436,10 @@ export default function PLReportShow({
                                             <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
                                             <XAxis dataKey="label" tick={{ fontSize: 10, fill: t.textMute }} axisLine={false} tickLine={false} />
                                             <YAxis tick={{ fontSize: 10, fill: t.textMute }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
-                                            <Tooltip content={<ChartTip currency={cur} />} cursor={{ fill: "rgba(148,163,184,0.06)" }} />
-                                            <Bar dataKey="Revenue" fill="#AFA9EC" radius={[4,4,0,0]} maxBarSize={52} />
-                                            <Bar dataKey="Cost"    fill="#EF9F27" radius={[4,4,0,0]} maxBarSize={52} />
-                                            <Bar dataKey="Profit"  fill="#1D9E75" radius={[4,4,0,0]} maxBarSize={52} />
+                                            <Tooltip content={<ChartTip currency={cur} locale={locale} />} cursor={{ fill: "rgba(148,163,184,0.06)" }} />
+                                            <Bar dataKey="revenue" name={tr("plReport.chart.revenue")} fill="#AFA9EC" radius={[4,4,0,0]} maxBarSize={52} />
+                                            <Bar dataKey="cost" name={tr("plReport.chart.cost")}    fill="#EF9F27" radius={[4,4,0,0]} maxBarSize={52} />
+                                            <Bar dataKey="profit" name={tr("plReport.chart.profit")}  fill="#1D9E75" radius={[4,4,0,0]} maxBarSize={52} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
@@ -441,10 +448,10 @@ export default function PLReportShow({
                                             <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
                                             <XAxis dataKey="label" tick={{ fontSize: 10, fill: t.textMute }} axisLine={false} tickLine={false} />
                                             <YAxis tick={{ fontSize: 10, fill: t.textMute }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
-                                            <Tooltip content={<ChartTip currency={cur} />} cursor={{ stroke: t.borderMd, strokeWidth: 1 }} />
-                                            <Line type="monotone" dataKey="Revenue" stroke="#AFA9EC" strokeWidth={2.5} dot={{ r: 4, fill: "#AFA9EC", strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 0 }} />
-                                            <Line type="monotone" dataKey="Cost"    stroke="#EF9F27" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 3, fill: "#EF9F27", strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }} />
-                                            <Line type="monotone" dataKey="Profit"  stroke="#1D9E75" strokeWidth={2} strokeDasharray="2 3" dot={{ r: 3, fill: "#1D9E75", strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }} />
+                                            <Tooltip content={<ChartTip currency={cur} locale={locale} />} cursor={{ stroke: t.borderMd, strokeWidth: 1 }} />
+                                            <Line type="monotone" dataKey="revenue" name={tr("plReport.chart.revenue")} stroke="#AFA9EC" strokeWidth={2.5} dot={{ r: 4, fill: "#AFA9EC", strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                                            <Line type="monotone" dataKey="cost" name={tr("plReport.chart.cost")}    stroke="#EF9F27" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 3, fill: "#EF9F27", strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }} />
+                                            <Line type="monotone" dataKey="profit" name={tr("plReport.chart.profit")}  stroke="#1D9E75" strokeWidth={2} strokeDasharray="2 3" dot={{ r: 3, fill: "#1D9E75", strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 0 }} />
                                         </LineChart>
                                     </ResponsiveContainer>
                                 )}
@@ -465,7 +472,7 @@ export default function PLReportShow({
                                     flexWrap: "wrap", gap: 8,
                                 }}>
                                     <div style={{ fontSize: 12, fontWeight: 500, color: t.text, display: "flex", alignItems: "center", gap: 6 }}>
-                                        👥 Member cost — {selMonth.label}
+                                        👥 {tr('plReport.show.memberCost')} — {monthLabel(tr, selMonth)}
                                     </div>
                                     {months.length > 1 && (
                                         <div style={{ display: "flex", gap: 5 }}>
@@ -481,7 +488,7 @@ export default function PLReportShow({
                                                         color: idx === selIdx ? t.primary : t.textSoft,
                                                         outline: "none", transition: "all 0.15s",
                                                     }}
-                                                >{m.label}</button>
+                                                >{monthLabel(tr, m)}</button>
                                             ))}
                                         </div>
                                     )}
@@ -490,7 +497,7 @@ export default function PLReportShow({
                                 {/* Member cards grid */}
                                 {(!selMonth.members || selMonth.members.length === 0) ? (
                                     <div style={{ padding: "32px 20px", textAlign: "center", color: t.textMute, fontSize: 12 }}>
-                                        No member data for this month.
+                                        {tr('plReport.show.empty.noMemberData')}
                                     </div>
                                 ) : (
                                     <>
@@ -530,7 +537,7 @@ export default function PLReportShow({
                                                                     {m.name}
                                                                 </div>
                                                                 <div style={{ fontSize: 10, color: t.textMute, marginTop: 1 }}>
-                                                                    {m.hours_per_day}h · {m.assigned_days} days
+                                                                    {m.hours_per_day}h · {m.assigned_days} {m.assigned_days !== 1 ? tr('plReport.units.days') : tr('plReport.units.day')}
                                                                 </div>
                                                             </div>
                                                             <span style={{
@@ -543,9 +550,9 @@ export default function PLReportShow({
 
                                                         {/* Cost rows */}
                                                         {[
-                                                            { label: "Salary", value: m.salary_cost, color: "#7F77DD" },
-                                                            { label: "OT",     value: m.ot_cost,     color: t.warning },
-                                                            { label: "Leave",  value: m.leave_cost,  color: t.success },
+                                                            { label: tr("plReport.expense.salary"), value: m.salary_cost, color: "#7F77DD" },
+                                                            { label: tr("plReport.expense.ot"),     value: m.ot_cost,     color: t.warning },
+                                                            { label: tr("plReport.expense.leave"),  value: m.leave_cost,  color: t.success },
                                                         ].map((row, ri) => (
                                                             <div key={ri} style={{
                                                                 display: "flex", justifyContent: "space-between",
@@ -555,15 +562,15 @@ export default function PLReportShow({
                                                             }}>
                                                                 <span style={{ color: t.textMute }}>{row.label}</span>
                                                                 <span style={{ fontWeight: row.value > 0 ? 500 : 400, color: row.value > 0 ? row.color : t.textMute }}>
-                                                                    {row.value > 0 ? fmt(row.value, cur) : "—"}
+                                                                    {row.value > 0 ? fmtMoney(row.value, cur) : "—"}
                                                                 </span>
                                                             </div>
                                                         ))}
 
                                                         {/* Total */}
                                                         <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, fontSize: 13, fontWeight: 500 }}>
-                                                            <span style={{ color: t.textSoft }}>Total</span>
-                                                            <span style={{ color: t.text }}>{fmt(m.total_cost, cur)}</span>
+                                                            <span style={{ color: t.textSoft }}>{tr("plReport.labels.total")}</span>
+                                                            <span style={{ color: t.text }}>{fmtMoney(m.total_cost, cur)}</span>
                                                         </div>
                                                     </div>
                                                 );
@@ -577,7 +584,7 @@ export default function PLReportShow({
                                             display: "flex", justifyContent: "space-between", fontSize: 12,
                                         }}>
                                             <span style={{ color: t.textMute }}>
-                                                Total cost — {selMonth.label}
+                                                {tr('plReport.chart.totalCost')} — {monthLabel(tr, selMonth)}
                                             </span>
                                         
                                         </div>

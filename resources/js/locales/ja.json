@@ -4,57 +4,4048 @@
       "MAIN": "メイン",
       "AI WORKSPACE": "AIワークスペース",
       "OPERATIONS": "オペレーション",
-      "PEOPLE & HR": "人事管理",
+      "PEOPLE & HR": "人事・労務",
       "WORK MANAGEMENT": "業務管理",
-      "PAYROLL": "給与"
+      "PAYROLL": "給与計算"
     },
     "items": {
       "Dashboard": "ダッシュボード",
       "My Profile": "マイプロフィール",
       "Requirement Analysis": "要件分析",
-      "Proposal Generator": "提案書作成",
+      "Proposal Generator": "提案書ジェネレーター",
       "Project Management": "プロジェクト管理",
-      "My Assignments": "マイタスク",
-      "P&L Report": "損益レポート",
+      "My Assignments": "マイアサインメント",
+      "P&L Report": "損益報告書",
       "Document Translation": "文書翻訳",
-      "Smart Mail": "メール",
+      "Smart Mail": "スマートメール",
       "AI Chat": "AIチャット",
-      "Trip Schedule": "運行スケジュール",
+      "Trip Schedule": "出張スケジュール",
       "Surveys": "アンケート",
-      "HR Alerts": "HRアラート",
-      "Performance Review": "パフォーマンス評価",
+      "HR Alerts": "人事アラート",
+      "Performance Review": "人事評価",
       "Recruitment": "採用",
       "User & Roles": "ユーザーと権限",
-      "HR Policy": "HR方針",
-      "Project Assignment": "プロジェクト割当",
+      "HR Policy": "就業規則",
+      "Project Assignment": "プロジェクトアサイン",
       "Bookings": "予約",
-      "Attendance": "出勤",
-      "Check In/Out Request": "出退勤申請",
+      "Attendance": "勤怠",
+      "Check In/Out Request": "打刻修正申請",
       "Leave Request": "休暇申請",
       "Overtime Request": "残業申請",
-      "Expense Request": "経費申請",
-      "Employee Salary": "社員給与",
-      "Payroll": "給与処理",
+      "Expense Request": "経費精算申請",
+      "Employee Salary": "従業員給与",
+      "Payroll": "給与計算",
       "Payslip": "給与明細",
-      "Bank Export": "銀行エクスポート"
+      "Bank Export": "銀行振込データ出力"
     },
-    "signOut": "ログアウト",
+    "signOut": "サインアウト",
     "endSession": "現在のセッションを終了"
   },
   "roles": {
     "admin": "管理者",
-    "hr": "HRマネージャー",
-    "management": "マネジメント",
-    "employee": "社員",
+    "hr": "人事マネージャー",
+    "management": "管理職",
+    "employee": "従業員",
     "driver": "ドライバー"
   },
   "lang": {
     "label": "言語",
-    "en": "English",
-    "my": "မြန်မာ",
-    "km": "ខ្មែរ",
-    "vi": "Tiếng Việt",
-    "ko": "한국어",
+    "en": "英語",
+    "my": "ミャンマー語",
+    "km": "クメール語",
+    "vi": "ベトナム語",
+    "ko": "韓国語",
     "ja": "日本語"
+  },
+  "dash": {
+    "announcement": "お知らせ",
+    "by": "投稿者:",
+    "deleteAnnouncement": "お知らせを削除",
+    "announcementDeleted": "お知らせを削除しました。",
+    "failedToDelete": "削除に失敗しました。",
+    "networkError": "ネットワークエラーが発生しました。",
+    "seeLess": "折りたたむ",
+    "seeMore": "もっと見る",
+    "attachment": "添付ファイル",
+    "download": "ダウンロード",
+    "link": "リンク",
+    "newAnnouncement": "新規お知らせ",
+    "title": "タイトル",
+    "content": "本文",
+    "announcementTitlePlaceholder": "お知らせのタイトルを入力...",
+    "announcementContentPlaceholder": "お知らせの本文を入力...",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "attachmentsOptional": "添付ファイル（任意）",
+    "attachFilePlaceholder": "ファイルを添付（PDF、Word、Excel、画像、ZIP — 最大20MB）",
+    "linkPlaceholder": "またはリンクを貼り付け（https://...）",
+    "cancel": "キャンセル",
+    "publish": "公開",
+    "publishing": "公開中...",
+    "announcementPublished": "お知らせを公開しました！",
+    "failed": "失敗しました。",
+    "required": "必須",
+    "typeLeave": "休暇",
+    "typeOT": "残業",
+    "typeAttendance": "勤怠",
+    "typeExpense": "経費",
+    "total": "合計",
+    "timeNotRecorded": "打刻データなし",
+    "attendanceCorrection": "勤怠修正",
+    "approve": "承認",
+    "reject": "却下",
+    "leaveRequest": "休暇申請",
+    "overtimeRequest": "残業申請",
+    "attendanceRequest": "勤怠申請",
+    "expenseRequest": "経費申請",
+    "request": "申請",
+    "leaveType": "休暇の種類",
+    "totalDays": "合計日数",
+    "days": "日",
+    "note": "備考",
+    "document": "書類",
+    "date": "日付",
+    "workHours": "勤務時間",
+    "checkIn": "出勤",
+    "checkOut": "退勤",
+    "late": "遅刻",
+    "amount": "金額",
+    "category": "カテゴリー",
+    "expenseDate": "経費発生日",
+    "description": "内容",
+    "attachments": "添付ファイル",
+    "noteOptional": "備考（任意）",
+    "noteForEmployee": "従業員へのメモを追加...",
+    "rejectionReason": "却下理由",
+    "rejectionReasonPlaceholder": "却下の理由を入力してください...",
+    "rejectionReasonRequired": "却下理由は必須です",
+    "confirmApproval": "承認の確認",
+    "confirmRejection": "却下の確認",
+    "requestedBy": "申請者",
+    "requestDetails": "申請詳細",
+    "processing": "処理中…",
+    "segmentsAdjust": "勤務セグメント — 承認時間の調整",
+    "req": "申請",
+    "hrs": "時間",
+    "totalApproved": "承認済み合計",
+    "pendingApprovals": "未承認の申請",
+    "all": "すべて",
+    "leave": "休暇",
+    "ot": "残業",
+    "attendance": "勤怠",
+    "expense": "経費",
+    "allCaughtUp": "すべて処理済みです！",
+    "noPendingApprovals": "現在、未承認の申請はありません。",
+    "unknownRequestType": "不明な申請タイプです。",
+    "actionFailed": "処理に失敗しました。",
+    "noLeaveData": "今月の休暇データはありません",
+    "noOTData": "今月の残業プロジェクトデータはありません",
+    "noPayrollData": "給与データはありません",
+    "latest": "最新",
+    "weekday": "平日",
+    "today": "今日",
+    "weekend": "週末",
+    "noLateArrivals": "今月の遅刻者はいません",
+    "kpi": {
+      "headcount": "人員数",
+      "presentToday": "本日の出勤者",
+      "onLeaveToday": "本日の休暇者",
+      "allPending": "すべての未承認",
+      "otHoursMonth": "月間残業時間",
+      "leaveRate": "休暇取得率",
+      "ofWorkingDays": "稼働日数に対する割合",
+      "turnoverQ": "四半期離職率",
+      "countries": "対象国",
+      "allOffices": "すべてのオフィス"
+    },
+    "approved": "承認済み",
+    "resigned": "退職",
+    "leaveUsageThisMonth": "今月の休暇使用状況",
+    "top20ByDays": "休暇取得日数トップ20",
+    "otByProject": "進行中プロジェクト別残業",
+    "top10OTHours": "今月の承認済み残業時間トップ10",
+    "monthlyAttendance": "月間勤怠状況",
+    "dailyPresentCount": "日別出勤者数",
+    "payrollTrend": "給与推移",
+    "last6Months": "過去6ヶ月の総支給額（手取り）",
+    "employmentMix": "雇用形態の内訳",
+    "byTypeActive": "タイプ別 — 在籍従業員",
+    "permanent": "正社員",
+    "probation": "試用期間",
+    "contract": "契約社員",
+    "departmentHeadcount": "部門別人員数",
+    "noData": "データなし",
+    "lateCheckIn": "遅刻頻度",
+    "lateCheckInSubtitle": "今月 · 回数降順 · トップ20",
+    "probationEndingSoon": "まもなく試用期間が終了する従業員",
+    "within10Days": "10日以内",
+    "contractExpiring": "まもなく契約が満了する従業員",
+    "within30Days": "30日以内",
+    "noAlerts": "アラートなし",
+    "birthdaysThisWeek": "今週誕生日の従業員",
+    "noBirthdays": "今週誕生日の従業員はいません",
+    "checkBackNextWeek": "来週また確認してください！",
+    "onLeaveToday": "本日の休暇者",
+    "employeesOnLeave": "承認された休暇中の従業員",
+    "approvedLeaveCoveringToday": "本日対象の承認済み休暇",
+    "upcomingHolidays": "今後の祝日",
+    "noUpcomingHolidays": "今後の祝日はありません",
+    "noOneOnLeave": "本日休暇中の従業員はいません",
+    "showLess": "▲ 折りたたむ",
+    "showMore": "▼ 他に{{count}}件を表示",
+    "importAttendance": "勤怠インポート",
+    "goodMorning": "おはようございます",
+    "goodAfternoon": "こんにちは",
+    "goodEvening": "こんばんは",
+    "personal": "個人",
+    "dashboard": "ダッシュボード",
+    "pending": "保留中",
+    "present": "出勤",
+    "staff": "スタッフ",
+    "checkedIn": "出勤済み",
+    "notCheckedIn": "未出勤",
+    "out": "退勤",
+    "currentlyAtWork": "現在勤務中",
+    "todayIsWorkingDay": "本日は稼働日です",
+    "warning": "警告",
+    "daysAbsent": "欠勤日数",
+    "absenceWarning": "欠勤警告",
+    "lateArrivalWarning": "遅刻警告",
+    "markAsRead": "既読にする",
+    "marking": "処理中…",
+    "emp": {
+      "presentDays": "出勤日数",
+      "otThisMonth": "今月の残業",
+      "pendingLeave": "保留中の休暇申請",
+      "absentDays": "欠勤日数",
+      "lateArrivals": "遅刻回数"
+    },
+    "thisMonth": "今月",
+    "awaitingApproval": "承認待ち",
+    "submitted": "提出済み",
+    "myPendingRequests": "自分の未承認申請",
+    "waitingForApproval": "承認待ち",
+    "latestPayslip": "最新の給与明細",
+    "hideAmounts": "金額を非表示",
+    "showAmounts": "金額を表示",
+    "netSalary": "差引支給額（手取り）",
+    "baseSalary": "基本給",
+    "otPay": "残業手当",
+    "allowances": "諸手当",
+    "deductions": "控除",
+    "leaveBalances": "休暇残日数",
+    "remainingDays": "残日数",
+    "myWeeklyAttendance": "今週の勤怠状況",
+    "workHoursPerDay": "1日あたりの勤務時間"
+  },
+  "profile": {
+    "pageTitle": "マイプロフィール",
+    "sections": {
+      "personalInformation": "個人情報",
+      "workInformation": "勤務情報",
+      "salaryInformation": "給与情報"
+    },
+    "fields": {
+      "fullName": "氏名",
+      "email": "メールアドレス",
+      "phone": "電話番号",
+      "dateOfBirth": "生年月日",
+      "country": "国",
+      "position": "役職",
+      "department": "部署",
+      "joinDate": "入社日",
+      "employment": "雇用形態",
+      "contractEnd": "契約終了日",
+      "role": "権限",
+      "baseSalary": "基本給",
+      "bank": "銀行",
+      "accountName": "口座名義",
+      "accountNo": "口座番号",
+      "branch": "支店",
+      "effectiveDate": "適用開始日",
+      "allowances": "諸手当"
+    },
+    "actions": {
+      "show": "表示",
+      "hide": "非表示"
+    },
+    "status": {
+      "active": "在籍中"
+    },
+    "employmentTypes": {
+      "probation": "試用期間",
+      "permanent": "正社員",
+      "contract": "契約社員"
+    },
+    "countries": {
+      "myanmar": "ミャンマー",
+      "vietnam": "ベトナム",
+      "korea": "韓国",
+      "cambodia": "カンボジア",
+      "japan": "日本"
+    },
+    "tenure": {
+      "year": "年",
+      "month": "ヶ月",
+      "day": "日",
+      "today": "今日"
+    },
+    "messages": {
+      "revealSalary": "手当の金額を表示するには基本給を表示してください",
+      "noPayrollProfile": "給与プロファイルがまだ設定されていません。人事にお問い合わせください。"
+    },
+    "fallback": {
+      "employee": "従業員"
+    }
+  },
+  "attendance": {
+    "pageTitle": "勤怠",
+    "selectEmployee": "従業員を選択",
+    "addAttendance": "勤怠追加",
+    "editAttendance": "勤怠編集",
+    "updateAttendanceRecord": "勤怠記録の更新",
+    "recordEmployeeAttendance": "従業員勤怠の記録",
+    "addRecord": "記録追加",
+    "monthlySummary": "月間サマリー",
+    "workingDays": "稼働日数",
+    "workingDaysLower": "稼働日",
+    "present": "出勤",
+    "absent": "欠勤",
+    "lateDays": "遅刻日数",
+    "otHours": "残業時間",
+    "leaveDays": "休暇日数",
+    "totalLate": "合計遅刻",
+    "workHours": "勤務時間",
+    "holidays": "祝日",
+    "employee": "従業員",
+    "status": "ステータス",
+    "checkIn": "出勤",
+    "checkOut": "退勤",
+    "shortHours": "勤務時間不足",
+    "late": "遅刻",
+    "overtimeDetail": "残業詳細",
+    "note": "備考",
+    "edit": "編集",
+    "delete": "削除",
+    "deleteAttendance": "勤怠データを削除しますか？",
+    "cancel": "キャンセル",
+    "deleting": "削除中...",
+    "yesDelete": "はい、削除します",
+    "save": "保存",
+    "saving": "保存中...",
+    "date": "日付",
+    "lateMin": "遅刻（分）",
+    "auto": "自動",
+    "lunch": "休憩",
+    "start": "開始",
+    "requiredNote": "備考を入力してください...",
+    "weekend": "週末",
+    "publicHoliday": "祝日",
+    "noAttendanceRequired": "勤怠記録は不要です",
+    "futureDate": "未来の日付",
+    "absentNoRecord": "欠勤 — 記録なし",
+    "clickDayDetails": "日付をクリックして詳細を表示",
+    "exceedsStandard": "基準時間（:hours時間）を超過しています。残業申請をご検討ください。",
+    "mustBeLater": ":time 以降である必要があります",
+    "mustBeEarlier": ":time 以前である必要があります",
+    "amHalfLeaveCheckIn": "午前半休 — 出勤時間は :time 以降である必要があります",
+    "pmHalfLeaveCheckIn": "午後半休 — 出勤時間は :time より前である必要があります",
+    "pmHalfLeaveCheckOut": "午後半休 — 退勤時間は :time 以前である必要があります",
+    "actions": {
+      "addAttendance": "勤怠追加",
+      "addRecord": "記録追加",
+      "edit": "編集",
+      "delete": "削除",
+      "cancel": "キャンセル",
+      "deleting": "削除中...",
+      "yesDelete": "はい、削除します",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "stats": {
+      "workingDays": "稼働日数",
+      "present": "出勤",
+      "absent": "欠勤",
+      "lateDays": "遅刻日数",
+      "otHours": "残業時間",
+      "leaveDays": "休暇日数",
+      "totalLate": "合計遅刻",
+      "workHours": "勤務時間",
+      "holidays": "祝日"
+    },
+    "fields": {
+      "employee": "従業員",
+      "status": "ステータス",
+      "checkIn": "出勤",
+      "checkOut": "退勤",
+      "checkInTime": "出勤時刻",
+      "checkOutTime": "退勤時刻",
+      "workHours": "勤務時間",
+      "shortHours": "勤務時間不足",
+      "late": "遅刻",
+      "otHours": "残業時間",
+      "date": "日付",
+      "lateMin": "遅刻（分）",
+      "note": "備考"
+    },
+    "labels": {
+      "weekend": "週末",
+      "publicHoliday": "祝日",
+      "overtimeDetail": "残業詳細",
+      "note": "備考",
+      "auto": "自動",
+      "lunch": "休憩",
+      "start": "開始"
+    },
+    "summary": {
+      "monthlySummary": "月間サマリー"
+    },
+    "placeholders": {
+      "select": "選択してください...",
+      "selectEmployee": "従業員を選択",
+      "auto": "自動",
+      "requiredNote": "備考を入力してください..."
+    },
+    "validation": {
+      "employeeRequired": "従業員の指定は必須です",
+      "dateRequired": "日付の指定は必須です",
+      "checkInRequired": "出勤時刻は必須です",
+      "checkOutRequired": "退勤時刻は必須です",
+      "workHoursRequired": "勤務時間は必須です",
+      "lateMinutesRequired": "遅刻（分）は必須です",
+      "noteRequired": "備考は必須です",
+      "hhmmFormat": "時間は HH:MM 形式で入力してください",
+      "amHalfCheckIn": "午前半休 — 出勤時間は :time 以降である必要があります",
+      "pmHalfCheckIn": "午後半休 — 出勤時間は :time より前である必要があります",
+      "pmHalfCheckOut": "午後半休 — 退勤時間は :time 以前である必要があります"
+    },
+    "errors": {
+      "somethingWrong": "エラーが発生しました。",
+      "employeeRequired": "従業員の指定は必須です",
+      "dateRequired": "日付の指定は必須です",
+      "checkInRequired": "出勤時刻は必須です",
+      "checkOutRequired": "退勤時刻は必須です",
+      "workHoursRequired": "勤務時間は必須です",
+      "lateMinutesRequired": "遅刻（分）は必須です",
+      "noteRequired": "備考は必須です"
+    },
+    "modal": {
+      "addTitle": "勤怠追加",
+      "editTitle": "勤怠編集",
+      "recordSubtitle": "従業員勤怠の記録",
+      "updateSubtitle": "勤怠記録の更新"
+    },
+    "deleteConfirm": {
+      "title": "勤怠データを削除しますか？"
+    },
+    "units": {
+      "short": "不足",
+      "min": "分"
+    },
+    "messages": {
+      "somethingWentWrong": "エラーが発生しました。",
+      "exceedsStandard": "基準時間（:hours時間）を超過しています。残業申請をご検討ください。",
+      "noAttendanceRequired": "勤怠記録は不要です",
+      "futureDate": "未来の日付",
+      "absentNoRecord": "欠勤 — 記録なし",
+      "clickDayDetails": "日付をクリックして詳細を表示"
+    },
+    "hints": {
+      "mustBeOrLater": ":time 以降である必要があります",
+      "mustBeOrEarlier": ":time 以前である必要があります"
+    },
+    "months": {
+      "January": "1月",
+      "February": "2月",
+      "March": "3月",
+      "April": "4月",
+      "May": "5月",
+      "June": "6月",
+      "July": "7月",
+      "August": "8月",
+      "September": "9月",
+      "October": "10月",
+      "November": "11月",
+      "December": "12月",
+      "january": "1月",
+      "february": "2月",
+      "march": "3月",
+      "april": "4月",
+      "may": "5月",
+      "june": "6月",
+      "july": "7月",
+      "august": "8月",
+      "september": "9月",
+      "october": "10月",
+      "november": "11月",
+      "december": "12月"
+    },
+    "days": {
+      "Sun": "日",
+      "Mon": "月",
+      "Tue": "火",
+      "Wed": "水",
+      "Thu": "木",
+      "Fri": "金",
+      "Sat": "土",
+      "sun": "日",
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土"
+    },
+    "leaveTypes": {
+      "annual": "有給休暇",
+      "medical": "病気休暇",
+      "emergency": "特別休暇",
+      "unpaid": "無給休暇",
+      "maternity": "産前産後休暇",
+      "paternity": "配偶者出産休暇",
+      "leave": "休暇",
+      "amHalf": "午前半休",
+      "pmHalf": "午後半休",
+      "fullDay": "全休",
+      "amHalfDay": "午前半休",
+      "pmHalfDay": "午後半休",
+      "fullDayLeave": "終日休暇",
+      "halfDayLeave": ":type"
+    },
+    "leaveDayTypes": {
+      "amHalf": "午前半休",
+      "pmHalf": "午後半休",
+      "fullDay": "全休",
+      "amHalfDay": "午前半休",
+      "pmHalfDay": "午後半休"
+    },
+    "table": {
+      "in": "出勤",
+      "out": "退勤",
+      "wh": "勤務時間",
+      "ot": "残業",
+      "short": "不足"
+    },
+    "shortLabels": {
+      "in": "出勤",
+      "out": "退勤",
+      "wh": "勤務時間",
+      "leave": "休暇",
+      "ot": "残業",
+      "late": "遅刻",
+      "short": "不足"
+    },
+    "statusLabels": {
+      "present": "出勤",
+      "absent": "欠勤",
+      "late": "遅刻",
+      "halfDay": "半休",
+      "otOnly": "残業のみ"
+    },
+    "status": {
+      "present": "出勤",
+      "absent": "欠勤",
+      "late": "遅刻",
+      "halfDay": "半休",
+      "otOnly": "残業のみ"
+    }
+  },
+  "attendanceRequest": {
+    "pageTitle": "チェックイン/チェックアウト申請",
+    "modal": {
+      "badge": "勤怠申請"
+    },
+    "fields": {
+      "date": "日付",
+      "approver": "承認者",
+      "requestType": "申請タイプ",
+      "requestedCheckIn": "申請チェックイン",
+      "requestedCheckOut": "申請チェックアウト",
+      "reason": "理由"
+    },
+    "placeholders": {
+      "selectApprover": "承認者を選択",
+      "reason": "チェックイン/チェックアウトの修正を申請する理由を入力してください。"
+    },
+    "requestTypes": {
+      "checkInOnly": "チェックインのみ",
+      "checkOutOnly": "チェックアウトのみ",
+      "both": "チェックイン/アウト両方",
+      "bothShort": "両方",
+      "inOnly": "Inのみ",
+      "outOnly": "Outのみ"
+    },
+    "preview": {
+      "workSchedule": "勤務スケジュール",
+      "lunchBreak": "昼休み",
+      "autoPreview": "自動プレビュー"
+    },
+    "actions": {
+      "cancel": "キャンセル",
+      "submitRequest": "申請を送信",
+      "submitting": "送信中...",
+      "requestCheckInOut": "チェックイン/アウト申請",
+      "approve": "承認",
+      "approving": "承認中...",
+      "reject": "却下",
+      "rejecting": "却下中...",
+      "delete": "削除",
+      "deleting": "削除中...",
+      "deleteRequest": "申請を削除"
+    },
+    "status": {
+      "pending": "保留中",
+      "approved": "承認済み",
+      "rejected": "却下済み",
+      "autoApproved": "自動承認"
+    },
+    "filters": {
+      "allStatus": "すべてのステータス"
+    },
+    "tabs": {
+      "myRequests": "自分の申請",
+      "pendingApprovals": "承認待ち",
+      "allRequests": "すべての申請"
+    },
+    "empty": {
+      "noPendingApprovals": "承認待ちの申請はありません",
+      "noRequestsFound": "チェックイン/アウト申請が見つかりません",
+      "allCaughtUp": "すべて完了しています！",
+      "clickToSubmit": "「チェックイン/アウト申請」をクリックして新しい申請を送信してください。"
+    },
+    "confirm": {
+      "deleteTitle": "申請を削除",
+      "approveTitle": "申請を承認",
+      "rejectTitle": "申請を却下",
+      "deleteSubtext": "この操作は元に戻せません",
+      "notifySubtext": "従業員に通知されます",
+      "yourRequest": "あなたの申請"
+    },
+    "labels": {
+      "awaiting": "承認待ち",
+      "approvedBy": "承認者",
+      "rejectedBy": "却下者",
+      "late": "遅刻"
+    },
+    "shortLabels": {
+      "in": "IN",
+      "out": "OUT",
+      "wh": "勤務"
+    },
+    "validation": {
+      "dateRequired": "日付は必須です",
+      "checkInRequired": "チェックイン時刻は必須です",
+      "checkOutRequired": "チェックアウト時刻は必須です",
+      "checkOutLater": "チェックアウトはチェックインより後である必要があります",
+      "reasonRequired": "理由は必須です",
+      "approverRequired": "承認者は必須です",
+      "validationError": "入力エラー"
+    },
+    "messages": {
+      "requestNoLongerExists": "申請はもう存在しません。申請者が削除した可能性があります。",
+      "requestDeleteFailed": "申請が存在しないか、削除できませんでした。"
+    },
+    "months": {
+      "January": "1月",
+      "February": "2月",
+      "March": "3月",
+      "April": "4月",
+      "May": "5月",
+      "June": "6月",
+      "July": "7月",
+      "August": "8月",
+      "September": "9月",
+      "October": "10月",
+      "November": "11月",
+      "December": "12月"
+    }
+  },
+  "overtime": {
+    "pageTitle": "残業申請",
+    "headTitle": "残業",
+    "titleShort": "残業",
+    "status": {
+      "pending": "保留中",
+      "approved": "承認済み",
+      "rejected": "却下済み"
+    },
+    "labels": {
+      "publicHoliday": "祝日",
+      "weekend": "週末",
+      "weekday": "平日",
+      "day": "日中",
+      "night": "夜間",
+      "all": "すべて",
+      "shift": "シフト",
+      "awaiting": "承認待ち",
+      "approvedBy": "承認者",
+      "rejectedBy": "却下者",
+      "project": "プロジェクト",
+      "date": "日付",
+      "time": "時間",
+      "total": "合計",
+      "reason": "理由",
+      "approver": "承認者",
+      "req": "申請",
+      "totalApproved": "承認合計:"
+    },
+    "actions": {
+      "approve": "承認",
+      "reject": "却下",
+      "deleteRequest": "申請を削除",
+      "requestOvertime": "残業を申請",
+      "cancel": "キャンセル",
+      "submitting": "送信中...",
+      "submitRequest": "申請を送信",
+      "deleting": "削除中...",
+      "delete": "削除",
+      "approving": "承認中…",
+      "approveWithIcon": "✓ 承認",
+      "rejecting": "却下中…",
+      "rejectWithIcon": "✕ 却下"
+    },
+    "filters": {
+      "allStatus": "すべてのステータス"
+    },
+    "tabs": {
+      "myRequests": "自分の申請",
+      "pendingApprovals": "承認待ち",
+      "allRequests": "すべての申請"
+    },
+    "empty": {
+      "noPendingApprovals": "承認待ちはありません",
+      "noOvertimeRequestsFound": "残業申請が見つかりません",
+      "allCaughtUp": "すべて完了しています!",
+      "clickRequestOvertime": "新しい申請を送信するには「残業を申請」をクリックしてください。",
+      "noActiveProjectsAssigned": "割り当てられた有効なプロジェクトはありません",
+      "noApproverAvailable": "承認者がいません",
+      "noApproverFound": "あなたの支店の承認者が見つかりません。HR に連絡してください。"
+    },
+    "messages": {
+      "requestCouldNotBeDeleted": "申請を削除できませんでした。",
+      "adminAutoApproved": "管理者のため、この申請は自動承認されます。",
+      "requestNoLongerExists": "申請は存在しません。削除された可能性があります。"
+    },
+    "modal": {
+      "overtimeManagement": "残業管理"
+    },
+    "fields": {
+      "startDate": "開始日",
+      "startTime": "開始時刻",
+      "endDate": "終了日",
+      "endTime": "終了時刻"
+    },
+    "validation": {
+      "startDateRequired": "開始日は必須です。",
+      "startTimeRequired": "開始時刻は必須です。",
+      "endDateRequired": "終了日は必須です。",
+      "endTimeRequired": "終了時刻は必須です。",
+      "reasonRequired": "理由は必須です。",
+      "selectApprover": "承認者を選択してください。",
+      "selectProjectForOT": "この残業のプロジェクトを選択してください。",
+      "endAfterStart": "終了は開始後である必要があります。",
+      "endTimeAfterStartTime": "終了時刻は開始時刻より後である必要があります。"
+    },
+    "summary": {
+      "multiDay": "複数日 · {{days}}日",
+      "sameDayOT": "同日残業",
+      "totalHours": "合計 {{hrs}}",
+      "autoSplitPerShift": "シフトごとに自動分割"
+    },
+    "placeholders": {
+      "selectApprover": "承認者を選択",
+      "pleaseSelectProject": "— プロジェクトを選択してください —",
+      "selectProject": "プロジェクトを選択...",
+      "describeReason": "残業理由を入力してください..."
+    },
+    "confirm": {
+      "deleteOvertimeRequest": "残業申請を削除",
+      "approveOvertime": "残業を承認",
+      "rejectOvertime": "残業を却下",
+      "actionCannotBeUndone": "この操作は元に戻せません",
+      "adjustApprovedHours": "必要に応じてセグメント別の承認時間を調整",
+      "employeeWillBeNotified": "従業員に通知されます",
+      "yourRequest": "あなたの申請",
+      "segmentsAdjustHours": "セグメント — 必要に応じて時間を調整"
+    },
+    "units": {
+      "hrs": "時間"
+    },
+    "policyTitles": {
+      "Day_Weekday_OT": "平日日中残業",
+      "Night_Weekday_OT": "平日夜間残業",
+      "Day_Weekend_OT": "週末日中残業",
+      "Night_Weekend_OT": "週末夜間残業",
+      "Public_Holiday_OT": "祝日残業"
+    },
+    "months": {
+      "January": "1月",
+      "February": "2月",
+      "March": "3月",
+      "April": "4月",
+      "May": "5月",
+      "June": "6月",
+      "July": "7月",
+      "August": "8月",
+      "September": "9月",
+      "October": "10月",
+      "November": "11月",
+      "December": "12月"
+    }
+  },
+"leaveRequest": {
+  "pageTitle": "休暇申請",
+  "months": {
+    "January": "1月",
+    "February": "2月",
+    "March": "3月",
+    "April": "4月",
+    "May": "5月",
+    "June": "6月",
+    "July": "7月",
+    "August": "8月",
+    "September": "9月",
+    "October": "10月",
+    "November": "11月",
+    "December": "12月"
+  },
+  "modal": {
+    "badge": "休暇管理"
+  },
+  "actions": {
+    "requestLeave": "休暇申請",
+    "submitRequest": "申請を送信",
+    "submitting": "送信中...",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "deleting": "削除中...",
+    "deleteRequest": "申請を削除",
+    "approve": "承認",
+    "approving": "承認中...",
+    "reject": "却下",
+    "rejecting": "却下中..."
+  },
+  "fields": {
+    "employee": "従業員",
+    "leaveType": "休暇タイプ",
+    "dayType": "休暇日タイプ",
+    "date": "日付",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "reason": "理由",
+    "approver": "承認者",
+    "supportingDocument": "証明書類"
+  },
+  "placeholders": {
+    "selectApprover": "承認者を選択",
+    "reason": "理由を入力..."
+  },
+  "filters": {
+    "allStatus": "すべてのステータス"
+  },
+  "tabs": {
+    "myRequests": "自分の申請",
+    "pendingApprovals": "承認待ち",
+    "allRequests": "すべての申請"
+  },
+  "status": {
+    "pending": "保留中",
+    "approved": "承認済み",
+    "rejected": "却下済み"
+  },
+  "dayTypes": {
+    "full_day": "終日",
+    "half_day_am": "午前半休",
+    "half_day_pm": "午後半休"
+  },
+  "empty": {
+    "noRequestsFound": "休暇申請が見つかりません",
+    "noPendingApprovals": "承認待ちの申請はありません",
+    "allCaughtUp": "すべて完了しています！",
+    "clickToSubmit": "「休暇申請」をクリックして新しい申請を送信してください。"
+  },
+  "labels": {
+    "used": "使用済み",
+    "total": "合計",
+    "availableBalance": "利用可能残高",
+    "approvedBy": "承認者",
+    "rejectedBy": "却下者",
+    "awaiting": "承認待ち",
+    "from": "開始",
+    "to": "終了",
+    "days": "日数",
+    "downloadDocument": "書類をダウンロード",
+    "required": "必須",
+    "optional": "任意",
+    "doc": "書類",
+    "absent": "欠勤",
+    "unpaid": "無給"
+  },
+  "units": {
+    "day": "日",
+    "days": "日",
+    "daysShort": "日",
+    "half": "半日",
+    "halfDay": "半日"
+  },
+  "preview": {
+    "totalLeaveDays": "合計休暇日数:"
+  },
+  "upload": {
+    "dropToUpload": "ドロップしてアップロード",
+    "dropFileHereOr": "ファイルをここにドロップ、または",
+    "browse": "選択",
+    "fileHint": "PDF, JPG, PNG · 最大5MB",
+    "ready": "準備完了"
+  },
+  "confirm": {
+    "deleteTitle": "休暇申請を削除",
+    "approveTitle": "休暇申請を承認",
+    "rejectTitle": "休暇申請を却下",
+    "deleteSubtext": "この操作は元に戻せません",
+    "notifySubtext": "従業員に通知されます"
+  },
+  "validation": {
+    "leaveTypeRequired": "休暇タイプは必須です",
+    "startDateRequired": "開始日は必須です",
+    "endDateRequired": "終了日は必須です",
+    "reasonRequired": "理由は必須です",
+    "approverRequired": "承認者を選択してください",
+    "endDateAfterStart": "終了日は開始日より後である必要があります",
+    "documentRequired": "この休暇タイプには証明書類が必要です。",
+    "fileType": "PDF, JPG, PNG のみ許可されています。",
+    "fileSize": "ファイルは5MB未満である必要があります。",
+    "validationError": "入力エラー"
+  },
+  "messages": {
+    "noLeaveTypes": "休暇タイプが設定されていません。HRに連絡してください。",
+    "balanceExceeded": "残高を超えています — 自動的に分割されます",
+    "noBalance": ":type の残高がありません",
+    "requestNoLongerExists": "申請はもう存在しません。削除された可能性があります。",
+    "requestDeleteFailed": "申請を削除できませんでした。"
+  }
+},
+  "employeeSalary": {
+    "pageTitle": "従業員給与",
+    "employment": {
+      "probation": "試用期間",
+      "permanent": "正社員",
+      "contract": "契約社員"
+    },
+    "fields": {
+      "employee": "従業員",
+      "position": "役職",
+      "department": "部署",
+      "employment": "雇用形態",
+      "joined": "入社日",
+      "baseSalary": "基本給",
+      "allowances": "手当",
+      "bankInformation": "銀行情報",
+      "bank": "銀行",
+      "accountHolderName": "口座名義",
+      "accountNumber": "口座番号",
+      "salary": "給与",
+      "actions": "操作"
+    },
+    "stats": {
+      "total": "合計",
+      "withBank": "銀行情報あり",
+      "missingBank": "銀行情報なし"
+    },
+    "actions": {
+      "addProfile": "プロフィール追加",
+      "cancel": "キャンセル",
+      "saving": "保存中…",
+      "saveProfile": "保存",
+      "updateProfile": "プロフィール更新",
+      "removing": "削除中…",
+      "removeProfile": "プロフィール削除"
+    },
+    "placeholders": {
+      "selectEmployeeDash": "— 従業員を選択 —",
+      "searchEmployee": "従業員を検索…",
+      "fullName": "氏名",
+      "accountNumber": "口座番号"
+    },
+    "validation": {
+      "selectEmployee": "従業員を選択してください。",
+      "validSalaryAmount": "有効な給与金額を入力してください。"
+    },
+    "messages": {
+      "salaryProfileUpdated": "給与プロフィールを更新しました。",
+      "salaryProfileSaved": "給与プロフィールを保存しました。",
+      "somethingWentWrong": "問題が発生しました。",
+      "selectAllowancesApply": "この従業員に適用する手当を選択してください。",
+      "salaryProfileRemoved": "給与プロフィールを削除しました。",
+      "failedToRemoveProfile": "プロフィールを削除できませんでした。"
+    },
+    "empty": {
+      "noEmployeesFound": "従業員が見つかりません",
+      "noResultsFound": "結果が見つかりません",
+      "noSalaryProfilesYet": "給与プロフィールはまだありません",
+      "tryDifferentSearchTerm": "別の検索語を試してください。",
+      "clickAddProfile": "給与を割り当てるには「プロフィール追加」をクリックしてください。"
+    },
+    "labels": {
+      "optionalDash": "— 任意",
+      "notSet": "未設定"
+    },
+    "modal": {
+      "addSalaryProfile": "給与プロフィール追加",
+      "setupSalaryAllowancesBank": "給与、手当、銀行情報を設定します。",
+      "editSalaryProfile": "給与プロフィール編集",
+      "updateSalaryAllowancesBank": "給与、手当、銀行情報を更新します。",
+      "removeProfile": "プロフィール削除",
+      "deactivateSalaryProfile": "給与プロフィールを無効化します。"
+    },
+    "confirm": {
+      "deactivateProfileWarning": "給与プロフィールを無効化します。過去の給与記録は保持されます。"
+    }
+  },
+"expense": {
+    "stats": {
+      "total": "合計",
+      "pending": "保留中",
+      "approved": "承認済み",
+      "rejected": "却下済み",
+      "unreimbursed": "未精算",
+      "unreimbursedSub": "全期間 · 承認済み、未払い"
+    },
+    "tabs": {
+      "my": "自分の申請",
+      "approvals": "承認待ち",
+      "all": "全申請"
+    },
+    "filters": {
+      "allStatus": "全ステータス"
+    },
+    "btn": {
+      "submit": "経費申請",
+      "cancel": "キャンセル",
+      "submitRequest": "申請する",
+      "submitting": "送信中…",
+      "approve": "承認",
+      "reject": "却下",
+      "delete": "申請を削除",
+      "processing": "処理中…"
+    },
+    "row": {
+      "awaiting": "待機中",
+      "approvedBy": "承認者",
+      "rejectedBy": "却下者",
+      "date": "日付",
+      "amount": "金額",
+      "note": "メモ",
+      "rejected": "却下",
+      "reimbursed": "✓ 精算済み",
+      "noApprover": "HR"
+    },
+    "empty": {
+      "noPendingApprovals": "承認待ちなし",
+      "allCaughtUp": "すべて完了！",
+      "noExpenses": "経費申請なし",
+      "noExpensesSub": "「経費申請」をクリックして追加してください。"
+    },
+    "modal": {
+      "header": "経費申請",
+      "title": "経費申請",
+      "titleLabel": "タイトル",
+      "titlePlaceholder": "例：クライアント夕食、空港タクシー…",
+      "amountLabel": "金額",
+      "categoryLabel": "カテゴリ",
+      "categoryPlaceholder": "選択…",
+      "expenseDateLabel": "経費日",
+      "descriptionLabel": "説明",
+      "descriptionPlaceholder": "経費の詳細…",
+      "attachmentsLabel": "添付ファイル",
+      "attachmentsSub": "— 領収書、請求書（最大5件）",
+      "attachmentsClick": "クリックしてアップロード",
+      "approverHr": "HR（承認者）",
+      "approverAdmin": "管理者（承認者）",
+      "approverPlaceholder": "— 承認者を選択 —",
+      "approverNone": "お住まいの国に {role} がいません。",
+      "autoApprove": "✓ 管理者として、この申請は即時自動承認されます。",
+      "optional": "（任意）"
+    },
+    "confirm": {
+      "deleteTitle": "申請を削除",
+      "deleteBody": "元に戻せません。",
+      "approveTitle": "経費承認",
+      "approveBody": "従業員に通知されます。",
+      "rejectTitle": "経費却下",
+      "rejectBody": "却下理由を入力してください。",
+      "noteLabel": "メモ",
+      "noteOptional": "（任意）",
+      "notePlaceholder": "従業員へのメモを追加…",
+      "reasonLabel": "却下理由",
+      "reasonPlaceholder": "却下理由を入力…",
+      "confirmDelete": "🗑 削除",
+      "confirmApprove": "✓ 承認",
+      "confirmReject": "✕ 却下"
+    },
+    "category": {
+      "transport": "交通",
+      "meal": "食事",
+      "accommodation": "宿泊",
+      "equipment": "機器",
+      "medical": "医療",
+      "training": "研修",
+      "communication": "通信",
+      "other": "その他"
+    },
+    "validation": {
+      "titleRequired": "タイトルは必須です。",
+      "amountInvalid": "有効な金額を入力してください。",
+      "dateRequired": "経費日は必須です。",
+      "categoryRequired": "カテゴリは必須です。",
+      "approverRequired": "承認者を選択してください。"
+    },
+    "noApproversAvailable": "承認者なし",
+    "networkError": "ネットワークエラー。もう一度お試しください。",
+    "deleteError": "削除できませんでした。",
+    "actionError": "エラーが発生しました。",
+    "months": [
+      "1月",
+      "2月",
+      "3月",
+      "4月",
+      "5月",
+      "6月",
+      "7月",
+      "8月",
+      "9月",
+      "10月",
+      "11月",
+      "12月"
+    ]
+  },
+  "payslip": {
+    "pageTitle": "給与明細",
+    "fields": {
+      "employee": "従業員",
+      "payPeriod": "給与期間",
+      "netSalary": "手取り給与",
+      "detail": "詳細",
+      "download": "ダウンロード"
+    },
+    "filters": {
+      "allMonths": "すべての月",
+      "allPeriods": "すべての期間"
+    },
+    "cycles": {
+      "semiMonthly": "半月ごと",
+      "tenDay": "10日ごと",
+      "monthly": "月次"
+    },
+    "stats": {
+      "payslips": "給与明細",
+      "totalNet": "手取り合計",
+      "employees": "従業員",
+      "avgNet": "平均手取り",
+      "highest": "最高額",
+      "total": "合計"
+    },
+    "actions": {
+      "loading": "読み込み中…",
+      "refreshIcon": "🔄",
+      "refresh": "更新",
+      "preparing": "準備中…",
+      "allPdfsZipIcon": "📦",
+      "allPdfsZip": "すべてのPDF (ZIP)",
+      "allExcelIcon": "📊",
+      "allExcel": "すべてのExcel",
+      "pdf": "PDF",
+      "excel": "Excel"
+    },
+    "labels": {
+      "details": "詳細",
+      "payslip": "給与明細",
+      "payslips": "給与明細",
+      "period": "期間",
+      "missing": "不足",
+      "late": "遅刻",
+      "ofBaseSalary": "基本給の",
+      "fixedAmount": "固定額"
+    },
+    "shortLabels": {
+      "in": "出勤",
+      "out": "退勤"
+    },
+    "status": {
+      "paid": "支払済み",
+      "confirmed": "確認済み"
+    },
+    "placeholders": {
+      "searchEmployee": "従業員を検索…"
+    },
+    "messages": {
+      "downloadedSuccessfully": "給与明細をダウンロードしました",
+      "downloadFailed": "ダウンロードに失敗しました",
+      "failedToLoadDetail": "詳細を読み込めませんでした",
+      "failedToLoadPayslips": "給与明細を読み込めませんでした",
+      "loadingPayslips": "給与明細を読み込み中…"
+    },
+    "empty": {
+      "noShortRecords": "不足時間の記録はありません。",
+      "noLateRecords": "遅刻記録はありません。",
+      "noRecords": "記録はありません。",
+      "noOTRecords": "残業記録はありません。",
+      "noAllowanceDetails": "手当の詳細はありません。",
+      "noBonusDetails": "ボーナスの詳細はありません。",
+      "noExpenseDetails": "経費の詳細はありません。",
+      "noResultsFor": "結果がありません",
+      "noConfirmedPayslips": "確認済みの給与明細が見つかりません",
+      "tryAdjustingPeriod": "上の期間フィルターを調整してください。"
+    },
+    "detail": {
+      "insufficientHours": "勤務時間不足",
+      "workingHours": "勤務時間",
+      "lateArrival": "遅刻",
+      "attendance": "勤怠",
+      "workingDays": "勤務日数",
+      "present": "出勤",
+      "absent": "欠勤",
+      "late": "遅刻",
+      "paidLeave": "有給休暇",
+      "unpaidLeave": "無給休暇",
+      "overtime": "残業",
+      "earnings": "支給額",
+      "baseSalary": "基本給",
+      "allowances": "手当",
+      "overtimePay": "残業代",
+      "bonus": "ボーナス",
+      "bonuses": "ボーナス",
+      "expenseReimbursement": "経費精算",
+      "totalBeforeDeductions": "控除前合計",
+      "deductions": "控除",
+      "totalDeductions": "控除合計",
+      "netSalary": "手取り給与",
+      "leaveRecords": "休暇記録",
+      "otRecords": "残業記録",
+      "otPayThisPeriod": "この期間の残業代",
+      "breakdown": "内訳",
+      "totalAllowances": "手当合計",
+      "totalBonus": "ボーナス合計",
+      "approvedExpenses": "承認済み経費",
+      "totalReimbursement": "精算合計",
+      "salaryDetail": "給与詳細"
+    },
+    "dayTypes": {
+      "fullDay": "終日",
+      "amHalf": "午前半休",
+      "pmHalf": "午後半休",
+      "halfDay": "半日"
+    },
+    "units": {
+      "days": "日",
+      "min": "分"
+    },
+    "months": {
+      "January": "1月",
+      "February": "2月",
+      "March": "3月",
+      "April": "4月",
+      "May": "5月",
+      "June": "6月",
+      "July": "7月",
+      "August": "8月",
+      "September": "9月",
+      "October": "10月",
+      "November": "11月",
+      "December": "12月"
+    }
+  },
+  "bankExport": {
+  "payPeriodFilter": "給与期間フィルター",
+  "year": "年",
+  "month": "月",
+  "period": "期間",
+  "employee": "社員",
+  "allEmployees": "全社員",
+  "loading": "読み込み中…",
+  "refresh": "更新",
+  "record": "件",
+  "records": "件",
+  "readyForTransfer": "振込準備完了",
+  "noConfirmedRecords": "確定済みの記録が見つかりません",
+  "exporting": "エクスポート中…",
+  "generating": "生成中…",
+  "sendToBank": "銀行へ送信",
+  "saving": "保存中…",
+  "markAllPaid": "全件支払済みにする",
+  "loadingRecords": "記録を読み込み中…",
+  "noConfirmedPayroll": "確定済みの給与記録がありません",
+  "emptyStateDesc": "ここに表示されるには給与記録を<strong>確定</strong>する必要があります。<br />Payroll → Preview &amp; Approve で確定してください。",
+  "colEmployee": "社員",
+  "colBank": "銀行",
+  "colAccount": "口座番号",
+  "colDept": "部門",
+  "colStatus": "ステータス",
+  "colNetSalary": "手取り額",
+  "notSet": "未設定",
+  "statusPaid": "支払済み",
+  "statusConfirmed": "確定済み",
+  "paid": "支払済み",
+  "infoNote": "<strong>確定済み</strong>の給与記録のみ含まれます。口座情報は社員給与プロフィールから取得します。口座情報が未設定の社員は ⚠ で表示されます。",
+  "bankTransfer": "銀行振込",
+  "sendPdfToBank": "PDFを銀行へ送信",
+  "modalDesc1": "",
+  "modalDesc2": "の銀行振込PDFをメール添付として送信します。",
+  "total": "合計",
+  "employees": "名",
+  "bankEmailLabel": "銀行メールアドレス",
+  "bankEmailPlaceholder": "例: finance@ababank.com",
+  "cancel": "キャンセル",
+  "sending": "送信中…",
+  "sendPdf": "PDFを送信",
+  "failedToLoad": "プレビューの読み込みに失敗しました",
+  "downloadFailed": "ダウンロード失敗",
+  "downloadedSuccess": "ダウンロード完了!",
+  "failed": "失敗",
+  "markedAsPaid": "支払済みとしてマークしました",
+  "recordsMarkedPaid": "件を支払済みにしました",
+  "failedToSend": "送信失敗",
+  "sentSuccess": "PDFを銀行へ正常に送信しました! ✉️"
+},
+"payroll": {
+    "steps": {
+      "attendance": {
+        "label": "勤怠インポート",
+        "summary": "テンプレートDL · 出退勤入力 · アップロード"
+      },
+      "calculate": {
+        "label": "給与計算",
+        "summary": "勤怠・休暇・残業・HR方針に基づき計算"
+      },
+      "preview": {
+        "label": "プレビュー & 承認",
+        "summary": "給与明細確認 · ボーナス追加 · 承認"
+      }
+    },
+    "sidebar": {
+      "workflow": "ワークフロー",
+      "stepsDone": "ステップ完了",
+      "completed": "完了",
+      "inProgress": "処理中..."
+    },
+    "period": {
+      "payPeriod": "給与期間",
+      "period": "期間",
+      "semiMonthly": "半月払い",
+      "tenDay": "10日払い",
+      "monthly": "月払い"
+    },
+    "status": {
+      "draft": "下書き",
+      "calculated": "計算済み",
+      "approved": "承認済み",
+      "confirmed": "確定済み",
+      "paid": "支払済み"
+    },
+    "btn": {
+      "downloadTemplate": "テンプレートDL",
+      "downloading": "ダウンロード中...",
+      "uploadSave": "アップロード & 保存",
+      "uploading": "アップロード中...",
+      "refresh": "更新",
+      "approveAll": "全件承認",
+      "approving": "承認中...",
+      "confirmFinalize": "確定 & 締め",
+      "confirming": "確定中...",
+      "approve": "承認",
+      "detail": "詳細",
+      "close": "閉じる",
+      "cancel": "キャンセル",
+      "calculate": "計算",
+      "calculating": "計算中...",
+      "calculateAll": "全員計算",
+      "continue": "続行"
+    },
+    "attendance": {
+      "stepDownload": "ダウンロード",
+      "stepDownloadDesc": "社員・日付が入力済みのExcelテンプレートを取得",
+      "stepFill": "出退勤入力",
+      "stepFillDesc": "時刻(HH:MM)を入力。週末はスキップ。",
+      "stepUpload": "アップロード",
+      "stepUploadDesc": "保存時に勤務時間・遅刻分を自動計算",
+      "downloaded": "テンプレートをダウンロードしました。",
+      "saved": "保存済み",
+      "skipped": "スキップ"
+    },
+    "calculate": {
+      "allEmployees": "全従業員",
+      "singleEmployee": "従業員1名",
+      "selectEmployee": "従業員を選択",
+      "selectEmployeeFirst": "先に従業員を選択してください。",
+      "calculated": "計算済み",
+      "employees": "名",
+      "done": "完了",
+      "stopped": "停止しました。",
+      "allDone": "全従業員の計算が完了しました:",
+      "noPeriodWarning": "給与期間が設定されていません。HR Policy → 一般設定へ移動してください。"
+    },
+    "preview": {
+      "loading": "レコードを読み込み中...",
+      "noRecords": "レコードがありません。まずステップ2で給与を計算してください。",
+      "loadFailed": "レコードの読み込みに失敗しました",
+      "approved": "承認済み"
+    },
+    "table": {
+      "employee": "従業員",
+      "presentWd": "出勤 / 勤務日",
+      "leave": "休暇",
+      "late": "遅刻",
+      "ot": "残業",
+      "base": "基本給",
+      "allowances": "手当",
+      "deductions": "控除",
+      "bonus": "ボーナス",
+      "netSalary": "手取り",
+      "status": "ステータス"
+    },
+    "confirm": {
+      "approveAllTitle": "全給与レコードを承認",
+      "finalizeTitle": "給与確定 & 締め",
+      "approveOneTitle": "従業員給与を承認",
+      "approveAllMsg": "以下の全レコードを承認しますか？",
+      "finalizeMsg": "以下の全レコードをロックします。",
+      "approveOneMsg": "この従業員の給与を承認しますか？",
+      "recordsFor": "レコード",
+      "yesApproveAll": "はい、全件承認",
+      "yesConfirmLock": "🔒 はい、確定 & ロック",
+      "yesApprove": "はい、承認"
+    },
+    "detail": {
+      "salaryDetail": "給与詳細",
+      "attendance": "勤怠",
+      "workingDays": "勤務日数",
+      "present": "出勤",
+      "absent": "欠勤",
+      "late": "遅刻",
+      "days": "日",
+      "paidLeave": "有給休暇",
+      "unpaidLeave": "無給休暇",
+      "overtime": "残業",
+      "earnings": "支給",
+      "baseSalary": "基本給",
+      "allowances": "手当",
+      "overtimePay": "残業代",
+      "bonus": "ボーナス",
+      "expenseReimbursement": "経費精算",
+      "totalBeforeDeductions": "控除前合計",
+      "deductions": "控除",
+      "insufficientHours": "勤務時間不足",
+      "lateArrival": "遅刻",
+      "totalDeductions": "控除合計",
+      "netSalary": "手取り給与",
+      "workingHours": "勤務時間",
+      "in": "出勤",
+      "out": "退勤",
+      "missing": "不足",
+      "noShortRecords": "不足記録なし。",
+      "noLateRecords": "遅刻記録なし。",
+      "leaveRecords": "休暇記録",
+      "noRecords": "記録なし。",
+      "otRecords": "残業記録",
+      "noOtRecords": "残業記録なし。",
+      "otPayPeriod": "今期の残業代",
+      "breakdown": "内訳",
+      "noAllowanceDetails": "手当の詳細なし。",
+      "totalAllowances": "手当合計",
+      "bonuses": "ボーナス",
+      "noBonusDetails": "ボーナスの詳細なし。",
+      "totalBonus": "ボーナス合計",
+      "approvedExpenses": "承認済み経費",
+      "noExpenseDetails": "経費の詳細なし。",
+      "totalReimbursement": "精算合計"
+    },
+    "dayType": {
+      "fullDay": "終日",
+      "halfDayAm": "午前半日",
+      "halfDayPm": "午後半日",
+      "halfDay": "半日"
+    }
+  },
+ "hrAlerts": {
+    "pageTitle": "HRアラート",
+    "description": "勤怠違反に対するAI生成の警告書",
+    "status": {
+      "pending": "保留中",
+      "sent": "送信済み",
+      "dismissed": "却下済み",
+      "all": "すべて"
+    },
+    "types": {
+      "lateAlert": "遅刻アラート",
+      "absentAlert": "欠勤アラート"
+    },
+    "summary": {
+      "pendingAlerts": "保留中のアラート",
+      "lateWarnings": "遅刻警告",
+      "absentWarnings": "欠勤警告",
+      "warningsSent": "送信済み警告",
+      "dismissed": "却下済み"
+    },
+    "labels": {
+      "late": "遅刻",
+      "absent": "欠勤",
+      "sentBy": "送信者",
+      "period": "期間",
+      "warningLetter": "警告書"
+    },
+    "actions": {
+      "sendWarning": "警告を送信",
+      "dismiss": "却下",
+      "hideLetter": "文面を隠す",
+      "viewLetter": "文面を見る",
+      "cancel": "キャンセル",
+      "sending": "送信中...",
+      "dismissing": "却下中...",
+      "checking": "確認中...",
+      "runCheckNow": "今すぐ確認"
+    },
+    "modal": {
+      "sendWarningLetter": "警告書を送信",
+      "editWarningLetter": "警告書を編集",
+      "aiDraftNote": "AI生成ドラフト — 送信前に確認してください",
+      "dismissAlert": "アラートを却下",
+      "noWarningWillBeSent": "警告は送信されません"
+    },
+    "empty": {
+      "noPendingAlerts": "保留中のアラートはありません",
+      "noAlertsFound": "アラートが見つかりません",
+      "allAttendanceWithinThresholds": "すべての勤怠は基準内です!",
+      "tryDifferentFilter": "別のフィルターを試してください。"
+    },
+    "units": {
+      "days": "日"
+    },
+    "monthsShort": {
+      "Jan": "1月",
+      "Feb": "2月",
+      "Mar": "3月",
+      "Apr": "4月",
+      "May": "5月",
+      "Jun": "6月",
+      "Jul": "7月",
+      "Aug": "8月",
+      "Sep": "9月",
+      "Oct": "10月",
+      "Nov": "11月",
+      "Dec": "12月"
+    }
+  },
+"projectAssignments": {
+  "pageTitle": "プロジェクト割り当て",
+  "actions": { "allProjects": "すべてのプロジェクト" },
+  "sections": { "activeUpcoming": "進行中・予定" },
+  "placeholders": { "searchMembers": "メンバーを検索…" },
+  "filters": {
+    "all": "すべて",
+    "twoHours": "2時間",
+    "fourHours": "4時間",
+    "sixHours": "6時間"
+  },
+  "workload": {
+    "free": "空き",
+    "light": "軽め",
+    "moderate": "普通",
+    "heavy": "重め",
+    "full": "満杯"
+  },
+  "status": {
+    "active": "進行中",
+    "upcoming": "予定",
+    "completed": "完了",
+    "cancelled": "キャンセル"
+  },
+  "stats": {
+    "totalMembers": "メンバー総数",
+    "activeEmployees": "稼働中の従業員",
+    "available": "対応可能",
+    "zeroAssignedToday": "本日0時間割り当て",
+    "utilization": "稼働率",
+    "activeProjects": "進行中プロジェクト",
+    "currentlyRunning": "現在進行中"
+  },
+  "labels": {
+    "teamMembers": "チームメンバー",
+    "team": "チーム",
+    "open": "空き",
+    "openSlot": "空き枠",
+    "assignments": "割り当て",
+    "dailyCapacity": "1日の稼働可能時間",
+    "used": "使用済み",
+    "dueToday": "本日締切",
+    "noEndDate": "終了日なし"
+  },
+  "empty": {
+    "noMembersFound": "メンバーが見つかりません",
+    "noMembersYet": "メンバーはまだいません",
+    "noAssignmentsYet": "割り当てはまだありません",
+    "noActiveUpcomingProjects": "進行中または予定のプロジェクトはありません"
+  },
+  "units": {
+    "member": "名",
+    "members": "名",
+    "perDay": "1日あたり",
+    "today": "今日",
+    "daysLeftSuffix": "日残り"
+  }
+},
+"bookings": {
+    "heroSubtitle": "リソース予約",
+    "heroTitle": "会議室・社用車",
+    "heroDesc": "業務に必要な会議室や社用車を予約できます。",
+    "today": "今日",
+    "rooms": "会議室",
+    "cars": "社用車",
+    "tabCalendar": "カレンダー",
+    "tabMyBookings": "マイ予約",
+    "tabMyInvitations": "マイ招待",
+    "tabDriverNotes": "ドライバーメモ",
+    "tabManageResources": "リソース管理",
+    "bookRoom": "会議室を予約",
+    "bookCar": "社用車を予約",
+    "loadingSchedule": "スケジュールを読み込み中…",
+    "free": "空き",
+    "floor": "階",
+    "seats": "座席",
+    "capacity": "定員",
+    "passengers": "乗客",
+    "driver": "ドライバー",
+    "location": "場所",
+    "rules": "ルール",
+    "noRoomsYet": "会議室がまだ登録されていません",
+    "noCarsYet": "社用車がまだ登録されていません",
+    "goToManage": "リソース管理に移動して追加してください",
+    "openEnded": "終了時間未定",
+    "onTheWay": "移動中",
+    "returning": "帰路",
+    "requestCar": "社用車を申請",
+    "reserveRoom": "会議室を予約",
+    "step1": "ステップ 1 — 日時の設定",
+    "step2": "ステップ 2 — リソースの選択",
+    "step3": "ステップ 3 — 確認と送信",
+    "date": "日付",
+    "startTime": "開始時間",
+    "endTime": "終了時間",
+    "returnUnknown": "帰着時間未定",
+    "openEndedDesc": "終了時間未定 — 車両が出払っている場合はキャンセル待ちになります",
+    "waitlistWarning": "帰着時間のない他の予約がある場合、リクエストはキャンセル待ちに追加されます。",
+    "numAttendees": "参加人数",
+    "attendeesHint": "任意 — 座席定員でフィルタリング",
+    "continueAvailable": "次へ — 空き状況を表示",
+    "back": "戻る",
+    "checkingAvailability": "空き状況を確認中…",
+    "noResourcesFound": "{{type}}が見つかりません。",
+    "selected": "選択済み",
+    "available": "予約可能",
+    "currentlyOut": "外出中",
+    "freeFrom": "空き時間:",
+    "unavailable": "利用不可",
+    "continueDetails": "次へ — 詳細を追加",
+    "attendees": "参加者",
+    "tripType": "移動タイプ",
+    "oneWay": "片道",
+    "oneWayDesc": "AからBへ、復路なし",
+    "multiStop": "複数立ち寄り",
+    "multiStopDesc": "複数の目的地",
+    "pickupDrop": "送迎",
+    "pickupDropDesc": "ドライバーによる迎えまたは送り",
+    "departureLocation": "出発地",
+    "departurePlaceholder": "例: オフィスのロビー、A棟",
+    "destination": "目的地",
+    "destinationPlaceholder": "例: 空港、ホテル",
+    "officeLobbyPlaceholder": "例: オフィスのロビー",
+    "stops": "立ち寄り地",
+    "addStop": "立ち寄り地を追加",
+    "stop": "立ち寄り地",
+    "returnToDeparture": "出発地に戻る",
+    "returnToDepartureDesc": "ドライバーは最後の立ち寄り地の後、出発地点に戻ります",
+    "returnTimeEstimated": "帰着予定時間",
+    "pickupPoint": "乗車・出発場所",
+    "pickupPlaceholder": "例: 自宅住所、ホテルのロビー",
+    "pickupDestPlaceholder": "例: オフィス、空港、クライアント先",
+    "driverWaitsReturns": "ドライバーが待機して戻る",
+    "driverWaitsDesc": "ドライバーは目的地で待機し、あなたを連れ戻します",
+    "expectedReturnTime": "予想帰着時間",
+    "participants": "参加者",
+    "purposeLabel": "目的・理由 *",
+    "purposeCarPlaceholder": "例: 空港への迎え、クライアント先への訪問、用事など…",
+    "purposeRoomPlaceholder": "例: 週次のチームスタンドアップ、クライアントへのプレゼン、ワークショップなど…",
+    "confirming": "確認中…",
+    "joinWaitlist": "キャンセル待ちに参加",
+    "confirmBooking": "予約を確定",
+    "nameRequired": "名前 *",
+    "roomNamePlaceholder": "例: 会議室A、取締役会室",
+    "carNamePlaceholder": "例: トヨタ カムリ 2023",
+    "floorLocation": "階・場所",
+    "parkingLocation": "駐車場所",
+    "floorPlaceholder": "例: 2階",
+    "parkingPlaceholder": "例: 駐車場 B1",
+    "seatCapacity": "座席定員",
+    "passengerCapacity": "乗車定員",
+    "plateRequired": "ナンバープレート *",
+    "assignedDriver": "担当ドライバー *",
+    "selectDriver": "ドライバーを選択…",
+    "roomRules": "会議室ルール",
+    "usageNotes": "利用上の注意",
+    "roomRulesPlaceholder": "例: 飲食禁止、1回あたり最大2時間まで",
+    "usageNotesPlaceholder": "例: 満タン返し、使用後は車内を清掃すること",
+    "active": "有効",
+    "activeDesc": "無効なリソースは予約画面から非表示になります",
+    "inactive": "無効",
+    "reactivate": "再有効化",
+    "cancel": "キャンセル",
+    "saving": "保存中…",
+    "saveChanges": "変更を保存",
+    "registerResource": "リソースを登録",
+    "registerNewResource": "新規リソースを登録",
+    "resourceManagement": "リソース管理",
+    "meetingRoom": "会議室",
+    "companyCar": "社用車",
+    "edit": "編集",
+    "room": "会議室",
+    "car": "車",
+    "reasonRequired": "理由が必要です。",
+    "bookingRejected": "予約が却下されました。",
+    "failedToReject": "却下に失敗しました。",
+    "rejectBooking": "予約を却下",
+    "hrAction": "人事アクション",
+    "rejectingDesc": "却下中",
+    "bookingFor": "の予約",
+    "reasonForRejection": "却下の理由 *",
+    "rejectReasonPlaceholder": "この予約を承認できない理由を説明してください…",
+    "rejecting": "却下中…",
+    "reason": "理由",
+    "rejected": "却下済み",
+    "cancelNote": "キャンセルメモ",
+    "approve": "承認",
+    "reject": "却下",
+    "markReturned": "返却済みにする",
+    "cancelBooking": "予約をキャンセル",
+    "failedToApprove": "承認に失敗しました。",
+    "confirmCancellation": "キャンセルの確認",
+    "cancelThisBooking": "この予約をキャンセルしますか？",
+    "cancelWarning": "この予約はキャンセルされ、元に戻すことはできません。",
+    "keepBooking": "予約を維持する",
+    "cancelling": "キャンセル中…",
+    "yesCancel": "はい、キャンセルします",
+    "failedToCancel": "キャンセルに失敗しました。",
+    "bookingDetail": "予約詳細",
+    "bookingInfo": "予約情報",
+    "time": "時間",
+    "purpose": "目的",
+    "tripInfo": "移動情報",
+    "type": "タイプ",
+    "from": "出発",
+    "return": "戻り",
+    "yesTBD": "はい (未定)",
+    "carInfo": "車両情報",
+    "plate": "ナンバー",
+    "parking": "駐車場",
+    "roomInfo": "会議室情報",
+    "people": "人数",
+    "organizer": "主催者",
+    "loading": "読み込み中…",
+    "failedToLoad": "読み込みに失敗しました。",
+    "statusPending": "保留中",
+    "statusApproved": "承認済み",
+    "statusRejected": "却下済み",
+    "statusCancelled": "キャンセル済み",
+    "statusWaitlisted": "キャンセル待ち",
+    "statusCompleted": "完了",
+    "busy": "ビジー",
+    "scheduleConflict": "スケジュールの競合",
+    "checkingSchedule": "スケジュールを確認中…",
+    "searchByNameEmail": "名前またはメールアドレスで検索…",
+    "noPendingApprovals": "保留中の承認はありません",
+    "allCaughtUp": "すべて確認済みです！",
+    "noUpcoming": "今後の{{type}}予約はありません",
+    "clickToStart": "「{{type}}」をクリックして開始してください。",
+    "noInvitationsOn": "対象日の招待はありません: ",
+    "selectDateForInvitations": "カレンダーから日付を選択して招待を表示してください。",
+    "noDriverNotesOn": "対象日のドライバーメモはありません: ",
+    "notesAppearAfterTrips": "メモは移動が完了した後にここに表示されます。",
+    "leftANote": "がメモを残しました",
+    "noRoomsYetManage": "会議室がありません — + リソースを登録 をクリックして追加してください",
+    "noCarsYetManage": "社用車がありません — + リソースを登録 をクリックして追加してください",
+    "meetingRooms": "会議室",
+    "companyCars": "社用車",
+    "confirmDelete": "削除の確認",
+    "deleteResource": "削除",
+    "deleteResourceWarning": "これにより、以下が永久に削除されます: ",
+    "deleteResourceWarning2": "およびそのすべてのデータ。予約履歴を保存するために、代わりに「無効」にすることを検討してください。",
+    "deletePermanently": "永久に削除",
+    "failedToDelete": "削除に失敗しました。",
+    "failedToSave": "リソースの保存に失敗しました。",
+    "carMarkedReturned": "車が返却済みに設定されました。",
+    "myRoomBooking": "マイ会議室予約",
+    "myCarBooking": "マイ社用車予約",
+    "errorPurpose": "目的を入力してください",
+    "errorResource": "リソースを選択してください",
+    "errorPickup": "乗車場所は必須です",
+    "errorDeparture": "出発地は必須です",
+    "errorDestination": "目的地は必須です",
+    "errorStops": "すべての立ち寄り地を入力してください",
+    "errorStopsMin": "少なくとも1つの立ち寄り地が必要です",
+    "errorEndTime": "終了時間は開始時間より後である必要があります。",
+    "errorName": "名前は必須です",
+    "errorPlate": "ナンバープレートは必須です",
+    "errorDriver": "ドライバーを割り当ててください",
+    "errorCapacity": "定員は1以上にする必要があります",
+    "submitFailed": "送信に失敗しました。もう一度お試しください。"
+  },
+"performance": {
+    "pageTitle": "パフォーマンスレビュー",
+    "labels": {
+      "metrics": "指標",
+      "analysisResults": "分析結果",
+      "employeeMetrics": "従業員指標",
+      "employees": "従業員"
+    },
+    "metrics": {
+      "late": "遅刻",
+      "absent": "欠勤",
+      "leave": "休暇",
+      "overtime": "残業"
+    },
+    "ratings": {
+      "Excellent": "非常に良い",
+      "Good": "良い",
+      "Average": "平均",
+      "NeedsImprovement": "改善が必要",
+      "Poor": "悪い"
+    },
+    "placeholders": {
+      "year": "年",
+      "country": "国"
+    },
+    "actions": {
+      "exportPdf": "PDF出力",
+      "analyzing": "分析中",
+      "aiAnalysis": "AI分析"
+    },
+    "kpis": {
+      "totalEmployees": "従業員合計",
+      "avgLateDays": "平均遅刻日数",
+      "avgAbsentDays": "平均欠勤日数",
+      "avgLeaveDays": "平均休暇日数",
+      "avgOTHours": "平均残業時間"
+    },
+    "table": {
+      "employee": "従業員",
+      "dept": "部署",
+      "attendance": "勤怠",
+      "lateDays": "遅刻日数",
+      "absent": "欠勤",
+      "leaveDays": "休暇日数",
+      "leave": "休暇",
+      "otHours": "残業時間",
+      "otHrs": "残業時間",
+      "rating": "評価",
+      "remark": "備考",
+      "score": "スコア",
+      "aiRemark": "AI備考"
+    },
+    "empty": {
+      "noEmployeeData": "選択したフィルターの従業員データが見つかりません。"
+    },
+    "pdf": {
+      "hrPerformanceReport": "HRパフォーマンスレポート",
+      "annualPerformanceReview": "年次パフォーマンスレビュー",
+      "ratingDistribution": "評価分布",
+      "confidentialHrDocument": "機密HR文書",
+      "generatedBySmartHr": "Smart HR により生成",
+      "printSavePdf": "印刷 / PDFとして保存"
+    }
+  },
+"projects": {
+  "pageTitle": "プロジェクト",
+  "appTitle": "プロジェクト割り当て",
+  "actions": {
+    "backToAssignments": "割り当てに戻る",
+    "createProject": "プロジェクトを作成",
+    "update": "更新",
+    "create": "プロジェクトを作成",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "view": "表示",
+    "yesUpdate": "更新する"
+  },
+  "modal": {
+    "newProject": "新規プロジェクト",
+    "editProject": "プロジェクトを編集",
+    "confirmUpdate": "更新確認",
+    "deleteProject": "プロジェクトを削除しますか？",
+    "updateSubtitle": "以下のプロジェクト詳細を更新してください",
+    "createSubtitle": "以下のプロジェクト詳細を入力してください",
+    "confirmUpdateMessage": "このプロジェクトを更新してもよろしいですか",
+    "deleteMessage": "はすべての割り当てとともに完全に削除されます。",
+    "cannotBeUndone": "この操作は元に戻せません。"
+  },
+  "fields": {
+    "projectName": "プロジェクト名",
+    "description": "説明",
+    "status": "ステータス",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "optional": "任意"
+  },
+  "placeholders": {
+    "projectName": "例: CRM System v2",
+    "description": "プロジェクトの簡単な説明…",
+    "searchProjects": "プロジェクトを検索…"
+  },
+  "status": {
+    "all": "すべて",
+    "active": "進行中",
+    "upcoming": "予定",
+    "completed": "完了",
+    "cancelled": "キャンセル"
+  },
+  "table": {
+    "project": "プロジェクト",
+    "status": "ステータス",
+    "duration": "期間",
+    "members": "メンバー",
+    "daysLeft": "残り日数",
+    "actions": "操作",
+    "from": "開始",
+    "to": "終了"
+  },
+  "empty": {
+    "noProjectsFound": "プロジェクトが見つかりません",
+    "tryDifferentSearch": "別の検索語を試してください"
+  },
+  "pagination": {
+    "prev": "前へ",
+    "next": "次へ"
+  },
+  "validation": {
+    "required": "必須",
+    "endDateAfterStart": "終了日は開始日より後である必要があります"
+  },
+  "messages": {
+    "created": "プロジェクトが正常に作成されました！",
+    "updated": "プロジェクトが正常に更新されました！",
+    "deleted": "プロジェクトが正常に削除されました。",
+    "createFailed": "プロジェクトの作成に失敗しました。もう一度お試しください。",
+    "updateFailed": "プロジェクトの更新に失敗しました。もう一度お試しください。",
+    "deleteFailed": "プロジェクトの削除に失敗しました。"
+  },
+  "loading": {
+    "creating": "作成中…",
+    "updating": "更新中…",
+    "deleting": "削除中…"
+  },
+  "units": {
+    "project": "プロジェクト",
+    "projects": "プロジェクト",
+    "dayOverdue": "日遅延",
+    "dueToday": "本日締切",
+    "dayLeft": "日残り",
+    "daysLeft": "日残り"
+  }
+},
+  "surveys": {
+    "actions": {
+      "back": "戻る",
+      "cancel": "キャンセル",
+      "delete": "削除"
+    },
+    "labels": {
+      "anonymous": "匿名",
+      "questions": "質問項目",
+      "questionsLower": "質問",
+      "responses": "回答",
+      "responsesLower": "回答",
+      "closes": "終了日時",
+      "by": "による"
+    },
+    "status": {
+      "all": "すべて",
+      "draft": "下書き",
+      "active": "公開中",
+      "closed": "終了"
+    },
+    "questionTypes": {
+      "single": "単一回答",
+      "multiple": "複数回答",
+      "yesNo": "はい/いいえ",
+      "rating": "評価",
+      "text": "テキスト",
+      "singleChoice": "単一選択",
+      "multiChoice": "複数選択",
+      "textAnswer": "テキスト回答"
+    },
+    "closed": {
+      "headTitle": "アンケート終了",
+      "title": "アンケート終了",
+      "message": "このアンケートは現在回答を受け付けていません。受付期間が終了しました。",
+      "responsesNoLongerCollected": "回答の受付は終了しました",
+      "contactHr": "ご不明な点がございましたら、人事部（HR）までお問い合わせください 💜"
+    },
+    "create": {
+      "createSurvey": "アンケート作成",
+      "editSurvey": "アンケート編集",
+      "newSurvey": "新しいアンケート",
+      "surveyBuilder": "アンケートビルダー",
+      "createSubtitle": "条件分岐ロジック、複数の質問タイプ、スマートな設定を使用してアンケートを作成します。",
+      "editSubtitle": "アンケートの内容、質問、および設定を更新します。",
+      "surveyDetails": "アンケートの詳細",
+      "settings": "設定",
+      "summary": "概要",
+      "fields": {
+        "question": "質問",
+        "type": "タイプ",
+        "titleRequired": "タイトル *",
+        "description": "説明",
+        "closeDate": "終了日",
+        "title": "タイトル"
+      },
+      "placeholders": {
+        "question": "ここに質問を入力してください...",
+        "option": "選択肢",
+        "selectAnswer": "回答を選択...",
+        "title": "例：第2四半期 従業員満足度調査",
+        "description": "任意 — このアンケートの概要を簡単に説明してください。"
+      },
+      "labels": {
+        "conditionalLogic": "条件分岐ロジック",
+        "showIf": "次の場合に表示",
+        "alwaysShow": "常に表示",
+        "emptyQuestion": "(未入力)",
+        "answerIs": "回答が次の場合",
+        "questionShowsOnlyWhen": "この質問は以下の場合にのみ表示されます：",
+        "required": "必須",
+        "optional": "任意",
+        "conditional": "条件付き"
+      },
+      "actions": {
+        "addOption": "+ 選択肢を追加",
+        "addQuestion": "質問を追加",
+        "saveAsDraft": "下書きとして保存",
+        "saving": "保存中...",
+        "publishSurvey": "アンケートを公開"
+      },
+      "validation": {
+        "titleRequired": "アンケートのタイトルは必須です。",
+        "addQuestion": "少なくとも1つの質問を追加してください。",
+        "required": "必須",
+        "needTwoOptions": "少なくとも2つの選択肢が必要です"
+      },
+      "anonymousOn": "回答は匿名で収集されます。人事部（HR）は誰が回答したかを確認できません。",
+      "anonymousOff": "回答者の名前が記録されます。人事部（HR）は誰が回答したかを確認できます。"
+    },
+    "index": {
+      "pageTitle": "アンケート一覧",
+      "copySurveyLink": "アンケートのリンクをコピー",
+      "copied": "コピーしました！",
+      "copyLink": "リンクをコピー",
+      "results": "結果",
+      "activate": "公開する",
+      "close": "終了する",
+      "createSurvey": "アンケート作成",
+      "noSurveysFound": "アンケートが見つかりません",
+      "createFirstSurvey": "「アンケート作成」をクリックして、最初のアンケートを作成してください。",
+      "stats": {
+        "totalSurveys": "総アンケート数",
+        "totalResponses": "総回答数"
+      }
+    },
+    "public": {
+      "validation": {
+        "questionRequired": "この質問は必須です。"
+      },
+      "errors": {
+        "somethingWentWrong": "問題が発生しました。",
+        "connectionError": "接続エラーが発生しました。もう一度お試しください。"
+      },
+      "alreadySubmitted": "送信済み",
+      "alreadySharedPrefix": "すでにフィードバックを送信済みです：",
+      "onlyOnce": "回答は1人1回までです。",
+      "anonymousRecorded": "匿名での回答が記録されました。",
+      "responseSaved": "回答が保存されました。",
+      "thankYouParticipating": "ご協力ありがとうございました 💜",
+      "thankYouTitle": "ありがとうございました！",
+      "responseRecorded": "回答が記録されました！",
+      "feedbackSubmitted": "フィードバックが送信されました。お時間をいただきありがとうございました。いただいた内容はサービスの改善に役立てられます。",
+      "submittedAnonymously": "匿名で送信されました — あなたの身元は保護されています。",
+      "employeeSurvey": "従業員アンケート",
+      "allQuestionsAnswered": "✓ すべての質問に回答しました",
+      "of": "/",
+      "answered": "回答済み",
+      "poor": "不満",
+      "excellent": "大変満足",
+      "shareThoughts": "ご意見・ご感想をご記入ください...",
+      "submittingResponse": "回答を送信中...",
+      "sendFeedback": "フィードバックを送信",
+      "anonymousConfidential": "この回答は匿名であり、機密が保持されます。",
+      "nameRecorded": "回答とともにお名前が記録されます。",
+      "yes": "はい",
+      "no": "いいえ"
+    },
+    "results": {
+      "pageTitle": "アンケート結果",
+      "avg": "平均",
+      "noTextAnswersYet": "テキスト回答はまだありません。",
+      "unknown": "不明",
+      "avgCompletion": "平均完了率",
+      "exportCsv": "CSVエクスポート",
+      "questionResults": "質問ごとの結果",
+      "individualResponses": "個別の回答",
+      "aiInsight": "AIインサイト",
+      "noResponsesYet": "回答はまだありません。",
+      "aiAnalysis": "AI分析",
+      "generated": "生成済み",
+      "analyzing": "分析中...",
+      "regenerate": "再生成",
+      "generateInsight": "インサイトを生成",
+      "noInsightGeneratedYet": "インサイトはまだ生成されていません",
+      "collectResponsesBeforeInsights": "AIインサイトを生成する前に、回答を収集してください。",
+      "clickGenerateInsight": "「インサイトを生成」をクリックすると、AIがすべての回答を分析します。"
+    }
+  },
+"projectShow": {
+  "appTitle": "プロジェクト割り当て",
+  "actions": {
+    "backToProjects": "プロジェクトに戻る",
+    "assignMember": "メンバーを割り当て",
+    "assigning": "割り当て中...",
+    "assignAnyway": "そのまま割り当て",
+    "updateHours": "時間を更新",
+    "cancel": "キャンセル",
+    "update": "更新",
+    "updating": "更新中...",
+    "removing": "削除中...",
+    "yesRemove": "削除する"
+  },
+  "status": {
+    "active": "進行中",
+    "upcoming": "予定",
+    "completed": "完了",
+    "cancelled": "キャンセル",
+    "removed": "削除済み"
+  },
+  "stats": {
+    "totalMembers": "メンバー総数",
+    "active": "進行中",
+    "upcoming": "予定",
+    "estimatedHours": "見積時間"
+  },
+  "tabs": {
+    "members": "メンバー",
+    "activityLog": "アクティビティログ"
+  },
+  "table": {
+    "member": "メンバー",
+    "period": "期間",
+    "hoursPerDay": "1日あたり時間",
+    "status": "ステータス",
+    "assignedBy": "割り当て者",
+    "notes": "メモ",
+    "actions": "操作"
+  },
+  "fields": {
+    "member": "メンバー",
+    "project": "プロジェクト",
+    "priority": "優先度",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "hoursPerDay": "1日あたり時間",
+    "status": "ステータス",
+    "notes": "メモ"
+  },
+  "labels": {
+    "from": "開始",
+    "to": "終了",
+    "createdBy": "作成者",
+    "timeline": "タイムライン",
+    "available": "利用可能",
+    "current": "現在",
+    "submittingWillAdd": "送信すると追加されます",
+    "total": "合計",
+    "already": "すでに",
+    "used": "使用済み",
+    "on": "担当中",
+    "activeProjects": "進行中プロジェクト",
+    "dailyLimit": "1日の上限",
+    "optional": "任意",
+    "priorityOrder": "優先順位",
+    "priority": "優先度",
+    "thisProject": "このプロジェクト"
+  },
+  "modal": {
+    "assignTitle": "メンバーを割り当て",
+    "assignSubtitle": "メンバーを追加:",
+    "editAssignmentTitle": "割り当てを編集"
+  },
+  "confirm": {
+    "removeTitle": "メンバーを削除しますか？",
+    "removeMessage": "削除します",
+    "cannotUndo": "この操作は元に戻せません。"
+  },
+  "empty": {
+    "noMembersAssigned": "まだメンバーが割り当てられていません",
+    "noActivityYet": "アクティビティはまだありません"
+  },
+  "placeholders": {
+    "selectMember": "メンバーを選択...",
+    "optionalNotes": "任意のメモ..."
+  },
+  "messages": {
+    "alreadyAssigned": "このプロジェクトにすでに割り当てられています",
+    "capacityOk": "容量は問題ありません",
+    "overCapacity": "容量超過",
+    "exceedsDailyLimit": "1日の上限を超えています",
+    "noOtherAssignments": "他の割り当てはありません",
+    "thisWillBe": "これは",
+    "selectHoursAbove": "上で時間を選択してください",
+    "priorityHint": "P1 = 午前セッション。優先度が高いほど、割り当て時間は当日の後半になります。"
+  },
+  "validation": {
+    "selectMember": "メンバーを選択してください",
+    "selectHoursPerDay": "1日あたり時間を選択してください",
+    "startDateRequired": "開始日は必須です",
+    "endDateRequired": "終了日は必須です",
+    "endDateAfterStart": "終了日は開始日より後である必要があります"
+  },
+  "logs": {
+    "assigned": "割り当てました",
+    "editedAssignmentOf": "の割り当てを編集しました",
+    "removed": "削除しました"
+  },
+  "units": {
+    "hoursPerDay": "時間/日",
+    "perDay": "1日あたり"
+  }
+},
+ "recruitment": {
+    "actions": {
+      "add": "追加",
+      "applyToAll": "すべてに適用",
+      "cancel": "キャンセル",
+      "createJobPosting": "求人情報の作成",
+      "delete": "削除",
+      "deletePermanently": "完全に削除",
+      "deletePosting": "求人情報の削除",
+      "deleting": "削除中...",
+      "edit": "編集",
+      "newPosting": "新規求人",
+      "reschedule": "日程再調整",
+      "rescheduleSendEmail": "再調整メールを送信",
+      "saveChanges": "変更を保存",
+      "saveScore": "評価を保存",
+      "saving": "保存中...",
+      "scheduleSendEmail": "日程調整メールを送信",
+      "scheduling": "調整中...",
+      "update": "更新",
+      "updating": "更新中..."
+    },
+    "delete": {
+      "allDataRemoved": "すべてのデータが削除されます",
+      "applicationRecord": "応募記録",
+      "applicationWarning": "応募に関する警告",
+      "areYouSure": "本当によろしいですか？",
+      "cannotBeUndone": "この操作は取り消せません",
+      "interviewRecord": "面接記録",
+      "noApplicationsSafe": "応募なし（安全に削除可能）",
+      "uploadedCv": "アップロードされた履歴書",
+      "willAlsoBeDeleted": "も同様に削除されます",
+      "willBeDeleted": "が削除されます"
+    },
+    "empty": {
+      "applicationsWillAppear": "ここに応募が表示されます",
+      "createFirstJobPosting": "最初の求人情報を作成する",
+      "noApplicationsYet": "応募者はまだいません",
+      "noJobPostings": "求人情報がありません"
+    },
+    "fields": {
+      "applicationDeadline": "応募締め切り",
+      "areasForImprovement": "改善点",
+      "companyOffice": "オフィス・事業所",
+      "dateTime": "日時",
+      "department": "部署",
+      "description": "職務内容",
+      "hrNote": "人事メモ",
+      "internalNote": "社内メモ",
+      "interviewType": "面接種別",
+      "interviewerName": "面接官名",
+      "jobTitle": "求人タイトル",
+      "jobType": "雇用形態",
+      "location": "勤務地",
+      "meetingLink": "ミーティングリンク",
+      "noteToCandidate": "候補者へのメッセージ",
+      "platform": "プラットフォーム",
+      "positions": "ポジション",
+      "postingStatus": "掲載ステータス",
+      "recommendation": "選考判定",
+      "requirements": "応募要件",
+      "responsibilities": "業務内容",
+      "salaryRange": "給与範囲",
+      "setStatusTo": "ステータスを以下に変更",
+      "strengths": "強み"
+    },
+    "filters": {
+      "allCountries": "すべての国",
+      "allStatus": "すべてのステータス"
+    },
+    "labels": {
+      "applicant": "応募者",
+      "applicants": "応募者一覧",
+      "application": "応募",
+      "applications": "応募一覧",
+      "applied": "応募済み",
+      "autoSelected": "自動選択",
+      "interview": "面接",
+      "link": "リンク",
+      "negotiable": "応相談",
+      "note": "メモ",
+      "online": "オンライン",
+      "onsite": "対面（オンサイト）",
+      "position": "ポジション",
+      "positions": "ポジション一覧",
+      "score": "スコア",
+      "viewOnly": "閲覧のみ"
+    },
+    "messages": {
+      "invitationEmailSent": "招待メールを送信しました"
+    },
+    "modal": {
+      "application": "応募詳細",
+      "bulkAction": "一括操作",
+      "deleteApplication": "応募の削除",
+      "deleteJobPosting": "求人情報の削除",
+      "editPosting": "求人情報の編集",
+      "interviewScore": "面接評価",
+      "jobRecruitment": "求人採用",
+      "newJobPosting": "新規求人情報の作成",
+      "rescheduleInterview": "面接の再調整",
+      "scheduleInterview": "面接の設定"
+    },
+    "pageTitle": "採用管理",
+    "placeholders": {
+      "addItem": "項目を追加",
+      "department": "部署を入力",
+      "descriptionPoint": "職務内容のポイントを入力",
+      "hrNote": "人事メモを入力",
+      "internalNote": "社内メモを入力",
+      "interviewerName": "面接官名を入力",
+      "jobTitle": "求人タイトルを入力",
+      "location": "勤務地を入力",
+      "noteToCandidate": "候補者へのメッセージを入力",
+      "requirementPoint": "応募要件のポイントを入力",
+      "responsibilityPoint": "業務内容のポイントを入力",
+      "salaryRange": "給与範囲を入力",
+      "searchJobs": "求人を検索",
+      "selectOffice": "オフィスを選択",
+      "strengths": "強みを入力",
+      "weaknesses": "改善点を入力"
+    },
+    "recommendations": {
+      "hold": "保留",
+      "proceed": "次選考へ進める",
+      "reject": "見送り"
+    },
+    "score": {
+      "average": "普通",
+      "excellent": "優秀",
+      "poor": "不十分"
+    },
+    "sort": {
+      "byScore": "評価順",
+      "latestFirst": "新着順",
+      "nameAZ": "名前順 (A-Z)"
+    },
+    "stats": {
+      "newUnread": "未読新規",
+      "openPositions": "募集中のポジション数",
+      "totalApplicants": "総応募者数",
+      "totalPostings": "総求人件数"
+    },
+    "status": {
+      "all": "すべて"
+    },
+    "table": {
+      "actions": "操作",
+      "applicants": "応募者数",
+      "company": "企業名",
+      "deadline": "締め切り",
+      "position": "ポジション",
+      "slots": "採用枠数",
+      "status": "ステータス",
+      "type": "雇用形態"
+    },
+    "tabs": {
+      "applications": "応募一覧",
+      "jobPostings": "求人一覧"
+    },
+    "validation": {
+      "atLeastOnePosition": "少なくとも1つのポジションを選択してください",
+      "descriptionPoint": "職務内容のポイントを入力してください",
+      "interviewFuture": "面接は将来の日時を指定してください",
+      "jobTitleRequired": "求人タイトルは必須です",
+      "requirementPoint": "要件のポイントを入力してください",
+      "salaryOrNegotiable": "給与範囲を入力するか、応相談を選択してください",
+      "selectCompanyOffice": "事業所・オフィスを選択してください",
+      "selectDateTime": "日時を選択してください",
+      "selectJobType": "雇用形態を選択してください"
+    },
+    "jobTypes": {
+    "fullTime": "正社員",
+    "partTime": "アルバイト・パート",
+    "contract": "契約社員",
+    "internship": "インターンシップ"
+  },
+  "jobStatus": {
+    "open": "募集中",
+    "paused": "一時停止中",
+    "closed": "募集終了"
+  },
+  "appStatus": {
+    "new": "新規応募",
+    "reviewing": "選考中",
+    "interview": "面接中",
+    "accepted": "内定",
+    "rejected": "不採用"
+  },
+  "platforms": {
+    "zoom": "Zoom",
+    "google_meet": "Google Meet",
+    "teams": "Microsoft Teams",
+    "physical": "対面 / オンサイト",
+    "other": "その他"
+  }
+  },
+  "userRoles": {
+    "pageTitle": "ユーザーと権限",
+    "hero": {
+      "eyebrow": "ユーザー管理",
+      "title": "プレミアムワークスペース概要",
+      "desc": "同じフローとロジックのまま、よりクリーンでプロフェッショナルなUIに改善しました。"
+    },
+    "stats": {
+      "members": "メンバー",
+      "totalRegisteredUsers": "登録ユーザー合計",
+      "active": "有効"
+    },
+    "filters": {
+      "allCountries": "すべての国",
+      "allRoles": "すべての権限"
+    },
+    "placeholders": {
+      "searchByNameOrEmail": "名前またはメールで検索...",
+      "selectRole": "権限を選択...",
+      "selectCountry": "国を選択...",
+      "fullName": "山田 太郎",
+      "email": "john@vibeme.ai",
+      "department": "開発部",
+      "position": "シニア開発者"
+    },
+    "actions": {
+      "addNewUser": "新規ユーザー追加",
+      "cancel": "キャンセル",
+      "saving": "保存中...",
+      "createUser": "ユーザー作成",
+      "updateUser": "ユーザー更新",
+      "deleting": "削除中...",
+      "yesDelete": "はい、削除"
+    },
+    "labels": {
+      "result": "件",
+      "results": "件",
+      "found": "見つかりました",
+      "liveDirectory": "ライブディレクトリ",
+      "autoAssigned": "自動割り当て"
+    },
+    "table": {
+      "teamMembers": "チームメンバー",
+      "user": "ユーザー",
+      "country": "国",
+      "role": "権限",
+      "department": "部署",
+      "position": "役職",
+      "phone": "電話",
+      "dateOfBirth": "生年月日",
+      "employment": "雇用形態",
+      "joined": "入社日",
+      "status": "ステータス",
+      "actions": "操作"
+    },
+    "fields": {
+      "fullName": "氏名",
+      "emailAddress": "メールアドレス",
+      "dateOfBirth": "生年月日",
+      "country": "国",
+      "newPassword": "新しいパスワード",
+      "password": "パスワード",
+      "role": "権限",
+      "department": "部署",
+      "position": "役職",
+      "phone": "電話",
+      "joinedDate": "入社日",
+      "employmentType": "雇用形態",
+      "contractEndDate": "契約終了日",
+      "profilePhoto": "プロフィール写真",
+      "activeStatus": "有効ステータス"
+    },
+    "empty": {
+      "noUsersFound": "ユーザーが見つかりません",
+      "tryAdjusting": "検索条件またはフィルターを調整してください。"
+    },
+    "modal": {
+      "addNewUser": "新規ユーザー追加",
+      "userManagement": "ユーザー管理",
+      "editUser": "ユーザー編集",
+      "updateProfile": "プロフィール更新",
+      "confirmDelete": "削除確認",
+      "dangerZone": "危険ゾーン"
+    },
+    "confirm": {
+      "deleteUser": "ユーザーを削除しますか？",
+      "areYouSureDeletePrefix": "本当に削除しますか",
+      "cannotBeUndone": "この操作は元に戻せません。"
+    },
+    "status": {
+      "active": "有効",
+      "inactive": "無効"
+    }
+  },
+  "driverSchedule": {
+    "pageTitle": "運行スケジュール",
+    "driverStatus": {
+      "start": "未開始",
+      "onTheWay": "移動中",
+      "returned": "帰社中",
+      "ended": "完了"
+    },
+    "bookingStatus": {
+      "approved": "承認済み",
+      "waitlisted": "キャンセル待ち",
+      "completed": "完了",
+      "cancelled": "キャンセル済み"
+    },
+    "tripTypes": {
+      "oneWay": "片道",
+      "multiStop": "複数立ち寄り",
+      "pickup": "送迎",
+      "roundTrip": "往復",
+      "waitReturn": "待機して戻る"
+    },
+    "stats": {
+      "total": "合計",
+      "active": "進行中",
+      "done": "完了"
+    },
+    "tabs": {
+      "tripInfo": "運行情報",
+      "passengers": "乗客",
+      "notes": "メモ"
+    },
+    "labels": {
+      "type": "種類",
+      "from": "出発地",
+      "return": "戻り",
+      "stops": "立ち寄り先",
+      "cancelReason": "キャンセル理由",
+      "organizer": "主催者",
+      "passenger": "乗客",
+      "todayUpper": "今日"
+    },
+    "fields": {
+      "reasonRequired": "理由 *"
+    },
+    "actions": {
+      "back": "戻る",
+      "confirmCancel": "キャンセル確認",
+      "cancelling": "キャンセル中…",
+      "skip": "スキップ",
+      "saving": "保存中…",
+      "saveNote": "メモを保存",
+      "cancelTrip": "運行をキャンセル",
+      "startTrip": "運行開始",
+      "markReturning": "帰社中にする",
+      "endTrip": "運行終了",
+      "today": "今日"
+    },
+    "cancelModal": {
+      "title": "予約キャンセル"
+    },
+    "noteModal": {
+      "tripCompleted": "運行が完了しました!",
+      "addNoteOptional": "メモを追加 (任意)"
+    },
+    "placeholders": {
+      "cancelReason": "例: 車両故障、エンジン問題…",
+      "note": "例: 渋滞、給油済み…"
+    },
+    "validation": {
+      "reasonRequired": "理由は必須です。"
+    },
+    "messages": {
+      "failedTryAgain": "失敗しました。もう一度お試しください。",
+      "tripTimePassed": "この運行時間はすでに過ぎています。もう開始できません。",
+      "tripCompleted": "運行完了",
+      "loadingSchedule": "スケジュールを読み込み中…"
+    },
+    "empty": {
+      "noCarAssigned": "車両が割り当てられていません",
+      "contactHrCarAssigned": "車両割り当てについてHRに連絡してください。",
+      "noTripDetails": "運行詳細がありません。",
+      "notesAfterTripEnds": "運行終了後にメモが表示されます。",
+      "noBookingsOn": "予約がない日:",
+      "freeOnThisDay": "この日は空いています。"
+    },
+    "units": {
+      "seats": "席"
+    }
+  },
+  "requirement": {
+    "common": {
+      "status": {
+        "pending": "保留中",
+        "analyzing": "分析中",
+        "completed": "完了",
+        "failed": "失敗"
+      },
+      "complexity": {
+        "simple": "簡単",
+        "medium": "中程度",
+        "complex": "複雑",
+        "enterprise": "エンタープライズ"
+      }
+    },
+    "list": {
+      "pageTitle": "要件分析",
+      "hero": {
+        "eyebrow": "要件分析",
+        "title": "プレミアムAI要件ワークスペース",
+        "desc": "ライト/ダークモード対応のクリーンなフローで、要件分析の作成、分析、再実行、レビューを行えます。"
+      },
+      "stats": {
+        "total": "合計",
+        "allAnalyses": "すべての分析",
+        "waitingQueue": "待機中",
+        "inProgress": "進行中",
+        "readyToReview": "レビュー可能",
+        "needsRetry": "再試行が必要"
+      },
+      "analysisDirectory": "分析一覧",
+      "liveAnalysisList": "ライブ分析リスト",
+      "labels": {
+        "feasibility": "実現性"
+      }
+    },
+    "modal": {
+      "title": "新規要件分析",
+      "subtitle": "AIが自動的に分析し、インサイトを提供します。",
+      "steps": {
+        "clientInfo": "クライアント情報",
+        "projectDetails": "プロジェクト詳細",
+        "requirements": "要件"
+      }
+    },
+    "fields": {
+      "companyName": "会社名",
+      "contactPerson": "担当者",
+      "industry": "業界",
+      "email": "メール",
+      "phone": "電話",
+      "projectTitle": "プロジェクト名",
+      "projectDescription": "プロジェクト説明",
+      "platform": "プラットフォーム",
+      "expectedUsers": "想定ユーザー数",
+      "budgetRange": "予算範囲",
+      "expectedDeadline": "希望期限",
+      "coreFeatures": "主要機能",
+      "integrationNeeds": "連携要件",
+      "specialRequirements": "特別要件 / メモ"
+    },
+    "placeholders": {
+      "companyName": "Acme Corporation",
+      "contactPerson": "John Smith",
+      "industry": "例: 医療、金融",
+      "email": "john@company.com",
+      "phone": "+1 234 567 8900",
+      "projectTitle": "例: 病院管理システム",
+      "projectDescription": "クライアントの要件を詳しく入力してください（20文字以上）...",
+      "selectPlatform": "プラットフォームを選択...",
+      "expectedUsers": "例: 500",
+      "selectBudget": "予算を選択...",
+      "integrationNeeds": "例: 既存ERP、決済ゲートウェイ、SMSサービスとの連携...",
+      "specialRequirements": "その他の要件、制約、メモ...",
+      "searchProjectClient": "プロジェクトまたはクライアントで検索..."
+    },
+    "platforms": {
+      "web": "Web",
+      "mobile": "モバイル",
+      "both": "両方",
+      "desktop": "デスクトップ"
+    },
+    "features": {
+      "userAuthentication": "User Authentication",
+      "dashboardAnalytics": "Dashboard & Analytics",
+      "rolePermissions": "Role & Permissions",
+      "notifications": "Notifications",
+      "fileUpload": "File Upload",
+      "paymentIntegration": "Payment Integration",
+      "apiIntegration": "API Integration",
+      "reportingExport": "Reporting & Export",
+      "multiLanguage": "Multi-language",
+      "mobileResponsive": "Mobile Responsive",
+      "realTimeUpdates": "Real-time Updates",
+      "searchFilter": "Search & Filter"
+    },
+    "validation": {
+      "companyNameRequired": "会社名は必須です。",
+      "contactPersonRequired": "担当者は必須です。",
+      "validEmail": "有効なメールアドレスを入力してください。",
+      "projectTitleRequired": "プロジェクト名は必須です。",
+      "projectDescriptionRequired": "プロジェクト説明は必須です。",
+      "descriptionMin": "説明は20文字以上で入力してください。",
+      "budgetRequired": "予算範囲を選択してください。",
+      "deadlineRequired": "希望期限を設定してください。",
+      "coreFeatureRequired": "少なくとも1つの主要機能を選択してください。"
+    },
+    "actions": {
+      "newAnalysis": "新規分析",
+      "cancel": "キャンセル",
+      "back": "戻る",
+      "next": "次へ",
+      "analyzing": "分析中...",
+      "submitAnalyze": "送信して分析",
+      "delete": "削除",
+      "view": "表示",
+      "rerun": "再実行",
+      "reanalyze": "再分析",
+      "generateProposal": "提案書作成",
+      "retryAnalysis": "分析を再試行"
+    },
+    "messages": {
+      "submitted": "要件が送信され、AI分析が開始されました。",
+      "deleted": "削除しました。"
+    },
+    "hints": {
+      "selectAtLeastOne": "（少なくとも1つ選択）"
+    },
+    "filters": {
+      "allStatus": "すべてのステータス"
+    },
+    "labels": {
+      "result": "件",
+      "results": "件",
+      "found": "見つかりました",
+      "duration": "期間"
+    },
+    "table": {
+      "project": "プロジェクト",
+      "client": "クライアント",
+      "platform": "プラットフォーム",
+      "complexity": "複雑度",
+      "feasibility": "実現性",
+      "status": "ステータス",
+      "date": "日付",
+      "actions": "操作"
+    },
+    "empty": {
+      "noAnalyses": "分析はまだありません",
+      "clickNewAnalysis": "「新規分析」をクリックして開始してください。"
+    },
+    "confirm": {
+      "deleteAnalysis": "分析を削除しますか？",
+      "cannotBeUndone": "この操作は元に戻せません。"
+    },
+    "detail": {
+      "pageTitle": "Requirement Detail",
+      "timeline": {
+        "feasible": "Feasible",
+        "tight": "Tight",
+        "unrealistic": "Unrealistic"
+      },
+      "budget": {
+        "under": "Under Budget",
+        "within": "Within Budget",
+        "over": "Over Budget"
+      },
+      "feasibility": {
+        "highlyFeasible": "Highly Feasible",
+        "moderatelyFeasible": "Moderately Feasible",
+        "challenging": "Challenging",
+        "score": "Feasibility Score"
+      },
+      "states": {
+        "aiAnalyzing": "AI is analyzing...",
+        "pleaseWait": "Please wait while we process the requirements.",
+        "analysisFailed": "Analysis failed",
+        "somethingWrong": "Something went wrong. Please try again.",
+        "pendingAnalysis": "Pending analysis",
+        "startShortly": "Analysis will start shortly."
+      },
+      "sections": {
+        "aiSummary": "AI Summary",
+        "coreModules": "Core Modules",
+        "projectTimeline": "Project Timeline",
+        "riskAssessment": "Risk Assessment",
+        "recommendations": "Recommendations",
+        "clarificationsNeeded": "Clarifications Needed",
+        "quickOverview": "Quick Overview",
+        "assessments": "Assessments",
+        "techStack": "Tech Stack",
+        "recommendedTeam": "Recommended Team",
+        "clientInfo": "Client Info"
+      },
+      "quick": {
+        "users": "Users",
+        "budget": "Budget",
+        "deadline": "Deadline",
+        "timeline": "Timeline"
+      }
+    }
+  },
+ "documentTranslation": {
+    "pageTitle": "ドキュメント翻訳",
+    "hero": {
+      "eyebrow": "ドキュメント翻訳",
+      "title": "プレミアム翻訳ワークスペース",
+      "desc": "同じロジックフロー、同じルート、同じアップロードとフォルダー操作を維持したまま、ライト/ダークモード両方で動作するプロフェッショナルUIへ改善しました。",
+      "demoMode": "API がまだ設定されていないため、このページはデモモードで表示されています。"
+    },
+    "actions": {
+      "uploadDocument": "ドキュメントをアップロード",
+      "cancel": "キャンセル",
+      "deleting": "削除中...",
+      "yesDelete": "はい、削除します",
+      "download": "ダウンロード",
+      "close": "閉じる",
+      "delete": "削除"
+    },
+    "stats": {
+      "totalFiles": "合計ファイル数",
+      "allUploadedDocuments": "アップロード済みドキュメント",
+      "completed": "完了",
+      "readyToReview": "確認またはダウンロード可能",
+      "translating": "翻訳中",
+      "jobsRunning": "実行中ジョブ",
+      "failed": "失敗",
+      "needsReview": "再確認または再試行が必要"
+    },
+    "labels": {
+      "allFiles": "すべてのファイル",
+      "uploadedBy": "アップロード者"
+    },
+    "loading": {
+      "files": "ファイルを読み込み中",
+      "fetchingFolder": "フォルダー内容を取得中"
+    },
+    "messages": {
+      "unableLoadFolder": "フォルダー内容を読み込めません。",
+      "unableRefreshFolder": "フォルダー内容を更新できません。",
+      "unableRefreshDocumentList": "ドキュメント一覧を更新できません。",
+      "folderDeleted": "フォルダーを削除しました。",
+      "folderDeleteFailed": "フォルダーの削除に失敗しました。",
+      "documentDeleteFailed": "ドキュメントの削除に失敗しました。"
+    },
+    "delete": {
+      "dangerZone": "危険ゾーン",
+      "deleteFolder": "フォルダーを削除",
+      "confirmTitle": "このフォルダーを削除しますか？",
+      "confirmPrefix": "削除しようとしている項目:",
+      "confirmSuffix": "このフォルダー内のすべてのファイルも完全に削除されます。"
+    },
+    "upload": {
+      "eyebrow": "ドキュメント翻訳",
+      "title": "アップロードワークスペース",
+      "fileIntake": "ファイル受付",
+      "dropBrowse": "ここにファイルをドロップまたは参照",
+      "acceptedTypes": "PDF, DOC, DOCX, TXT, PNG, JPG, JPEG",
+      "maxSize": "最大20MB",
+      "replaceHint": "クリックして置換、または別ファイルをドラッグしてください。",
+      "metadata": "メタデータ",
+      "saveToFolder": "フォルダーに保存",
+      "rootNoFolder": "ルート（フォルダーなし）",
+      "tags": "タグ",
+      "tagsPlaceholder": "hr, report, 2026",
+      "languageDirection": "翻訳方向",
+      "sourceLanguage": "元の言語",
+      "translateTo": "翻訳先",
+      "apiNotConfigured": "API 未設定",
+      "imageCannotTranslate": "画像ファイルは翻訳できません。TXT、DOC、DOCX、PDF のようなテキストベースファイルのみ対応しています。",
+      "visibilityTitle": "公開範囲",
+      "apiDemoNotice": "翻訳APIは設定されていません。現在のフローでアップロードと保存は可能です。",
+      "uploading": "アップロード中...",
+      "uploadDocument": "ドキュメントをアップロード",
+      "uploadFailed": "アップロードに失敗しました。再試行してください。",
+      "visibility": {
+        "private": "プライベート",
+        "onlyYou": "自分のみ",
+        "branch": "自分の支店",
+        "yourBranch": "あなたの支店",
+        "all": "全支店",
+        "everyone": "全員"
+      },
+      "languages": {
+        "en": "英語",
+        "ja": "日本語",
+        "my": "ミャンマー語",
+        "km": "クメール語",
+        "vi": "ベトナム語",
+        "ko": "韓国語"
+      }
+    },
+    "languages": {
+      "en": "英語",
+      "ja": "日本語",
+      "my": "ミャンマー語",
+      "km": "クメール語",
+      "vi": "ベトナム語",
+      "ko": "韓国語"
+    },
+    "fileNotes": {
+      "portableDocument": "PDFドキュメント",
+      "editableDocument": "編集可能ドキュメント",
+      "plainText": "プレーンテキスト",
+      "imageFile": "画像ファイル"
+    },
+    "status": {
+      "pending": "保留中",
+      "translating": "翻訳中",
+      "completed": "完了",
+      "failed": "失敗"
+    },
+    "statusNotes": {
+      "waitingInQueue": "キューで待機中",
+      "jobsRunning": "実行中ジョブ",
+      "downloadsAvailable": "ダウンロード可能",
+      "needsReview": "確認または再試行が必要"
+    },
+    "downloadModal": {
+      "eyebrow": "ダウンロード",
+      "title": "ファイルバージョンを選択",
+      "originalFile": "元ファイル",
+      "translatedVersions": "翻訳済みバージョン",
+      "translated": "翻訳済み"
+    },
+    "deleteDocument": {
+      "confirmTitle": "ドキュメントを削除しますか？",
+      "confirmPrefix": "これにより",
+      "confirmSuffix": "および関連する翻訳バージョンが削除されます。"
+    },
+    "filters": {
+      "allStatuses": "すべてのステータス",
+      "allFileTypes": "すべてのファイルタイプ"
+    },
+    "library": {
+      "eyebrow": "ドキュメントライブラリ",
+      "visibleFile": "表示ファイル",
+      "visibleFiles": "表示ファイル",
+      "flowPreserved": "同じ route/API フローを維持"
+    },
+    "statsShort": {
+      "total": "合計",
+      "completed": "完了",
+      "running": "実行中",
+      "failed": "失敗"
+    },
+    "placeholders": {
+      "searchDocuments": "ドキュメント、アップロード者、タグを検索..."
+    },
+    "view": {
+      "grid": "グリッド",
+      "list": "リスト"
+    },
+    "empty": {
+      "noDocumentsFound": "ドキュメントが見つかりません",
+      "tryAdjusting": "検索またはフィルターを調整してください。"
+    },
+    "table": {
+      "document": "ドキュメント",
+      "status": "ステータス",
+      "languages": "言語",
+      "created": "作成日",
+      "uploader": "アップロード者",
+      "tags": "タグ",
+      "actions": "操作"
+    },
+    "folderModal": {
+      "header": {
+        "eyebrow": "フォルダーワークスペース",
+        "editTitle": "フォルダー編集",
+        "createTitle": "フォルダー作成",
+        "parent": "親",
+        "rootLevel": "ルートレベルフォルダー"
+      },
+      "fields": {
+        "folderName": "フォルダー名",
+        "description": "説明",
+        "visibility": "公開範囲",
+        "folderColor": "フォルダーカラー",
+        "folderIcon": "フォルダーアイコン"
+      },
+      "placeholders": {
+        "folderName": "フォルダー名を入力",
+        "description": "任意の短い説明"
+      },
+      "visibility": {
+        "allBranches": "全支店",
+        "allBranchesDesc": "全支店に表示",
+        "myBranch": "自分の支店",
+        "myBranchDesc": "自分の支店のみに表示",
+        "private": "プライベート",
+        "privateDesc": "自分のみ表示"
+      },
+      "actions": {
+        "saving": "保存中...",
+        "updateFolder": "フォルダー更新",
+        "createFolder": "フォルダー作成"
+      },
+      "messages": {
+        "updateFailed": "フォルダー更新に失敗しました。",
+        "createFailed": "フォルダー作成に失敗しました。"
+      }
+    },
+    "folderTree": {
+      "actions": {
+        "more": "詳細",
+        "addSubfolder": "サブフォルダー追加",
+        "editFolder": "フォルダー編集",
+        "deleteFolder": "フォルダー削除"
+      },
+      "library": "ライブラリ",
+      "smartFolders": "スマートフォルダー",
+      "new": "+ 新規",
+      "searchPlaceholder": "フォルダー検索...",
+      "browseEveryUploadedDocument": "アップロード済みドキュメントを表示",
+      "empty": {
+        "noFoldersFound": "フォルダーが見つかりません",
+        "noFoldersYet": "フォルダーはまだありません",
+        "tryAnotherKeyword": "別のキーワードを試してください。",
+        "createFirstFolderDesc": "整理のため最初のフォルダーを作成してください。",
+        "createFirstFolder": "最初のフォルダーを作成"
+      },
+      "units": {
+        "file": "ファイル",
+        "files": "ファイル",
+        "subfolder": "サブフォルダー",
+        "subfolders": "サブフォルダー",
+        "folder": "フォルダー",
+        "folders": "フォルダー",
+        "total": "合計"
+      },
+      "fileNotes": {
+        "portableDocument": "PDFドキュメント",
+        "editableDocument": "編集可能ドキュメント",
+        "plainText": "プレーンテキスト",
+        "imageFile": "画像ファイル"
+      },
+      "status": {
+        "pending": "保留中",
+        "translating": "翻訳中",
+        "completed": "完了",
+        "failed": "失敗"
+      },
+      "statusNotes": {
+        "waitingInQueue": "キューで待機中",
+        "jobsRunning": "実行中ジョブ",
+        "downloadsAvailable": "ダウンロード可能",
+        "needsReviewOrRetry": "確認または再試行が必要"
+      }
+    }
+  },
+"proposalGenerator": {
+    "pageTitle": "プロポーザルジェネレーター",
+    "title": "プレミアムAIプロポーザルワークスペース",
+    "description": "RequirementAnalysis（要件分析）のライトモード・ダークモードの挙動に対応しつつ、従来のプロポーザルルートおよびAPIフローを維持しています。",
+    "actions": {
+      "generateProposal": "プロポーザルを作成",
+      "resetFilters": "フィルターをリセット",
+      "cancel": "キャンセル",
+      "generating": "作成中...",
+      "deleting": "削除中...",
+      "yesDelete": "はい、削除します"
+    },
+    "status": {
+      "draft": "下書き",
+      "sent": "送信済み",
+      "accepted": "承諾済み",
+      "rejected": "却下済み"
+    },
+    "languages": {
+      "english": "英語",
+      "myanmar": "ミャンマー語",
+      "khmer": "クメール語",
+      "vietnamese": "ベトナム語",
+      "korean": "韓国語",
+      "japanese": "日本語"
+    },
+    "templates": {
+      "executive": { "label": "エグゼクティブ", "desc": "プレミアムでラグジュアリーなダークトーン" },
+      "magazine": { "label": "マガジン", "desc": "大胆でエディトリアルなデザイン" },
+      "minimal": { "label": "ミニマル", "desc": "スイススタイルにインスパイアされたクリーンなレイアウト" }
+    },
+    "stats": {
+      "total": "合計",
+      "draft": "下書き",
+      "sent": "送信済み",
+      "accepted": "承諾済み",
+      "rejected": "却下済み",
+      "allGenerated": "作成済みのすべてのプロポーザル",
+      "waitingNextAction": "次のアクションを待機中",
+      "sharedWithClients": "クライアントと共有済み",
+      "readyToCelebrate": "お祝いの準備完了",
+      "needsRevision": "要修正"
+    },
+    "placeholders": {
+      "search": "プロポーザル番号、プロジェクト、またはクライアントで検索...",
+      "chooseAnalysis": "完了済みの要件分析を選択..."
+    },
+    "filters": {
+      "allStatus": "すべてのステータス"
+    },
+    "sections": {
+      "directory": "プロポーザルディレクトリ"
+    },
+    "labels": {
+      "liveProposalList": "現在のプロポーザル一覧",
+      "clientProfileLinked": "要件分析からリンクされたクライアントプロフィール",
+      "resultFound": "件の結果が見つかりました",
+      "resultsFound": "件の結果が見つかりました"
+    },
+    "table": {
+      "proposalNo": "プロポーザル番号",
+      "project": "プロジェクト",
+      "client": "クライアント",
+      "language": "言語",
+      "status": "ステータス",
+      "date": "日付",
+      "actions": "操作"
+    },
+    "empty": {
+      "noProposalsYet": "プロポーザルがまだありません",
+      "clickGenerate": "「プロポーザルを作成」をクリックして開始してください。",
+      "noCompletedAnalyses": "利用可能な完了済みの要件分析がまだありません。"
+    },
+    "modal": {
+      "generateTitle": "プロポーザルを作成",
+      "generateSubtitle": "従来のルートおよびAPIフローのまま、RequirementAnalysisのテーマシステムに対応しています。"
+    },
+    "fields": {
+      "selectProject": "プロジェクトを選択",
+      "templateStyle": "テンプレートスタイル"
+    },
+    "messages": {
+      "generated": "プロポーザルが正常に作成されました。",
+      "deleted": "プロポーザルが正常に削除されました。",
+      "deleteFailed": "プロポーザルを削除できませんでした。",
+      "pdfCompatibility": "PDFの最適な互換性を確保するため、プロポーザルは英語で作成されます。"
+    },
+    "validation": {
+      "selectAnalysis": "最初にプロジェクトの要件分析を選択してください。"
+    },
+    "confirm": {
+      "title": "削除の確認",
+      "subtitle": "デンジャーゾーン",
+      "deleteTitle": "プロポーザルを削除しますか？",
+      "deleteMessage": "本当に削除しますか？",
+      "thisProposal": "このプロポーザル",
+      "cannotUndo": "この操作は取り消すことができません。"
+    },
+    "common": {
+      "unknown": "不明",
+      "unknownClient": "不明なクライアント",
+      "untitledProject": "無題のプロジェクト",
+      "investmentNotAvailable": "投資情報は利用できません"
+    }
+  },
+  "proposalDetail": {
+    "pageTitle": "プロポーザル詳細",
+    "description": "従来のバックエンドルートとロジックを維持しながら、テンプレート切り替え、プレビュー、PDFエクスポート、ステータス更新、再生成を行えるプレミアムなプロポーザル確認用ワークスペースです。",
+    "actions": {
+      "back": "戻る",
+      "regenerate": "再生成",
+      "regenerating": "再生成中...",
+      "downloadPdf": "PDFをダウンロード",
+      "updating": "更新中...",
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "markAccepted": "承諾済みにする"
+    },
+    "status": {
+      "draft": "下書き",
+      "sent": "送信済み",
+      "accepted": "承諾済み",
+      "rejected": "却下済み"
+    },
+    "languages": {
+      "english": "英語",
+      "myanmar": "ミャンマー語",
+      "khmer": "クメール語",
+      "vietnamese": "ベトナム語",
+      "korean": "韓国語",
+      "japanese": "日本語"
+    },
+    "templates": {
+      "executive": { "label": "エグゼクティブ", "desc": "ダークラグジュアリー" },
+      "magazine": { "label": "マガジン", "desc": "ボールドエディトリアル" },
+      "minimal": { "label": "ミニマル", "desc": "スイスグリッド" }
+    },
+    "preview": {
+      "livePreview": "プロポーザルのライブプレビュー"
+    },
+    "sections": {
+      "proposalStatus": "プロポーザルのステータス",
+      "clientSummary": "クライアントの概要",
+      "proposalInsights": "プロポーザルのインサイト",
+      "readyDelivery": "最終納品の準備はできましたか？"
+    },
+    "labels": {
+      "template": "テンプレート"
+    },
+    "fields": {
+      "company": "企業名",
+      "industry": "業界",
+      "email": "メールアドレス",
+      "project": "プロジェクト",
+      "language": "言語",
+      "investment": "投資額",
+      "validity": "有効期限"
+    },
+    "messages": {
+      "readyDeliveryDesc": "選択したテンプレートのプレビューを確認し、クライアントの詳細情報を確定した上で、ステータスを更新するか最終的なPDFをダウンロードしてください。"
+    },
+    "common": {
+      "notSpecified": "指定なし",
+      "na": "該当なし",
+      "unknownClient": "不明なクライアント",
+      "untitledProject": "無題のプロジェクト"
+    }
+  },
+"projects": {
+    "appTitle": "プロジェクト管理",
+    "status": {
+      "all": "すべて",
+      "active": "進行中",
+      "upcoming": "開始前",
+      "completed": "完了",
+      "cancelled": "キャンセル"
+    },
+    "modal": {
+      "newProject": "新規プロジェクト",
+      "editProject": "プロジェクトの編集",
+      "deleteProject": "プロジェクトの削除",
+      "cannotBeUndone": "この操作は取り消せません"
+    },
+    "actions": {
+      "cancel": "キャンセル",
+      "create": "プロジェクトを作成",
+      "update": "プロジェクトを更新",
+      "createProject": "+ 新規プロジェクト",
+      "yesDelete": "はい、削除します"
+    },
+    "loading": {
+      "creating": "作成中…",
+      "updating": "更新中…",
+      "deleting": "削除中…"
+    },
+    "fields": {
+      "projectName": "プロジェクト名",
+      "description": "説明",
+      "status": "ステータス",
+      "startDate": "開始日",
+      "endDate": "終了日",
+      "client": "クライアント",
+      "contractValue": "契約金額",
+      "currency": "通貨",
+      "teamSize": "チーム人数"
+    },
+    "sections": {
+      "contractBudget": "契約と予算"
+    },
+    "client": {
+      "noClient": "— クライアントなし —"
+    },
+    "labels": {
+      "orTypeManually": "または手動で入力"
+    },
+    "placeholders": {
+      "projectName": "例：CRMシステム v2",
+      "description": "簡単な説明...",
+      "selectClient": "既存のクライアントを選択...",
+      "clientNameManual": "またはクライアント名を手動で入力...",
+      "teamSize": "例：4",
+      "searchProjects": "プロジェクト名で検索..."
+    },
+    "validation": {
+      "required": "必須",
+      "clientRequired": "クライアント名を選択または入力してください",
+      "endDateAfterStart": "開始日より後の日付を指定してください",
+      "validNumber": "有効な数値を入力してください"
+    },
+    "stats": {
+      "totalProjects": "総プロジェクト数",
+      "totalContractValue": "総契約金額"
+    },
+    "table": {
+      "project": "プロジェクト",
+      "client": "クライアント",
+      "contractValue": "契約金額",
+      "timeline": "タイムライン",
+      "team": "チーム",
+      "status": "ステータス",
+      "actions": "アクション"
+    },
+    "confirm": {
+      "deleteQuestion": "本当に削除しますか？"
+    },
+    "empty": {
+      "noProjectsMatch": "フィルターに一致するプロジェクトはありません。",
+      "noProjectsYet": "プロジェクトがまだありません。最初のプロジェクトを作成しましょう。"
+    },
+    "units": {
+      "person": "人"
+    }
+  },
+  "plReport": {
+    "pageTitle": "損益レポート",
+    "header": {
+      "title": "損益ダッシュボード",
+      "subtitle": "売上 · プロジェクトコスト · 間接費 · 純利益"
+    },
+    "filters": {
+      "from": "開始",
+      "to": "終了"
+    },
+    "actions": {
+      "applyFilter": "フィルター適用",
+      "back": "戻る"
+    },
+    "kpi": {
+      "totalRevenue": "総売上",
+      "projectCost": "プロジェクトコスト",
+      "overheadCost": "間接費",
+      "grossProfit": "粗利益",
+      "netProfit": "純利益",
+      "outstanding": "未回収"
+    },
+    "labels": {
+      "margin": "利益率",
+      "of": "の",
+      "contract": "契約",
+      "beforeOverhead": "間接費前",
+      "totalOverhead": "総間接費",
+      "cost": "コスト",
+      "total": "合計"
+    },
+    "cards": {
+      "operatingIncomeTitle": "営業収入と費用",
+      "operatingIncomeSub": "売上 · 総コスト · 純利益率 — 月別",
+      "periodComparisonTitle": "期間比較",
+      "periodComparisonSub": "今期と前期の比較",
+      "grossProfitTrendTitle": "粗利益の推移",
+      "grossProfitTrendSub": "粗利益 · 粗利益率 — 月別",
+      "expenseBreakdownTitle": "費用内訳",
+      "expenseBreakdownSub": "給与 · OT · 休暇 · 間接費",
+      "revenueByProjectTitle": "プロジェクト別売上",
+      "revenueByProjectSub": "プロジェクトをクリックして詳細内訳を表示",
+      "overheadByDepartmentTitle": "部門別間接費",
+      "overheadByDepartmentSub": "この期間の非プロジェクトスタッフ給与コスト"
+    },
+    "chart": {
+      "revenue": "売上",
+      "totalCost": "総コスト",
+      "netMarginPercent": "純利益率",
+      "grossProfit": "粗利益",
+      "marginPercent": "利益率",
+      "grossMarginPercent": "粗利益率",
+      "cost": "コスト",
+      "profit": "利益"
+    },
+    "expense": {
+      "salary": "給与",
+      "overhead": "間接費",
+      "ot": "OT",
+      "leave": "休暇"
+    },
+    "empty": {
+      "noPayrollData": "確定済み給与データがありません。先に給与レコードを確定してください。",
+      "noDataAvailable": "データがありません",
+      "noProjects": "プロジェクトがありません",
+      "noOverheadData": "間接費データがありません"
+    },
+    "units": {
+      "member": "人",
+      "members": "人",
+      "day": "日",
+      "days": "日"
+    },
+    "status": {
+      "active": "進行中",
+      "upcoming": "予定",
+      "completed": "完了"
+    },
+    "departments": {
+      "HR": "HR",
+      "IT": "IT",
+      "BPO": "BPO",
+      "SST": "SST",
+      "Driver": "ドライバー",
+      "Other": "その他"
+    },
+    "show": {
+      "ongoing": "進行中",
+      "contract": "契約",
+      "confirmedMonth": "確定月",
+      "confirmedMonths": "確定月",
+      "monthlyBreakdown": "月別内訳",
+      "revenueCostTrend": "売上とコストの推移",
+      "memberCost": "メンバーコスト",
+      "kpi": {
+        "salaryCost": "給与コスト",
+        "otCost": "OTコスト",
+        "leaveCost": "休暇コスト",
+        "netLoss": "純損失"
+      },
+      "table": {
+        "month": "月"
+      },
+      "empty": {
+        "projectNotFound": "プロジェクトが見つかりません。",
+        "noProjectPayrollData": "このプロジェクトの確定済み給与データはまだありません。",
+        "noMemberData": "この月のメンバーデータはありません。"
+      }
+    },
+    "months": {
+      "full": {
+        "1": "1月",
+        "2": "2月",
+        "3": "3月",
+        "4": "4月",
+        "5": "5月",
+        "6": "6月",
+        "7": "7月",
+        "8": "8月",
+        "9": "9月",
+        "10": "10月",
+        "11": "11月",
+        "12": "12月"
+      },
+      "short": {
+        "1": "1月",
+        "2": "2月",
+        "3": "3月",
+        "4": "4月",
+        "5": "5月",
+        "6": "6月",
+        "7": "7月",
+        "8": "8月",
+        "9": "9月",
+        "10": "10月",
+        "11": "11月",
+        "12": "12月"
+      }
+    }
+  },
+    "aiChat": {
+    "pageTitle": "AIチャット",
+    "common": {
+      "you": "あなた"
+    },
+    "languages": {
+      "en": "English",
+      "ja": "Japanese",
+      "my": "Burmese",
+      "km": "Khmer",
+      "vi": "Vietnamese",
+      "ko": "Korean"
+    },
+    "actions": {
+      "react": "React",
+      "translate": "翻訳",
+      "translating": "Translating...",
+      "translatingEllipsis": "Translating…",
+      "reply": "返信",
+      "edit": "編集",
+      "delete": "削除",
+      "back": "← Back",
+      "cancel": "キャンセル",
+      "startChat": "チャット開始",
+      "createGroup": "グループ作成",
+      "startChatting": "チャット開始",
+      "newConversation": "New Conversation",
+      "unblockUser": "Unblock User",
+      "blockUser": "Block User",
+      "deleteConversation": "会話を削除",
+      "previous": "Previous",
+      "next": "Next",
+      "tapToRetry": "Tap to retry",
+      "unblock": "Unblock",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "leave": "Leave",
+      "remove": "Remove",
+      "add": "Add",
+      "yesDelete": "はい、削除"
+    },
+    "tabs": {
+      "all": "すべて",
+      "unread": "未読",
+      "direct": "Direct",
+      "group": "Group"
+    },
+    "placeholders": {
+      "searchConversations": "Search conversations...",
+      "groupName": "Group name...",
+      "searchUsers": "Search users...",
+      "searchInConversation": "Search in conversation...",
+      "editMessage": "Edit message...",
+      "messageName": "Message {name}...",
+      "searchUsersToAdd": "Search users to add..."
+    },
+    "empty": {
+      "noMessagesYet": "まだメッセージはありません",
+      "noConversationsYet": "まだ会話はありません",
+      "zeroResults": "0 results",
+      "startConversation": "Start the conversation!",
+      "sayHiTo": "Say hi to {name}",
+      "selectConversation": "会話を選択",
+      "chooseChat": "チャットを選ぶか新しく開始してください",
+      "noImagesYet": "No images yet",
+      "noVideosYet": "No videos yet",
+      "noAudioYet": "No audio yet",
+      "noFilesYet": "No files yet",
+      "allUsersInGroup": "All users are already in this group",
+      "noUsersFound": "No users found"
+    },
+    "status": {
+      "online": "● オンライン",
+      "onlinePlain": "オンライン",
+      "typing": "入力中...",
+      "loadingMessages": "Loading messages..."
+    },
+    "labels": {
+      "members": "members",
+      "edited": "edited",
+      "editingMessage": "Editing message",
+      "replyingTo": "Replying to {name}"
+    },
+    "tooltips": {
+      "clickToRemove": "Click to remove",
+      "recordVoice": "Record voice message",
+      "stop": "Stop",
+      "editGroupInfo": "Edit group info",
+      "searchMessages": "Search messages",
+      "attachFile": "Attach file",
+      "sendSticker": "Send sticker"
+    },
+    "modal": {
+      "newConversation": "新しい会話"
+    },
+    "media": {
+      "title": "メディアとファイル",
+      "images": "Images",
+      "videos": "Videos",
+      "audio": "Audio",
+      "files": "Files"
+    },
+    "group": {
+      "clickChangePhoto": "Click to change photo",
+      "groupName": "Group Name",
+      "members": "Members",
+      "addMembers": "Add Members",
+      "transferAdminToLeave": "Transfer admin to leave"
+    },
+    "block": {
+      "youBlockedUser": "You have blocked this user",
+      "youHaveBeenBlocked": "You have been blocked",
+      "unblockToSend": "Unblock them to send messages again.",
+      "cannotSend": "You cannot send messages to this person."
+    },
+    "confirm": {
+      "deleteQuestion": "Are you sure you want to delete your conversation with",
+      "deleteWarning": "This will permanently delete all messages, files, and media in this conversation. This action cannot be undone."
+    },
+    "alerts": {
+      "microphoneDenied": "Microphone access denied"
+    }
+  },
+  "smartMail": {
+    "pageTitle": "スマートメール",
+    "labels": {
+      "mail": "メール",
+      "demoMode": "デモモード",
+      "unread": "未読",
+      "noSubject": "(件名なし)",
+      "to": "宛先",
+      "cc": "CC",
+      "bcc": "BCC",
+      "subject": "件名",
+      "unknown": "不明",
+      "noContent": "(本文なし)",
+      "attachments": "添付ファイル",
+      "demoNoApiKey": "デモモード — APIキーが設定されていません"
+    },
+    "actions": {
+      "mailSettings": "メール設定",
+      "dismiss": "閉じる",
+      "viewMail": "メールを表示",
+      "compose": "作成",
+      "syncing": "同期中...",
+      "syncInbox": "受信トレイを同期",
+      "loading": "読み込み中...",
+      "loadMore": "さらに読み込む",
+      "cancel": "キャンセル",
+      "delete": "削除",
+      "star": "スターを付ける",
+      "unstar": "スターを外す",
+      "reply": "返信",
+      "forward": "転送",
+      "translate": "翻訳",
+      "translating": "翻訳中...",
+      "original": "原文",
+      "download": "ダウンロード",
+      "testConnection": "接続テスト",
+      "testing": "テスト中...",
+      "saveSettings": "設定を保存",
+      "saving": "保存中...",
+      "minimize": "最小化",
+      "maximize": "最大化",
+      "writing": "作成中...",
+      "improving": "推敲中...",
+      "preview": "プレビュー"
+    },
+    "notifications": {
+      "newMail": "新着メール"
+    },
+    "sidebar": {
+      "mailbox": "メールボックス",
+      "inbox": "受信トレイ",
+      "sent": "送信済み",
+      "starred": "スター付き",
+      "connectedAccount": "接続済みアカウント",
+      "synced": "同期済み"
+    },
+    "status": {
+      "connected": "接続済み",
+      "notConnected": "未接続"
+    },
+    "empty": {
+      "inboxEmpty": "受信トレイは空です",
+      "inboxSub": "新しいメールはここに表示されます",
+      "sentEmpty": "送信済みのメールはありません",
+      "sentSub": "送信したメールはここに表示されます",
+      "starredEmpty": "スター付きのメールはありません",
+      "starredSub": "重要なメールにスターを付けると、ここに表示されます",
+      "noTemplatesAvailable": "利用可能なテンプレートがありません"
+    },
+    "messages": {
+      "mailDeleted": "メールを削除しました。",
+      "connectionFailed": "接続に失敗しました。認証情報を確認してください。",
+      "networkError": "ネットワークエラーが発生しました。もう一度お試しください。",
+      "accountUpdated": "メールアカウントが正常に更新されました！",
+      "accountConnected": "メールアカウントが正常に接続されました！",
+      "connectionSuccessful": "接続に成功しました！",
+      "demoTranslation": "デモモード — 実際の翻訳にはAPIを設定してください",
+      "translationFailed": "翻訳に失敗しました。",
+      "mailSent": "メールが正常に送信されました！ ✉️",
+      "failedToSend": "送信に失敗しました。"
+    },
+    "confirm": {
+      "deleteMailTitle": "このメールを削除しますか？",
+      "cannotBeUndone": "この操作は取り消すことができません。"
+    },
+    "placeholders": {
+      "searchMails": "メールを検索...",
+      "selectLeaveType": "休暇の種類を選択...",
+      "selectSession": "セッションを選択...",
+      "enterField": "{field}を入力してください...",
+      "typeEmailSearch": "メールアドレスを入力してEnterを押すか、検索...",
+      "emailSubject": "メールの件名...",
+      "describeEmail": "作成する内容を入力してください...",
+      "writeMessage": "メッセージを入力..."
+    },
+    "validation": {
+      "validEmailExample": "有効なメールアドレスを入力してください（例：you@gmail.com）",
+      "appPasswordRequired": "テストする前にアプリパスワードを入力してください。",
+      "recipientRequired": "少なくとも1人の宛先を追加してください。"
+    },
+    "setup": {
+      "title": "メール設定",
+      "updateAccount": "メールアカウントの更新",
+      "connectEmail": "メールの接続",
+      "subtitle": "メールを接続すると、Smart HRから直接メールの送受信ができるようになります",
+      "chooseProvider": "プロバイダーの選択",
+      "generateAppPassword": "アプリパスワードの生成",
+      "smtpSend": "SMTP（送信）",
+      "imapReceive": "IMAP（受信）",
+      "serverConfiguration": "サーバー設定",
+      "securityNote": "パスワードはAES-256で暗号化され、安全に保管されます。認証情報が共有されることはありません。",
+      "help": {
+        "gmail": "Gmailにはアプリパスワードが必要です。まず2段階認証を有効にしてから生成してください。",
+        "outlook": "Outlookのパスワード、または2段階認証が有効な場合はアプリパスワードを使用してください。",
+        "yahoo": "Yahooにはアプリパスワードが必要です。アカウントのセキュリティ設定で生成してください。",
+        "other": "メールサーバーの詳細を手動で入力してください。"
+      }
+    },
+    "fields": {
+      "displayName": "表示名",
+      "emailAddress": "メールアドレス",
+      "appPassword": "アプリパスワード",
+      "smtpHost": "SMTPホスト",
+      "imapHost": "IMAPホスト",
+      "port": "ポート"
+    },
+    "hints": {
+      "leaveBlankKeepCurrent": "現在の設定を維持する場合は空白のままにしてください"
+    },
+    "view": {
+      "selectMail": "閲覧するメールを選択してください",
+      "clickMailFromList": "リストからメールをクリックしてください",
+      "translatedLabel": "{language}翻訳",
+      "showingTranslation": "{language}の翻訳を表示中"
+    },
+    "languages": {
+      "en": "英語",
+      "ja": "日本語",
+      "my": "ミャンマー語",
+      "km": "クメール語",
+      "vi": "ベトナム語",
+      "ko": "韓国語"
+    },
+    "compose": {
+      "newMessage": "新規メッセージ",
+      "templates": "テンプレート",
+      "template": "テンプレート",
+      "applyTemplate": "テンプレートを適用",
+      "applyToBody": "本文に適用",
+      "toolbar": {
+        "bold": "太字",
+        "italic": "斜体",
+        "underline": "下線",
+        "strike": "打ち消し線",
+        "bulletList": "箇条書き",
+        "numbered": "番号付きリスト",
+        "left": "左揃え",
+        "center": "中央揃え",
+        "right": "右揃え",
+        "bulletListShort": "• リスト",
+        "numberedListShort": "1. リスト"
+      },
+      "fontSizes": {
+        "1": "小",
+        "3": "標準",
+        "5": "大",
+        "7": "特大"
+      },
+      "ai": {
+        "write": "文章作成",
+        "improve": "推敲",
+        "translate": "翻訳",
+        "improveContent": "内容を改善",
+        "improveHint": "現在の下書きをプロフェッショナルな表現に書き換えます"
+      },
+      "tones": {
+        "professional": "ビジネス",
+        "friendly": "フレンドリー",
+        "formal": "フォーマル",
+        "casual": "カジュアル",
+        "persuasive": "説得力"
+      },
+      "vars": {
+        "date": "日付",
+        "from_date": "開始日",
+        "to_date": "終了日",
+        "deadline": "期限",
+        "effective_date": "発効日",
+        "start_date": "開始日",
+        "leave_type": "休暇の種類",
+        "session": "セッション"
+      }
+    }
+  },
+    "common": {
+    "actions": "アクション",
+    "active": "有効",
+    "cancel": "キャンセル",
+    "day": "日",
+    "delete": "削除",
+    "disabled": "無効",
+    "edit": "編集",
+    "hour": "時間",
+    "inactive": "非アクティブ",
+    "minute": "分",
+    "required": "必須",
+    "select": "選択してください...",
+    "selectTime": "時間を選択してください...",
+    "status": "ステータス",
+    "thisActionCannotBeUndone": "この操作は取り消せません。",
+    "type": "種類",
+    "update": "更新",
+    "value": "値",
+    "yesDelete": "はい、削除します",
+    "deleting": "削除中...",
+    "no": "いいえ",
+    "saving": "保存中...",
+    "night": "夜"
+  },
+  "hrPolicy": {
+    "allowance": {
+      "allowanceName": "手当名",
+      "allowanceType": "手当の種類",
+      "deleteAllowance": "手当を削除",
+      "editAllowance": "手当を編集",
+      "quickSelect": "クイック選択",
+      "addAllowance": "手当を追加",
+      "amount": "金額",
+      "allowanceNamePlaceholder": "例: 住宅手当、交通手当...",
+      "createFirstAllowance": "下のボタンをクリックして最初の手当を作成してください",
+      "noAllowancesYet": "手当はまだ設定されていません",
+      "ratePercent": "率 (%)",
+      "updateAllowance": "手当を更新"
+    },
+    "delete": {
+      "areYouSureDelete": "本当に削除しますか？"
+    },
+    "bonus": {
+      "addBonusType": "賞与の種類を追加",
+      "bonusName": "賞与名",
+      "bonusSchedules": "賞与スケジュール",
+      "calculationType": "計算タイプ",
+      "deleteBonusType": "賞与の種類を削除",
+      "editBonusType": "賞与の種類を編集",
+      "frequency": {
+        "_self": "頻度",
+        "once": "単発",
+        "quarterly": "四半期ごと",
+        "yearly": "年次"
+      },
+      "notes": "備考",
+      "bonusNamePlaceholder": "例: 年次ボーナス、業績ボーナス",
+      "percentOfSalary": "給与の割合",
+      "fixedAmount": "固定金額",
+      "updateBonusType": "ボーナスタイプを更新",
+      "noBonusTypesYet": "ボーナスタイプはまだ設定されていません",
+      "createFirstBonusType": "下のボタンをクリックして最初のボーナスタイプを作成してください"
+    },
+    "common": {
+      "flat": "定額",
+      "flatLower": "定額",
+      "percentageLower": "定率",
+      "percentage": "パーセンテージ"
+    },
+    "currency": {
+      "currencyName": "通貨名",
+      "deleteCurrency": "通貨を削除",
+      "editCurrency": "通貨を編集",
+       "addCurrency": "通貨を追加",
+      "addNewCurrency": "新しい通貨を追加",
+      "createFirstCurrency": "下のボタンをクリックして最初の通貨を作成してください",
+      "currencyCode": "通貨コード",
+      "currencyCodePlaceholder": "例: USD, KHR, MMK",
+      "currencyCodeShort": "コード",
+      "currencyNamePlaceholder": "例: US Dollar, Cambodian Riel",
+      "noCurrenciesConfigured": "通貨はまだ設定されていません",
+      "updateCurrency": "通貨を更新"
+    },
+    "deduction": {
+      "addDeduction": "控除項目を追加",
+      "deductionName": "控除項目名",
+      "deleteDeduction": "控除項目を削除",
+      "editDeduction": "控除項目を編集",
+      "rateAmount": "率 / 金額",
+      "addDeductionRule": "控除ルールを追加",
+      "createFirstDeduction": "下のボタンをクリックして最初の控除ルールを作成してください",
+      "deductionNamePlaceholder": "例: 所得税、NSSF、カスタム控除...",
+      "deductionType": "控除タイプ",
+      "noDeductionsYet": "控除はまだ設定されていません",
+      "quickSelectPreset": "プリセットをクイック選択",
+      "rate": "率",
+      "ratePercent": "率 (%)",
+      "updateDeduction": "控除を更新"
+    },
+    "holiday": {
+      "addHoliday": "祝日を追加",
+      "date": "日付",
+      "deleteHoliday": "祝日を削除",
+      "editHoliday": "祝日を編集",
+      "holidayName": "祝日名",
+      "recurring": "繰り返し",
+      "clickAddHoliday": "開始するには「祝日を追加」をクリックしてください",
+      "holidayNamePlaceholder": "例: クメール正月、建国記念日",
+      "holidaysIn": "祝日 -",
+      "noPublicHolidaysFor": "この年の祝日はありません -",
+      "oneTime": "一回のみ",
+      "recurringAnnually": "毎年繰り返す",
+      "repeatsEveryYear": "毎年繰り返されます",
+      "updateHoliday": "祝日を更新"
+    },
+    "leave": {
+      "leaveType": "休暇の種類",
+      "paidLeave": "有給休暇",
+      "requiresDocument": "証明書類が必要",
+      "addLeavePolicy": "休暇の種類を追加",
+      "allGenders": "すべて",
+      "applicableGender": "対象の性別",
+      "carryOver": "繰り越し",
+      "carryOverDays": "繰越日数",
+      "createFirstLeaveType": "以下をクリックして最初の休暇の種類を追加してください",
+      "daysPerYear": "年間日数",
+      "daysPerYearShort": "日/年",
+      "deleteLeavePolicy": "休暇の種類を削除",
+      "document": "書類",
+      "editLeavePolicy": "休暇の種類を編集",
+      "female": "女性",
+      "gender": "性別",
+      "leaveTypePlaceholder": "例：年次、病気、産休",
+      "male": "男性",
+      "noLeavePoliciesYet": "休暇の種類がまだ設定されていません",
+      "paid": "有給",
+      "selectGender": "性別を選択...",
+      "unpaid": "無給",
+      "updateLeaveType": "休暇の種類を更新"
+    },
+    "overtime": {
+      "multiplier": "倍率",
+      "publicHoliday": "祝日",
+      "rateType": "率のタイプ",
+      "weekday": "平日",
+      "weekend": "週末",
+      "addOtRate": "残業率を追加",
+      "allDay": "終日",
+      "allFiveConfigured": "5つのOTタイプすべてが設定済みです",
+      "allFiveConfiguredShort": "5つすべて設定済み！",
+      "appliesTo": "適用対象",
+      "deleteOtRate": "残業率を削除",
+      "editOtRate": "残業率を編集",
+      "editRatesHint": "上の編集ボタンで各レートを個別に編集できます。",
+      "flatAmount": "固定金額",
+      "multiplierValue": "倍率値",
+      "noRatesConfigured": "OTレートはまだ設定されていません",
+      "rate": "レート",
+      "remaining": "残り",
+      "selectOtType": "OTタイプを選択",
+      "selectStandardTypes": "以下の5つの標準OTタイプから選択してください",
+      "shift": "シフト",
+      "title": "タイトル",
+      "updateOtRate": "残業率を更新"
+    },
+    "pageTitle": "人事ポリシー設定",
+    "presets": {
+      "13th_Month_Salary": "13ヶ月目給与",
+      "Absence_Deduction": "欠勤控除",
+      "Annual_Bonus": "年次賞与",
+      "Annual_Leave": "年次休暇",
+      "Bereavement_Leave": "忌引休暇",
+      "Cambodian_Riel": "カンボジア・リエル",
+      "Compensation_Leave": "振替休暇",
+      "Day_Weekday_OT": "平日昼間残業",
+      "Day_Weekend_OT": "週末昼間残業",
+      "Emergency_Leave": "緊急休暇",
+      "Festival_Bonus": "フェスティバル賞与",
+      "Hardship_Allowance": "危険手当",
+      "Health_Insurance": "健康保険",
+      "Housing_Allowance": "住宅手当",
+      "Income_Tax": "所得税",
+      "Japanese_Yen": "日本円",
+      "Korean_Won": "韓国ウォン",
+      "Marriage_Leave": "結婚休暇",
+      "Maternity_Leave": "産前産後休暇",
+      "Meal_Allowance": "食事手当",
+      "Medical_Allowance": "医療手当",
+      "Myanmar_Kyat": "ミャンマー・チャット",
+      "NSSF": "NSSF（国家社会保障基金）",
+      "Night_Weekday_OT": "平日深夜残業",
+      "Night_Weekend_OT": "週末深夜残業",
+      "Overtime_Allowance": "残業手当",
+      "Paternity_Leave": "配偶者出産休暇",
+      "Pension_Fund": "年金基金",
+      "Performance_Bonus": "業績賞与",
+      "Phone_Allowance": "通信手当",
+      "Public_Holiday": "公共の祝日",
+      "Public_Holiday_OT": "祝日残業",
+      "Retention_Bonus": "リテンションボーナス",
+      "SSB": "SSB（社会保障委員会）",
+      "Sick_Leave": "病気休暇",
+      "Social_Security": "社会保障",
+      "Transport_Allowance": "通勤手当",
+      "US_Dollar": "米ドル",
+      "Union_Fee": "労働組合費",
+      "Unpaid_Leave": "無給休暇",
+      "Vietnamese_Dong": "ベトナム・ドン",
+      "Year_End_Bonus": "年末賞与"
+    },
+    "salary": {
+      "bank": "銀行",
+      "currency": "通貨",
+      "dailyRate": "日給",
+      "dayShift": "日勤",
+      "everyMonth": "毎月",
+      "everyTenDays": "10日ごと",
+      "everyThreeMonths": "3ヶ月ごと",
+      "hourlyRate": "時給",
+      "lateDeduction": "遅刻控除",
+      "lunchBreak": "昼休み",
+      "monthly": "月給",
+      "nightShift": "夜勤",
+      "onceAMonth": "月1回",
+      "onceAYear": "年1回",
+      "otBase": "残業基準",
+      "payCycle": "給与サイクル",
+      "probation": "試用期間",
+      "semiMonthly": "半月ごと（月2回）",
+      "specialBonus": "特別賞与",
+      "tenDay": "10日サイクル",
+      "threePeriodsMonth": "月3回払い",
+      "twiceAMonth": "月2回",
+      "twoPeriodsMonth": "月2回払い",
+      "workHours": "労働時間"
+    },
+    "saved": "保存済み",
+    "sections": {
+      "allowance": "手当",
+      "bonus": "賞与",
+      "currency": "通貨設定",
+      "deduction": "控除ルール",
+      "holiday": "祝日設定",
+      "leave": "休暇ポリシー",
+      "overtime": "残業ポリシー",
+      "salary": "給与ルール"
+    },
+    "summaries": {
+      "allowance": "住宅 · 通勤 · 食事 · カスタム",
+      "bonus": "賞与の種類 · スケジュール · 支給条件",
+      "currency": "コード · 記号 · 小数点フォーマット",
+      "deduction": "税金 · 社会保障 · 動的行",
+      "holiday": "国家祝日 · 繰り返し · 年フィルター",
+      "leave": "休暇の種類 · 有給/無給 · 繰り越し",
+      "overtime": "平日 · 週末 · 祝日の倍率",
+      "salary": "給与サイクル · 締め日 · シフトルール"
+    },
+    "validation": {
+      "allowanceNameRequired": "手当名は必須です。",
+      "bonusNameRequired": "賞与名は必須です。",
+      "carryOverRequired": "繰越日数は必須です。",
+      "currencyCodeRequired": "通貨コードは必須です。",
+      "currencyNameRequired": "通貨名は必須です。",
+      "dateRequired": "日付は必須です。",
+      "daysPerYearRequired": "年間日数は必須です。",
+      "deductionNameRequired": "控除項目名は必須です。",
+      "holidayNameRequired": "祝日名は必須です。",
+      "leaveTypeRequired": "休暇の種類名は必須です。",
+      "maxTenCharacters": "最大10文字です。",
+      "mustBeAtLeastOneDay": "1日以上である必要があります。",
+      "mustBeZeroOrGreater": "0以上である必要があります。",
+      "rateAmountRequired": "率 / 金額は必須です。",
+      "rateRequired": "率は必須です。",
+      "selectOtType": "残業タイプを選択してください。",
+      "validNumber": "有効な数値を入力してください。",
+      "valueRequired": "値は必須です。"
+    },
+    "setupDescription": "組織の休暇、残業、給与ルールなどを設定します",
+    "completed": "完了",
+    "country": "国",
+    "notConfigured": "未設定",
+    "step": "ステップ",
+    "of": "/"
   }
 }

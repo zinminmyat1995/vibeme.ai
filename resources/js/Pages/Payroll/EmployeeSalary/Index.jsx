@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ─── Theme ────────────────────────────────────────────────────
 function useReactiveTheme() {
@@ -77,6 +78,7 @@ function getTheme(dark) {
 const showToast = (msg, type = 'success') =>
     window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type } }));
 
+
 function fmtDate(d) {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
@@ -104,7 +106,7 @@ function Avatar({ name, url, size = 34, theme }) {
 }
 
 // ─── Premium Employee Dropdown (Portal-based for use inside Modal) ─────────
-function PremiumEmployeeSelect({ employees, value, onChange, error, theme, dark }) {
+function PremiumEmployeeSelect({ employees, value, onChange, error, theme, dark, t }) {
     const [open, setOpen]   = useState(false);
     const [pos,  setPos]    = useState({ top:0, left:0, width:0 });
     const [search, setSearch] = useState('');
@@ -201,7 +203,7 @@ function PremiumEmployeeSelect({ employees, value, onChange, error, theme, dark 
                         )}
                     </div>
                 ) : (
-                    <span style={{ fontSize:13, color:theme.textMute }}>— Select employee —</span>
+                    <span style={{ fontSize:13, color:theme.textMute }}>{t('employeeSalary.placeholders.selectEmployeeDash')}</span>
                 )}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                     style={{ flexShrink:0, transition:'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', color: theme.textMute }}>
@@ -249,7 +251,7 @@ function PremiumEmployeeSelect({ employees, value, onChange, error, theme, dark 
                                     ref={searchRef}
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
-                                    placeholder="Search employee…"
+                                    placeholder={t('employeeSalary.placeholders.searchEmployee')}
                                     style={{
                                         border: 'none',
                                         outline: 'none',
@@ -271,7 +273,7 @@ function PremiumEmployeeSelect({ employees, value, onChange, error, theme, dark 
                     <div className="es-hide" style={{ maxHeight: 240, overflowY: 'auto', padding: '6px' }}>
                         {filtered.length === 0 ? (
                             <div style={{ padding: '16px', textAlign:'center', fontSize:12, color:theme.textMute }}>
-                                No employees found
+                                {t('employeeSalary.empty.noEmployeesFound')}
                             </div>
                         ) : filtered.map(emp => {
                             const isSelected = String(emp.id) === String(value);
@@ -329,7 +331,7 @@ function PremiumEmployeeSelect({ employees, value, onChange, error, theme, dark 
                                             whiteSpace: 'nowrap',
                                             flexShrink: 0,
                                         }}>
-                                            {empCfg.label}
+                                            {t(`employeeSalary.employment.${emp.employment_type}`)}
                                         </span>
                                     )}
                                     {isSelected && (
@@ -349,7 +351,7 @@ function PremiumEmployeeSelect({ employees, value, onChange, error, theme, dark 
 }
 
 // ─── Modal ────────────────────────────────────────────────────
-function Modal({ open, onClose, title, subtitle, icon, children, width=520, dark, theme }) {
+function Modal({ open, onClose, title, subtitle, icon, children, width=520, dark, theme, t }) {
     if (!open) return null;
     return createPortal(
         <div onClick={e=>e.target===e.currentTarget&&onClose()} style={{ position:'fixed', inset:0, background:theme.overlay, backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:16 }}>
@@ -361,7 +363,7 @@ function Modal({ open, onClose, title, subtitle, icon, children, width=520, dark
                         <div style={{ display:'flex', gap:14, alignItems:'center' }}>
                             <div style={{ width:44, height:44, borderRadius:14, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{icon||'💼'}</div>
                             <div>
-                                <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', marginBottom:3 }}>Employee Salary</div>
+                                <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', marginBottom:3 }}>{t('employeeSalary.pageTitle')}</div>
                                 <div style={{ fontSize:17, fontWeight:900, color:'#fff' }}>{title}</div>
                                 {subtitle && <div style={{ fontSize:11, color:'rgba(255,255,255,0.6)', marginTop:2 }}>{subtitle}</div>}
                             </div>
@@ -377,7 +379,7 @@ function Modal({ open, onClose, title, subtitle, icon, children, width=520, dark
 }
 
 // ─── Profile Form ─────────────────────────────────────────────
-function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme }) {
+function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme, t }) {
     const isEdit     = !!editProfile;
     const allowances = salaryRule?.allowances || [];
     const currency   = salaryRule?.currency?.currency_code || '';
@@ -400,8 +402,8 @@ function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme 
 
     const validate = () => {
         const e={};
-        if (!isEdit && !form.user_id) e.user_id='Please select an employee.';
-        if (!form.base_salary||isNaN(form.base_salary)||Number(form.base_salary)<0) e.base_salary='Please enter a valid salary amount.';
+        if (!isEdit && !form.user_id) e.user_id=t('employeeSalary.validation.selectEmployee');
+        if (!form.base_salary||isNaN(form.base_salary)||Number(form.base_salary)<0) e.base_salary=t('employeeSalary.validation.validSalaryAmount');
         return e;
     };
 
@@ -420,10 +422,10 @@ function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme 
                     else{setErrors(errs);setGeneralError('');}
                     setSaving(false);return;
                 }
-                showToast(isEdit?'Salary profile updated.':'Salary profile saved.');
+                showToast(isEdit?t('employeeSalary.messages.salaryProfileUpdated'):t('employeeSalary.messages.salaryProfileSaved'));
                 onClose(true,data);
             })
-            .catch(()=>{showToast('Something went wrong.','error');setSaving(false);});
+            .catch(()=>{showToast(t('employeeSalary.messages.somethingWentWrong'),'error');setSaving(false);});
     };
 
     const inp = err=>({ width:'100%', padding:'10px 13px', border:`1.5px solid ${err?theme.danger:theme.inputBorder}`, borderRadius:10, fontSize:13, color:theme.text, background:dark?theme.inputBg:(err?'#fff9f9':'#fff'), outline:'none', boxSizing:'border-box', fontFamily:'inherit', transition:'border-color 0.15s' });
@@ -441,7 +443,7 @@ function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme 
             {/* ── Employee selector (Premium dropdown) ── */}
             {!isEdit && (
                 <div>
-                    <label style={lbl}>Employee <span style={{color:theme.danger}}>*</span></label>
+                    <label style={lbl}>{t('employeeSalary.fields.employee')} <span style={{color:theme.danger}}>*</span></label>
                     <PremiumEmployeeSelect
                         employees={employees}
                         value={form.user_id}
@@ -449,13 +451,14 @@ function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme 
                         error={errors.user_id}
                         theme={theme}
                         dark={dark}
+                        t={t}
                     />
                     {errors.user_id && <p style={{margin:'4px 0 0',fontSize:11,color:theme.danger}}>{errors.user_id}</p>}
 
                     {/* Selected employee info card */}
                     {selEmp && (
                         <div style={{ marginTop:10, background:dark?theme.panelSoft:'#f9fafb', border:`1px solid ${theme.border}`, borderRadius:12, padding:'12px 14px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 20px' }}>
-                            {[['Position',selEmp.position||'—'],['Department',selEmp.department||'—'],['Employment',EMP_CFG[selEmp.employment_type]?.label||'—'],['Joined',fmtDate(selEmp.joined_date)]].map(([k,v])=>(
+                            {[[t('employeeSalary.fields.position'),selEmp.position||'—'],[t('employeeSalary.fields.department'),selEmp.department||'—'],[t('employeeSalary.fields.employment'),t(`employeeSalary.employment.${selEmp.employment_type}`)],[t('employeeSalary.fields.joined'),fmtDate(selEmp.joined_date)]].map(([k,v])=>(
                                 <div key={k}>
                                     <div style={{fontSize:9,fontWeight:700,color:theme.textMute,textTransform:'uppercase',letterSpacing:'0.5px'}}>{k}</div>
                                     <div style={{fontSize:12,fontWeight:700,color:theme.textSoft,marginTop:2}}>{v}</div>
@@ -474,7 +477,7 @@ function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme 
                         <div style={{fontSize:12,color:theme.textMute,marginTop:2}}>
                             {editProfile.position||editProfile.department||'—'}{' · '}
                             <span style={{color:EMP_CFG[editProfile.employment_type]?.color||theme.textMute,fontWeight:700}}>
-                                {EMP_CFG[editProfile.employment_type]?.label||'—'}
+                                {t(`employeeSalary.employment.${editProfile.employment_type}`)}
                             </span>
                         </div>
                     </div>
@@ -482,7 +485,7 @@ function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme 
             )}
 
             <div>
-                <label style={lbl}>Base Salary{currency?` (${currency})`:''} <span style={{color:theme.danger}}>*</span></label>
+                <label style={lbl}>{t('employeeSalary.fields.baseSalary')}{currency?` (${currency})`:''} <span style={{color:theme.danger}}>*</span></label>
                 <div style={{position:'relative'}}>
                     {currency && <span style={{position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',fontSize:12,fontWeight:700,color:theme.textMute,pointerEvents:'none'}}>{currency}</span>}
                     <input type="number" min="0" step="0.01" value={form.base_salary} onChange={e=>{set('base_salary',e.target.value);setErrors(p=>({...p,base_salary:null}));}} placeholder="0.00" style={{...inp(errors.base_salary),paddingLeft:currency?52:13}}/>
@@ -492,7 +495,7 @@ function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme 
 
             {allowances.length>0 && (
                 <div>
-                    <label style={lbl}>Allowances</label>
+                    <label style={lbl}>{t('employeeSalary.fields.allowances')}</label>
                     <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
                         {allowances.map(a=>{
                             const on=form.allowance_ids.includes(a.id);
@@ -506,39 +509,39 @@ function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme 
                             );
                         })}
                     </div>
-                    <p style={{margin:'6px 0 0',fontSize:11,color:theme.textMute}}>Select allowances that apply to this employee.</p>
+                    <p style={{margin:'6px 0 0',fontSize:11,color:theme.textMute}}>{t('employeeSalary.messages.selectAllowancesApply')}</p>
                 </div>
             )}
 
             <div style={{background:dark?theme.panelSoft:'#f9fafb',border:`1px solid ${theme.border}`,borderRadius:14,padding:'16px'}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                    <span style={{fontSize:11,fontWeight:800,color:theme.textMute,textTransform:'uppercase',letterSpacing:'0.7px'}}>Bank Information</span>
-                    <span style={{fontSize:11,color:theme.textMute}}>— optional</span>
+                    <span style={{fontSize:11,fontWeight:800,color:theme.textMute,textTransform:'uppercase',letterSpacing:'0.7px'}}>{t('employeeSalary.fields.bankInformation')}</span>
+                    <span style={{fontSize:11,color:theme.textMute}}>{t('employeeSalary.labels.optionalDash')}</span>
                 </div>
                 {bankName && (
                     <div style={{marginBottom:12}}>
-                        <label style={{...lbl,color:theme.textMute}}>Bank</label>
+                        <label style={{...lbl,color:theme.textMute}}>{t('employeeSalary.fields.bank')}</label>
                         <input value={bankName} readOnly style={{...inp(false),background:dark?'rgba(255,255,255,0.03)':'#f0f0f0',color:theme.textMute,cursor:'default'}}/>
                     </div>
                 )}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
                     <div>
-                        <label style={lbl}>Account Holder Name</label>
-                        <input value={form.bank_account_holder_name} onChange={e=>set('bank_account_holder_name',e.target.value)} placeholder="Full name" style={inp(false)}/>
+                        <label style={lbl}>{t('employeeSalary.fields.accountHolderName')}</label>
+                        <input value={form.bank_account_holder_name} onChange={e=>set('bank_account_holder_name',e.target.value)} placeholder={t('employeeSalary.placeholders.fullName')} style={inp(false)}/>
                     </div>
                     <div>
-                        <label style={lbl}>Account Number</label>
-                        <input value={form.bank_account_number} onChange={e=>set('bank_account_number',e.target.value)} placeholder="Account number" style={inp(false)}/>
+                        <label style={lbl}>{t('employeeSalary.fields.accountNumber')}</label>
+                        <input value={form.bank_account_number} onChange={e=>set('bank_account_number',e.target.value)} placeholder={t('employeeSalary.placeholders.accountNumber')} style={inp(false)}/>
                     </div>
                 </div>
             </div>
 
             <div style={{display:'flex',justifyContent:'flex-end',gap:10,paddingTop:4}}>
-                <button onClick={()=>onClose(false)} disabled={saving} style={{padding:'10px 20px',borderRadius:10,border:`1px solid ${theme.border}`,background:dark?theme.panelSoft:'#fff',color:theme.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+                <button onClick={()=>onClose(false)} disabled={saving} style={{padding:'10px 20px',borderRadius:10,border:`1px solid ${theme.border}`,background:dark?theme.panelSoft:'#fff',color:theme.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>{t('employeeSalary.actions.cancel')}</button>
                 <button onClick={handleSubmit} disabled={saving} style={{padding:'10px 26px',borderRadius:10,border:'none',background:theme.modalHeader,color:'#fff',fontSize:13,fontWeight:800,cursor:saving?'not-allowed':'pointer',opacity:saving?0.65:1,display:'flex',alignItems:'center',gap:8,boxShadow:'0 4px 14px rgba(124,58,237,0.35)',transition:'all 0.15s'}}>
                     {saving&&<span style={{width:13,height:13,border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',borderRadius:'50%',display:'inline-block',animation:'esSpin 0.7s linear infinite'}}/>}
-                    {saving?'Saving…':isEdit?'Update Profile':'Save Profile'}
+                    {saving?t('employeeSalary.actions.saving'):isEdit?t('employeeSalary.actions.updateProfile'):t('employeeSalary.actions.saveProfile')}
                 </button>
             </div>
         </div>
@@ -546,7 +549,7 @@ function ProfileForm({ employees, salaryRule, editProfile, onClose, dark, theme 
 }
 
 // ─── Delete Confirm ───────────────────────────────────────────
-function DeleteConfirm({ profile, onClose, onConfirm, loading, dark, theme }) {
+function DeleteConfirm({ profile, onClose, onConfirm, loading, dark, theme, t }) {
     return (
         <div style={{display:'flex',flexDirection:'column',gap:16}}>
             <div style={{display:'flex',alignItems:'center',gap:12}}>
@@ -557,12 +560,12 @@ function DeleteConfirm({ profile, onClose, onConfirm, loading, dark, theme }) {
                 </div>
             </div>
             <div style={{background:dark?theme.dangerSoft:'#fef2f2',border:`1px solid ${dark?'rgba(248,113,113,0.3)':'#fecaca'}`,borderRadius:12,padding:'12px 14px',fontSize:13,color:dark?theme.danger:'#dc2626',lineHeight:1.6}}>
-                This will deactivate the salary profile. Past payroll records will remain intact.
+                {t('employeeSalary.confirm.deactivateProfileWarning')}
             </div>
             <div style={{display:'flex',justifyContent:'flex-end',gap:10}}>
-                <button onClick={onClose} disabled={loading} style={{padding:'9px 20px',borderRadius:10,border:`1px solid ${theme.border}`,background:dark?theme.panelSoft:'#fff',color:theme.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+                <button onClick={onClose} disabled={loading} style={{padding:'9px 20px',borderRadius:10,border:`1px solid ${theme.border}`,background:dark?theme.panelSoft:'#fff',color:theme.textSoft,fontSize:13,fontWeight:600,cursor:'pointer'}}>{t('employeeSalary.actions.cancel')}</button>
                 <button onClick={onConfirm} disabled={loading} style={{padding:'9px 20px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#dc2626,#ef4444)',color:'#fff',fontSize:13,fontWeight:800,cursor:loading?'not-allowed':'pointer',opacity:loading?0.65:1,boxShadow:'0 4px 14px rgba(220,38,38,0.35)'}}>
-                    {loading?'Removing…':'Remove Profile'}
+                    {loading?t('employeeSalary.actions.removing'):t('employeeSalary.actions.removeProfile')}
                 </button>
             </div>
         </div>
@@ -571,6 +574,7 @@ function DeleteConfirm({ profile, onClose, onConfirm, loading, dark, theme }) {
 
 // ─── Main Page ────────────────────────────────────────────────
 export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: init }) {
+    const { t } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = useMemo(()=>getTheme(dark),[dark]);
 
@@ -598,8 +602,8 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
     const handleDelete = () => {
         if(!deleteP)return;setDeleting(true);
         fetch(`/payroll/employee-profiles/${deleteP.id}`,{method:'DELETE',headers:{'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content,'Accept':'application/json'}})
-            .then(r=>{if(!r.ok)throw new Error();setProfiles(prev=>prev.filter(p=>p.id!==deleteP.id));showToast('Salary profile removed.');setDeleteP(null);setDeleting(false);})
-            .catch(()=>{showToast('Failed to remove profile.','error');setDeleting(false);});
+            .then(r=>{if(!r.ok)throw new Error();setProfiles(prev=>prev.filter(p=>p.id!==deleteP.id));showToast(t('employeeSalary.messages.salaryProfileRemoved'));setDeleteP(null);setDeleting(false);})
+            .catch(()=>{showToast(t('employeeSalary.messages.failedToRemoveProfile'),'error');setDeleting(false);});
     };
 
     const currency = salaryRule?.currency?.currency_code||'';
@@ -632,8 +636,8 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
     }
 
     return (
-        <AppLayout title="Employee Salary">
-            <Head title="Employee Salary"/>
+        <AppLayout title={t('employeeSalary.pageTitle')}>
+            <Head title={t('employeeSalary.pageTitle')}/>
             <style>{`
                 @keyframes esPopIn  { from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);} }
                 @keyframes esSpin   { to{transform:rotate(360deg);} }
@@ -659,9 +663,9 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
                 }}>
                     {/* Stat pills */}
                     {[
-                        { label:'Total', value: profiles.length,                                    color:'#7c3aed', dotBg: dark?'rgba(139,92,246,0.2)':'#ede9fe' },
-                        { label:'With Bank', value: profiles.filter(p=>p.bank_account_number).length, color:'#059669', dotBg: dark?'rgba(5,150,105,0.18)':'#d1fae5' },
-                        { label:'Missing Bank', value: profiles.filter(p=>!p.bank_account_number).length, color:'#d97706', dotBg: dark?'rgba(217,119,6,0.18)':'#fef3c7' },
+                        { label:t('employeeSalary.stats.total'), value: profiles.length,                                    color:'#7c3aed', dotBg: dark?'rgba(139,92,246,0.2)':'#ede9fe' },
+                        { label:t('employeeSalary.stats.withBank'), value: profiles.filter(p=>p.bank_account_number).length, color:'#059669', dotBg: dark?'rgba(5,150,105,0.18)':'#d1fae5' },
+                        { label:t('employeeSalary.stats.missingBank'), value: profiles.filter(p=>!p.bank_account_number).length, color:'#d97706', dotBg: dark?'rgba(217,119,6,0.18)':'#fef3c7' },
                     ].map((s, i) => (
                         <div key={s.label} style={{ display:'flex', alignItems:'center', gap:10, paddingRight:16, marginRight:16, borderRight: i < 2 ? `1px solid ${theme.border}` : 'none' }}>
                             <div style={{ width:30, height:30, borderRadius:9, background:s.dotBg, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -674,9 +678,9 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
                     {/* Employment type pills */}
                     <div style={{ display:'flex', alignItems:'center', gap:6, paddingRight:16, marginRight:16, borderRight:`1px solid ${theme.border}`, flexWrap:'wrap' }}>
                         {[
-                            { key:'probation', label:'Probation', color:'#d97706' },
-                            { key:'permanent', label:'Permanent', color:'#059669' },
-                            { key:'contract',  label:'Contract',  color:'#2563eb' },
+                            { key:'probation', label:t('employeeSalary.employment.probation'), color:'#d97706' },
+                            { key:'permanent', label:t('employeeSalary.employment.permanent'), color:'#059669' },
+                            { key:'contract',  label:t('employeeSalary.employment.contract'),  color:'#2563eb' },
                         ].map(({ key, label, color }) => {
                             const count = profiles.filter(p => p.employment_type === key).length;
                             const cfg = EMP_CFG[key];
@@ -701,7 +705,7 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
                         </svg>
                         <input
                             value={search} onChange={e=>setSearch(e.target.value)}
-                            placeholder="Search employee…"
+                            placeholder={t('employeeSalary.placeholders.searchEmployee')}
                             style={{ width:'100%', padding:'7px 10px 7px 30px', border:`1px solid ${theme.border}`, borderRadius:9, fontSize:13, color:theme.text, background:dark?theme.panelSoft:'#f8fafc', outline:'none', boxSizing:'border-box', fontFamily:'inherit' }}
                         />
                     </div>
@@ -714,7 +718,7 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
                         style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 18px', background:theme.modalHeader, color:'#fff', border:'none', borderRadius:10, fontSize:13, fontWeight:800, cursor:'pointer', boxShadow:'0 3px 12px rgba(124,58,237,0.3)', transition:'opacity 0.15s', whiteSpace:'nowrap', marginLeft:10, flexShrink:0 }}
                     >
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Add Profile
+                        {t('employeeSalary.actions.addProfile')}
                     </button>
                 </div>
 
@@ -723,21 +727,21 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
                     {filtered.length===0?(
                         <div style={{padding:'60px 24px',textAlign:'center'}}>
                             <div style={{fontSize:40,marginBottom:10}}>💼</div>
-                            <div style={{fontSize:14,fontWeight:700,color:theme.textSoft,marginBottom:4}}>{search?'No results found':'No salary profiles yet'}</div>
-                            <div style={{fontSize:12,color:theme.textMute}}>{search?'Try a different search term.':'Click "Add Profile" to assign a salary.'}</div>
+                            <div style={{fontSize:14,fontWeight:700,color:theme.textSoft,marginBottom:4}}>{search?t('employeeSalary.empty.noResultsFound'):t('employeeSalary.empty.noSalaryProfilesYet')}</div>
+                            <div style={{fontSize:12,color:theme.textMute}}>{search?t('employeeSalary.empty.tryDifferentSearchTerm'):t('employeeSalary.empty.clickAddProfile')}</div>
                         </div>
                     ):(
                         <div className="es-hide" style={{overflowX:'auto'}}>
                             <table style={{width:'100%',minWidth:860,borderCollapse:'collapse'}}>
                                 <thead>
                                     <tr style={{borderBottom:`1px solid ${theme.border}`}}>
-                                        <th style={thS('180px')}>Employee</th>
-                                        <th style={thS('110px')}>Employment</th>
-                                        <th style={thS('110px')}>Joined</th>
-                                        <th style={thS('220px')}>Allowances</th>
-                                        <th style={thS('140px')}>{`Salary${currency?` (${currency})`:''}`}</th>
-                                        <th style={thS('140px')}>Bank</th>
-                                        <th style={thS('120px')}>Actions</th>
+                                        <th style={thS('180px')}>{t('employeeSalary.fields.employee')}</th>
+                                        <th style={thS('110px')}>{t('employeeSalary.fields.employment')}</th>
+                                        <th style={thS('110px')}>{t('employeeSalary.fields.joined')}</th>
+                                        <th style={thS('220px')}>{t('employeeSalary.fields.allowances')}</th>
+                                        <th style={thS('140px')}>{`${t('employeeSalary.fields.salary')}${currency?` (${currency})`:''}`}</th>
+                                        <th style={thS('140px')}>{t('employeeSalary.fields.bank')}</th>
+                                        <th style={thS('120px')}>{t('employeeSalary.fields.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -757,7 +761,7 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
                                                     </div>
                                                 </td>
                                                 <td style={{padding:'13px 16px'}}>
-                                                    <span style={{fontSize:10,fontWeight:700,padding:'3px 9px',borderRadius:99,background:empBg,color:empCfg.color,whiteSpace:'nowrap'}}>{empCfg.label}</span>
+                                                    <span style={{fontSize:10,fontWeight:700,padding:'3px 9px',borderRadius:99,background:empBg,color:empCfg.color,whiteSpace:'nowrap'}}>{t(`employeeSalary.employment.${p.employment_type}`)}</span>
                                                 </td>
                                                 <td style={{padding:'13px 16px',fontSize:12,color:theme.textSoft,whiteSpace:'nowrap'}}>{fmtDate(p.joined_date)}</td>
                                                 <td style={{padding:'13px 16px'}}>
@@ -792,7 +796,7 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
                                                     ):(
                                                         <span style={{fontSize:11,color:theme.warning,fontWeight:700,display:'flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}}>
                                                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                                            Not set
+                                                            {t('employeeSalary.labels.notSet')}
                                                         </span>
                                                     )}
                                                 </td>
@@ -820,14 +824,14 @@ export default function EmployeeSalaryIndex({ employees, salaryRule, profiles: i
                 </div>
             </div>
 
-            <Modal open={showAdd} onClose={()=>setShowAdd(false)} title="Add Salary Profile" subtitle="Set up salary, allowances and bank info." icon="➕" dark={dark} theme={theme}>
-                <ProfileForm employees={employees} salaryRule={salaryRule} onClose={handleFormClose} dark={dark} theme={theme}/>
+            <Modal t={t} open={showAdd} onClose={()=>setShowAdd(false)} title={t('employeeSalary.modal.addSalaryProfile')} subtitle={t('employeeSalary.modal.setupSalaryAllowancesBank')} icon="➕" dark={dark} theme={theme}>
+                <ProfileForm employees={employees} salaryRule={salaryRule} onClose={handleFormClose} dark={dark} theme={theme} t={t}/>
             </Modal>
-            <Modal open={!!editP} onClose={()=>setEditP(null)} title="Edit Salary Profile" subtitle="Update salary, allowances or bank info." icon="✏️" dark={dark} theme={theme}>
-                {editP&&<ProfileForm key={editP.id} employees={employees} salaryRule={salaryRule} editProfile={editP} onClose={handleFormClose} dark={dark} theme={theme}/>}
+            <Modal t={t} open={!!editP} onClose={()=>setEditP(null)} title={t('employeeSalary.modal.editSalaryProfile')} subtitle={t('employeeSalary.modal.updateSalaryAllowancesBank')} icon="✏️" dark={dark} theme={theme}>
+                {editP&&<ProfileForm key={editP.id} employees={employees} salaryRule={salaryRule} editProfile={editP} onClose={handleFormClose} dark={dark} theme={theme} t={t}/>}
             </Modal>
-            <Modal open={!!deleteP} onClose={()=>setDeleteP(null)} title="Remove Profile" subtitle="This will deactivate the salary profile." icon="🗑️" width={440} dark={dark} theme={theme}>
-                <DeleteConfirm profile={deleteP} onClose={()=>setDeleteP(null)} onConfirm={handleDelete} loading={deleting} dark={dark} theme={theme}/>
+            <Modal t={t} open={!!deleteP} onClose={()=>setDeleteP(null)} title={t('employeeSalary.modal.removeProfile')} subtitle={t('employeeSalary.modal.deactivateSalaryProfile')} icon="🗑️" width={440} dark={dark} theme={theme}>
+                <DeleteConfirm profile={deleteP} onClose={()=>setDeleteP(null)} onConfirm={handleDelete} loading={deleting} dark={dark} theme={theme} t={t}/>
             </Modal>
         </AppLayout>
     );

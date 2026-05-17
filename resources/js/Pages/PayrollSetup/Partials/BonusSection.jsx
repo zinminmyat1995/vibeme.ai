@@ -1,5 +1,7 @@
 import { useForm, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/Contexts/LanguageContext';
+const trPresetName = (tr, value) => tr(`hrPolicy.presets.${String(value || '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '')}`) || value;
 
 // ── Theme hook ─────────────────────────────────────────────────
 function useTheme() {
@@ -147,7 +149,7 @@ function BSSpinner() {
     );
 }
 
-function DeleteModal({ target, deleting, title, nameKey, onCancel, onConfirm, T, dark }) {
+function DeleteModal({ target, deleting, title, nameKey, displayName, onCancel, onConfirm, T, dark, tr }) {
     if (!target) return null;
     return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
@@ -155,16 +157,16 @@ function DeleteModal({ target, deleting, title, nameKey, onCancel, onConfirm, T,
             <div style={{ position: 'relative', background: T.panelSolid, border: `1px solid ${T.border}`, borderRadius: 20, width: '100%', maxWidth: 400, padding: '28px 28px 24px', boxShadow: T.shadow, animation: 'bsFade 0.2s ease' }}>
                 <div style={{ width: 52, height: 52, borderRadius: 16, background: T.dangerSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24 }}>🗑️</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: T.text, textAlign: 'center', marginBottom: 8 }}>{title}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{target[nameKey]}"</div>
-                <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>This action cannot be undone.</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: T.text, textAlign: 'center', marginBottom: 4 }}>"{displayName ?? (tr ? trPresetName(tr, target[nameKey]) : target[nameKey])}"</div>
+                <div style={{ fontSize: 11, color: T.textMute, textAlign: 'center', marginBottom: 24 }}>{tr ? tr('common.thisActionCannotBeUndone') : 'This action cannot be undone.'}</div>
                 <div style={{ display: 'flex', gap: 10 }}>
                     <button onClick={onCancel} disabled={deleting}
                         style={{ flex: 1, padding: '10px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                        Cancel
+                        {tr ? tr('common.cancel') : 'Cancel'}
                     </button>
                     <button onClick={onConfirm} disabled={deleting}
                         style={{ flex: 1, padding: '10px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1, boxShadow: '0 4px 14px rgba(239,68,68,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                        {deleting ? <><BSSpinner/> Deleting...</> : 'Yes, Delete'}
+                        {deleting ? <><BSSpinner/> {tr ? tr('common.deleting') : 'Deleting...'}</> : (tr ? tr('common.yesDelete') : 'Yes, Delete')}
                     </button>
                 </div>
             </div>
@@ -190,8 +192,15 @@ function SectionBlock({ title, desc, emoji, children }) {
 
 // ── Main ───────────────────────────────────────────────────────
 export default function BonusSection({ bonusTypes, bonusSchedules }) {
+    const { t: tr } = useTranslation();
     const dark = useTheme();
     const T    = getTheme(dark);
+
+    const isPresetBonusType = (value) =>
+        PRESET_BONUS_TYPES.some(p => p.name === value);
+
+    const displayBonusTypeName = (value) =>
+        isPresetBonusType(value) ? trPresetName(tr, value) : value;
 
     // ── Bonus Type state ──
     const [showTypeForm, setShowTypeForm]         = useState(false);
@@ -214,8 +223,8 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
     // ── Type handlers ──
     const validateType = () => {
         const errs = {};
-        if (!td.name.trim()) errs.name  = 'Bonus name is required.';
-        if (!td.value)       errs.value = 'Value is required.';
+        if (!td.name.trim()) errs.name  = tr('hrPolicy.validation.bonusNameRequired');
+        if (!td.value)       errs.value = tr('hrPolicy.validation.valueRequired');
         return errs;
     };
 
@@ -328,7 +337,7 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
         padding: 20, display: 'flex', flexDirection: 'column', gap: 16,
     };
 
-    const typeOptions = bonusTypes.map(bt => ({ value: String(bt.id), label: bt.name }));
+    const typeOptions = bonusTypes.map(bt => ({ value: String(bt.id), label: displayBonusTypeName(bt.name) }));
 
     return (
         <>
@@ -348,7 +357,7 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
         <div className="bs-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
 
             {/* Delete modals */}
-            <DeleteModal target={deleteTypeTarget} deleting={deletingType} title="Delete Bonus Type" nameKey="name" onCancel={() => setDeleteTypeTarget(null)} onConfirm={handleTypeDeleteConfirm} T={T} dark={dark} />
+            <DeleteModal target={deleteTypeTarget} deleting={deletingType} title={tr('hrPolicy.bonus.deleteBonusType')} nameKey="name" displayName={deleteTypeTarget ? displayBonusTypeName(deleteTypeTarget.name) : ''} onCancel={() => setDeleteTypeTarget(null)} onConfirm={handleTypeDeleteConfirm} T={T} dark={dark} tr={tr} />
 
 
             {/* ══ PART 1: Bonus Types ══ */}
@@ -360,7 +369,7 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                             <thead>
                                 <tr style={{ background: T.tableHead, borderBottom: `1px solid ${T.divider}` }}>
-                                    {['Bonus Name','Type','Value','Status','Actions'].map((h, i) => (
+                                    {[tr('hrPolicy.bonus.bonusName'),tr('common.type'),tr('common.value'),tr('common.status'),tr('common.actions')].map((h, i) => (
                                         <th key={h} style={{ padding: '11px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: T.textMute, whiteSpace: 'nowrap', textAlign: i === 0 ? 'left' : 'center' }}>{h}</th>
                                     ))}
                                 </tr>
@@ -374,12 +383,12 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                                             <td style={{ padding: '12px 14px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                     <span style={{ fontSize: 16 }}>{preset?.emoji ?? '💰'}</span>
-                                                    <span style={{ fontWeight: 700, color: T.text }}>{bt.name}</span>
+                                                    <span style={{ fontWeight: 700, color: T.text }}>{displayBonusTypeName(bt.name)}</span>
                                                 </div>
                                             </td>
                                             <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                                 <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: badge.bg, color: badge.color }}>
-                                                    {bt.calculation_type === 'percentage' ? '% Percentage' : '# Flat'}
+                                                    {bt.calculation_type === 'percentage' ? `% ${tr('hrPolicy.common.percentage')}` : `# ${tr('hrPolicy.common.flat')}`}
                                                 </span>
                                             </td>
                                             <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -388,13 +397,13 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                                                         {bt.calculation_type === 'percentage' ? `${Number(bt.value).toFixed(2)}%` : Number(bt.value).toLocaleString()}
                                                     </span>
                                                     <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 99, background: badge.bg, color: badge.color }}>
-                                                        {bt.calculation_type === 'percentage' ? 'Rate' : 'Flat'}
+                                                        {bt.calculation_type === 'percentage' ? tr('hrPolicy.deduction.rate') : tr('hrPolicy.common.flat')}
                                                     </span>
                                                 </div>
                                             </td>
                                             <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                                                 <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 99, fontSize: 10, fontWeight: 800, background: bt.is_active ? T.successSoft : T.panelSoft, color: bt.is_active ? T.success : T.textMute }}>
-                                                    {bt.is_active ? 'Active' : 'Inactive'}
+                                                    {bt.is_active ? tr('common.active') : tr('common.inactive')}
                                                 </span>
                                             </td>
                                             <td style={{ padding: '12px 14px', textAlign: 'center' }}>
@@ -403,7 +412,7 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                                                         style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textSoft, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                         onMouseEnter={e => { e.currentTarget.style.background = T.panelSofter; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                                                         onMouseLeave={e => { e.currentTarget.style.background = T.panelSoft;   e.currentTarget.style.transform = 'translateY(0)'; }}
-                                                        title="Edit">
+                                                        title={tr('common.edit')}>
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                             <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
                                                         </svg>
@@ -412,7 +421,7 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                                                         style={{ width: 40, height: 40, borderRadius: 14, border: `1px solid ${T.border}`, background: T.dangerSoft, color: T.danger, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
                                                         onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.opacity = '0.75'; }}
                                                         onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)';   e.currentTarget.style.opacity = '1'; }}
-                                                        title="Delete">
+                                                        title={tr('common.delete')}>
                                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.danger} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                                                             <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
@@ -431,8 +440,8 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                 {bonusTypes.length === 0 && !showTypeForm && (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 16, border: `1.5px dashed ${T.emptyBorder}`, background: T.panelSoft, padding: '32px 24px', gap: 8 }}>
                         <div style={{ fontSize: 28, marginBottom: 4 }}>⭐</div>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: T.textSoft, margin: 0 }}>No bonus types configured yet</p>
-                        <p style={{ fontSize: 12, color: T.textMute, margin: 0 }}>Click below to add your first bonus type</p>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: T.textSoft, margin: 0 }}>{tr('hrPolicy.bonus.noBonusTypesYet')}</p>
+                        <p style={{ fontSize: 12, color: T.textMute, margin: 0 }}>{tr('hrPolicy.bonus.createFirstBonusType')}</p>
                     </div>
                 )}
 
@@ -442,7 +451,7 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <div style={{ width: 32, height: 32, borderRadius: 10, background: T.primarySoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{editingTypeId ? '✏️' : '➕'}</div>
-                                <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>{editingTypeId ? 'Edit Bonus Type' : 'Add Bonus Type'}</div>
+                                <div style={{ fontSize: 14, fontWeight: 800, color: T.text }}>{editingTypeId ? tr('hrPolicy.bonus.editBonusType') : tr('hrPolicy.bonus.addBonusType')}</div>
                             </div>
                             <button type="button" onClick={() => { resetType(); setTypeErrors({}); setShowTypeForm(false); setEditingTypeId(null); }}
                                 style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${T.border}`, background: T.panelSoft, color: T.textMute, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✕</button>
@@ -450,13 +459,13 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
 
                         {/* Presets */}
                         <div>
-                            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 10 }}>Quick Select</div>
+                            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.textMute, marginBottom: 10 }}>{tr('hrPolicy.allowance.quickSelect')}</div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(175px, 1fr))', gap: 8 }}>
                                 {PRESET_BONUS_TYPES.map(preset => {
                                     const isSelected = td.name === preset.name;
                                     const badge = calcTypeBadge(preset.type, T);
                                     return (
-                                        <button key={preset.name} type="button"
+                                        <button key={trPresetName(tr, preset.name)} type="button"
                                             onClick={() => { setTD('name', preset.name); setTD('calculation_type', preset.type); setTypeErrors(p => ({...p, name: ''})); }}
                                             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', borderRadius: 14, textAlign: 'left', border: `1.5px solid ${isSelected ? T.primary : T.border}`, background: isSelected ? T.primarySoft : T.panelSolid, cursor: 'pointer', transition: 'all 0.15s', boxShadow: isSelected ? `0 0 0 3px ${T.primarySoft}` : T.shadowSoft }}
                                             onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = T.primary; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
@@ -464,9 +473,9 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                                             <div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
                                                     <span style={{ fontSize: 14 }}>{preset.emoji}</span>
-                                                    <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? T.primary : T.text }}>{preset.name}</span>
+                                                    <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? T.primary : T.text }}>{trPresetName(tr, preset.name)}</span>
                                                 </div>
-                                                <div style={{ fontSize: 10, fontWeight: 600, paddingLeft: 20, color: badge.color }}>{preset.type === 'percentage' ? '% Percentage' : '# Flat Amount'}</div>
+                                                <div style={{ fontSize: 10, fontWeight: 600, paddingLeft: 20, color: badge.color }}>{preset.type === 'percentage' ? `% ${tr('hrPolicy.common.percentage')}` : `# ${tr('hrPolicy.overtime.flatAmount')}`}</div>
                                             </div>
                                             {isSelected && <div style={{ width: 8, height: 8, borderRadius: '50%', background: T.primary, flexShrink: 0 }}/>}
                                         </button>
@@ -477,10 +486,10 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
 
                         {/* Name */}
                         <div>
-                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Bonus Name <span style={{ color: T.danger }}>*</span></label>
+                            <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{tr('hrPolicy.bonus.bonusName')} <span style={{ color: T.danger }}>*</span></label>
                             <input className="bs-inp" type="text" value={td.name} disabled={typeProc}
                                 onChange={e => { setTD('name', e.target.value); setTypeErrors(p => ({...p, name: ''})); }}
-                                placeholder="e.g. Annual Bonus, Performance Bonus"
+                                placeholder={tr('hrPolicy.bonus.bonusNamePlaceholder')}
                                 style={inp(!!typeErrors.name)} />
                             <ErrMsg msg={typeErrors.name} />
                         </div>
@@ -488,9 +497,9 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                         {/* Calc Type + Value */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                             <div>
-                                <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Calculation Type</label>
+                                <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{tr('hrPolicy.bonus.calculationType')}</label>
                                 <div style={{ display: 'flex', gap: 8 }}>
-                                    {[{ value: 'percentage', label: 'Percentage', hint: '% of salary' }, { value: 'flat', label: 'Flat Amount', hint: 'Fixed amount' }].map(opt => {
+                                    {[{ value: 'percentage', labelKey: 'hrPolicy.common.percentage', label: 'Percentage', hintKey: 'hrPolicy.bonus.percentOfSalary', hint: '% of salary' }, { value: 'flat', labelKey: 'hrPolicy.overtime.flatAmount', label: 'Flat Amount', hintKey: 'hrPolicy.bonus.fixedAmount', hint: 'Fixed amount' }].map(opt => {
                                         const isSel = td.calculation_type === opt.value;
                                         return (
                                             <label key={opt.value} onClick={() => !typeProc && setTD('calculation_type', opt.value)}
@@ -499,9 +508,9 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                                                     <div style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${isSel ? T.primary : T.textMute}`, background: isSel ? T.primary : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
                                                         {isSel && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff' }}/>}
                                                     </div>
-                                                    <span style={{ fontSize: 12, fontWeight: 700, color: isSel ? T.primary : T.textSoft }}>{opt.label}</span>
+                                                    <span style={{ fontSize: 12, fontWeight: 700, color: isSel ? T.primary : T.textSoft }}>{opt.labelKey ? tr(opt.labelKey) : opt.label}</span>
                                                 </div>
-                                                <div style={{ fontSize: 10, color: T.textMute, paddingLeft: 20 }}>{opt.hint}</div>
+                                                <div style={{ fontSize: 10, color: T.textMute, paddingLeft: 20 }}>{opt.hintKey ? tr(opt.hintKey) : opt.hint}</div>
                                             </label>
                                         );
                                     })}
@@ -509,7 +518,7 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                             </div>
                             <div>
                                 <label style={{ fontSize: 11, fontWeight: 800, color: T.textSoft, display: 'block', marginBottom: 6, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                    {td.calculation_type === 'percentage' ? 'Rate (%)' : 'Amount'} <span style={{ color: T.danger }}>*</span>
+                                    {td.calculation_type === 'percentage' ? tr('hrPolicy.deduction.ratePercent') : tr('hrPolicy.allowance.amount')} <span style={{ color: T.danger }}>*</span>
                                 </label>
                                 <div style={{ position: 'relative' }}>
                                     <input className="bs-inp" type="number" value={td.value} disabled={typeProc}
@@ -527,7 +536,7 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '14px 18px', borderRadius: 14, border: `1px solid ${T.border}`, background: T.panelSoft }}>
-                            <BSToggle label="Active" checked={td.is_active} onChange={v => setTD('is_active', v)} disabled={typeProc} T={T} dark={dark} />
+                            <BSToggle label={tr('common.active')} checked={td.is_active} onChange={v => setTD('is_active', v)} disabled={typeProc} T={T} dark={dark} />
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end' }}>
@@ -536,13 +545,13 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 12, border: 'none', background: typeProc ? T.textMute : 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: typeProc ? 'not-allowed' : 'pointer', boxShadow: typeProc ? 'none' : '0 4px 14px rgba(124,58,237,0.35)', transition: 'all 0.15s' }}
                                 onMouseEnter={e => { if (!typeProc) e.currentTarget.style.opacity = '0.9'; }}
                                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                                {typeProc ? <><BSSpinner/> Saving...</> : <>{editingTypeId ? '✅ Update Bonus Type' : '✅ Add Bonus Type'}</>}
+                                {typeProc ? <><BSSpinner/> {tr('common.saving')}</> : <>{editingTypeId ? `✅ ${tr('hrPolicy.bonus.updateBonusType')}` : `✅ ${tr('hrPolicy.bonus.addBonusType')}`}</>}
                             </button>
                             <button type="button" onClick={() => { resetType(); setTypeErrors({}); setShowTypeForm(false); setEditingTypeId(null); }} disabled={typeProc}
                                 style={{ padding: '10px 18px', borderRadius: 12, border: `1.5px solid ${T.border}`, background: 'transparent', color: T.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                                 onMouseEnter={e => e.currentTarget.style.background = T.panelSoft}
                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                                Cancel
+                                {tr('common.cancel')}
                             </button>
                         </div>
                     </form>
@@ -554,7 +563,7 @@ export default function BonusSection({ bonusTypes, bonusSchedules }) {
                         onMouseEnter={e => e.currentTarget.style.opacity = '1'}
                         onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}>
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        Add Bonus Type
+                        {tr('hrPolicy.bonus.addBonusType')}
                     </button>
                 )}
             </div>

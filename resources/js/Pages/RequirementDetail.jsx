@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { router } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ── Helpers ────────────────────────────────────────
 const RISK_COLOR  = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' };
@@ -8,7 +9,7 @@ const RISK_BG     = { high: '#fef2f2', medium: '#fffbeb', low: '#f0fdf4' };
 const PRIO_COLOR  = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' };
 const PRIO_BG     = { high: '#fef2f2', medium: '#fffbeb', low: '#f0fdf4' };
 const FEASIBILITY_COLOR = (s) => s >= 75 ? '#10b981' : s >= 50 ? '#f59e0b' : '#ef4444';
-const FEASIBILITY_LABEL = (s) => s >= 75 ? 'Highly Feasible' : s >= 50 ? 'Moderately Feasible' : 'Challenging';
+const FEASIBILITY_LABEL_KEY = (s) => s >= 75 ? 'requirement.detail.feasibility.highlyFeasible' : s >= 50 ? 'requirement.detail.feasibility.moderatelyFeasible' : 'requirement.detail.feasibility.challenging';
 
 const COMPLEXITY_MAP = {
     simple:     { label: 'Simple',     color: '#10b981', bg: '#d1fae5', icon: 'S' },
@@ -158,6 +159,7 @@ function SectionCard({ icon, title, children, accent, theme }) {
 }
 
 function ScoreMeter({ score, darkMode = false }) {
+    const { t: tr } = useTranslation();
     const theme = getTheme(darkMode);
     const color = FEASIBILITY_COLOR(score);
     const r = 52, stroke = 7, circ = 2 * Math.PI * r;
@@ -190,9 +192,9 @@ function ScoreMeter({ score, darkMode = false }) {
             </svg>
             <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 13, fontWeight: 900, color }}>
-                    {FEASIBILITY_LABEL(score)}
+                    {tr(FEASIBILITY_LABEL_KEY(score))}
                 </div>
-                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>Feasibility Score</div>
+                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{tr('requirement.detail.feasibility.score')}</div>
             </div>
         </div>
     );
@@ -459,6 +461,7 @@ function TinyPill({ label, color, bg }) {
 }
 
 export default function RequirementDetail({ analysis }) {
+    const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
@@ -489,7 +492,7 @@ export default function RequirementDetail({ analysis }) {
     const complexityView = (darkComplexity[ai.project_complexity] || darkComplexity.medium);
 
     return (
-        <AppLayout title="Requirement Detail">
+        <AppLayout title={tr('requirement.detail.pageTitle')}>
             <style>{`
                 @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes spin { to { transform:rotate(360deg); } }
@@ -573,7 +576,7 @@ export default function RequirementDetail({ analysis }) {
                                         {reanalyzing
                                             ? <span style={{ width: 14, height: 14, border: `2px solid ${theme.borderStrong}`, borderTopColor: theme.primary, borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
                                             : '↻'}
-                                        Re-analyze
+                                        {tr('requirement.actions.reanalyze')}
                                     </button>
                                 )}
 
@@ -597,7 +600,7 @@ export default function RequirementDetail({ analysis }) {
                                         boxShadow: '0 14px 32px rgba(124,58,237,0.22)',
                                     }}
                                 >
-                                    Generate Proposal
+                                    {tr('requirement.actions.generateProposal')}
                                 </a>
                             </div>
                         </div>
@@ -617,14 +620,14 @@ export default function RequirementDetail({ analysis }) {
                         {analysis.status === 'analyzing' ? (
                             <>
                                 <div style={{ fontSize: 56, marginBottom: 16, animation: 'spin 3s linear infinite' }}>•</div>
-                                <h3 style={{ fontSize: 18, fontWeight: 900, color: theme.text, margin: '0 0 8px' }}>AI is analyzing...</h3>
-                                <p style={{ color: theme.textMute, fontSize: 14 }}>Please wait while we process the requirements.</p>
+                                <h3 style={{ fontSize: 18, fontWeight: 900, color: theme.text, margin: '0 0 8px' }}>{tr('requirement.detail.states.aiAnalyzing')}</h3>
+                                <p style={{ color: theme.textMute, fontSize: 14 }}>{tr('requirement.detail.states.pleaseWait')}</p>
                             </>
                         ) : analysis.status === 'failed' ? (
                             <>
                                 <div style={{ fontSize: 56, marginBottom: 16, color: theme.danger }}>×</div>
-                                <h3 style={{ fontSize: 18, fontWeight: 900, color: theme.text, margin: '0 0 8px' }}>Analysis failed</h3>
-                                <p style={{ color: theme.textMute, fontSize: 14, marginBottom: 20 }}>Something went wrong. Please try again.</p>
+                                <h3 style={{ fontSize: 18, fontWeight: 900, color: theme.text, margin: '0 0 8px' }}>{tr('requirement.detail.states.analysisFailed')}</h3>
+                                <p style={{ color: theme.textMute, fontSize: 14, marginBottom: 20 }}>{tr('requirement.detail.states.somethingWrong')}</p>
                                 <button
                                     onClick={handleReanalyze}
                                     style={{
@@ -645,8 +648,8 @@ export default function RequirementDetail({ analysis }) {
                         ) : (
                             <>
                                 <div style={{ fontSize: 56, marginBottom: 16, color: theme.warning }}>•</div>
-                                <h3 style={{ fontSize: 18, fontWeight: 900, color: theme.text, margin: '0 0 8px' }}>Pending analysis</h3>
-                                <p style={{ color: theme.textMute, fontSize: 14 }}>Analysis will start shortly.</p>
+                                <h3 style={{ fontSize: 18, fontWeight: 900, color: theme.text, margin: '0 0 8px' }}>{tr('requirement.detail.states.pendingAnalysis')}</h3>
+                                <p style={{ color: theme.textMute, fontSize: 14 }}>{tr('requirement.detail.states.startShortly')}</p>
                             </>
                         )}
                     </div>
@@ -655,7 +658,7 @@ export default function RequirementDetail({ analysis }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                             {ai.summary && (
                                 <div className="card-anim" style={{ animationDelay: '0.05s' }}>
-                                    <SectionCard icon="AI" title="AI Summary" accent={theme.warning} theme={theme}>
+                                    <SectionCard icon="AI" title={tr('requirement.detail.sections.aiSummary')} accent={theme.warning} theme={theme}>
                                         <p style={{ margin: 0, fontSize: 14, color: theme.textSoft, lineHeight: 1.8 }}>{ai.summary}</p>
                                     </SectionCard>
                                 </div>
@@ -663,7 +666,7 @@ export default function RequirementDetail({ analysis }) {
 
                             {ai.core_modules?.length > 0 && (
                                 <div className="card-anim" style={{ animationDelay: '0.1s' }}>
-                                    <SectionCard icon={ai.core_modules.length} title={`Core Modules (${ai.core_modules.length})`} accent={theme.primary} theme={theme}>
+                                    <SectionCard icon={ai.core_modules.length} title={`${tr('requirement.detail.sections.coreModules')} (${ai.core_modules.length})`} accent={theme.primary} theme={theme}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                             {ai.core_modules.map((m, i) => <ModuleCard key={i} mod={m} idx={i} darkMode={darkMode} />)}
                                         </div>
@@ -673,7 +676,7 @@ export default function RequirementDetail({ analysis }) {
 
                             {ai.timeline_phases?.length > 0 && (
                                 <div className="card-anim" style={{ animationDelay: '0.15s' }}>
-                                    <SectionCard icon="TL" title="Project Timeline" accent={theme.secondary} theme={theme}>
+                                    <SectionCard icon="TL" title={tr('requirement.detail.sections.projectTimeline')} accent={theme.secondary} theme={theme}>
                                         <PhaseTimeline phases={ai.timeline_phases} darkMode={darkMode} />
                                     </SectionCard>
                                 </div>
@@ -681,7 +684,7 @@ export default function RequirementDetail({ analysis }) {
 
                             {ai.potential_risks?.length > 0 && (
                                 <div className="card-anim" style={{ animationDelay: '0.2s' }}>
-                                    <SectionCard icon={ai.potential_risks.length} title={`Risk Assessment (${ai.potential_risks.length})`} accent={theme.danger} theme={theme}>
+                                    <SectionCard icon={ai.potential_risks.length} title={`${tr('requirement.detail.sections.riskAssessment')} (${ai.potential_risks.length})`} accent={theme.danger} theme={theme}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                             {ai.potential_risks.map((r, i) => <RiskCard key={i} risk={r} darkMode={darkMode} />)}
                                         </div>
@@ -691,7 +694,7 @@ export default function RequirementDetail({ analysis }) {
 
                             {ai.recommendations?.length > 0 && (
                                 <div className="card-anim" style={{ animationDelay: '0.25s' }}>
-                                    <SectionCard icon="RC" title="Recommendations" accent={theme.success} theme={theme}>
+                                    <SectionCard icon="RC" title={tr('requirement.detail.sections.recommendations')} accent={theme.success} theme={theme}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                             {ai.recommendations.map((r, i) => (
                                                 <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -721,7 +724,7 @@ export default function RequirementDetail({ analysis }) {
 
                             {ai.clarification_needed?.length > 0 && (
                                 <div className="card-anim" style={{ animationDelay: '0.3s' }}>
-                                    <SectionCard icon="Q" title="Clarifications Needed" accent={theme.warning} theme={theme}>
+                                    <SectionCard icon="Q" title={tr('requirement.detail.sections.clarificationsNeeded')} accent={theme.warning} theme={theme}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                             {ai.clarification_needed.map((q, i) => (
                                                 <div key={i} style={{
@@ -758,11 +761,11 @@ export default function RequirementDetail({ analysis }) {
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                                         {[
-                                            { label: 'Duration', value: ai.estimated_duration },
-                                            { label: 'Platform', value: analysis.platform?.toUpperCase() },
-                                            { label: 'Users', value: analysis.expected_users?.toLocaleString() },
-                                            { label: 'Budget', value: analysis.budget_range },
-                                            { label: 'Deadline', value: analysis.expected_deadline },
+                                            { label: tr('requirement.labels.duration'), value: ai.estimated_duration },
+                                            { label: tr('requirement.table.platform'), value: analysis.platform?.toUpperCase() },
+                                            { label: tr('requirement.detail.quick.users'), value: analysis.expected_users?.toLocaleString() },
+                                            { label: tr('requirement.detail.quick.budget'), value: analysis.budget_range },
+                                            { label: tr('requirement.detail.quick.deadline'), value: analysis.expected_deadline },
                                         ].filter(x => x.value).map((item, i, arr) => (
                                             <div key={item.label} style={{
                                                 display: 'flex',
@@ -795,7 +798,7 @@ export default function RequirementDetail({ analysis }) {
                                                     borderRadius: 14,
                                                     background: darkMode ? 'rgba(255,255,255,0.04)' : timeline.bg
                                                 }}>
-                                                    <span style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>Timeline</span>
+                                                    <span style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>{tr('requirement.detail.quick.timeline')}</span>
                                                     <TinyPill label={`${timeline.icon} ${timeline.label}`} color={timeline.color} bg={darkMode ? 'rgba(255,255,255,0.04)' : timeline.bg} />
                                                 </div>
                                             )}
@@ -809,7 +812,7 @@ export default function RequirementDetail({ analysis }) {
                                                     borderRadius: 14,
                                                     background: darkMode ? 'rgba(255,255,255,0.04)' : budget.bg
                                                 }}>
-                                                    <span style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>Budget</span>
+                                                    <span style={{ fontSize: 12, fontWeight: 800, color: theme.textSoft }}>{tr('requirement.detail.quick.budget')}</span>
                                                     <TinyPill label={`${budget.icon} ${budget.label}`} color={budget.color} bg={darkMode ? 'rgba(255,255,255,0.04)' : budget.bg} />
                                                 </div>
                                             )}
@@ -824,7 +827,7 @@ export default function RequirementDetail({ analysis }) {
 
                             {ai.recommended_tech_stack?.length > 0 && (
                                 <div className="card-anim" style={{ animationDelay: '0.2s' }}>
-                                    <SectionCard icon="TS" title="Tech Stack" accent={theme.secondary} theme={theme}>
+                                    <SectionCard icon="TS" title={tr('requirement.detail.sections.techStack')} accent={theme.secondary} theme={theme}>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                                             {ai.recommended_tech_stack.map((t, i) => (
                                                 <span key={i} style={{
@@ -846,7 +849,7 @@ export default function RequirementDetail({ analysis }) {
 
                             {ai.team_structure?.length > 0 && (
                                 <div className="card-anim" style={{ animationDelay: '0.25s' }}>
-                                    <SectionCard icon="TM" title="Recommended Team" accent={theme.primary} theme={theme}>
+                                    <SectionCard icon="TM" title={tr('requirement.detail.sections.recommendedTeam')} accent={theme.primary} theme={theme}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                             {ai.team_structure.map((m, i) => <TeamCard key={i} member={m} darkMode={darkMode} />)}
                                         </div>
@@ -871,11 +874,11 @@ export default function RequirementDetail({ analysis }) {
                                     </div>
 
                                     {[
-                                        { label: 'Company', value: client.company_name },
-                                        { label: 'Contact', value: client.contact_person },
-                                        { label: 'Email', value: client.email },
-                                        { label: 'Phone', value: client.phone },
-                                        { label: 'Industry', value: client.industry },
+                                        { label: tr('requirement.fields.companyName'), value: client.company_name },
+                                        { label: tr('requirement.fields.contactPerson'), value: client.contact_person },
+                                        { label: tr('requirement.fields.email'), value: client.email },
+                                        { label: tr('requirement.fields.phone'), value: client.phone },
+                                        { label: tr('requirement.fields.industry'), value: client.industry },
                                     ].filter(x => x.value).map((item, idx, arr) => (
                                         <div key={item.label} style={{
                                             display: 'flex',

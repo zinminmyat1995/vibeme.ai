@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { Head, router, usePage } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
 import ReactDOM from "react-dom";
+import { useTranslation } from "@/Contexts/LanguageContext";
 
 // ─── Global toast helper ─────────────────────────────────────────
 const toast = (message, type = "success") =>
@@ -192,8 +193,8 @@ function PremiumSelect({ options = [], value = "", onChange, placeholder = "Sele
 // ─────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────
-const HOURS   = Array.from({ length: 24 }, (_, i) => i); // 00–23 full 24hr
-const HOUR_H  = 52; // px per hour
+const HOURS   = Array.from({ length: 24 }, (_, i) => i);
+const HOUR_H  = 52;
 const TOTAL_H = HOUR_H * 24;
 
 function toISO(d) {
@@ -205,7 +206,7 @@ function toISO(d) {
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 function fmtDate(d) { return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" }); }
 function timeToMin(t) { if (!t) return 0; const [h, m] = t.split(":").map(Number); return h * 60 + m; }
-function minToY(min) { return Math.max(0, min / 60 * HOUR_H); } // 0-based: 00:00 = top
+function minToY(min) { return Math.max(0, min / 60 * HOUR_H); }
 
 function statusCfg(status, theme) {
     return ({
@@ -296,16 +297,8 @@ function Modal({ onClose, theme, title, subtitle, icon, grad, children, maxWidth
 
 // ─────────────────────────────────────────────────────────────────
 // Time Calendar
-// Layout:
-//   ┌──────────┬────────────────────────────────────┐
-//   │ (corner) │ 00:00  01:00  02:00  ...  23:00    │  ← time header (top)
-//   ├──────────┼────────────────────────────────────┤
-//   │  Room 1  │  ███ booking ███                   │  ← resource rows
-//   ├──────────┼────────────────────────────────────┤
-//   │  Room 2  │                                    │
-//   └──────────┴────────────────────────────────────┘
 // ─────────────────────────────────────────────────────────────────
-function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick }) {
+function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick, tr }) {
     const typeColor  = type === "room" ? theme.roomColor : theme.carColor;
     const filtered   = resources.filter(r => r.type === type);
     const isEmpty    = filtered.length === 0;
@@ -313,10 +306,9 @@ function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick }
     const RES_W      = 140;
     const ROW_H      = 68;
     const HDR_H      = 40;
-    const MIN_TL_W   = 1080; // minimum timeline width (scroll appears below this)
+    const MIN_TL_W   = 1080;
     const timeMarks  = Array.from({ length: 24 }, (_, i) => i);
 
-    // ── Current time (nowMin) ──
     const [nowMin, setNowMin] = useState(() => {
         const n = new Date();
         return n.getHours() * 60 + n.getMinutes();
@@ -330,7 +322,6 @@ function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick }
         return () => clearInterval(tick);
     }, []);
 
-    // ── Driver status real-time (Pusher) ──
     const [driverStatuses, setDriverStatuses] = useState(() => {
         const map = {};
         bookings.forEach(b => {
@@ -343,25 +334,21 @@ function TimeCalendar({ bookings, resources, type, theme, dark, onBookingClick }
 
 useEffect(() => {
     if (typeof window === "undefined" || !window.Echo) return;
-
-    // window.__countryId ကိုပဲ တိုက်ရိုက်သုံး (Main page မှာ set ပြီးသား)
     const countryId = window.__countryId;
     if (!countryId) {
         console.warn("countryId not found for Pusher");
         return;
     }
-
     console.log("Listening on bookings." + countryId);
     const channel = window.Echo.channel(`bookings.${countryId}`);
     channel.listen(".booking.status.updated", (e) => {
         console.log("Pusher event received:", e);
         setDriverStatuses(prev => ({ ...prev, [e.booking_id]: e.driver_status }));
     });
-
     return () => window.Echo.leaveChannel(`bookings.${countryId}`);
 }, []);
 
-    const isToday = toISO(new Date()) === toISO(new Date()); // parent မှ pass လာမဲ့ date နဲ့ ညှိနိုင်
+    const isToday = toISO(new Date()) === toISO(new Date());
 
     const byResource = useMemo(() => {
         const map = {};
@@ -373,19 +360,15 @@ useEffect(() => {
     const pct = (min) => `${Math.max(0, Math.min(100, (min / TOTAL_MINS) * 100))}%`;
 
 const driverStatusConfig = {
-    on_the_way: { icon: "🚗💨", label: "On The Way",  color: "#3b82f6" },
-    returned:   { icon: "↩️",   label: "Returning",   color: "#f59e0b" },
+    on_the_way: { icon: "🚗💨", label: tr('bookings.onTheWay'),  color: "#3b82f6" },
+    returned:   { icon: "↩️",   label: tr('bookings.returning'), color: "#f59e0b" },
 };
 
-
-// bookings prop ပြောင်းရင် driverStatuses ကို sync လုပ်
 useEffect(() => {
     setDriverStatuses(prev => {
         const map = { ...prev };
         bookings.forEach(b => {
-            // Pusher update မရှိသေးတဲ့ booking တွေကို backend data နဲ့ sync
             if (b.driver_status && b.driver_status !== 'start') {
-                // Pusher က update လုပ်ပြီးသား booking မဟုတ်ရင်သာ override
                 if (!prev[b.id] || prev[b.id] === 'start') {
                     map[b.id] = b.driver_status;
                 }
@@ -405,7 +388,7 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
             ))}
             {rBk.length === 0 && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                    <span style={{ fontSize: 10, color: theme.textMute, opacity: 0.3 }}>Free</span>
+                    <span style={{ fontSize: 10, color: theme.textMute, opacity: 0.3 }}>{tr('bookings.free')}</span>
                 </div>
             )}
             {rBk.map(b => {
@@ -423,24 +406,21 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
                             : dStatus === "ended"      ? theme.success
                             : isApp ? typeColor : theme.warning;
 
-                // ── Car icon position logic ──
                 const showCar = type === "car" && (dStatus === "on_the_way" || dStatus === "returned");
                 let carLeft = left;
 
                 if (showCar && nowMin >= sMin) {
-                    carLeft = pct(Math.min(nowMin, eMin)); // eMin ထက်မကျော်အောင်
+                    carLeft = pct(Math.min(nowMin, eMin));
                 }
 
-                // on_the_way ဆိုရင် end time ကျော်သွားရင်လည်း booking end မှာ ကပ်ပြနေ
                 const carVisible = showCar && (
                     dStatus === "on_the_way"
-                        ? true  // on_the_way ဆိုရင် time မကြည့်ဘဲ အမြဲပြ
-                        : nowMin <= eMin  // returned ဆိုရင် end မကျော်မချင်းပြ
+                        ? true
+                        : nowMin <= eMin
                 );
 
                 return (
                     <React.Fragment key={b.id}>
-                        {/* Booking card */}
                         <div
                             onClick={() => onBookingClick && onBookingClick(b.id)}
                             onMouseEnter={e => {
@@ -472,7 +452,6 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
                             </div>
                         </div>
 
-                        {/* ── Car icon — booking row ထဲမှာ ── */}
                         {carVisible && (
                             <div style={{
                                 position: "absolute",
@@ -484,28 +463,21 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
                                 transition: "left 10s linear",
                                 animation: "car-bounce 1.5s ease-in-out infinite",
                                 filter: dStatus === "returned"
-                                    ? "drop-shadow(0 2px 8px rgba(245,158,11,0.6))"   // orange glow
-                                    : "drop-shadow(0 2px 8px rgba(239,68,68,0.6))",   // red glow
+                                    ? "drop-shadow(0 2px 8px rgba(245,158,11,0.6))"
+                                    : "drop-shadow(0 2px 8px rgba(239,68,68,0.6))",
                             }}>
                                 <svg width="32" height="20" viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    {/* Body — အနီ */}
                                     <rect x="2" y="8" width="26" height="9" rx="2.5" fill="#ef4444"/>
-                                    {/* Cabin */}
                                     <path d="M7 8 L11 2 L22 2 L26 8Z" fill="#f87171"/>
-                                    {/* Windows — ညာဘက်မှာ */}
                                     <path d="M12 3 L11.5 7 L15.5 7 L15.5 3Z" fill="#bfdbfe" opacity="0.85"/>
                                     <path d="M16.5 3 L16.5 7 L20.5 7 L21 3Z" fill="#bfdbfe" opacity="0.85"/>
-                                    {/* Wheels */}
                                     <circle cx="8.5" cy="17" r="3" fill="#7f1d1d"/>
                                     <circle cx="8.5" cy="17" r="1.4" fill="#fca5a5"/>
                                     <circle cx="23" cy="17" r="3" fill="#7f1d1d"/>
                                     <circle cx="23" cy="17" r="1.4" fill="#fca5a5"/>
-                                    {/* Headlight — ညာဘက် (အရှေ့) */}
                                     <rect x="27" y="10" width="4" height="2.5" rx="1.2" fill="#fef08a"/>
                                     <rect x="27" y="13" width="3" height="1.5" rx="0.8" fill="#fde68a" opacity="0.7"/>
-                                    {/* Tail light — ဘယ်ဘက် (နောက်) */}
                                     <rect x="1" y="10" width="2" height="2.5" rx="1" fill="#dc2626"/>
-                                    {/* Speed lines — ဘယ်ဘက် (နောက်) */}
                                     <line x1="0" y1="10" x2="-4" y2="10" stroke="#fca5a5" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
                                     <line x1="0" y1="13" x2="-5" y2="13" stroke="#fca5a5" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
                                     <line x1="0" y1="7" x2="-3" y2="7" stroke="#fca5a5" strokeWidth="1" strokeLinecap="round" opacity="0.3"/>
@@ -516,7 +488,6 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
                 );
             })}
 
-            {/* Tooltip */}
             {tooltip && typeof document !== 'undefined' && ReactDOM.createPortal(
                 <div style={{
                     position: 'fixed', top: tooltip.y, left: tooltip.x,
@@ -529,14 +500,13 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
                 }}>
                     <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{tooltip.b.user?.name || '—'}</div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 6 }}>
-                        ⏰ {tooltip.b.start_time}{tooltip.b.end_time ? `–${tooltip.b.end_time}` : ' → open-ended'}
+                        ⏰ {tooltip.b.start_time}{tooltip.b.end_time ? `–${tooltip.b.end_time}` : ` → ${tr('bookings.openEnded')}`}
                     </div>
                     {tooltip.b.purpose && (
                         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 6 }}>
                             📝 {tooltip.b.purpose}
                         </div>
                     )}
-                    {/* Driver status badge */}
                     {type === "car" && driverStatusConfig[tooltip.b.driver_status] && (
                         <div style={{
                             marginTop: 6, padding: "3px 8px", borderRadius: 8, display: "inline-flex",
@@ -560,7 +530,7 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
                 {/* Header */}
                 <div style={{ display: "flex", borderBottom: `2px solid ${theme.border}`, background: theme.surfaceSoft, position: "sticky", top: 0, zIndex: 10 }}>
                     <div style={{ width: RES_W, flexShrink: 0, height: HDR_H, borderRight: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontSize: 9, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em" }}>{type === "room" ? "Rooms" : "Cars"}</span>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em" }}>{type === "room" ? tr('bookings.rooms') : tr('bookings.cars')}</span>
                     </div>
                     <div style={{ flex: 1, minWidth: MIN_TL_W, height: HDR_H, position: "relative" }}>
                         {timeMarks.map(h => (
@@ -580,8 +550,8 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
                         <div style={{ width: RES_W, flexShrink: 0, borderRight: `1px solid ${theme.border}`, height: ROW_H * 3 }} />
                         <div style={{ flex: 1, minWidth: MIN_TL_W, height: ROW_H * 3, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
                             <div style={{ fontSize: 32, opacity: 0.12 }}>{type === "room" ? "🏢" : "🚗"}</div>
-                            <div style={{ fontSize: 13, color: theme.textMute, fontWeight: 600 }}>No {type === "room" ? "meeting rooms" : "cars"} registered yet</div>
-                            <div style={{ fontSize: 11, color: theme.textMute, opacity: 0.6 }}>Go to Manage Resources to add one</div>
+                            <div style={{ fontSize: 13, color: theme.textMute, fontWeight: 600 }}>{tr(type === "room" ? 'bookings.noRoomsYet' : 'bookings.noCarsYet')}</div>
+                            <div style={{ fontSize: 11, color: theme.textMute, opacity: 0.6 }}>{tr('bookings.goToManage')}</div>
                         </div>
                     </div>
                 ) : byResource.map(({ resource: r, bookings: rBk }, idx) => (
@@ -589,7 +559,7 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
                         <div style={{ width: RES_W, flexShrink: 0, height: ROW_H, borderRight: `1px solid ${theme.border}`, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", background: type === "room" ? theme.roomSoft : theme.carSoft }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: typeColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
                             <div style={{ fontSize: 10, color: theme.textMute, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {type === "room" && [r.location && `Floor ${r.location}`, r.capacity && `${r.capacity} seats`].filter(Boolean).join(" · ")}
+                                {type === "room" && [r.location && `${tr('bookings.floor')} ${r.location}`, r.capacity && `${r.capacity} ${tr('bookings.seats')}`].filter(Boolean).join(" · ")}
                                 {type === "car" && [r.plate_number, r.driver?.name].filter(Boolean).join(" · ")}
                             </div>
                         </div>
@@ -603,9 +573,9 @@ const TimelineCell = ({ rBk, rowIdx, onBookingClick, nowMin }) => {
 
 
 // ─────────────────────────────────────────────────────────────────
-// Booking Modal — 3 steps, premium UI, TimePicker
+// Booking Modal — 3 steps
 // ─────────────────────────────────────────────────────────────────
-function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
+function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess, tr }) {
     const isCar = type === "car";
     const typeColor = isCar ? theme.carColor : theme.primary;
     const typeGrad  = isCar ? "linear-gradient(135deg,#92400e,#d97706)" : "linear-gradient(135deg,#3730a3,#6366f1)";
@@ -646,27 +616,24 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
 
     const submit = () => {
         const e = {};
-        if (!purpose.trim()) e.purpose = "Please describe the purpose";
-        if (!selected) e.resource = "Please select a resource";
+        if (!purpose.trim()) e.purpose = tr('bookings.errorPurpose');
+        if (!selected) e.resource = tr('bookings.errorResource');
 
-        // Car trip validation
         if (isCar) {
             if (!pickupLocation.trim()) {
                 e.pickup_location = tripType === 'pickup'
-                    ? "Pickup point is required"
-                    : "Departure location is required";
+                    ? tr('bookings.errorPickup')
+                    : tr('bookings.errorDeparture');
             }
-
             if (tripType === 'one_way' || tripType === 'pickup') {
                 if (!stops[0]?.location?.trim()) {
-                    e.destination = "Destination is required";
+                    e.destination = tr('bookings.errorDestination');
                 }
             }
-
             if (tripType === 'multi_stop') {
                 const hasEmptyStop = stops.some(s => !s.location.trim());
-                if (hasEmptyStop) e.stops = "All stop locations are required";
-                if (stops.length === 0) e.stops = "At least one stop is required";
+                if (hasEmptyStop) e.stops = tr('bookings.errorStops');
+                if (stops.length === 0) e.stops = tr('bookings.errorStopsMin');
             }
         }
 
@@ -679,7 +646,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
             end_time:     isOpenEnded ? null : endTime || null,
             purpose,
             is_open_ended: isOpenEnded,
-            attendee_ids:  attendees.map(a => a.id),   // ← ဒါထည့်
+            attendee_ids:  attendees.map(a => a.id),
             trip_type:       isCar ? tripType : null,
             pickup_location: isCar ? pickupLocation : null,
             stops:           isCar ? stops.filter(s => s.location.trim()) : [],
@@ -701,7 +668,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                     setSelected(null);
                     toast(errs.resource_id, "error");
                 } else {
-                    toast(errs.time || "Failed to submit. Please try again.", "error");
+                    toast(errs.time || tr('bookings.submitFailed'), "error");
                 }
             },
         });
@@ -716,7 +683,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
 
     const handleNext = () => {
         if (!isOpenEnded && startTime && endTime && startTime >= endTime) {
-            setErrors(e => ({ ...e, time: "End time must be later than start time." }));
+            setErrors(e => ({ ...e, time: tr('bookings.errorEndTime') }));
             return;
         }
         setErrors({});
@@ -743,8 +710,8 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
 
     return (
         <Modal onClose={onClose} theme={theme}
-            title={isCar ? "Request Company Car" : "Reserve Meeting Room"}
-            subtitle={step === 1 ? "Step 1 — Set Date & Time" : step === 2 ? "Step 2 — Select Resource" : "Step 3 — Confirm & Submit"}
+            title={isCar ? tr('bookings.requestCar') : tr('bookings.reserveRoom')}
+            subtitle={step === 1 ? tr('bookings.step1') : step === 2 ? tr('bookings.step2') : tr('bookings.step3')}
             icon={isCar ? "🚗" : "🏢"} grad={typeGrad}>
 
             {stepBar}
@@ -753,18 +720,17 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
             {step === 1 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                     <div>
-                        <Lbl theme={theme}>Date</Lbl>
+                        <Lbl theme={theme}>{tr('bookings.date')}</Lbl>
                         <Inp type="date" value={date} onChange={e => setDate(e.target.value)} theme={theme} />
                     </div>
 
-                    {/* Time pickers — fit-content width */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                         <div>
-                            <Lbl theme={theme}>Start Time</Lbl>
+                            <Lbl theme={theme}>{tr('bookings.startTime')}</Lbl>
                             <TimePicker value={startTime} onChange={v => { setStartTime(v); if (errors.time) setErrors(e => ({...e, time: ""})); }} theme={theme} dark={dark} />
                         </div>
                         <div>
-                            <Lbl theme={theme}>End Time</Lbl>
+                            <Lbl theme={theme}>{tr('bookings.endTime')}</Lbl>
                             <TimePicker value={endTime} onChange={v => { setEndTime(v); if (errors.time) setErrors(e => ({...e, time: ""})); }} theme={theme} dark={dark} disabled={isOpenEnded} />
                         </div>
                     </div>
@@ -777,29 +743,28 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                     {isCar && (
                         <div style={{ padding: "14px 16px", borderRadius: 14, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
                             <div>
-                                <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Return time unknown</div>
-                                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 3 }}>Open-ended — join the waitlist if the car is out</div>
+                                <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{tr('bookings.returnUnknown')}</div>
+                                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 3 }}>{tr('bookings.openEndedDesc')}</div>
                             </div>
                             <Toggle value={isOpenEnded} onChange={setOpenEnded} color={theme.carColor} />
                         </div>
                     )}
 
-                    {/* Car conflict warning for open-ended */}
                     {isCar && !isOpenEnded && startTime && endTime && (
                         <div style={{ padding: "10px 14px", borderRadius: 10, background: theme.warningSoft, border: `1px solid ${theme.warning}30`, fontSize: 12, color: theme.warning }}>
-                            ℹ️ If another booking exists without a return time, your request will be added to the waitlist.
+                            ℹ️ {tr('bookings.waitlistWarning')}
                         </div>
                     )}
 
                     {!isCar && (
                         <div>
-                            <Lbl theme={theme}>Number of Attendees <span style={{ color: theme.textMute, fontWeight: 400 }}>(optional — filters by seat capacity)</span></Lbl>
+                            <Lbl theme={theme}>{tr('bookings.numAttendees')} <span style={{ color: theme.textMute, fontWeight: 400 }}>({tr('bookings.attendeesHint')})</span></Lbl>
                             <Inp type="number" value={capacity} onChange={e => setCapacity(e.target.value)} placeholder="e.g. 8" theme={theme} />
                         </div>
                     )}
 
                     <BtnPrimary onClick={handleNext} disabled={!canNext}>
-                        Continue — View Available {isCar ? "Cars" : "Rooms"} →
+                        {tr('bookings.continueAvailable')} {isCar ? tr('bookings.cars') : tr('bookings.rooms')} →
                     </BtnPrimary>
                 </div>
             )}
@@ -808,8 +773,8 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
             {step === 2 && (
                 <div>
                     <div style={{ padding: "10px 14px", borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, fontSize: 12, color: theme.textSoft, marginBottom: 16 }}>
-                        📅 {date} · ⏰ {startTime}{endTime && !isOpenEnded ? `–${endTime}` : isOpenEnded ? " (open-ended)" : ""}
-                        {!isCar && capacity ? ` · 👥 ${capacity} attendees` : ""}
+                        📅 {date} · ⏰ {startTime}{endTime && !isOpenEnded ? `–${endTime}` : isOpenEnded ? ` (${tr('bookings.openEnded')})` : ""}
+                        {!isCar && capacity ? ` · 👥 ${capacity} ${tr('bookings.attendees')}` : ""}
                     </div>
 
                     {errors.resource_id && (
@@ -818,10 +783,10 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                         </div>
                     )}
                     {loading ? (
-                        <div style={{ textAlign: "center", padding: "48px", color: theme.textMute, fontSize: 13 }}>⏳ Checking availability…</div>
+                        <div style={{ textAlign: "center", padding: "48px", color: theme.textMute, fontSize: 13 }}>⏳ {tr('bookings.checkingAvailability')}</div>
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                            {resources.length === 0 && <p style={{ color: theme.textMute, fontSize: 13, textAlign: "center", padding: "32px" }}>No {isCar ? "cars" : "rooms"} found.</p>}
+                            {resources.length === 0 && <p style={{ color: theme.textMute, fontSize: 13, textAlign: "center", padding: "32px" }}>{tr('bookings.noResourcesFound', { type: isCar ? tr('bookings.cars') : tr('bookings.rooms') })}</p>}
                             {resources.map(r => {
                                 const isAvail = r.is_available, isSel = selected?.id === r.id;
                                 return (
@@ -832,17 +797,17 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                                                     <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{r.name}</span>
-                                                    {isSel && <span style={{ fontSize: 10, fontWeight: 700, color: typeColor, background: `${typeColor}18`, padding: "2px 8px", borderRadius: 8 }}>✓ Selected</span>}
+                                                    {isSel && <span style={{ fontSize: 10, fontWeight: 700, color: typeColor, background: `${typeColor}18`, padding: "2px 8px", borderRadius: 8 }}>✓ {tr('bookings.selected')}</span>}
                                                     {isAvail
-                                                        ? <span style={{ fontSize: 10, color: theme.success, background: theme.successSoft, padding: "2px 8px", borderRadius: 8, fontWeight: 600 }}>✓ Available</span>
+                                                        ? <span style={{ fontSize: 10, color: theme.success, background: theme.successSoft, padding: "2px 8px", borderRadius: 8, fontWeight: 600 }}>✓ {tr('bookings.available')}</span>
                                                         : <span style={{ fontSize: 10, color: theme.danger, background: theme.dangerSoft, padding: "2px 8px", borderRadius: 8, fontWeight: 600 }}>
-                                                            {r.is_open_ended_out ? "Currently out" : r.available_from ? `Free from ${r.available_from}` : "Unavailable"}
+                                                            {r.is_open_ended_out ? tr('bookings.currentlyOut') : r.available_from ? `${tr('bookings.freeFrom')} ${r.available_from}` : tr('bookings.unavailable')}
                                                         </span>
                                                     }
                                                 </div>
                                                 <div style={{ fontSize: 11, color: theme.textSoft, marginTop: 4, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                                                    {r.location && <span>Floor {r.location}</span>}
-                                                    {r.capacity && <span>👥 {r.capacity} {isCar ? "passengers" : "seats"}</span>}
+                                                    {r.location && <span>{tr('bookings.floor')} {r.location}</span>}
+                                                    {r.capacity && <span>👥 {r.capacity} {isCar ? tr('bookings.passengers') : tr('bookings.seats')}</span>}
                                                     {isCar && r.driver && <span>🧑‍✈️ {r.driver.name}</span>}
                                                     {isCar && r.plate_number && <span style={{ fontFamily: "monospace" }}>{r.plate_number}</span>}
                                                 </div>
@@ -856,8 +821,8 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                     )}
                     {errors.resource && <p style={{ color: theme.danger, fontSize: 11, marginBottom: 10 }}>{errors.resource}</p>}
                     <div style={{ display: "flex", gap: 10 }}>
-                        <button onClick={() => { setStep(1); setSelected(null); setAttendees([]);}} style={{ flex: 1, padding: "13px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
-                        <button onClick={() => selected && setStep(3)} disabled={!selected} style={{ flex: 2, padding: "13px", borderRadius: 12, border: "none", background: !selected ? theme.border : `linear-gradient(135deg,${typeColor},${typeColor}cc)`, color: !selected ? theme.textMute : "#fff", fontSize: 14, fontWeight: 700, cursor: !selected ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: !selected ? "none" : `0 4px 16px ${typeColor}40`, transition: "all .2s" }}>Continue — Add Details →</button>
+                        <button onClick={() => { setStep(1); setSelected(null); setAttendees([]);}} style={{ flex: 1, padding: "13px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← {tr('bookings.back')}</button>
+                        <button onClick={() => selected && setStep(3)} disabled={!selected} style={{ flex: 2, padding: "13px", borderRadius: 12, border: "none", background: !selected ? theme.border : `linear-gradient(135deg,${typeColor},${typeColor}cc)`, color: !selected ? theme.textMute : "#fff", fontSize: 14, fontWeight: 700, cursor: !selected ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: !selected ? "none" : `0 4px 16px ${typeColor}40`, transition: "all .2s" }}>{tr('bookings.continueDetails')} →</button>
                     </div>
                 </div>
             )}
@@ -871,24 +836,23 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                             <div>
                                 <div style={{ fontSize: 15, fontWeight: 700, color: theme.text }}>{selected?.name}</div>
                                 <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 3 }}>
-                                    {selected?.location && (isCar ? `Location: ${selected.location} · ` : `Floor ${selected.location} · `)}
-                                    📅 {date} · ⏰ {startTime}{endTime && !isOpenEnded ? `–${endTime}` : " (open-ended)"}
+                                    {selected?.location && (isCar ? `${tr('bookings.location')}: ${selected.location} · ` : `${tr('bookings.floor')} ${selected.location} · `)}
+                                    📅 {date} · ⏰ {startTime}{endTime && !isOpenEnded ? `–${endTime}` : ` (${tr('bookings.openEnded')})`}
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     {/* ── Car Trip Details ── */}
                     {isCar && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '16px', borderRadius: 14, border: `1px solid ${theme.warning}30` }}>
-
-                            {/* Trip Type */}
                             <div>
-                                <div style={{ fontSize: 11, fontWeight: 700, color: theme.textSoft, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Trip Type</div>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: theme.textSoft, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>{tr('bookings.tripType')}</div>
                                 <div style={{ display: 'flex', gap: 8 }}>
                                     {[
-                                        { value: 'one_way',   label: '→ One Way',     desc: 'A to B, no return' },
-                                        { value: 'multi_stop', label: '⤳ Multi Stop', desc: 'Multiple destinations' },
-                                        { value: 'pickup',    label: '📍 Pickup / Drop', desc: 'Driver picks up or drops off' },
+                                        { value: 'one_way',    label: `→ ${tr('bookings.oneWay')}`,     desc: tr('bookings.oneWayDesc') },
+                                        { value: 'multi_stop', label: `⤳ ${tr('bookings.multiStop')}`, desc: tr('bookings.multiStopDesc') },
+                                        { value: 'pickup',     label: `📍 ${tr('bookings.pickupDrop')}`, desc: tr('bookings.pickupDropDesc') },
                                     ].map(opt => (
                                         <button key={opt.value} type="button"
                                             onClick={() => {
@@ -915,17 +879,17 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                             {tripType === 'one_way' && (
                                 <>
                                     <div>
-                                        <Lbl theme={theme}>📍 Departure Location</Lbl>
+                                        <Lbl theme={theme}>📍 {tr('bookings.departureLocation')}</Lbl>
                                         <Inp value={pickupLocation}
                                             onChange={e => { setPickup(e.target.value); setErrors(p => ({...p, pickup_location: ''})); }}
-                                            placeholder="e.g. Office Lobby, Building A" theme={theme} error={!!errors.pickup_location} />
+                                            placeholder={tr('bookings.departurePlaceholder')} theme={theme} error={!!errors.pickup_location} />
                                         {errors.pickup_location && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.pickup_location}</p>}
                                     </div>
                                     <div>
-                                        <Lbl theme={theme}>🏁 Destination</Lbl>
+                                        <Lbl theme={theme}>🏁 {tr('bookings.destination')}</Lbl>
                                         <Inp value={stops[0]?.location || ''}
                                             onChange={e => { setStops([{ location: e.target.value, arrival_time: '' }]); setErrors(p => ({...p, destination: ''})); }}
-                                            placeholder="e.g. Airport, Hotel" theme={theme} error={!!errors.destination} />
+                                            placeholder={tr('bookings.destinationPlaceholder')} theme={theme} error={!!errors.destination} />
                                         {errors.destination && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.destination}</p>}
                                     </div>
                                 </>
@@ -935,20 +899,19 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                             {tripType === 'multi_stop' && (
                                 <>
                                     <div>
-                                        <Lbl theme={theme}>📍 Departure Location</Lbl>
+                                        <Lbl theme={theme}>📍 {tr('bookings.departureLocation')}</Lbl>
                                         <Inp value={pickupLocation}
                                             onChange={e => { setPickup(e.target.value); setErrors(p => ({...p, pickup_location: ''})); }}
-                                            placeholder="e.g. Office Lobby" theme={theme} error={!!errors.pickup_location} />
+                                            placeholder={tr('bookings.officeLobbyPlaceholder')} theme={theme} error={!!errors.pickup_location} />
                                         {errors.pickup_location && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.pickup_location}</p>}
                                     </div>
-
                                     <div>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                                            <Lbl theme={theme}>Stops</Lbl>
+                                            <Lbl theme={theme}>{tr('bookings.stops')}</Lbl>
                                             <button type="button"
                                                 onClick={() => setStops(p => [...p, { location: '', arrival_time: '' }])}
                                                 style={{ fontSize: 11, fontWeight: 700, color: theme.carColor, background: theme.carSoft, border: 'none', borderRadius: 8, padding: '4px 12px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                                                + Add Stop
+                                                + {tr('bookings.addStop')}
                                             </button>
                                         </div>
                                         {stops.map((stop, i) => (
@@ -956,7 +919,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                                                 <div style={{ width: 24, height: 24, borderRadius: '50%', background: theme.carSoft, color: theme.carColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
                                                 <input value={stop.location}
                                                     onChange={e => setStops(p => p.map((s, idx) => idx === i ? { ...s, location: e.target.value } : s))}
-                                                    placeholder={`Stop ${i + 1} location`}
+                                                    placeholder={`${tr('bookings.stop')} ${i + 1} ${tr('bookings.location')}`}
                                                     style={{ flex: 1, padding: '9px 12px', borderRadius: 10, border: `1px solid ${theme.inputBorder}`, background: theme.inputBg, color: theme.text, fontSize: 13, outline: 'none', fontFamily: 'inherit' }} />
                                                 {stops.length > 1 && (
                                                     <button type="button"
@@ -967,20 +930,16 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                                         ))}
                                         {errors.stops && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.stops}</p>}
                                     </div>
-
-                                    {/* Return toggle */}
                                     <div style={{ padding: '12px 14px', borderRadius: 12, background: theme.surface, border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>↩ Return to departure</div>
-                                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>Driver returns to starting point after last stop</div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>↩ {tr('bookings.returnToDeparture')}</div>
+                                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{tr('bookings.returnToDepartureDesc')}</div>
                                         </div>
                                         <Toggle value={!!returnTime} onChange={v => setReturnTime(v ? '__return__' : '')} color={theme.carColor} />
                                     </div>
-
-                                    {/* Return time picker */}
                                     {returnTime && (
                                         <div>
-                                            <Lbl theme={theme}>🔄 Return Time (estimated)</Lbl>
+                                            <Lbl theme={theme}>🔄 {tr('bookings.returnTimeEstimated')}</Lbl>
                                             <TimePicker value={returnTime === '__return__' ? '' : returnTime}
                                                 onChange={v => setReturnTime(v)} theme={theme} dark={dark} />
                                         </div>
@@ -992,32 +951,29 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                             {tripType === 'pickup' && (
                                 <>
                                     <div>
-                                        <Lbl theme={theme}>📍 Pickup / Departure Point</Lbl>
+                                        <Lbl theme={theme}>📍 {tr('bookings.pickupPoint')}</Lbl>
                                         <Inp value={pickupLocation}
                                             onChange={e => { setPickup(e.target.value); setErrors(p => ({...p, pickup_location: ''})); }}
-                                            placeholder="e.g. Home address, Hotel lobby" theme={theme} error={!!errors.pickup_location} />
+                                            placeholder={tr('bookings.pickupPlaceholder')} theme={theme} error={!!errors.pickup_location} />
                                         {errors.pickup_location && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.pickup_location}</p>}
                                     </div>
                                     <div>
-                                        <Lbl theme={theme}>🏁 Destination</Lbl>
+                                        <Lbl theme={theme}>🏁 {tr('bookings.destination')}</Lbl>
                                         <Inp value={stops[0]?.location || ''}
                                             onChange={e => { setStops([{ location: e.target.value, arrival_time: '' }]); setErrors(p => ({...p, destination: ''})); }}
-                                            placeholder="e.g. Office, Airport, Client site" theme={theme} error={!!errors.destination} />
+                                            placeholder={tr('bookings.pickupDestPlaceholder')} theme={theme} error={!!errors.destination} />
                                         {errors.destination && <p style={{ color: theme.danger, fontSize: 11, margin: '4px 0 0' }}>{errors.destination}</p>}
                                     </div>
-
-                                    {/* Wait & Return toggle */}
                                     <div style={{ padding: '12px 14px', borderRadius: 12, background: theme.surface, border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>↩ Driver waits & returns</div>
-                                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>Driver stays at destination and brings you back</div>
+                                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>↩ {tr('bookings.driverWaitsReturns')}</div>
+                                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{tr('bookings.driverWaitsDesc')}</div>
                                         </div>
                                         <Toggle value={!!returnTime} onChange={v => setReturnTime(v ? '__return__' : '')} color={theme.carColor} />
                                     </div>
-
                                     {returnTime && (
                                         <div>
-                                            <Lbl theme={theme}>🔄 Expected Return Time</Lbl>
+                                            <Lbl theme={theme}>🔄 {tr('bookings.expectedReturnTime')}</Lbl>
                                             <TimePicker value={returnTime === '__return__' ? '' : returnTime}
                                                 onChange={v => setReturnTime(v)} theme={theme} dark={dark} />
                                         </div>
@@ -1026,11 +982,12 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                             )}
                         </div>
                     )}
+
                     {/* ── Attendees ── */}
                     <div>
                         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
                             <span style={{ fontSize:12, fontWeight:700, color:theme.textSoft, textTransform:"uppercase", letterSpacing:".08em" }}>
-                                Participants
+                                {tr('bookings.participants')}
                             </span>
                             {attendees.length > 0 && (
                                 <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:10, background:typeColor+"22", color:typeColor }}>
@@ -1046,31 +1003,31 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
                             date={date}
                             startTime={startTime}
                             endTime={endTime}
+                            tr={tr}
                         />
                     </div>
 
                     <div>
-                        <Lbl theme={theme}>Purpose / Reason *</Lbl>
+                        <Lbl theme={theme}>{tr('bookings.purposeLabel')}</Lbl>
                         <Txt value={purpose} onChange={e => setPurpose(e.target.value)}
-                            placeholder={isCar ? "e.g. Airport pickup, Client site visit, Errands…" : "e.g. Weekly team standup, Client presentation, Workshop…"}
+                            placeholder={isCar ? tr('bookings.purposeCarPlaceholder') : tr('bookings.purposeRoomPlaceholder')}
                             rows={3} theme={theme} />
                         {errors.purpose && <p style={{ color: theme.danger, fontSize: 11, margin: "5px 0 0" }}>{errors.purpose}</p>}
                     </div>
 
                     {errors.time && <p style={{ color: theme.danger, fontSize: 12 }}>⚠️ {errors.time}</p>}
 
-                    
                     <div style={{ display: "flex", gap: 10 }}>
-                        <button onClick={() => { 
-                            setStep(2); 
-                            setAttendees([]); 
+                        <button onClick={() => {
+                            setStep(2);
+                            setAttendees([]);
                             setTripType('one_way');
                             setPickup('');
                             setStops([{ location: '', arrival_time: '' }]);
                             setReturnTime('');
-                        }} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
+                        }} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>← {tr('bookings.back')}</button>
                         <button onClick={submit} disabled={submitting} style={{ flex: 2, padding: "12px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${typeColor},${typeColor}cc)`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 16px ${typeColor}40`, opacity: submitting ? 0.7 : 1, transition: "all .2s" }}>
-                            {submitting ? "Confirming…" : selected?.is_open_ended_out ? "Join Waitlist" : "Confirm Booking"}
+                            {submitting ? tr('bookings.confirming') : selected?.is_open_ended_out ? tr('bookings.joinWaitlist') : tr('bookings.confirmBooking')}
                         </button>
                     </div>
                 </div>
@@ -1082,7 +1039,7 @@ function BookingModal({ type, defaultDate, onClose, theme, dark, onSuccess }) {
 // ─────────────────────────────────────────────────────────────────
 // Resource Form Modal
 // ─────────────────────────────────────────────────────────────────
-function ResourceModal({ resource, users, onClose, theme, dark }) {
+function ResourceModal({ resource, users, onClose, theme, dark, tr }) {
     const isEdit = !!resource;
     const [form, setForm] = useState({
         type: resource?.type || "room", name: resource?.name || "",
@@ -1097,11 +1054,11 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
 
     const validate = () => {
         const e = {};
-        if (!form.name.trim()) e.name = "Name is required";
-        if (form.type === "car" && !form.plate_number.trim()) e.plate_number = "Plate number is required";
-        if (form.type === "car" && !form.driver_id) e.driver_id = "Please assign a driver";
+        if (!form.name.trim()) e.name = tr('bookings.errorName');
+        if (form.type === "car" && !form.plate_number.trim()) e.plate_number = tr('bookings.errorPlate');
+        if (form.type === "car" && !form.driver_id) e.driver_id = tr('bookings.errorDriver');
         if (form.capacity !== "" && form.capacity !== null && Number(form.capacity) < 1) {
-            e.capacity = "Capacity must be at least 1";
+            e.capacity = tr('bookings.errorCapacity');
         }
         return e;
     };
@@ -1112,11 +1069,8 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
         const payload = { ...form, capacity: form.capacity || null };
         const opts = {
             preserveScroll: true,
-            onSuccess: () => {
-                setSubmitting(false);
-                onClose();
-            },
-            onError: errs => { setSubmitting(false); setErrors(errs); toast("Failed to save resource.", "error"); },
+            onSuccess: () => { setSubmitting(false); onClose(); },
+            onError: errs => { setSubmitting(false); setErrors(errs); toast(tr('bookings.failedToSave'), "error"); },
         };
         isEdit ? router.put(`/bookings/resources/${resource.id}`, payload, opts) : router.post("/bookings/resources", payload, opts);
     };
@@ -1125,8 +1079,8 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
 
     return (
         <Modal onClose={onClose} theme={theme}
-            title={isEdit ? `Edit ${resource.type === "car" ? "Car" : "Room"}` : "Register New Resource"}
-            subtitle="Resource Management" icon={form.type === "car" ? "🚗" : "🏢"}
+            title={isEdit ? `${tr('bookings.edit')} ${resource.type === "car" ? tr('bookings.car') : tr('bookings.room')}` : tr('bookings.registerNewResource')}
+            subtitle={tr('bookings.resourceManagement')} icon={form.type === "car" ? "🚗" : "🏢"}
             grad={form.type === "car"
                 ? "linear-gradient(135deg,#92400e,#d97706)"
                 : "linear-gradient(135deg,#3730a3,#6366f1)"
@@ -1134,7 +1088,7 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
 
             {!isEdit && (
                 <div style={{ display: "flex", gap: 8, marginBottom: 22, padding: 4, background: theme.surfaceSoft, borderRadius: 14, border: `1px solid ${theme.border}` }}>
-                    {[{ v: "room", l: "🏢 Meeting Room", c: theme.primary }, { v: "car", l: "🚗 Company Car", c: theme.carColor }].map(t => (
+                    {[{ v: "room", l: `🏢 ${tr('bookings.meetingRoom')}`, c: theme.primary }, { v: "car", l: `🚗 ${tr('bookings.companyCar')}`, c: theme.carColor }].map(t => (
                         <button key={t.v} onClick={() => set("type", t.v)} style={{
                             flex: 1, padding: "11px", borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit", transition: "all .18s",
                             background: form.type === t.v ? t.c : "transparent", border: `2px solid ${form.type === t.v ? t.c : "transparent"}`,
@@ -1146,24 +1100,23 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div>
-                    <Lbl theme={theme}>Name *</Lbl>
-                    <Inp value={form.name} onChange={e => set("name", e.target.value)} placeholder={form.type === "room" ? "e.g. Meeting Room A, Boardroom" : "e.g. Toyota Camry 2023"} theme={theme} error={errors.name} />
+                    <Lbl theme={theme}>{tr('bookings.nameRequired')}</Lbl>
+                    <Inp value={form.name} onChange={e => set("name", e.target.value)} placeholder={form.type === "room" ? tr('bookings.roomNamePlaceholder') : tr('bookings.carNamePlaceholder')} theme={theme} error={errors.name} />
                     {errors.name && <p style={{ color: theme.danger, fontSize: 11, margin: "5px 0 0" }}>{errors.name}</p>}
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <div>
-                        <Lbl theme={theme}>{form.type === "room" ? "Floor / Location" : "Parking Location"}</Lbl>
-                        <Inp value={form.location} onChange={e => set("location", e.target.value)} placeholder={form.type === "room" ? "e.g. Floor 2" : "e.g. Parking B1"} theme={theme} />
+                        <Lbl theme={theme}>{form.type === "room" ? tr('bookings.floorLocation') : tr('bookings.parkingLocation')}</Lbl>
+                        <Inp value={form.location} onChange={e => set("location", e.target.value)} placeholder={form.type === "room" ? tr('bookings.floorPlaceholder') : tr('bookings.parkingPlaceholder')} theme={theme} />
                     </div>
                     <div>
-                        <Lbl theme={theme}>{form.type === "room" ? "Seat Capacity" : "Passenger Capacity"}</Lbl>
+                        <Lbl theme={theme}>{form.type === "room" ? tr('bookings.seatCapacity') : tr('bookings.passengerCapacity')}</Lbl>
                         <Inp
                             type="number"
                             value={form.capacity}
                             onChange={e => {
                                 const val = e.target.value;
-                                // negative ထည့်လို့မရအောင်
                                 if (val === "" || Number(val) >= 1) set("capacity", val);
                             }}
                             placeholder="e.g. 10"
@@ -1182,37 +1135,37 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
                 {form.type === "car" && (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                         <div>
-                            <Lbl theme={theme}>Plate Number *</Lbl>
+                            <Lbl theme={theme}>{tr('bookings.plateRequired')}</Lbl>
                             <Inp value={form.plate_number} onChange={e => set("plate_number", e.target.value)} placeholder="e.g. PP-1234" theme={theme} error={errors.plate_number} />
                             {errors.plate_number && <p style={{ color: theme.danger, fontSize: 11, margin: "5px 0 0" }}>{errors.plate_number}</p>}
                         </div>
                         <div>
-                            <Lbl theme={theme}>Assigned Driver *</Lbl>
-                            <PremiumSelect options={driverOpts} value={form.driver_id} onChange={v => set("driver_id", v)} placeholder="Select driver…" theme={theme} dark={dark} />
+                            <Lbl theme={theme}>{tr('bookings.assignedDriver')}</Lbl>
+                            <PremiumSelect options={driverOpts} value={form.driver_id} onChange={v => set("driver_id", v)} placeholder={tr('bookings.selectDriver')} theme={theme} dark={dark} />
                             {errors.driver_id && <p style={{ color: theme.danger, fontSize: 11, margin: "5px 0 0" }}>{errors.driver_id}</p>}
                         </div>
                     </div>
                 )}
 
                 <div>
-                    <Lbl theme={theme}>{form.type === "room" ? "Room Rules" : "Usage Notes"}</Lbl>
-                    <Txt value={form.rules} onChange={e => set("rules", e.target.value)} placeholder={form.type === "room" ? "e.g. No food allowed, Max 2 hours per booking" : "e.g. Return with full fuel, Clean interior after use"} rows={2} theme={theme} />
+                    <Lbl theme={theme}>{form.type === "room" ? tr('bookings.roomRules') : tr('bookings.usageNotes')}</Lbl>
+                    <Txt value={form.rules} onChange={e => set("rules", e.target.value)} placeholder={form.type === "room" ? tr('bookings.roomRulesPlaceholder') : tr('bookings.usageNotesPlaceholder')} rows={2} theme={theme} />
                 </div>
 
                 {isEdit && (
                     <div style={{ padding: "14px 16px", borderRadius: 14, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Active</div>
-                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>Inactive resources are hidden from bookings</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{tr('bookings.active')}</div>
+                            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{tr('bookings.activeDesc')}</div>
                         </div>
                         <Toggle value={form.is_active} onChange={v => set("is_active", v)} color={theme.success} />
                     </div>
                 )}
 
                 <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                    <button onClick={onClose} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                    <button onClick={onClose} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr('bookings.cancel')}</button>
                     <button onClick={submit} disabled={submitting} style={{ flex: 2, padding: "12px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4f46e5,#6366f1)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(99,102,241,0.3)", opacity: submitting ? 0.7 : 1 }}>
-                        {submitting ? "Saving…" : isEdit ? "Save Changes" : "Register Resource"}
+                        {submitting ? tr('bookings.saving') : isEdit ? tr('bookings.saveChanges') : tr('bookings.registerResource')}
                     </button>
                 </div>
             </div>
@@ -1223,35 +1176,35 @@ function ResourceModal({ resource, users, onClose, theme, dark }) {
 // ─────────────────────────────────────────────────────────────────
 // Reject Modal
 // ─────────────────────────────────────────────────────────────────
-function RejectModal({ booking, onClose, theme, dark }) {
+function RejectModal({ booking, onClose, theme, dark, tr }) {
     const [reason, setReason]         = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [err, setErr]               = useState("");
     const submit = () => {
-        if (!reason.trim()) { setErr("A reason is required."); return; }
+        if (!reason.trim()) { setErr(tr('bookings.reasonRequired')); return; }
         setSubmitting(true);
         router.patch(`/bookings/${booking.id}/reject`, { reject_reason: reason }, {
             preserveScroll: true,
-            onSuccess: () => { setSubmitting(false); toast("Booking rejected."); onClose(); },
-            onError: () => { setSubmitting(false); toast("Failed to reject.", "error"); },
+            onSuccess: () => { setSubmitting(false); toast(tr('bookings.bookingRejected')); onClose(); },
+            onError: () => { setSubmitting(false); toast(tr('bookings.failedToReject'), "error"); },
         });
     };
     return (
-        <Modal onClose={onClose} theme={theme} title="Reject Booking" subtitle="HR Action" icon="❌"
+        <Modal onClose={onClose} theme={theme} title={tr('bookings.rejectBooking')} subtitle={tr('bookings.hrAction')} icon="❌"
             grad="linear-gradient(135deg,#7f1d1d,#dc2626)" maxWidth={460}>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <div style={{ padding: "12px 14px", borderRadius: 12, background: theme.dangerSoft, border: `1px solid ${theme.danger}30`, fontSize: 13, color: theme.textSoft }}>
-                    Rejecting <strong style={{ color: theme.text }}>{booking.user?.name}</strong>'s booking for <strong style={{ color: theme.text }}>{booking.resource?.name}</strong>
+                    {tr('bookings.rejectingDesc')} <strong style={{ color: theme.text }}>{booking.user?.name}</strong>'s {tr('bookings.bookingFor')} <strong style={{ color: theme.text }}>{booking.resource?.name}</strong>
                 </div>
                 <div>
-                    <Lbl theme={theme}>Reason for Rejection *</Lbl>
-                    <Txt value={reason} onChange={e => setReason(e.target.value)} placeholder="Explain why this booking cannot be approved…" rows={3} theme={theme} />
+                    <Lbl theme={theme}>{tr('bookings.reasonForRejection')}</Lbl>
+                    <Txt value={reason} onChange={e => setReason(e.target.value)} placeholder={tr('bookings.rejectReasonPlaceholder')} rows={3} theme={theme} />
                     {err && <p style={{ color: theme.danger, fontSize: 11, margin: "5px 0 0" }}>{err}</p>}
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={onClose} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                    <button onClick={onClose} style={{ flex: 1, padding: "12px", borderRadius: 12, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr('bookings.cancel')}</button>
                     <button onClick={submit} disabled={submitting} style={{ flex: 2, padding: "12px", borderRadius: 12, border: "none", background: "#dc2626", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: submitting ? 0.7 : 1, boxShadow: "0 4px 14px rgba(239,68,68,0.3)" }}>
-                        {submitting ? "Rejecting…" : "Reject Booking"}
+                        {submitting ? tr('bookings.rejecting') : tr('bookings.rejectBooking')}
                     </button>
                 </div>
             </div>
@@ -1260,9 +1213,9 @@ function RejectModal({ booking, onClose, theme, dark }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Booking Row — Leave Index style
+// Booking Row
 // ─────────────────────────────────────────────────────────────────
-function BookingRow({ booking: b, isHR, onReject, onMarkReturned, onDelete, theme, dark, isLast }) {
+function BookingRow({ booking: b, isHR, onReject, onMarkReturned, onDelete, theme, dark, isLast, tr }) {
     const [approving, setApproving] = useState(false);
     const isCar  = b.resource?.type === "car";
     const color  = isCar ? theme.carColor : theme.primary;
@@ -1274,7 +1227,7 @@ function BookingRow({ booking: b, isHR, onReject, onMarkReturned, onDelete, them
         router.patch(`/bookings/${b.id}/approve`, {}, {
             preserveScroll: true,
             onSuccess: () => setApproving(false),
-            onError: () => { setApproving(false); toast("Failed to approve.", "error"); },
+            onError: () => { setApproving(false); toast(tr('bookings.failedToApprove'), "error"); },
         });
     };
 
@@ -1283,13 +1236,9 @@ function BookingRow({ booking: b, isHR, onReject, onMarkReturned, onDelete, them
             display: "flex", alignItems: "stretch",
             borderBottom: isLast ? "none" : `1px solid ${theme.border}`,
         }}>
-            {/* Left accent */}
             <div style={{ width: 3, flexShrink: 0, background: accentColor, borderRadius: "3px 0 0 3px" }} />
-
-            {/* Content */}
             <div style={{ flex: 1, padding: "14px 18px", display: "flex", alignItems: "flex-start", gap: 14, flexWrap: "wrap" }}>
                 {isHR && <Avatar name={b.user?.name} url={b.user?.avatar_url} size={36} />}
-
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 5 }}>
                         {isHR && <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{b.user?.name}</span>}
@@ -1300,52 +1249,50 @@ function BookingRow({ booking: b, isHR, onReject, onMarkReturned, onDelete, them
                     </div>
                     <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: 12, color: theme.textMute, marginBottom: b.purpose ? 6 : 0 }}>
                         <span>📅 {b.booking_date}</span>
-                        <span>⏰ {b.start_time}{b.end_time ? `–${b.end_time}` : " (open-ended)"}</span>
+                        <span>⏰ {b.start_time}{b.end_time ? `–${b.end_time}` : ` (${tr('bookings.openEnded')})`}</span>
                     </div>
                     {b.purpose && (
                         <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 2 }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0 }}>Reason</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0 }}>{tr('bookings.reason')}</span>
                             <span style={{ fontSize: 12, color: theme.textSoft }}>{b.purpose}</span>
                         </div>
                     )}
                     {b.reject_reason && (
                         <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.danger, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0 }}>Rejected</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.danger, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0 }}>{tr('bookings.rejected')}</span>
                             <span style={{ fontSize: 12, color: theme.textSoft }}>{b.reject_reason}</span>
                         </div>
                     )}
                     {b.cancel_reason && (
                         <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.warning, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0 }}>Cancel Note</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: theme.warning, textTransform: "uppercase", letterSpacing: ".06em", flexShrink: 0 }}>{tr('bookings.cancelNote')}</span>
                             <span style={{ fontSize: 12, color: theme.textSoft }}>{b.cancel_reason}</span>
                         </div>
                     )}
                 </div>
-
-                {/* Actions */}
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                     {isHR && b.status === "pending" && (
                         <>
                             <button onClick={approve} disabled={approving}
                                 style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 16px", borderRadius: 10, border: "none", background: dark ? "rgba(16,185,129,0.2)" : "#059669", color: dark ? "#34d399" : "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(16,185,129,0.2)" }}>
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                                {approving ? "…" : "Approve"}
+                                {approving ? "…" : tr('bookings.approve')}
                             </button>
                             <button onClick={() => onReject(b)}
                                 style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 16px", borderRadius: 10, border: "none", background: dark ? "rgba(239,68,68,0.18)" : "#ef4444", color: dark ? "#f87171" : "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(239,68,68,0.15)" }}>
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                Reject
+                                {tr('bookings.reject')}
                             </button>
                         </>
                     )}
                     {isHR && b.status === "approved" && isCar && b.is_open_ended && !b.returned_at && (
                         <button onClick={() => onMarkReturned(b.id)}
                             style={{ padding: "8px 14px", borderRadius: 10, border: "none", background: theme.warning, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                            🏁 Mark Returned
+                            🏁 {tr('bookings.markReturned')}
                         </button>
                     )}
                     {!isHR && (b.status === "pending" || b.status === "approved") && (
-                        <button onClick={() => onDelete(b)} title="Cancel booking"
+                        <button onClick={() => onDelete(b)} title={tr('bookings.cancelBooking')}
                             style={{ width: 32, height: 32, borderRadius: 8, background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: dark ? "rgba(248,113,113,0.4)" : "#fca5a5", transition: "all .15s" }}
                             onMouseEnter={e => { e.currentTarget.style.background = dark ? "rgba(248,113,113,0.16)" : "#fee2e2"; e.currentTarget.style.color = dark ? "#f87171" : "#dc2626"; }}
                             onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = dark ? "rgba(248,113,113,0.4)" : "#fca5a5"; }}>
@@ -1359,9 +1306,9 @@ function BookingRow({ booking: b, isHR, onReject, onMarkReturned, onDelete, them
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Delete Confirm Modal — Leave Request style
+// Delete Confirm Modal
 // ─────────────────────────────────────────────────────────────────
-function DeleteConfirmModal({ booking, onClose, theme, dark }) {
+function DeleteConfirmModal({ booking, onClose, theme, dark, tr }) {
     const [deleting, setDeleting] = useState(false);
     const isCar = booking.resource?.type === "car";
 
@@ -1370,7 +1317,7 @@ function DeleteConfirmModal({ booking, onClose, theme, dark }) {
         router.patch(`/bookings/${booking.id}/cancel`, {}, {
             preserveScroll: true,
             onSuccess: () => { setDeleting(false); onClose(); },
-            onError: () => { setDeleting(false); toast("Failed to cancel.", "error"); },
+            onError: () => { setDeleting(false); toast(tr('bookings.failedToCancel'), "error"); },
         });
     };
 
@@ -1383,8 +1330,8 @@ function DeleteConfirmModal({ booking, onClose, theme, dark }) {
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <div style={{ width: 38, height: 38, borderRadius: 11, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🗑️</div>
                         <div>
-                            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>Confirm Cancellation</div>
-                            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Cancel this booking?</div>
+                            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>{tr('bookings.confirmCancellation')}</div>
+                            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>{tr('bookings.cancelThisBooking')}</div>
                         </div>
                         <button onClick={onClose} style={{ marginLeft: "auto", width: 28, height: 28, borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.12)", color: "#fff", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
                     </div>
@@ -1395,20 +1342,20 @@ function DeleteConfirmModal({ booking, onClose, theme, dark }) {
                             {isCar ? "🚗" : "🏢"} {booking.resource?.name}
                         </div>
                         <div style={{ fontSize: 12, color: theme.textMute }}>
-                            📅 {booking.booking_date} · ⏰ {booking.start_time}{booking.end_time ? `–${booking.end_time}` : " (open-ended)"}
+                            📅 {booking.booking_date} · ⏰ {booking.start_time}{booking.end_time ? `–${booking.end_time}` : ` (${tr('bookings.openEnded')})`}
                         </div>
                         {booking.purpose && (
                             <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 4 }}>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".06em" }}>Reason </span>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".06em" }}>{tr('bookings.reason')} </span>
                                 {booking.purpose}
                             </div>
                         )}
                     </div>
-                    <p style={{ fontSize: 13, color: theme.textSoft, marginBottom: 18 }}>This booking will be cancelled and cannot be undone.</p>
+                    <p style={{ fontSize: 13, color: theme.textSoft, marginBottom: 18 }}>{tr('bookings.cancelWarning')}</p>
                     <div style={{ display: "flex", gap: 10 }}>
-                        <button onClick={onClose} style={{ flex: 1, padding: "11px", borderRadius: 11, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Keep Booking</button>
+                        <button onClick={onClose} style={{ flex: 1, padding: "11px", borderRadius: 11, border: `1.5px solid ${theme.border}`, background: "transparent", color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr('bookings.keepBooking')}</button>
                         <button onClick={confirm} disabled={deleting} style={{ flex: 1, padding: "11px", borderRadius: 11, border: "none", background: "#dc2626", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: deleting ? 0.7 : 1, boxShadow: "0 4px 14px rgba(239,68,68,0.3)" }}>
-                            {deleting ? "Cancelling…" : "Yes, Cancel"}
+                            {deleting ? tr('bookings.cancelling') : tr('bookings.yesCancel')}
                         </button>
                     </div>
                 </div>
@@ -1427,7 +1374,6 @@ function ActionGlyph({ type, color }) {
             </svg>
         );
     }
-
     if (type === 'delete') {
         return (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1439,13 +1385,13 @@ function ActionGlyph({ type, color }) {
             </svg>
         );
     }
-
     return null;
 }
+
 // ─────────────────────────────────────────────────────────────────
 // Resource Card (Manage tab)
 // ─────────────────────────────────────────────────────────────────
-function ResourceCard({ resource: r, onEdit, onDelete, theme, dark }) {
+function ResourceCard({ resource: r, onEdit, onDelete, theme, dark, tr }) {
     const isCar = r.type === "car";
     const color = isCar ? theme.carColor : theme.primary;
 
@@ -1483,24 +1429,24 @@ function ResourceCard({ resource: r, onEdit, onDelete, theme, dark }) {
                 </div>
 
                 <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 12 }}>
-                    {!isCar && <InfoRow label="Floor" value={r.location} />}
-                    {isCar && <InfoRow label="Location" value={r.location} />}
-                    <InfoRow label={isCar ? "Seats" : "Capacity"} value={r.capacity ? `${r.capacity} ${isCar ? "passengers" : "seats"}` : null} />
-                    {isCar && <InfoRow label="Driver" value={r.driver?.name} />}
-                    {r.rules && <InfoRow label="Rules" value={r.rules} />}
+                    {!isCar && <InfoRow label={tr('bookings.floor')} value={r.location} />}
+                    {isCar && <InfoRow label={tr('bookings.location')} value={r.location} />}
+                    <InfoRow label={isCar ? tr('bookings.seats') : tr('bookings.capacity')} value={r.capacity ? `${r.capacity} ${isCar ? tr('bookings.passengers') : tr('bookings.seats')}` : null} />
+                    {isCar && <InfoRow label={tr('bookings.driver')} value={r.driver?.name} />}
+                    {r.rules && <InfoRow label={tr('bookings.rules')} value={r.rules} />}
                 </div>
 
                 {r.is_open_ended_active && (
                     <div style={{ marginTop: 10 }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: theme.warning, background: theme.warningSoft, padding: "2px 8px", borderRadius: 6 }}>⚠️ Currently Out</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: theme.warning, background: theme.warningSoft, padding: "2px 8px", borderRadius: 6 }}>⚠️ {tr('bookings.currentlyOut')}</span>
                     </div>
                 )}
                 {!r.is_active && (
                     <div style={{ position:"absolute", inset:0, background: dark ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.85)", borderRadius:16, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:8, zIndex:2 }}>
                         <span style={{ fontSize:28 }}>🚫</span>
-                        <span style={{ fontSize:11, fontWeight:700, color:theme.textMute, letterSpacing:".05em" }}>INACTIVE</span>
+                        <span style={{ fontSize:11, fontWeight:700, color:theme.textMute, letterSpacing:".05em" }}>{tr('bookings.inactive').toUpperCase()}</span>
                         <button onClick={() => onEdit(r)} style={{ fontSize:11, fontWeight:700, padding:"4px 14px", borderRadius:8, border:`1px solid ${theme.border}`, background:theme.surface, color:theme.textSoft, cursor:"pointer", marginTop:4 }}>
-                            Reactivate ↗
+                            {tr('bookings.reactivate')} ↗
                         </button>
                     </div>
                 )}
@@ -1512,7 +1458,7 @@ function ResourceCard({ resource: r, onEdit, onDelete, theme, dark }) {
 // ─────────────────────────────────────────────────────────────────
 // Booking Detail Modal
 // ─────────────────────────────────────────────────────────────────
-function BookingDetailModal({ bookingId, onClose, theme, dark }) {
+function BookingDetailModal({ bookingId, onClose, theme, dark, tr }) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -1529,19 +1475,19 @@ function BookingDetailModal({ bookingId, onClose, theme, dark }) {
     const typeEmoji = isCar ? '🚗' : '🏢';
 
     const statusCfgLocal = {
-        pending:   { label: 'Pending',   color: theme.warning,  bg: theme.warningSoft },
-        approved:  { label: 'Approved',  color: theme.success,  bg: theme.successSoft },
-        rejected:  { label: 'Rejected',  color: theme.danger,   bg: theme.dangerSoft },
-        cancelled: { label: 'Cancelled', color: theme.textMute, bg: theme.surfaceSoft },
-        waitlisted:{ label: 'Waitlisted',color: '#a78bfa',      bg: 'rgba(167,139,250,0.12)' },
-        completed: { label: 'Completed', color: theme.success,  bg: theme.successSoft },
+        pending:   { label: tr('bookings.statusPending'),   color: theme.warning,  bg: theme.warningSoft },
+        approved:  { label: tr('bookings.statusApproved'),  color: theme.success,  bg: theme.successSoft },
+        rejected:  { label: tr('bookings.statusRejected'),  color: theme.danger,   bg: theme.dangerSoft },
+        cancelled: { label: tr('bookings.statusCancelled'), color: theme.textMute, bg: theme.surfaceSoft },
+        waitlisted:{ label: tr('bookings.statusWaitlisted'),color: '#a78bfa',      bg: 'rgba(167,139,250,0.12)' },
+        completed: { label: tr('bookings.statusCompleted'), color: theme.success,  bg: theme.successSoft },
     };
     const sc = statusCfgLocal[data?.status] || { label: data?.status, color: theme.textMute, bg: theme.surfaceSoft };
 
     const tripTypeLabel = {
-        one_way:    '→ One Way',
-        multi_stop: '⤳ Multi Stop',
-        pickup:     '📍 Pickup / Drop',
+        one_way:    `→ ${tr('bookings.oneWay')}`,
+        multi_stop: `⤳ ${tr('bookings.multiStop')}`,
+        pickup:     `📍 ${tr('bookings.pickupDrop')}`,
     };
 
     const Row = ({ label, value, danger }) => value ? (
@@ -1555,12 +1501,10 @@ function BookingDetailModal({ bookingId, onClose, theme, dark }) {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)' }} />
             <div style={{ position: 'relative', width: '100%', maxWidth: 440, background: theme.surface, borderRadius: 22, boxShadow: theme.shadow, border: `1px solid ${theme.borderStrong}`, overflow: 'hidden' }}>
-
-                {/* ── Header ── */}
                 <div style={{ background: `linear-gradient(135deg,${typeColor},${typeColor}cc)`, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 42, height: 42, borderRadius: 13, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{typeEmoji}</div>
                     <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '.1em' }}>Booking Detail</div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '.1em' }}>{tr('bookings.bookingDetail')}</div>
                         <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginTop: 2 }}>{data?.resource?.name ?? '…'}</div>
                     </div>
                     {data && (
@@ -1572,68 +1516,58 @@ function BookingDetailModal({ bookingId, onClose, theme, dark }) {
                 </div>
 
                 {loading ? (
-                    <div style={{ padding: 48, textAlign: 'center', color: theme.textMute, fontSize: 13 }}>Loading…</div>
+                    <div style={{ padding: 48, textAlign: 'center', color: theme.textMute, fontSize: 13 }}>{tr('bookings.loading')}</div>
                 ) : !data ? (
-                    <div style={{ padding: 48, textAlign: 'center', color: theme.textMute, fontSize: 13 }}>Failed to load.</div>
+                    <div style={{ padding: 48, textAlign: 'center', color: theme.textMute, fontSize: 13 }}>{tr('bookings.failedToLoad')}</div>
                 ) : (
                     <div style={{ padding: '16px 20px 20px', display: 'flex', flexDirection: 'column', gap: 14, maxHeight: '72vh', overflowY: 'auto', scrollbarWidth: 'none' }}>
-
-                        {/* ── Booking Info ── */}
                         <div style={{ background: theme.surfaceSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.border}` }}>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>📋 Booking Info</div>
-                            <Row label="Date"    value={data.date || data.booking_date} />
-                            <Row label="Time"    value={data.end_time ? `${data.start_time} – ${data.end_time}` : `${data.start_time} (open-ended)`} />
-                            <Row label="Purpose" value={data.purpose} />
-                            {data.reject_reason && <Row label="Reason" value={data.reject_reason} danger />}
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>📋 {tr('bookings.bookingInfo')}</div>
+                            <Row label={tr('bookings.date')}    value={data.date || data.booking_date} />
+                            <Row label={tr('bookings.time')}    value={data.end_time ? `${data.start_time} – ${data.end_time}` : `${data.start_time} (${tr('bookings.openEnded')})`} />
+                            <Row label={tr('bookings.purpose')} value={data.purpose} />
+                            {data.reject_reason && <Row label={tr('bookings.reason')} value={data.reject_reason} danger />}
                         </div>
 
-                        {/* ── Trip Info (car only) ── */}
                         {isCar && (data.trip_type || data.pickup_location || data.stops?.length > 0) && (
                             <div style={{ background: theme.carSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.carColor}22` }}>
-                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.carColor, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>🚗 Trip Info</div>
-                                {data.trip_type && <Row label="Type"   value={tripTypeLabel[data.trip_type] || data.trip_type} />}
-                                {data.pickup_location && <Row label="From"   value={data.pickup_location} />}
+                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.carColor, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>🚗 {tr('bookings.tripInfo')}</div>
+                                {data.trip_type && <Row label={tr('bookings.type')}   value={tripTypeLabel[data.trip_type] || data.trip_type} />}
+                                {data.pickup_location && <Row label={tr('bookings.from')}   value={data.pickup_location} />}
                                 {data.stops?.length > 0 && (
-                                    <Row label="Stops" value={data.stops.map((s, i) => `${i + 1}. ${s.location}`).join(' → ')} />
+                                    <Row label={tr('bookings.stops')} value={data.stops.map((s, i) => `${i + 1}. ${s.location}`).join(' → ')} />
                                 )}
-                                {!!data.has_return && <Row label="Return" value={data.return_time || 'Yes (TBD)'} />}
+                                {!!data.has_return && <Row label={tr('bookings.return')} value={data.return_time || tr('bookings.yesTBD')} />}
                             </div>
                         )}
 
-                        {/* ── Car Info ── */}
                         {isCar && (
                             <div style={{ background: theme.surfaceSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.border}` }}>
-                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>🔧 Car Info</div>
-                                {data.resource?.plate_number && <Row label="Plate"    value={data.resource.plate_number} />}
-                                {data.resource?.capacity     && <Row label="Capacity" value={`${data.resource.capacity} passengers`} />}
-                                {data.resource?.location     && <Row label="Parking"  value={data.resource.location} />}
+                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>🔧 {tr('bookings.carInfo')}</div>
+                                {data.resource?.plate_number && <Row label={tr('bookings.plate')}    value={data.resource.plate_number} />}
+                                {data.resource?.capacity     && <Row label={tr('bookings.capacity')} value={`${data.resource.capacity} ${tr('bookings.passengers')}`} />}
+                                {data.resource?.location     && <Row label={tr('bookings.parking')}  value={data.resource.location} />}
                             </div>
                         )}
 
-                        {/* ── Room Info ── */}
                         {!isCar && (data.resource?.location || data.resource?.capacity) && (
                             <div style={{ background: theme.surfaceSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.border}` }}>
-                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>🏢 Room Info</div>
-                                {data.resource?.location && <Row label="Floor"    value={`Floor ${data.resource.location}`} />}
-                                {data.resource?.capacity && <Row label="Capacity" value={`${data.resource.capacity} seats`} />}
+                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>🏢 {tr('bookings.roomInfo')}</div>
+                                {data.resource?.location && <Row label={tr('bookings.floor')}    value={`${tr('bookings.floor')} ${data.resource.location}`} />}
+                                {data.resource?.capacity && <Row label={tr('bookings.capacity')} value={`${data.resource.capacity} ${tr('bookings.seats')}`} />}
                             </div>
                         )}
 
-                        {/* ── People ── */}
                         <div style={{ background: theme.surfaceSoft, borderRadius: 14, padding: '12px 14px', border: `1px solid ${theme.border}` }}>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>👤 People</div>
-
-                            {/* Organizer */}
-                            <div style={{ fontSize: 11, color: theme.textMute, marginBottom: 6 }}>Organizer</div>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>👤 {tr('bookings.people')}</div>
+                            <div style={{ fontSize: 11, color: theme.textMute, marginBottom: 6 }}>{tr('bookings.organizer')}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: data.attendees?.length > 0 ? 12 : 0 }}>
                                 <SmartAvatar name={data.organizer?.name} url={data.organizer?.avatar_url} size={28} theme={theme} />
                                 <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{data.organizer?.name}</span>
                             </div>
-
-                            {/* Attendees */}
                             {data.attendees?.length > 0 && (
                                 <>
-                                    <div style={{ fontSize: 11, color: theme.textMute, marginBottom: 6 }}>Participants ({data.attendees.length})</div>
+                                    <div style={{ fontSize: 11, color: theme.textMute, marginBottom: 6 }}>{tr('bookings.participants')} ({data.attendees.length})</div>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                                         {data.attendees.map(a => (
                                             <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px 4px 5px', borderRadius: 20, background: theme.surface, border: `1px solid ${theme.border}` }}>
@@ -1645,7 +1579,6 @@ function BookingDetailModal({ bookingId, onClose, theme, dark }) {
                                 </>
                             )}
                         </div>
-
                     </div>
                 )}
             </div>
@@ -1658,8 +1591,6 @@ function SmartAvatar({ name = "?", url, size = 30, theme }) {
     const bg = ["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4"][
         (name?.charCodeAt(0) ?? 0) % 6
     ];
-
-    // ← ဒါကို ထည့် — storage path fix
     const src = url
         ? (url.startsWith("http") || url.startsWith("/") || url.startsWith("data:")
             ? url
@@ -1684,14 +1615,14 @@ function SmartAvatar({ name = "?", url, size = 30, theme }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Attendee Picker (search + multi-select tags)
+// Attendee Picker
 // ─────────────────────────────────────────────────────────────────
-function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endTime }) {
+function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endTime, tr }) {
     const [query, setQuery]         = useState('');
     const [results, setResults]     = useState([]);
     const [searching, setSearching] = useState(false);
     const [dropPos, setDropPos]     = useState(null);
-    const [checking, setChecking]   = useState(null); // user_id စစ်နေတာ
+    const [checking, setChecking]   = useState(null);
     const debounceRef = useRef(null);
     const inputRef    = useRef(null);
 
@@ -1719,7 +1650,6 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
         }, 300);
     };
 
-    // User click လိုက်ရင် conflict check ဦးလုပ်
     const handleAdd = async (user) => {
         setChecking(user.id);
         setResults([]);
@@ -1742,7 +1672,6 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
             };
             onChange([...selected, userWithConflict]);
         } catch {
-            // API fail ရင် warning မပါဘဲ add
             onChange([...selected, { ...user, conflicts: [] }]);
         } finally {
             setChecking(null);
@@ -1773,7 +1702,6 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
 
     return (
         <div>
-            {/* Selected tags — wrapping flex row */}
             {selected.length > 0 && (
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:10 }}>
                     {selected.map(u => {
@@ -1786,20 +1714,14 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                                     if (!hasConflict) return;
                                     const tt = e.currentTarget.querySelector('.bk-conflict-tt');
                                     if (!tt) return;
-                                    
                                     const rect = e.currentTarget.getBoundingClientRect();
                                     const tooltipW = 240;
-                                    
-                                    // Left position — screen ထဲဝင်အောင်
                                     let left = rect.left + rect.width / 2 - tooltipW / 2;
                                     if (left < 8) left = 8;
                                     if (left + tooltipW > window.innerWidth - 8) left = window.innerWidth - tooltipW - 8;
-                                    
-                                    // Top position — tag အပေါ်မှာပြ၊ နေရာမကျင်းရင် အောက်မှာပြ
                                     const tooltipH = 100;
                                     let top = rect.top - tooltipH - 8;
                                     if (top < 8) top = rect.bottom + 8;
-                                    
                                     tt.style.left = `${left}px`;
                                     tt.style.top  = `${top}px`;
                                     tt.style.display = 'block';
@@ -1809,7 +1731,6 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                                     if (tt) tt.style.display = 'none';
                                 }}
                             >
-                                {/* Tag */}
                                 <div style={{
                                     display:'inline-flex', alignItems:'center', gap:6,
                                     padding:'5px 10px 5px 6px', borderRadius:20,
@@ -1817,7 +1738,6 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                                         ? (dark ? 'rgba(239,68,68,0.15)' : '#fef2f2')
                                         : (dark ? 'rgba(99,102,241,0.18)' : '#ede9fe'),
                                     border:`1.5px solid ${hasConflict ? theme.danger+'50' : theme.primary+'40'}`,
-                                    cursor: hasConflict ? 'default' : 'default',
                                 }}>
                                     <div style={{
                                         width:20, height:20, borderRadius:'50%',
@@ -1837,7 +1757,7 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                                             background: dark ? 'rgba(239,68,68,0.2)' : '#fee2e2',
                                             padding:'1px 6px', borderRadius:6,
                                         }}>
-                                            busy
+                                            {tr('bookings.busy')}
                                         </span>
                                     )}
                                     <button
@@ -1851,11 +1771,10 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                                     >✕</button>
                                 </div>
 
-                                {/* Hover tooltip — conflict detail */}
                                 {hasConflict && (
                                     <div className="bk-conflict-tt" style={{
                                         display:      'none',
-                                        position:     'fixed',   // ← absolute မှ fixed ပြောင်း
+                                        position:     'fixed',
                                         zIndex:       99999,
                                         background:   dark ? '#1e2d4a' : '#1e293b',
                                         color:        '#fff',
@@ -1870,7 +1789,6 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                                         whiteSpace:   'normal',
                                         lineHeight:   1.6,
                                     }}>
-                                        {/* Arrow */}
                                         <div style={{
                                             position:'absolute', bottom:-5, left:'50%',
                                             transform:'translateX(-50%)',
@@ -1879,7 +1797,7 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                                             clipPath:'polygon(0 0,100% 0,50% 100%)',
                                         }}/>
                                         <div style={{ fontWeight:700, marginBottom:6, color:'#fca5a5', fontSize:11 }}>
-                                            ⚠ Schedule Conflict
+                                            ⚠ {tr('bookings.scheduleConflict')}
                                         </div>
                                         {u.conflicts.map((c, i) => (
                                             <div key={i} style={{
@@ -1911,21 +1829,19 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                 </div>
             )}
 
-            {/* Checking spinner */}
             {checking && (
                 <div style={{ fontSize:12, color:theme.textMute, marginBottom:8, display:'flex', alignItems:'center', gap:6 }}>
                     <div style={{ width:10, height:10, border:`2px solid ${theme.primary}33`, borderTopColor:theme.primary, borderRadius:'50%', animation:'bk-spin 0.7s linear infinite' }}/>
-                    Checking schedule…
+                    {tr('bookings.checkingSchedule')}
                 </div>
             )}
 
-            {/* Search input */}
             <div style={{ position:'relative' }}>
                 <input
                     ref={inputRef}
                     value={query}
                     onChange={e => { setQuery(e.target.value); search(e.target.value); }}
-                    placeholder="Search by name or email…"
+                    placeholder={tr('bookings.searchByNameEmail')}
                     style={{ width:'100%', padding:'9px 14px', borderRadius:10, border:`1px solid ${theme.border}`, background:theme.surfaceSoft, color:theme.text, fontSize:13, fontFamily:'inherit', outline:'none', boxSizing:'border-box' }}
                 />
                 {searching && (
@@ -1933,7 +1849,6 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
                 )}
             </div>
 
-            {/* Dropdown portal */}
             {results.length > 0 && dropPos && typeof document !== 'undefined' && ReactDOM.createPortal(
                 <div style={{ position:'fixed', top:dropPos.top, left:dropPos.left, width:dropPos.width, background:theme.surface, border:`1px solid ${theme.border}`, borderRadius:12, boxShadow:theme.shadow, zIndex:99999, overflow:'hidden', maxHeight:220, overflowY:'auto' }}>
                     {results.map(u => (
@@ -1962,8 +1877,9 @@ function AttendeePicker({ selected, onChange, theme, dark, date, startTime, endT
 export default function BookingsIndex({ resources, allResources, pendingBookings, myBookings, myInvitations, stats, isHR, users, driverNotes }) {
     const dark  = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
-    const { auth } = usePage().props; 
- 
+    const { auth } = usePage().props;
+    const { t: tr } = useTranslation();
+
     if (auth?.user?.country_id) {
         window.__countryId = auth.user.country_id;
     }
@@ -1977,39 +1893,24 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
     const [bookingModal, setBookingModal] = useState(null);
     const [resourceModal, setResourceModal] = useState(false);
     const [rejectModal, setRejectModal]   = useState(null);
-    const [deleteConfirm, setDeleteConfirm] = useState(null); // booking to cancel
-    const [detailModal, setDetailModal]   = useState(null); // booking id
-    const [attendees, setAttendees]       = useState([]);   // AttendeePicker selected
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [detailModal, setDetailModal]   = useState(null);
+    const [attendees, setAttendees]       = useState([]);
     const [deleteResourceConfirm, setDeleteResourceConfirm] = useState(null);
 
     const latestCalRequest = useRef(0);
 
     const fetchCalDirect = useCallback(async (t, d) => {
         const requestId = ++latestCalRequest.current;
-
         setCalLoading(true);
         setCalBookings([]);
-
         try {
-            const params = new URLSearchParams({
-                type: t,
-                date: d,
-                _: String(Date.now()),
-            });
-
+            const params = new URLSearchParams({ type: t, date: d, _: String(Date.now()) });
             const res = await fetch(`/bookings/calendar?${params.toString()}`, {
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json",
-                    "Cache-Control": "no-cache",
-                },
+                headers: { "X-Requested-With": "XMLHttpRequest", "Accept": "application/json", "Cache-Control": "no-cache" },
                 cache: "no-store",
             });
-
             const data = await res.json();
-
-            // Latest request ပဲ UI ကို update လုပ်ခွင့်ရှိမယ်။
-            // April 30 request က May 1 request ထက်နောက်မှပြန်လာရင် ignore လုပ်မယ်။
             if (requestId === latestCalRequest.current) {
                 setCalBookings(data.bookings || []);
             }
@@ -2024,36 +1925,30 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
         }
     }, []);
 
-    // Fetch when tab/type/date changes (normal navigation)
     useEffect(() => {
         if (tab === "calendar") {
             fetchCalDirect(calType, toISO(calDate));
         }
     }, [calType, calDate, tab, fetchCalDirect]);
 
-    // After booking success:
-    // 1. Switch to correct calendar (type + date from the booking form)
-    // 2. Fetch with explicit args — no state dependency, always correct
     const handleBookingSuccess = useCallback(({ type: bType, date: bDate }) => {
         const targetDate = bDate;
-
         setTab("calendar");
         setCalType(bType);
         setCalDate(new Date(`${targetDate}T00:00:00`));
-
         fetchCalDirect(bType, targetDate);
     }, [fetchCalDirect]);
 
     const markReturned = id => router.patch(`/bookings/${id}/returned`, {}, {
         preserveScroll: true,
-        onSuccess: () => toast("Car marked as returned."),
+        onSuccess: () => toast(tr('bookings.carMarkedReturned')),
     });
 
     const rooms = resources.filter(r => r.type === "room");
     const cars  = resources.filter(r => r.type === "car");
     const allRooms = (allResources || []).filter(r => r.type === "room");
     const allCars  = (allResources || []).filter(r => r.type === "car");
-    
+
     const filteredMyBookings = myBookings.filter(b =>
         b.resource?.type === myType &&
         b.booking_date === toISO(calDate)
@@ -2064,7 +1959,6 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
     );
     const myRoomCount = myBookings.filter(b => b.resource?.type === "room" && b.booking_date === toISO(calDate)).length;
     const myCarCount  = myBookings.filter(b => b.resource?.type === "car"  && b.booking_date === toISO(calDate)).length;
-
 
     const tabBtn = (t, label, active, badgeCount) => (
         <button onClick={() => setTab(t)} style={{
@@ -2078,8 +1972,6 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
             {badgeCount > 0 && <span style={{ background: active ? "rgba(255,255,255,0.25)" : theme.danger, color: "#fff", fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 10 }}>{badgeCount}</span>}
         </button>
     );
-
-    
 
     return (
         <AppLayout title="Bookings">
@@ -2105,16 +1997,16 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                     <div style={{ position: "absolute", top: -50, right: -50, width: 220, height: 220, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
                     <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
                         <div>
-                            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".15em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>Resource Booking</div>
-                            <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-.4px", marginBottom: 6 }}>Meeting Rooms & Cars</div>
-                            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0 }}>Book meeting rooms and company cars for your work needs.</p>
+                            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".15em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>{tr('bookings.heroSubtitle')}</div>
+                            <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-.4px", marginBottom: 6 }}>{tr('bookings.heroTitle')}</div>
+                            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0 }}>{tr('bookings.heroDesc')}</p>
                         </div>
                         {isHR && stats && (
                             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                                 {[
-                                    { l: "Today",    v: stats.today_count,   c: "#34d399" },
-                                    { l: "Rooms",    v: stats.room_count,    c: "#818cf8" },
-                                    { l: "Cars",     v: stats.car_count,     c: "#fb923c" },
+                                    { l: tr('bookings.today'),  v: stats.today_count, c: "#34d399" },
+                                    { l: tr('bookings.rooms'),  v: stats.room_count,  c: "#818cf8" },
+                                    { l: tr('bookings.cars'),   v: stats.car_count,   c: "#fb923c" },
                                 ].map(s => (
                                     <div key={s.l} style={{ textAlign: "center", background: "rgba(255,255,255,0.1)", borderRadius: 12, padding: "10px 18px", border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(10px)" }}>
                                         <div style={{ fontSize: 22, fontWeight: 900, color: s.c, lineHeight: 1 }}>{s.v}</div>
@@ -2129,18 +2021,18 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                 {/* ── Tabs + Book buttons ── */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
                     <div style={{ display: "flex", gap: 4, background: theme.surface, padding: 5, borderRadius: 14, border: `1px solid ${theme.border}`, boxShadow: theme.shadowSm }}>
-                        {tabBtn("calendar", "📅 Calendar", tab === "calendar", 0)}
-                        {tabBtn("mine", "📋 My Bookings", tab === "mine", myRoomCount + myCarCount)}
-                        {tabBtn("invitations", "✉️ My Invitations", tab === "invitations", myInvitations.filter(b => b.booking_date === toISO(calDate)).length)}
-                        {tabBtn("drivernotes", "📝 Driver Notes", tab === "drivernotes", filteredDriverNotes.length)}
-                        {isHR && tabBtn("manage", "⚙️ Manage Resources", tab === "manage", 0)}
+                        {tabBtn("calendar",    `📅 ${tr('bookings.tabCalendar')}`,         tab === "calendar",    0)}
+                        {tabBtn("mine",        `📋 ${tr('bookings.tabMyBookings')}`,        tab === "mine",        myRoomCount + myCarCount)}
+                        {tabBtn("invitations", `✉️ ${tr('bookings.tabMyInvitations')}`,    tab === "invitations", myInvitations.filter(b => b.booking_date === toISO(calDate)).length)}
+                        {tabBtn("drivernotes", `📝 ${tr('bookings.tabDriverNotes')}`,      tab === "drivernotes", filteredDriverNotes.length)}
+                        {isHR && tabBtn("manage", `⚙️ ${tr('bookings.tabManageResources')}`, tab === "manage", 0)}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
                         <button onClick={() => setBookingModal("room")} style={{ padding: "10px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4f46e5,#6366f1)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(99,102,241,0.3)", display: "flex", alignItems: "center", gap: 6 }}>
-                            🏢 Book Room
+                            🏢 {tr('bookings.bookRoom')}
                         </button>
                         <button onClick={() => setBookingModal("car")} style={{ padding: "10px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#d97706,#f59e0b)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(245,158,11,0.3)", display: "flex", alignItems: "center", gap: 6 }}>
-                            🚗 Book Car
+                            🚗 {tr('bookings.bookCar')}
                         </button>
                     </div>
                 </div>
@@ -2148,11 +2040,9 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                 {/* ── Calendar Tab ── */}
                 {tab === "calendar" && (
                     <div style={{ background: theme.surface, borderRadius: 20, border: `1px solid ${theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm }}>
-                        {/* Calendar controls */}
                         <div style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${theme.border}`, gap: 12 }}>
-                            {/* Left: Room/Car switch */}
                             <div style={{ display: "flex", gap: 4, background: theme.surfaceSoft, padding: 4, borderRadius: 12, border: `1px solid ${theme.border}`, flexShrink: 0 }}>
-                                {[{ v: "room", l: "🏢 Rooms", c: theme.primary }, { v: "car", l: "🚗 Cars", c: theme.carColor }].map(t => (
+                                {[{ v: "room", l: `🏢 ${tr('bookings.rooms')}`, c: theme.primary }, { v: "car", l: `🚗 ${tr('bookings.cars')}`, c: theme.carColor }].map(t => (
                                     <button key={t.v} onClick={() => setCalType(t.v)} style={{
                                         padding: "7px 18px", borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: "pointer",
                                         border: "none", fontFamily: "inherit", transition: "all .15s",
@@ -2162,25 +2052,23 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                                 ))}
                             </div>
 
-                            {/* Center: Date nav */}
                             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                                 <button onClick={() => setCalDate(d => addDays(d, -1))} style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.text, cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
                                 <div style={{ textAlign: "center", minWidth: 200 }}>
                                     <div style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{fmtDate(calDate)}</div>
-                                    {toISO(calDate) === toISO(new Date()) && <div style={{ fontSize: 10, color: theme.primary, fontWeight: 700, letterSpacing: ".05em" }}>TODAY</div>}
+                                    {toISO(calDate) === toISO(new Date()) && <div style={{ fontSize: 10, color: theme.primary, fontWeight: 700, letterSpacing: ".05em" }}>{tr('bookings.today').toUpperCase()}</div>}
                                 </div>
                                 <button onClick={() => setCalDate(d => addDays(d, 1))} style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.text, cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
-                                <button onClick={() => setCalDate(new Date())} style={{ padding: "7px 12px", borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Today</button>
+                                <button onClick={() => setCalDate(new Date())} style={{ padding: "7px 12px", borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{tr('bookings.today')}</button>
                             </div>
 
-                            {/* Right: spacer to balance left side */}
                             <div style={{ flexShrink: 0, width: 160 }} />
                         </div>
 
                         <div style={{ padding: "16px 20px" }}>
                             {calLoading
-                                ? <div style={{ textAlign: "center", padding: "80px", color: theme.textMute, fontSize: 13 }}>⏳ Loading schedule…</div>
-                                :   <TimeCalendar
+                                ? <div style={{ textAlign: "center", padding: "80px", color: theme.textMute, fontSize: 13 }}>⏳ {tr('bookings.loadingSchedule')}</div>
+                                : <TimeCalendar
                                         key={`${calType}-${toISO(calDate)}`}
                                         bookings={calBookings}
                                         resources={resources}
@@ -2188,6 +2076,7 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                                         theme={theme}
                                         dark={dark}
                                         onBookingClick={(id) => setDetailModal(id)}
+                                        tr={tr}
                                     />
                             }
                         </div>
@@ -2200,11 +2089,11 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                         {pendingBookings.length === 0 ? (
                             <div style={{ textAlign: "center", padding: "60px", color: theme.textMute, fontSize: 13 }}>
                                 <div style={{ fontSize: 32, marginBottom: 12 }}>🎉</div>
-                                <div style={{ fontWeight: 600 }}>No pending approvals</div>
-                                <div style={{ fontSize: 12, marginTop: 4 }}>All caught up!</div>
+                                <div style={{ fontWeight: 600 }}>{tr('bookings.noPendingApprovals')}</div>
+                                <div style={{ fontSize: 12, marginTop: 4 }}>{tr('bookings.allCaughtUp')}</div>
                             </div>
                         ) : pendingBookings.map((b, i) => (
-                            <BookingRow key={b.id} booking={b} isHR theme={theme} dark={dark} onReject={setRejectModal} onMarkReturned={markReturned} isLast={i === pendingBookings.length - 1} />
+                            <BookingRow key={b.id} booking={b} isHR theme={theme} dark={dark} onReject={setRejectModal} onMarkReturned={markReturned} isLast={i === pendingBookings.length - 1} tr={tr} />
                         ))}
                     </div>
                 )}
@@ -2212,46 +2101,19 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                 {/* ── My Bookings Tab ── */}
                 {tab === "mine" && (
                     <div style={{ background: theme.surface, borderRadius: 20, border: `1px solid ${theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm }}>
-
-                        <div style={{
-                            display: "flex",
-                            gap: 6,
-                            padding: "14px 16px",
-                            borderBottom: `1px solid ${theme.border}`,
-                            background: theme.surfaceSoft,
-                        }}>
+                        <div style={{ display: "flex", gap: 6, padding: "14px 16px", borderBottom: `1px solid ${theme.border}`, background: theme.surfaceSoft }}>
                             {[
-                                { v: "room", l: "🏢 My Room Booking", count: myRoomCount, c: theme.primary },
-                                { v: "car",  l: "🚗 My Car Booking",  count: myCarCount,  c: theme.carColor },
+                                { v: "room", l: `🏢 ${tr('bookings.myRoomBooking')}`, count: myRoomCount, c: theme.primary },
+                                { v: "car",  l: `🚗 ${tr('bookings.myCarBooking')}`,  count: myCarCount,  c: theme.carColor },
                             ].map(t => (
-                                <button
-                                    key={t.v}
-                                    onClick={() => setMyType(t.v)}
-                                    style={{
-                                        padding: "8px 16px",
-                                        borderRadius: 10,
-                                        border: "none",
-                                        cursor: "pointer",
-                                        fontFamily: "inherit",
-                                        fontSize: 12,
-                                        fontWeight: 700,
-                                        background: myType === t.v ? t.c : theme.surface,
-                                        color: myType === t.v ? "#fff" : theme.textSoft,
-                                        boxShadow: myType === t.v ? `0 2px 10px ${t.c}35` : "none",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 6,
-                                    }}
-                                >
+                                <button key={t.v} onClick={() => setMyType(t.v)} style={{
+                                    padding: "8px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 700,
+                                    background: myType === t.v ? t.c : theme.surface, color: myType === t.v ? "#fff" : theme.textSoft,
+                                    boxShadow: myType === t.v ? `0 2px 10px ${t.c}35` : "none",
+                                    display: "flex", alignItems: "center", gap: 6,
+                                }}>
                                     {t.l}
-                                    <span style={{
-                                        fontSize: 10,
-                                        fontWeight: 800,
-                                        padding: "1px 7px",
-                                        borderRadius: 10,
-                                        background: myType === t.v ? "rgba(255,255,255,0.25)" : theme.surfaceSofter,
-                                        color: myType === t.v ? "#fff" : theme.textMute,
-                                    }}>
+                                    <span style={{ fontSize: 10, fontWeight: 800, padding: "1px 7px", borderRadius: 10, background: myType === t.v ? "rgba(255,255,255,0.25)" : theme.surfaceSofter, color: myType === t.v ? "#fff" : theme.textMute }}>
                                         {t.count}
                                     </span>
                                 </button>
@@ -2261,25 +2123,13 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                         {filteredMyBookings.length === 0 ? (
                             <div style={{ textAlign: "center", padding: "60px", color: theme.textMute, fontSize: 13 }}>
                                 <div style={{ fontSize: 32, marginBottom: 12 }}>{myType === "room" ? "🏢" : "🚗"}</div>
-                                <div style={{ fontWeight: 600 }}>
-                                    No upcoming {myType === "room" ? "room" : "car"} bookings
-                                </div>
-                                <div style={{ fontSize: 12, marginTop: 4 }}>
-                                    Click "{myType === "room" ? "Book Room" : "Book Car"}" to get started.
-                                </div>
+                                <div style={{ fontWeight: 600 }}>{tr('bookings.noUpcoming', { type: myType === "room" ? tr('bookings.room') : tr('bookings.car') })}</div>
+                                <div style={{ fontSize: 12, marginTop: 4 }}>{tr('bookings.clickToStart', { type: myType === "room" ? tr('bookings.bookRoom') : tr('bookings.bookCar') })}</div>
                             </div>
                         ) : filteredMyBookings.map((b, i) => (
-                            <BookingRow
-                                key={b.id}
-                                booking={b}
-                                isHR={false}
-                                theme={theme}
-                                dark={dark}
-                                onReject={() => {}}
-                                onMarkReturned={() => {}}
-                                onDelete={setDeleteConfirm}
-                                isLast={i === filteredMyBookings.length - 1}
-                            />
+                            <BookingRow key={b.id} booking={b} isHR={false} theme={theme} dark={dark}
+                                onReject={() => {}} onMarkReturned={() => {}} onDelete={setDeleteConfirm}
+                                isLast={i === filteredMyBookings.length - 1} tr={tr} />
                         ))}
                     </div>
                 )}
@@ -2292,19 +2142,12 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                             {filtered.length === 0 ? (
                                 <div style={{ textAlign: "center", padding: "60px", color: theme.textMute, fontSize: 13 }}>
                                     <div style={{ fontSize: 32, marginBottom: 12 }}>✉️</div>
-                                    <div style={{ fontWeight: 600 }}>No invitations on {toISO(calDate)}</div>
-                                    <div style={{ fontSize: 12, marginTop: 4 }}>Select a date from the calendar to view invitations.</div>
+                                    <div style={{ fontWeight: 600 }}>{tr('bookings.noInvitationsOn')} {toISO(calDate)}</div>
+                                    <div style={{ fontSize: 12, marginTop: 4 }}>{tr('bookings.selectDateForInvitations')}</div>
                                 </div>
                             ) : filtered.map((b, i) => (
-                                <div
-                                    key={b.id}
-                                    onClick={() => setDetailModal(b.id)}
-                                    style={{
-                                        display: "flex", alignItems: "center", gap: 14,
-                                        padding: "14px 20px",
-                                        borderBottom: i < filtered.length - 1 ? `1px solid ${theme.border}` : "none",
-                                        cursor: "pointer", transition: "background .12s",
-                                    }}
+                                <div key={b.id} onClick={() => setDetailModal(b.id)}
+                                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", borderBottom: i < filtered.length - 1 ? `1px solid ${theme.border}` : "none", cursor: "pointer", transition: "background .12s" }}
                                     onMouseEnter={e => e.currentTarget.style.background = theme.surfaceSoft}
                                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                                 >
@@ -2314,7 +2157,7 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>{b.resource?.name}</div>
                                         <div style={{ fontSize: 12, color: theme.textMute, marginTop: 2 }}>
-                                            {b.booking_date} · {b.start_time}{b.end_time ? ` – ${b.end_time}` : " – Open ended"}
+                                            {b.booking_date} · {b.start_time}{b.end_time ? ` – ${b.end_time}` : ` – ${tr('bookings.openEnded')}`}
                                         </div>
                                     </div>
                                     <div style={{ display:'flex', alignItems:'center', gap:7, flexShrink: 0 }}>
@@ -2327,21 +2170,18 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                         </div>
                     );
                 })()}
+
                 {/* ── Driver Notes Tab ── */}
                 {tab === "drivernotes" && (
                     <div style={{ background: theme.surface, borderRadius: 20, border: `1px solid ${theme.border}`, overflow: "hidden", boxShadow: theme.shadowSm }}>
                         {filteredDriverNotes.length === 0 ? (
                             <div style={{ textAlign: "center", padding: "60px", color: theme.textMute, fontSize: 13 }}>
                                 <div style={{ fontSize: 32, marginBottom: 12 }}>📝</div>
-                                <div style={{ fontWeight: 600 }}>No driver notes on {toISO(calDate)}</div>
-                                <div style={{ fontSize: 12, marginTop: 4 }}>Notes will appear here after your trips are completed.</div>
+                                <div style={{ fontWeight: 600 }}>{tr('bookings.noDriverNotesOn')} {toISO(calDate)}</div>
+                                <div style={{ fontSize: 12, marginTop: 4 }}>{tr('bookings.notesAppearAfterTrips')}</div>
                             </div>
                         ) : driverNotes.map((b, bi) => (
-                            <div key={b.booking_id} style={{
-                                borderBottom: bi < driverNotes.length - 1 ? `1px solid ${theme.border}` : "none",
-                                padding: "16px 20px",
-                            }}>
-                                {/* Booking header */}
+                            <div key={b.booking_id} style={{ borderBottom: bi < driverNotes.length - 1 ? `1px solid ${theme.border}` : "none", padding: "16px 20px" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                                     <div style={{ width: 36, height: 36, borderRadius: 11, background: theme.carSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🚗</div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -2355,17 +2195,14 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Notes — activity log style */}
                                 <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingLeft: 10, borderLeft: `2px solid ${theme.border}` }}>
                                     {b.notes.map((n, ni) => (
                                         <div key={n.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                                            {/* Driver avatar */}
                                             <SmartAvatar name={n.driver?.name ?? "?"} url={n.driver?.avatar_url} size={28} theme={theme} />
                                             <div style={{ flex: 1, background: theme.surfaceSoft, borderRadius: 12, padding: "10px 14px"}}>
                                                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                                                    <span style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{n.driver?.name ?? "Driver"}</span>
-                                                    <span style={{ fontSize: 10, color: theme.textMute }}>left a note</span>
+                                                    <span style={{ fontSize: 12, fontWeight: 700, color: theme.text }}>{n.driver?.name ?? tr('bookings.driver')}</span>
+                                                    <span style={{ fontSize: 10, color: theme.textMute }}>{tr('bookings.leftANote')}</span>
                                                     <span style={{ fontSize: 10, color: theme.textMute, marginLeft: "auto" }}>{n.created_at}</span>
                                                 </div>
                                                 <div style={{ fontSize: 13, color: theme.textSoft, lineHeight: 1.6 }}>{n.note}</div>
@@ -2377,41 +2214,40 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                         ))}
                     </div>
                 )}
+
                 {/* ── Manage Resources Tab (HR) ── */}
                 {tab === "manage" && isHR && (
                     <div>
                         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
                             <button onClick={() => setResourceModal(null)} style={{ padding: "10px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#4f46e5,#6366f1)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(99,102,241,0.3)", display: "flex", alignItems: "center", gap: 6 }}>
-                                ＋ Register Resource
+                                ＋ {tr('bookings.registerResource')}
                             </button>
                         </div>
 
-                        {/* Rooms */}
                         <div style={{ marginBottom: 24 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                                 <div style={{ height: 1, flex: 1, background: theme.border }} />
-                                <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em", whiteSpace: "nowrap" }}>🏢 Meeting Rooms ({allRooms.length})</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em", whiteSpace: "nowrap" }}>🏢 {tr('bookings.meetingRooms')} ({allRooms.length})</span>
                                 <div style={{ height: 1, flex: 1, background: theme.border }} />
                             </div>
                             {allRooms.length === 0
-                                ? <div style={{ background: theme.surface, borderRadius: 14, border: `2px dashed ${theme.border}`, padding: "28px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>No meeting rooms yet — click <strong>+ Register Resource</strong> to add one</div>
+                                ? <div style={{ background: theme.surface, borderRadius: 14, border: `2px dashed ${theme.border}`, padding: "28px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>{tr('bookings.noRoomsYetManage')}</div>
                                 : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
-                                    {allRooms.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} />)}
+                                    {allRooms.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} tr={tr} />)}
                                 </div>
                             }
                         </div>
 
-                        {/* Cars */}
                         <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                                 <div style={{ height: 1, flex: 1, background: theme.border }} />
-                                <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em", whiteSpace: "nowrap" }}>🚗 Company Cars ({allCars.length})</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMute, textTransform: "uppercase", letterSpacing: ".1em", whiteSpace: "nowrap" }}>🚗 {tr('bookings.companyCars')} ({allCars.length})</span>
                                 <div style={{ height: 1, flex: 1, background: theme.border }} />
                             </div>
                             {allCars.length === 0
-                                ? <div style={{ background: theme.surface, borderRadius: 14, border: `2px dashed ${theme.border}`, padding: "28px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>No cars yet — click <strong>+ Register Resource</strong> to add one</div>
+                                ? <div style={{ background: theme.surface, borderRadius: 14, border: `2px dashed ${theme.border}`, padding: "28px", textAlign: "center", color: theme.textMute, fontSize: 13 }}>{tr('bookings.noCarsYetManage')}</div>
                                 : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
-                                    {allCars.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} />)}
+                                    {allCars.map(r => <ResourceCard key={r.id} resource={r} onEdit={setResourceModal} onDelete={setDeleteResourceConfirm} theme={theme} dark={dark} tr={tr} />)}
                                 </div>
                             }
                         </div>
@@ -2421,25 +2257,19 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
 
             {/* Modals */}
             {bookingModal && (
-                <BookingModal type={bookingModal} defaultDate={toISO(calDate)} onClose={() => setBookingModal(null)} theme={theme} dark={dark} onSuccess={handleBookingSuccess} />
+                <BookingModal type={bookingModal} defaultDate={toISO(calDate)} onClose={() => setBookingModal(null)} theme={theme} dark={dark} onSuccess={handleBookingSuccess} tr={tr} />
             )}
             {resourceModal !== false && (
-                <ResourceModal resource={resourceModal} users={users} onClose={() => setResourceModal(false)} theme={theme} dark={dark} />
+                <ResourceModal resource={resourceModal} users={users} onClose={() => setResourceModal(false)} theme={theme} dark={dark} tr={tr} />
             )}
             {rejectModal && (
-                <RejectModal booking={rejectModal} onClose={() => setRejectModal(null)} theme={theme} dark={dark} />
+                <RejectModal booking={rejectModal} onClose={() => setRejectModal(null)} theme={theme} dark={dark} tr={tr} />
             )}
             {deleteConfirm && (
-                <DeleteConfirmModal booking={deleteConfirm} onClose={() => setDeleteConfirm(null)} theme={theme} dark={dark} />
+                <DeleteConfirmModal booking={deleteConfirm} onClose={() => setDeleteConfirm(null)} theme={theme} dark={dark} tr={tr} />
             )}
-            {/* ── Booking Detail Modal ── */}
             {detailModal && (
-                <BookingDetailModal
-                    bookingId={detailModal}
-                    onClose={() => setDetailModal(null)}
-                    theme={theme}
-                    dark={dark}
-                />
+                <BookingDetailModal bookingId={detailModal} onClose={() => setDetailModal(null)} theme={theme} dark={dark} tr={tr} />
             )}
 
             {deleteResourceConfirm && (
@@ -2451,26 +2281,26 @@ export default function BookingsIndex({ resources, allResources, pendingBookings
                             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                                 <div style={{ width:38, height:38, borderRadius:11, background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>🗑️</div>
                                 <div>
-                                    <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", color:"rgba(255,255,255,0.55)" }}>Confirm Delete</div>
-                                    <div style={{ fontSize:16, fontWeight:800, color:"#fff" }}>Delete {deleteResourceConfirm.name}?</div>
+                                    <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", color:"rgba(255,255,255,0.55)" }}>{tr('bookings.confirmDelete')}</div>
+                                    <div style={{ fontSize:16, fontWeight:800, color:"#fff" }}>{tr('bookings.deleteResource')} {deleteResourceConfirm.name}?</div>
                                 </div>
                                 <button onClick={() => setDeleteResourceConfirm(null)} style={{ marginLeft:"auto", width:28, height:28, borderRadius:8, border:"1px solid rgba(255,255,255,0.2)", background:"rgba(255,255,255,0.12)", color:"#fff", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
                             </div>
                         </div>
                         <div style={{ padding:"20px 22px" }}>
                             <p style={{ fontSize:13, color:theme.textSoft, marginBottom:18 }}>
-                                ⚠️ This will permanently delete <strong style={{ color:theme.text }}>{deleteResourceConfirm.name}</strong> and all its data. Consider making it <strong>Inactive</strong> instead to preserve booking history.
+                                ⚠️ {tr('bookings.deleteResourceWarning')} <strong style={{ color:theme.text }}>{deleteResourceConfirm.name}</strong> {tr('bookings.deleteResourceWarning2')}
                             </p>
                             <div style={{ display:"flex", gap:10 }}>
-                                <button onClick={() => setDeleteResourceConfirm(null)} style={{ flex:1, padding:"11px", borderRadius:11, border:`1.5px solid ${theme.border}`, background:"transparent", color:theme.textSoft, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+                                <button onClick={() => setDeleteResourceConfirm(null)} style={{ flex:1, padding:"11px", borderRadius:11, border:`1.5px solid ${theme.border}`, background:"transparent", color:theme.textSoft, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{tr('bookings.cancel')}</button>
                                 <button onClick={() => {
                                     router.delete(`/bookings/resources/${deleteResourceConfirm.id}`, {
                                         preserveScroll: true,
                                         onSuccess: () => { setDeleteResourceConfirm(null); },
-                                        onError: () => toast("Failed to delete.", "error"),
+                                        onError: () => toast(tr('bookings.failedToDelete'), "error"),
                                     });
                                 }} style={{ flex:1, padding:"11px", borderRadius:11, border:"none", background:"#dc2626", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 14px rgba(239,68,68,0.3)" }}>
-                                    Delete Permanently
+                                    {tr('bookings.deletePermanently')}
                                 </button>
                             </div>
                         </div>

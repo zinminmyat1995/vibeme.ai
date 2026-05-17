@@ -1,6 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Head } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/Contexts/LanguageContext';
+const trPresetName = (tr, value) => tr(`hrPolicy.presets.${String(value || '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '')}`) || value;
 
 // ── DocumentTranslation-style theme ───────────────────────────
 function getTheme(dark) {
@@ -249,6 +251,7 @@ export default function Index({
     completedSections,
     publicHolidays
 }) {
+    const { t: tr } = useTranslation();
     const dark = useTheme();
     const [activeKey, setActiveKey] = useState(null);
 
@@ -289,9 +292,12 @@ export default function Index({
 
     const completedCount = completed.size;
 
+    const sectionLabel = (key, fallback) => tr(`hrPolicy.sections.${key}`) || fallback;
+    const sectionSummary = (key, fallback) => tr(`hrPolicy.summaries.${key}`) || fallback;
+
     return (
-        <AppLayout title="HR Policy Setup">
-            <Head title="HR Policy Setup" />
+        <AppLayout title={tr('hrPolicy.pageTitle')}>
+            <Head title={tr('hrPolicy.pageTitle')} />
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
                 .hrp-wrap * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
@@ -316,11 +322,11 @@ export default function Index({
                         {/* Left: eyebrow + title + desc */}
                         <div style={{ minWidth: 0 }}>
                             <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.primary, marginBottom: 6 }}>
-                                HR Policy Setup
+                                {tr('hrPolicy.pageTitle')}
                             </div>
                           
                             <div style={{ fontSize: 13, color: T.textMute, marginTop: 6, fontWeight: 500, lineHeight: 1.6, maxWidth: 560 }}>
-                                {activeSection ? activeSection.summary : 'Set up leave, overtime, payroll rules and more for your organization'}
+                                {activeSection ? sectionSummary(activeSection.key, activeSection.summary) : tr('hrPolicy.setupDescription')}
                             </div>
                         </div>
 
@@ -347,7 +353,7 @@ export default function Index({
                                 </div>
                                 <span style={{ fontSize: 11, color: T.textSoft, fontWeight: 700, whiteSpace: 'nowrap' }}>
                                     <span style={{ color: T.primary, fontSize: 13, fontWeight: 900 }}>{completedCount}</span>
-                                    <span style={{ color: T.textMute }}> / {SECTIONS.length} completed</span>
+                                    <span style={{ color: T.textMute }}> / {SECTIONS.length} {tr('hrPolicy.completed')}</span>
                                 </span>
                             </div>
 
@@ -364,7 +370,7 @@ export default function Index({
                                         boxShadow: '0 0 0 3px rgba(16,185,129,0.15)',
                                     }}/>
                                     <div>
-                                        <div style={{ fontSize: 9, color: T.pillColor, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Country</div>
+                                        <div style={{ fontSize: 9, color: T.pillColor, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{tr('hrPolicy.country')}</div>
                                         <div style={{ fontSize: 13, fontWeight: 900, color: T.text, lineHeight: 1.2, marginTop: 2 }}>{country.name}</div>
                                     </div>
                                 </div>
@@ -423,7 +429,7 @@ export default function Index({
                                             fontSize: 11, fontWeight: 700, lineHeight: 1.3,
                                             color: isDone ? '#10b981' : isActive ? (dark ? '#a5b4fc' : '#6366f1') : T.textSoft,
                                             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                                        }}>{section.label}</div>
+                                        }}>{sectionLabel(section.key, section.label)}</div>
                                     </div>
                                 </button>
                             );
@@ -485,8 +491,8 @@ export default function Index({
                                         </div>
 
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: 13, fontWeight: 800, color: T.text, marginBottom: 3, letterSpacing: '-0.2px' }}>{section.label}</div>
-                                            <div style={{ fontSize: 11, color: T.textMute, fontWeight: 500, lineHeight: 1.5 }}>{section.summary}</div>
+                                            <div style={{ fontSize: 13, fontWeight: 800, color: T.text, marginBottom: 3, letterSpacing: '-0.2px' }}>{sectionLabel(section.key, section.label)}</div>
+                                            <div style={{ fontSize: 11, color: T.textMute, fontWeight: 500, lineHeight: 1.5 }}>{sectionSummary(section.key, section.summary)}</div>
                                         </div>
 
                                         {/* Footer */}
@@ -496,9 +502,9 @@ export default function Index({
                                                     fontSize: 10, fontWeight: 800, letterSpacing: '0.04em',
                                                     background: T.savedBg, border: `1px solid ${T.savedBorder}`,
                                                     color: T.savedColor, borderRadius: 99, padding: '3px 10px',
-                                                }}>✓ Saved</span>
+                                                }}>{`✓ ${tr('hrPolicy.saved')}`}</span>
                                             ) : (
-                                                <span style={{ fontSize: 10, color: T.textMute, fontWeight: 600 }}>Not configured</span>
+                                                <span style={{ fontSize: 10, color: T.textMute, fontWeight: 600 }}>{tr('hrPolicy.notConfigured')}</span>
                                             )}
                                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={T.textMute} strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
@@ -532,8 +538,8 @@ export default function Index({
                                         {activeSection?.emoji}
                                     </div>
                                     <div>
-                                        <div style={{ fontSize: 14, fontWeight: 800, color: T.text, letterSpacing: '-0.2px' }}>{activeSection?.label}</div>
-                                        <div style={{ fontSize: 11, color: T.textMute, marginTop: 1, fontWeight: 500 }}>{activeSection?.summary}</div>
+                                        <div style={{ fontSize: 14, fontWeight: 800, color: T.text, letterSpacing: '-0.2px' }}>{activeSection ? sectionLabel(activeSection.key, activeSection.label) : ''}</div>
+                                        <div style={{ fontSize: 11, color: T.textMute, marginTop: 1, fontWeight: 500 }}>{activeSection ? sectionSummary(activeSection.key, activeSection.summary) : ''}</div>
                                     </div>
                                 </div>
                                 <button
@@ -567,7 +573,7 @@ export default function Index({
                                 background: T.footerBg,
                             }}>
                                 <span style={{ fontSize: 11, color: T.textMute, fontWeight: 600 }}>
-                                    Step {SECTIONS.findIndex(s => s.key === activeKey) + 1} of {SECTIONS.length}
+                                    {tr('hrPolicy.step')} {SECTIONS.findIndex(s => s.key === activeKey) + 1} {tr('hrPolicy.of')} {SECTIONS.length}
                                 </span>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                     {SECTIONS.map(s => (

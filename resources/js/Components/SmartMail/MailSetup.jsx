@@ -93,7 +93,7 @@ const PROVIDERS = {
         smtp_host: 'smtp.gmail.com',  smtp_port: 587, smtp_enc: 'tls',
         imap_host: 'imap.gmail.com',  imap_port: 993,
         help_url:  'https://myaccount.google.com/apppasswords',
-        help_text: 'Gmail requires an App Password. Enable 2FA first, then generate one.',
+        help_text: `Gmail requires an {tr('smartMail.fields.appPassword')}. Enable 2FA first, then generate one.`, helpKey: 'smartMail.setup.help.gmail',
         icon: (
             <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
                 <path d="M6 14l18 12L42 14" stroke="#EA4335" strokeWidth="3" strokeLinecap="round"/>
@@ -107,7 +107,7 @@ const PROVIDERS = {
         smtp_host: 'smtp-mail.outlook.com', smtp_port: 587, smtp_enc: 'tls',
         imap_host: 'outlook.office365.com', imap_port: 993,
         help_url:  'https://account.microsoft.com/security',
-        help_text: 'Use your Outlook password or App Password if 2FA is enabled.',
+        help_text: `Use your Outlook password or {tr('smartMail.fields.appPassword')} if 2FA is enabled.`, helpKey: 'smartMail.setup.help.outlook',
         icon: (
             <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
                 <rect x="4" y="8" width="24" height="32" rx="3" fill="#0078D4" opacity="0.9"/>
@@ -122,7 +122,7 @@ const PROVIDERS = {
         smtp_host: 'smtp.mail.yahoo.com', smtp_port: 587, smtp_enc: 'tls',
         imap_host: 'imap.mail.yahoo.com', imap_port: 993,
         help_url:  'https://login.yahoo.com/account/security',
-        help_text: 'Yahoo requires an App Password. Generate one in your account security settings.',
+        help_text: `Yahoo requires an {tr('smartMail.fields.appPassword')}. Generate one in your account security settings.`, helpKey: 'smartMail.setup.help.yahoo',
         icon: (
             <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
                 <text x="4" y="36" fontSize="32" fontWeight="900" fill="#6001D2">Y!</text>
@@ -135,7 +135,7 @@ const PROVIDERS = {
         smtp_host: '', smtp_port: 587, smtp_enc: 'tls',
         imap_host: '', imap_port: 993,
         help_url:  null,
-        help_text: 'Enter your mail server details manually.',
+        help_text: 'Enter your mail server details manually.', helpKey: 'smartMail.setup.help.other',
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -156,7 +156,7 @@ function FieldError({ msg, theme }) {
 }
 
 // ── Main Component ────────────────────────────────────────────
-export default function MailSetup({ mailSetting = null, onSuccess = null }) {
+export default function MailSetup({ mailSetting = null, onSuccess = null, tr = (key, vars = {}, fallback = '') => fallback || key }) {
     const darkMode = useReactiveTheme();
     const theme    = useMemo(() => getTheme(darkMode), [darkMode]);
 
@@ -194,11 +194,11 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
         // ── Client-side validation ──
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!form.data.mail_address || !emailRegex.test(form.data.mail_address)) {
-            setTestError('Please enter a valid email address (e.g. you@gmail.com)');
+            setTestError(tr('smartMail.validation.validEmailExample'));
             return;
         }
         if (!form.data.mail_password) {
-            setTestError('Please enter your App Password before testing.');
+            setTestError(tr('smartMail.validation.appPasswordRequired'));
             return;
         }
 
@@ -213,10 +213,10 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
             // Ensure error message always exists
             setTestResult({
                 success: !!data.success,
-                error: data.error || data.message || 'Connection failed. Check your credentials.',
+                error: data.error || data.message || tr('smartMail.messages.connectionFailed'),
             });
         } catch {
-            setTestResult({ success: false, error: 'Network error. Please try again.' });
+            setTestResult({ success: false, error: tr('smartMail.messages.networkError') });
         }
         setTesting(false);
     };
@@ -230,7 +230,7 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                 // Global toast — UserRoles pattern အတိုင်း
                 window.dispatchEvent(new CustomEvent('global-toast', {
                     detail: {
-                        message: isEdit ? 'Mail account updated successfully!' : 'Mail account connected successfully!',
+                        message: isEdit ? tr('smartMail.messages.accountUpdated') : tr('smartMail.messages.accountConnected'),
                         type: 'success',
                     }
                 }));
@@ -280,19 +280,19 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                     fontSize: 24, boxShadow: `0 8px 24px ${theme.primary}40`, flexShrink: 0,
                 }}>📬</div>
                 <div>
-                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.primary, marginBottom: 4 }}>Mail Setup</div>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.primary, marginBottom: 4 }}>{tr('smartMail.setup.title')}</div>
                     <div style={{ fontSize: 20, fontWeight: 900, color: theme.text }}>
-                        {isEdit ? 'Update Mail Account' : 'Connect Your Email'}
+                        {isEdit ? tr('smartMail.setup.updateAccount') : tr('smartMail.setup.connectEmail')}
                     </div>
                     <div style={{ fontSize: 12, color: theme.textMute, marginTop: 2 }}>
-                        Connect your email to send and receive mail directly from Smart HR
+                        {tr('smartMail.setup.subtitle')}
                     </div>
                 </div>
             </div>
 
             {/* Provider picker */}
             <div style={{ padding: '24px 28px 0' }}>
-                <div style={sectionLabel}>Choose Provider</div>
+                <div style={sectionLabel}>{tr('smartMail.setup.chooseProvider')}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 20 }}>
                     {Object.entries(PROVIDERS).map(([key, p]) => {
                         const isActive = form.data.provider === key;
@@ -333,11 +333,11 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                         </svg>
                         <div style={{ fontSize: 11, color: theme.warning, lineHeight: 1.6, fontWeight: 600 }}>
-                            {provider.help_text}
+                            {tr(provider.helpKey, {}, provider.help_text)}
                             {provider.help_url && (
                                 <a href={provider.help_url} target="_blank" rel="noreferrer"
                                     style={{ display: 'block', marginTop: 4, color: theme.warning, fontWeight: 800, textDecoration: 'none' }}>
-                                    Generate App Password →
+                                    {tr('smartMail.setup.generateAppPassword')} →
                                 </a>
                             )}
                         </div>
@@ -352,13 +352,13 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                     {/* Name + Email */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                         <div>
-                            <label style={lbl}>Display Name <span style={{ color: theme.danger }}>*</span></label>
+                            <label style={lbl}>{tr('smartMail.fields.displayName')} <span style={{ color: theme.danger }}>*</span></label>
                             <input value={form.data.mail_name} onChange={e => form.setData('mail_name', e.target.value)}
                                 placeholder="John Doe" style={inp('mail_name')} />
                             <FieldError msg={form.errors.mail_name} theme={theme} />
                         </div>
                         <div>
-                            <label style={lbl}>Email Address <span style={{ color: theme.danger }}>*</span></label>
+                            <label style={lbl}>{tr('smartMail.fields.emailAddress')} <span style={{ color: theme.danger }}>*</span></label>
                             <input value={form.data.mail_address} onChange={e => { form.setData('mail_address', e.target.value); setTestError(''); }}
                                 placeholder="you@gmail.com" type="email" style={inp('mail_address')} />
                             <FieldError msg={form.errors.mail_address} theme={theme} />
@@ -375,8 +375,8 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                     {/* Password */}
                     <div>
                         <label style={lbl}>
-                            App Password <span style={{ color: theme.danger }}>*</span>
-                            {isEdit && <span style={{ fontSize: 10, color: theme.textMute, fontWeight: 400, marginLeft: 6 }}>(leave blank to keep current)</span>}
+                            {tr('smartMail.fields.appPassword')} <span style={{ color: theme.danger }}>*</span>
+                            {isEdit && <span style={{ fontSize: 10, color: theme.textMute, fontWeight: 400, marginLeft: 6 }}>({tr('smartMail.hints.leaveBlankKeepCurrent')})</span>}
                         </label>
                         <div style={{ position: 'relative' }}>
                             <input
@@ -405,28 +405,28 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                     {form.data.provider === 'other' && (
                         <>
                             <div style={{ height: 1, background: theme.border }} />
-                            <div style={sectionLabel}>SMTP (Send)</div>
+                            <div style={sectionLabel}>{tr('smartMail.setup.smtpSend')}</div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 12 }}>
                                 <div>
-                                    <label style={lbl}>SMTP Host</label>
+                                    <label style={lbl}>{tr('smartMail.fields.smtpHost')}</label>
                                     <input value={form.data.smtp_host} onChange={e => form.setData('smtp_host', e.target.value)}
                                         placeholder="smtp.example.com" style={inp('smtp_host')} />
                                 </div>
                                 <div>
-                                    <label style={lbl}>Port</label>
+                                    <label style={lbl}>{tr('smartMail.fields.port')}</label>
                                     <input value={form.data.smtp_port} onChange={e => form.setData('smtp_port', e.target.value)}
                                         type="number" style={inp('smtp_port')} />
                                 </div>
                             </div>
-                            <div style={sectionLabel}>IMAP (Receive)</div>
+                            <div style={sectionLabel}>{tr('smartMail.setup.imapReceive')}</div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 12 }}>
                                 <div>
-                                    <label style={lbl}>IMAP Host</label>
+                                    <label style={lbl}>{tr('smartMail.fields.imapHost')}</label>
                                     <input value={form.data.imap_host} onChange={e => form.setData('imap_host', e.target.value)}
                                         placeholder="imap.example.com" style={inp('imap_host')} />
                                 </div>
                                 <div>
-                                    <label style={lbl}>Port</label>
+                                    <label style={lbl}>{tr('smartMail.fields.port')}</label>
                                     <input value={form.data.imap_port} onChange={e => form.setData('imap_port', e.target.value)}
                                         type="number" style={inp('imap_port')} />
                                 </div>
@@ -443,7 +443,7 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                             border: `1px solid ${theme.border}`,
                         }}>
                             <div style={{ fontSize: 10, fontWeight: 900, color: theme.textMute, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
-                                Server Configuration
+                                {tr('smartMail.setup.serverConfiguration')}
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, fontSize: 11, color: theme.textSoft }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -487,7 +487,7 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                             ) : (
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             )}
-                            {testResult.success ? 'Connection successful!' : testResult.error}
+                            {testResult.success ? `{tr('smartMail.messages.connectionSuccessful')}` : testResult.error}
                         </div>
                     )}
 
@@ -502,7 +502,7 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         </svg>
                         <p style={{ fontSize: 11, color: theme.success, margin: 0, lineHeight: 1.6, fontWeight: 600 }}>
-                            Your password is encrypted with AES-256 and stored securely. We never share your credentials.
+                            {tr('smartMail.setup.securityNote')}
                         </p>
                     </div>
 
@@ -530,14 +530,14 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                             {testing ? (
                                 <>
                                     <span style={{ width: 14, height: 14, border: `2px solid ${theme.border}`, borderTopColor: theme.primary, borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
-                                    Testing...
+                                    {tr('smartMail.actions.testing')}
                                 </>
                             ) : (
                                 <>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
                                     </svg>
-                                    Test Connection
+                                    {tr('smartMail.actions.testConnection')}
                                 </>
                             )}
                         </button>
@@ -563,7 +563,7 @@ export default function MailSetup({ mailSetting = null, onSuccess = null }) {
                             {form.processing ? (
                                 <>
                                     <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
-                                    Saving...
+                                    {tr('smartMail.actions.saving')}
                                 </>
                             ) : (
                                 <>

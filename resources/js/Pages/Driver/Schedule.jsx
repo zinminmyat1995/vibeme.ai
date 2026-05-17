@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Head, router } from "@inertiajs/react";
 import AppLayout from "@/Layouts/AppLayout";
+import { useTranslation } from "@/Contexts/LanguageContext";
 
 function useReactiveTheme() {
     const getDark = () => typeof window !== "undefined" && (
@@ -40,19 +41,25 @@ function getTheme(dark) {
     };
 }
 
-const DS = {
-    start:      { label: "Not Started", color: "#94a3b8", bg: "rgba(148,163,184,0.10)" },
-    on_the_way: { label: "On The Way",  color: "#3b82f6", bg: "rgba(59,130,246,0.10)"  },
-    returned:   { label: "Returning",   color: "#f59e0b", bg: "rgba(245,158,11,0.10)"  },
-    ended:      { label: "Completed",   color: "#10b981", bg: "rgba(16,185,129,0.10)"  },
-};
-const BS = {
-    approved:   { label: "Approved",   color: "#059669", bg: "rgba(5,150,105,0.09)"  },
-    waitlisted: { label: "Waitlisted", color: "#d97706", bg: "rgba(217,119,6,0.09)"  },
-    completed:  { label: "Completed",  color: "#6366f1", bg: "rgba(99,102,241,0.09)" },
-    cancelled:  { label: "Cancelled",  color: "#dc2626", bg: "rgba(220,38,38,0.09)"  },
-};
-const TRIP_LABEL = { one_way: "One Way", multi_stop: "Multi Stop", pickup: "Pickup / Drop", round_trip: "Round Trip", wait_return: "Wait & Return" };
+const makeDS = (tr) => ({
+    start:      { label: tr("driverSchedule.driverStatus.start"), color: "#94a3b8", bg: "rgba(148,163,184,0.10)" },
+    on_the_way: { label: tr("driverSchedule.driverStatus.onTheWay"),  color: "#3b82f6", bg: "rgba(59,130,246,0.10)"  },
+    returned:   { label: tr("driverSchedule.driverStatus.returned"),   color: "#f59e0b", bg: "rgba(245,158,11,0.10)"  },
+    ended:      { label: tr("driverSchedule.driverStatus.ended"),      color: "#10b981", bg: "rgba(16,185,129,0.10)"  },
+});
+const makeBS = (tr) => ({
+    approved:   { label: tr("driverSchedule.bookingStatus.approved"),   color: "#059669", bg: "rgba(5,150,105,0.09)"  },
+    waitlisted: { label: tr("driverSchedule.bookingStatus.waitlisted"), color: "#d97706", bg: "rgba(217,119,6,0.09)"  },
+    completed:  { label: tr("driverSchedule.bookingStatus.completed"),  color: "#6366f1", bg: "rgba(99,102,241,0.09)" },
+    cancelled:  { label: tr("driverSchedule.bookingStatus.cancelled"),  color: "#dc2626", bg: "rgba(220,38,38,0.09)"  },
+});
+const makeTripLabel = (tr) => ({
+    one_way: tr("driverSchedule.tripTypes.oneWay"),
+    multi_stop: tr("driverSchedule.tripTypes.multiStop"),
+    pickup: tr("driverSchedule.tripTypes.pickup"),
+    round_trip: tr("driverSchedule.tripTypes.roundTrip"),
+    wait_return: tr("driverSchedule.tripTypes.waitReturn"),
+});
 function toISO(d) {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -65,8 +72,8 @@ function addDays(d, n) {
     r.setDate(r.getDate() + n);
     return r;
 }
-const fmtDate = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
-const fmtShort = iso => new Date(iso + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+const fmtDate = (iso, locale = "en-US") => new Date(iso + "T00:00:00").toLocaleDateString(locale, { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+const fmtShort = (iso, locale = "en-US") => new Date(iso + "T00:00:00").toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" });
 
 function Pill({ label, color, bg }) {
     return <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:20, background:bg, fontSize:11, fontWeight:700, color, whiteSpace:"nowrap" }}><span style={{ width:5, height:5, borderRadius:"50%", background:color, flexShrink:0 }}/>{label}</span>;
@@ -85,32 +92,32 @@ function Av({ name, url, size=30 }) {
 }
 
 // ── Modals ────────────────────────────────────────────────────────
-function CancelModal({ booking, onClose, theme }) {
+function CancelModal({ booking, onClose, theme, tr, locale }) {
     const [reason, setReason] = useState("");
     const [saving, setSaving] = useState(false);
     const [err, setErr] = useState("");
     const submit = () => {
-        if (!reason.trim()) { setErr("Reason is required."); return; }
+        if (!reason.trim()) { setErr(tr("driverSchedule.validation.reasonRequired")); return; }
         setSaving(true);
         router.post(`/driver/schedule/${booking.id}/cancel`, { cancel_reason: reason }, {
             preserveScroll: true,
             onSuccess: () => { setSaving(false); onClose(); },
-            onError:   () => { setSaving(false); setErr("Failed. Try again."); },
+            onError:   () => { setSaving(false); setErr(tr("driverSchedule.messages.failedTryAgain")); },
         });
     };
     return (
         <div style={{ position:"fixed", inset:0, background:theme.overlay, zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(4px)" }} onClick={onClose}>
             <div onClick={e=>e.stopPropagation()} style={{ background:theme.surface, borderRadius:20, padding:"26px 24px", width:"100%", maxWidth:420, boxShadow:theme.shadow, border:`1px solid ${theme.border}`, animation:"ds-modal .2s ease" }}>
-                <div style={{ fontSize:15, fontWeight:800, color:theme.text, marginBottom:3 }}>Cancel Booking</div>
-                <div style={{ fontSize:12, color:theme.textMute, marginBottom:18 }}>{fmtShort(booking.booking_date)} · {booking.start_time}{booking.end_time?`–${booking.end_time}`:""} · {booking.organizer?.name}</div>
-                <label style={{ fontSize:12, fontWeight:600, color:theme.textSoft, display:"block", marginBottom:6 }}>Reason *</label>
-                <textarea value={reason} onChange={e=>{setReason(e.target.value);setErr("");}} placeholder="e.g. Car breakdown, engine issue…" rows={3} autoFocus
+                <div style={{ fontSize:15, fontWeight:800, color:theme.text, marginBottom:3 }}> {tr("driverSchedule.cancelModal.title")}</div>
+                <div style={{ fontSize:12, color:theme.textMute, marginBottom:18 }}>{fmtShort(booking.booking_date, locale)} · {booking.start_time}{booking.end_time?`–${booking.end_time}`:""} · {booking.organizer?.name}</div>
+                <label style={{ fontSize:12, fontWeight:600, color:theme.textSoft, display:"block", marginBottom:6 }}> {tr("driverSchedule.fields.reasonRequired")}</label>
+                <textarea value={reason} onChange={e=>{setReason(e.target.value);setErr("");}} placeholder={tr("driverSchedule.placeholders.cancelReason")} rows={3} autoFocus
                     style={{ width:"100%", padding:"10px 13px", borderRadius:12, border:`1.5px solid ${err?theme.danger:theme.border}`, background:theme.inputBg, color:theme.text, fontSize:13, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box" }}/>
                 {err && <p style={{ color:theme.danger, fontSize:11, margin:"5px 0 0" }}>{err}</p>}
                 <div style={{ display:"flex", gap:8, marginTop:18 }}>
-                    <button onClick={onClose} style={{ padding:"10px 20px", borderRadius:10, border:`1px solid ${theme.border}`, background:"transparent", color:theme.textSoft, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Back</button>
+                    <button onClick={onClose} style={{ padding:"10px 20px", borderRadius:10, border:`1px solid ${theme.border}`, background:"transparent", color:theme.textSoft, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{tr("driverSchedule.actions.back")}</button>
                     <button onClick={submit} disabled={saving} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:theme.danger, color:"#fff", fontSize:13, fontWeight:700, cursor:saving?"not-allowed":"pointer", fontFamily:"inherit", opacity:saving?0.75:1, display:"flex", alignItems:"center", gap:7 }}>
-                        {saving&&<Spinner size={13}/>}{saving?"Cancelling…":"Confirm Cancel"}
+                        {saving&&<Spinner size={13}/>}{saving ? tr("driverSchedule.actions.cancelling") : tr("driverSchedule.actions.confirmCancel")}
                     </button>
                 </div>
             </div>
@@ -118,7 +125,7 @@ function CancelModal({ booking, onClose, theme }) {
     );
 }
 
-function NoteModal({ booking, onClose, theme }) {
+function NoteModal({ booking, onClose, theme, tr }) {
     const [note, setNote] = useState("");
     const [saving, setSaving] = useState(false);
     const skip = () => onClose();
@@ -132,16 +139,16 @@ function NoteModal({ booking, onClose, theme }) {
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", zIndex:9999, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(4px)" }} onClick={skip}>
             <div onClick={e=>e.stopPropagation()} style={{ background:theme.surface, borderRadius:20, padding:"26px 24px", width:"100%", maxWidth:400, boxShadow:theme.shadow, border:`1px solid ${theme.border}`, animation:"ds-modal .2s ease" }}>
                 <div style={{ textAlign:"center", marginBottom:18 }}>
-                    <div style={{ fontSize:36, marginBottom:8 }}>✅</div>
-                    <div style={{ fontSize:16, fontWeight:800, color:theme.text }}>Trip Completed!</div>
-                    <div style={{ fontSize:12, color:theme.textMute, marginTop:4 }}>Add a note (optional)</div>
+                    <div style={{ fontSize:36, marginBottom:8 }}>🏁</div>
+                    <div style={{ fontSize:16, fontWeight:800, color:theme.text }}> {tr("driverSchedule.noteModal.tripCompleted")}</div>
+                    <div style={{ fontSize:12, color:theme.textMute, marginTop:4 }}> {tr("driverSchedule.noteModal.addNoteOptional")}</div>
                 </div>
-                <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="e.g. Traffic delay, fuel refilled…" rows={3} autoFocus
+                <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder={tr("driverSchedule.placeholders.note")} rows={3} autoFocus
                     style={{ width:"100%", padding:"10px 13px", borderRadius:12, border:`1.5px solid ${theme.border}`, background:theme.inputBg, color:theme.text, fontSize:13, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:14 }}/>
                 <div style={{ display:"flex", gap:8 }}>
-                    <button onClick={skip} style={{ padding:"10px 20px", borderRadius:10, border:`1px solid ${theme.border}`, background:"transparent", color:theme.textSoft, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Skip</button>
+                    <button onClick={skip} style={{ padding:"10px 20px", borderRadius:10, border:`1px solid ${theme.border}`, background:"transparent", color:theme.textSoft, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{tr("driverSchedule.actions.skip")}</button>
                     <button onClick={submit} disabled={saving} style={{ padding:"10px 20px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#059669,#10b981)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:7 }}>
-                        {saving&&<Spinner size={13}/>}{saving?"Saving…":"Save Note"}
+                        {saving&&<Spinner size={13}/>}{saving ? tr("driverSchedule.actions.saving") : tr("driverSchedule.actions.saveNote")}
                     </button>
                 </div>
             </div>
@@ -150,10 +157,14 @@ function NoteModal({ booking, onClose, theme }) {
 }
 
 // ── Booking Card ──────────────────────────────────────────────────
-function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
+function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark, tr, locale }) {
     const [open, setOpen] = useState(false);
     const [tab, setTab] = useState("info");
     const [actLoading, setActLoading] = useState(false);
+
+    const DS = useMemo(() => makeDS(tr), [tr]);
+    const BS = useMemo(() => makeBS(tr), [tr]);
+    const TRIP_LABEL = useMemo(() => makeTripLabel(tr), [tr]);
 
     const ds = booking.driver_status || "start";
     const dCfg = DS[ds] || DS.start;
@@ -172,9 +183,9 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
     })();
 
     const nextAct = !cancelled && !completed && !isExpiredNotStarted ? {
-        start:      { label: "Start Trip",     next: "on_the_way", color: "#2563eb" },
-        on_the_way: { label: "Mark Returning", next: "returned",   color: "#d97706" },
-        returned:   { label: "End Trip",       next: "ended",      color: "#059669" },
+        start:      { label: tr("driverSchedule.actions.startTrip"),     next: "on_the_way", color: "#2563eb" },
+        on_the_way: { label: tr("driverSchedule.actions.markReturning"), next: "returned",   color: "#d97706" },
+        returned:   { label: tr("driverSchedule.actions.endTrip"),       next: "ended",      color: "#059669" },
     }[ds] : null;
 
     const doAction = () => {
@@ -218,9 +229,9 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
                     {/* Tab bar — underline style */}
                     <div style={{ display:"flex", paddingTop:4 }}>
                         {[
-                            { k:"info",       l:"Trip Info" },
-                            { k:"passengers", l:`Passengers (${(booking.attendees?.length||0)+1})` },
-                            { k:"notes",      l:`Notes (${booking.driver_notes?.length||0})` },
+                            { k:"info",       l: tr("driverSchedule.tabs.tripInfo") },
+                            { k:"passengers", l: `${tr("driverSchedule.tabs.passengers")} (${(booking.attendees?.length||0)+1})` },
+                            { k:"notes",      l: `${tr("driverSchedule.tabs.notes")} (${booking.driver_notes?.length||0})` },
                         ].map(t=>(
                             <button key={t.k} onClick={()=>setTab(t.k)} style={{ padding:"10px 16px", fontSize:12, fontWeight:600, border:"none", cursor:"pointer", fontFamily:"inherit", background:"transparent", color:tab===t.k?theme.primary:theme.textMute, borderBottom:`2px solid ${tab===t.k?theme.primary:"transparent"}`, transition:"all .15s" }}>{t.l}</button>
                         ))}
@@ -235,19 +246,19 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
                                 <div style={{ display:"flex", flexWrap:"wrap", gap:"6px 20px", paddingBottom:10, marginBottom:10 }}>
                                     {booking.trip_type && (
                                         <span style={{ fontSize:12, color:theme.textSoft }}>
-                                            <span style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginRight:5 }}>Type</span>
+                                            <span style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginRight:5 }}>{tr("driverSchedule.labels.type")}</span>
                                             {TRIP_LABEL[booking.trip_type]||booking.trip_type}
                                         </span>
                                     )}
                                     {booking.pickup_location && (
                                         <span style={{ fontSize:12, color:theme.textSoft }}>
-                                            <span style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginRight:5 }}>From</span>
+                                            <span style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginRight:5 }}>{tr("driverSchedule.labels.from")}</span>
                                             {booking.pickup_location}
                                         </span>
                                     )}
                                     {booking.return_time && (
                                         <span style={{ fontSize:12, color:theme.textSoft }}>
-                                            <span style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginRight:5 }}>Return</span>
+                                            <span style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginRight:5 }}>{tr("driverSchedule.labels.return")}</span>
                                             {booking.return_time}
                                         </span>
                                     )}
@@ -256,7 +267,7 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
                                 {/* Stops — compact single line with dots */}
                                 {stopLine && (
                                     <div style={{ paddingBottom:10, marginBottom:10 }}>
-                                        <div style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginBottom:6 }}>Stops</div>
+                                        <div style={{ fontSize:10, fontWeight:700, color:theme.textMute, textTransform:"uppercase", letterSpacing:".06em", marginBottom:6 }}>{tr("driverSchedule.labels.stops")}</div>
                                         <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
                                             {booking.stops.map((s,i)=>(
                                                 <span key={i} style={{ display:"inline-flex", alignItems:"center", gap:5 }}>
@@ -273,7 +284,7 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
                                 {/* Cancel reason */}
                                 {cancelled && booking.cancel_reason && (
                                     <div style={{ padding:"10px 0" }}>
-                                        <div style={{ fontSize:10, fontWeight:700, color:theme.danger, textTransform:"uppercase", letterSpacing:".06em", marginBottom:4 }}>Cancel Reason</div>
+                                        <div style={{ fontSize:10, fontWeight:700, color:theme.danger, textTransform:"uppercase", letterSpacing:".06em", marginBottom:4 }}>{tr("driverSchedule.labels.cancelReason")}</div>
                                         <div style={{ fontSize:13, color:theme.text }}>{booking.cancel_reason}</div>
                                         {booking.cancelled_at && <div style={{ fontSize:11, color:theme.textMute, marginTop:3 }}>{booking.cancelled_at}</div>}
                                     </div>
@@ -281,7 +292,7 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
 
                                 {/* No trip info at all */}
                                 {!booking.trip_type && !booking.pickup_location && !stopLine && !cancelled && (
-                                    <div style={{ fontSize:12, color:theme.textMute, padding:"8px 0" }}>No trip details added.</div>
+                                    <div style={{ fontSize:12, color:theme.textMute, padding:"8px 0" }}>{tr("driverSchedule.empty.noTripDetails")}</div>
                                 )}
                             </div>
                         )}
@@ -289,7 +300,7 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
                         {/* ── Passengers tab ── */}
                         {tab==="passengers" && (
                             <div>
-                                {[{ ...booking.organizer, role:"Organizer" }, ...(booking.attendees||[]).map(a=>({...a,role:"Passenger"}))].map((p,i,arr)=>(
+                                {[{ ...booking.organizer, role: tr("driverSchedule.labels.organizer") }, ...(booking.attendees||[]).map(a=>({...a,role: tr("driverSchedule.labels.passenger")}))].map((p,i,arr)=>(
                                     <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 0", borderBottom:i<arr.length-1?`1px solid ${theme.border}`:"none" }}>
                                         <Av name={p.name} url={p.avatar_url} size={30}/>
                                         <span style={{ flex:1, fontSize:13, fontWeight:600, color:theme.text }}>{p.name}</span>
@@ -304,7 +315,7 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
                             <div>
                                 {(!booking.driver_notes||booking.driver_notes.length===0) ? (
                                     <div style={{ textAlign:"center", padding:"24px 0", color:theme.textMute, fontSize:12 }}>
-                                        <div style={{ fontSize:22, marginBottom:8 }}>📝</div>Notes appear after trip ends.
+                                        <div style={{ fontSize:22, marginBottom:8 }}>📝</div>{tr("driverSchedule.empty.notesAfterTripEnds")}
                                     </div>
                                 ) : booking.driver_notes.map((n,i,arr)=>(
                                     <div key={i} style={{ padding:"10px 0", borderBottom:i<arr.length-1?`1px solid ${theme.border}`:"none" }}>
@@ -318,7 +329,7 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
                         {/* ── Action buttons ── */}
                         {!cancelled && !completed && (
                             <div style={{ display:"flex", gap:8, marginTop:14 }}>
-                                <button onClick={()=>onCancel(booking)} style={{ padding:"9px 16px", borderRadius:10, border:`1px solid ${theme.danger}30`, background:"transparent", color:theme.danger, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Cancel Trip</button>
+                                <button onClick={()=>onCancel(booking)} style={{ padding:"9px 16px", borderRadius:10, border:`1px solid ${theme.danger}30`, background:"transparent", color:theme.danger, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{tr("driverSchedule.actions.cancelTrip")}</button>
                                 {nextAct && (
                                     <button onClick={doAction} disabled={actLoading} style={{ padding:"9px 20px", borderRadius:10, border:"none", background:nextAct.color, color:"#fff", fontSize:13, fontWeight:700, cursor:actLoading?"not-allowed":"pointer", fontFamily:"inherit", opacity:actLoading?0.75:1, display:"flex", alignItems:"center", gap:7, transition:"opacity .15s" }}>
                                         {actLoading&&<Spinner size={13}/>}{nextAct.label}
@@ -337,13 +348,13 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
                                 fontSize: 12,
                                 fontWeight: 700,
                             }}>
-                                This trip time has already passed. You can no longer start this trip.
+                                {tr("driverSchedule.messages.tripTimePassed")}
                             </div>
                         )}
 
                         {completed && (
                             <div style={{ marginTop:12, display:"flex", alignItems:"center", gap:6, fontSize:13, fontWeight:600, color:theme.success }}>
-                                ✅ Trip completed
+                                {tr("driverSchedule.messages.tripCompleted")}
                             </div>
                         )}
                     </div>
@@ -355,8 +366,10 @@ function BookingCard({ booking, onStatusUpdate, onCancel, theme, dark }) {
 
 // ── Main Page ─────────────────────────────────────────────────────
 export default function DriverSchedule({ car, bookings: initial, date: initDate }) {
+    const { t: tr, locale = "en-US" } = useTranslation();
     const dark = useReactiveTheme();
     const theme = useMemo(() => getTheme(dark), [dark]);
+    const DS = useMemo(() => makeDS(tr), [tr]);
 
     const [date, setDate]         = useState(initDate || toISO(new Date()));
     const [bookings, setBookings] = useState(initial || []);
@@ -394,19 +407,19 @@ export default function DriverSchedule({ car, bookings: initial, date: initDate 
     const active = bookings.filter(b => b.driver_status==="on_the_way").length;
 
     if (!car) return (
-        <AppLayout title="Trip Schedule">
-            <Head title="Trip Schedule"/>
+        <AppLayout title={tr("driverSchedule.pageTitle")}>
+            <Head title={tr("driverSchedule.pageTitle")}/>
             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"60vh", textAlign:"center", padding:40 }}>
                 <div style={{ fontSize:52, marginBottom:16 }}>🚗</div>
-                <div style={{ fontSize:18, fontWeight:800, color:theme.text, marginBottom:8 }}>No Car Assigned</div>
-                <div style={{ fontSize:13, color:theme.textMute, maxWidth:300, lineHeight:1.7 }}>Contact HR to get a car assigned to you.</div>
+                <div style={{ fontSize:18, fontWeight:800, color:theme.text, marginBottom:8 }}>{tr("driverSchedule.empty.noCarAssigned")}</div>
+                <div style={{ fontSize:13, color:theme.textMute, maxWidth:300, lineHeight:1.7 }}>{tr("driverSchedule.empty.contactHrCarAssigned")}</div>
             </div>
         </AppLayout>
     );
 
     return (
-        <AppLayout title="Trip Schedule">
-            <Head title="Trip Schedule"/>
+        <AppLayout title={tr("driverSchedule.pageTitle")}>
+            <Head title={tr("driverSchedule.pageTitle")}/>
             <style>{`
                 @keyframes ds-fade  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
                 @keyframes ds-modal { from{opacity:0;transform:translateY(12px)scale(.98)} to{opacity:1;transform:none} }
@@ -427,14 +440,14 @@ export default function DriverSchedule({ car, bookings: initial, date: initDate 
                     <div style={{ position:"relative", display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
                         <div style={{ width:48, height:48, borderRadius:14, background:"rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, flexShrink:0 }}>🚗</div>
                         <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:10, fontWeight:800, color:"rgba(255,255,255,0.6)", letterSpacing:"1.5px", textTransform:"uppercase", marginBottom:3 }}>Trip Schedule</div>
+                            <div style={{ fontSize:10, fontWeight:800, color:"rgba(255,255,255,0.6)", letterSpacing:"1.5px", textTransform:"uppercase", marginBottom:3 }}>{tr("driverSchedule.pageTitle")}</div>
                             <div style={{ fontSize:20, fontWeight:900, color:"#fff" }}>{car?.name}</div>
                             <div style={{ fontSize:12, color:"rgba(255,255,255,0.65)", marginTop:3 }}>
-                                {[car?.plate_number, car?.location&&`📍 ${car.location}`, car?.capacity&&`👥 ${car.capacity} seats`].filter(Boolean).join("  ·  ")}
+                                {[car?.plate_number, car?.location && `📍 ${car.location}`, car?.capacity && `👥 ${car.capacity} ${tr("driverSchedule.units.seats")}`].filter(Boolean).join("  ·  ")}
                             </div>
                         </div>
                         <div style={{ display:"flex", gap:8 }}>
-                            {[{l:"Total",v:total,c:"#fff"},{l:"Active",v:active,c:"#a5b4fc"},{l:"Done",v:done,c:"#6ee7b7"}].map(s=>(
+                            {[{l:tr("driverSchedule.stats.total"),v:total,c:"#fff"},{l:tr("driverSchedule.stats.active"),v:active,c:"#a5b4fc"},{l:tr("driverSchedule.stats.done"),v:done,c:"#6ee7b7"}].map(s=>(
                                 <div key={s.l} style={{ textAlign:"center", padding:"8px 14px", borderRadius:12, background:"rgba(255,255,255,0.12)" }}>
                                     <div style={{ fontSize:18, fontWeight:900, color:s.c, lineHeight:1 }}>{s.v}</div>
                                     <div style={{ fontSize:10, color:"rgba(255,255,255,0.55)", fontWeight:600, marginTop:2 }}>{s.l}</div>
@@ -448,13 +461,13 @@ export default function DriverSchedule({ car, bookings: initial, date: initDate 
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16, background:theme.surface, borderRadius:14, padding:"10px 14px", border:`1px solid ${theme.border}`, boxShadow:theme.shadowSm }}>
                     <button onClick={prevDay} style={{ width:32, height:32, borderRadius:8, border:`1px solid ${theme.border}`, background:theme.surfaceSoft, color:theme.textSoft, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>‹</button>
                     <div style={{ flex:1, textAlign:"center" }}>
-                        <div style={{ fontSize:14, fontWeight:700, color:theme.text }}>{fmtDate(date)}</div>
-                        {isToday && <div style={{ fontSize:10, fontWeight:700, color:theme.primary, letterSpacing:".05em" }}>TODAY</div>}
+                        <div style={{ fontSize:14, fontWeight:700, color:theme.text }}>{fmtDate(date, locale)}</div>
+                        {isToday && <div style={{ fontSize:10, fontWeight:700, color:theme.primary, letterSpacing:".05em" }}>{tr("driverSchedule.labels.todayUpper")}</div>}
                     </div>
                     <button onClick={nextDay} style={{ width:32, height:32, borderRadius:8, border:`1px solid ${theme.border}`, background:theme.surfaceSoft, color:theme.textSoft, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>›</button>
                     <input type="date" value={date} onChange={e=>changeDate(e.target.value)}
                         style={{ padding:"6px 10px", borderRadius:8, border:`1px solid ${theme.border}`, background:theme.inputBg, color:theme.text, fontSize:12, fontFamily:"inherit", cursor:"pointer", outline:"none" }}/>
-                    {!isToday && <button onClick={()=>changeDate(toISO(new Date()))} style={{ padding:"6px 12px", borderRadius:8, border:`1px solid ${theme.primary}30`, background:theme.primarySoft, color:theme.primary, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Today</button>}
+                    {!isToday && <button onClick={()=>changeDate(toISO(new Date()))} style={{ padding:"6px 12px", borderRadius:8, border:`1px solid ${theme.primary}30`, background:theme.primarySoft, color:theme.primary, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>{tr("driverSchedule.actions.today")}</button>}
                 </div>
 
                 {/* ── Status legend ── */}
@@ -466,25 +479,25 @@ export default function DriverSchedule({ car, bookings: initial, date: initDate 
                 {loading ? (
                     <div style={{ textAlign:"center", padding:"56px", color:theme.textMute, fontSize:13 }}>
                         <div style={{ display:"flex", justifyContent:"center", marginBottom:12 }}><Spinner size={22} color={theme.primary}/></div>
-                        Loading schedule…
+                        {tr("driverSchedule.messages.loadingSchedule")}
                     </div>
                 ) : bookings.length === 0 ? (
                     <div style={{ textAlign:"center", padding:"52px 24px", color:theme.textMute, background:theme.surface, borderRadius:16, border:`1px solid ${theme.border}` }}>
                         <div style={{ fontSize:36, marginBottom:10 }}>📭</div>
-                        <div style={{ fontWeight:700, fontSize:14, color:theme.textSoft, marginBottom:4 }}>No bookings on {fmtShort(date)}</div>
-                        <div style={{ fontSize:12 }}>You're free on this day.</div>
+                        <div style={{ fontWeight:700, fontSize:14, color:theme.textSoft, marginBottom:4 }}>{tr("driverSchedule.empty.noBookingsOn")} {fmtShort(date, locale)}</div>
+                        <div style={{ fontSize:12 }}>{tr("driverSchedule.empty.freeOnThisDay")}</div>
                     </div>
                 ) : (
                     <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                         {bookings.map(b=>(
-                            <BookingCard key={b.id} booking={b} onStatusUpdate={handleStatus} onCancel={setCancelModal} theme={theme} dark={dark}/>
+                            <BookingCard key={b.id} booking={b} onStatusUpdate={handleStatus} onCancel={setCancelModal} theme={theme} dark={dark} tr={tr} locale={locale}/>
                         ))}
                     </div>
                 )}
             </div>
 
-            {cancelModal && <CancelModal booking={cancelModal} onClose={()=>{ setCancelModal(null); fetchBookings(date); }} theme={theme}/>}
-            {noteModal   && <NoteModal   booking={noteModal}   onClose={()=>{ setNoteModal(null);   fetchBookings(date); }} theme={theme}/>}
+            {cancelModal && <CancelModal booking={cancelModal} onClose={()=>{ setCancelModal(null); fetchBookings(date); }} theme={theme} tr={tr} locale={locale}/>}
+            {noteModal   && <NoteModal   booking={noteModal}   onClose={()=>{ setNoteModal(null);   fetchBookings(date); }} theme={theme} tr={tr}/>}
         </AppLayout>
     );
 }

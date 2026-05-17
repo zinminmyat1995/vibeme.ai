@@ -15,11 +15,12 @@ export default function MailSidebar({
     syncing      = false,
     theme,
     darkMode     = false,
+    tr = (key, vars = {}, fallback = '') => fallback || key,
 }) {
     const tabs = [
         {
             key:   'inbox',
-            label: 'Inbox',
+            label: tr('smartMail.sidebar.inbox'),
             count: inboxCount,
             badge: unreadCount,
             color: theme.primary,
@@ -33,7 +34,7 @@ export default function MailSidebar({
         },
         {
             key:   'sent',
-            label: 'Sent',
+            label: tr('smartMail.sidebar.sent'),
             count: sentCount,
             badge: 0,
             color: theme.secondary,
@@ -47,7 +48,7 @@ export default function MailSidebar({
         },
         {
             key:   'starred',
-            label: 'Starred',
+            label: tr('smartMail.sidebar.starred'),
             count: starredCount,
             badge: 0,
             color: theme.warning,
@@ -76,7 +77,7 @@ export default function MailSidebar({
                     letterSpacing: '0.12em', textTransform: 'uppercase',
                     color: theme.textMute, marginBottom: 12,
                 }}>
-                    Mailbox
+                    {tr('smartMail.sidebar.mailbox')}
                 </div>
 
                 {/* Compose Button */}
@@ -101,7 +102,7 @@ export default function MailSidebar({
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
-                    Compose
+                    {tr('smartMail.actions.compose')}
                 </button>
             </div>
 
@@ -135,7 +136,7 @@ export default function MailSidebar({
                             <path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0 0 20.49 15"/>
                         </svg>
                     </span>
-                    {syncing ? 'Syncing...' : 'Sync Inbox'}
+                    {syncing ? tr('smartMail.actions.syncing') : tr('smartMail.actions.syncInbox')}
                 </button>
             </div>
 
@@ -227,7 +228,7 @@ export default function MailSidebar({
                         onMouseEnter={e => { if (!syncing) e.currentTarget.style.background = theme.panelSoft; }}
                         onMouseLeave={e => { if (!syncing) e.currentTarget.style.background = 'transparent'; }}
                     >
-                        {syncing ? 'Loading...' : '↓ Load More'}
+                        {syncing ? tr('smartMail.actions.loading') : `↓ ${tr('smartMail.actions.loadMore')}`}
                     </button>
                 )}
             </div>
@@ -235,7 +236,7 @@ export default function MailSidebar({
             {/* Divider */}
             <div style={{ height: 1, background: theme.border, margin: '8px 14px' }} />
 
-            {/* Connected Account */}
+            {/* {tr('smartMail.sidebar.connectedAccount')} */}
             {mailSetting && (
                 <div style={{ padding: '8px 14px 18px' }}>
                     <div style={{
@@ -243,7 +244,7 @@ export default function MailSidebar({
                         letterSpacing: '0.10em', textTransform: 'uppercase',
                         color: theme.textMute, marginBottom: 8,
                     }}>
-                        Connected Account
+                        {tr('smartMail.sidebar.connectedAccount')}
                     </div>
                     <div style={{
                         display: 'flex', alignItems: 'center', gap: 10,
@@ -286,12 +287,12 @@ export default function MailSidebar({
                             width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                             background: mailSetting.is_verified ? theme.success : theme.danger,
                             boxShadow: `0 0 0 2px ${mailSetting.is_verified ? theme.successSoft : theme.dangerSoft}`,
-                        }} title={mailSetting.is_verified ? 'Connected' : 'Not connected'} />
+                        }} title={mailSetting.is_verified ? tr('smartMail.status.connected') : tr('smartMail.status.notConnected')} />
                     </div>
 
                     {mailSetting.last_synced_at && (
                         <div style={{ fontSize: 10, color: theme.textMute, marginTop: 6, textAlign: 'center' }}>
-                            Synced · {mailSetting.last_synced_at}
+                            {tr('smartMail.sidebar.synced')} · {mailSetting.last_synced_at}
                         </div>
                     )}
                 </div>

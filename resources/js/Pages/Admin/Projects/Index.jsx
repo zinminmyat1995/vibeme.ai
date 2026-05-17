@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Head, router } from "@inertiajs/react";
 import { ChevronLeft } from "lucide-react";
 import AppLayout from "@/Layouts/AppLayout";
+import { useTranslation } from "@/Contexts/LanguageContext";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme System  (identical to Show.jsx / Assignments/Index.jsx)
@@ -74,10 +75,10 @@ function getTheme(dark) {
 // Config
 // ─────────────────────────────────────────────────────────────────────────────
 const ST = {
-    active:    { label:"Active",    color:"#16a34a", bg:"#f0fdf4", bgDark:"rgba(22,163,74,0.15)",   border:"#86efac" },
-    upcoming:  { label:"Upcoming",  color:"#2563eb", bg:"#eff6ff", bgDark:"rgba(37,99,235,0.15)",   border:"#93c5fd" },
-    completed: { label:"Completed", color:"#7c3aed", bg:"#f5f3ff", bgDark:"rgba(124,58,237,0.15)", border:"#c4b5fd" },
-    cancelled: { label:"Cancelled", color:"#9ca3af", bg:"#f9fafb", bgDark:"rgba(156,163,175,0.12)",border:"#d1d5db" },
+    active:    { label:"projects.status.active",    color:"#16a34a", bg:"#f0fdf4", bgDark:"rgba(22,163,74,0.15)",   border:"#86efac" },
+    upcoming:  { label:"projects.status.upcoming",  color:"#2563eb", bg:"#eff6ff", bgDark:"rgba(37,99,235,0.15)",   border:"#93c5fd" },
+    completed: { label:"projects.status.completed", color:"#7c3aed", bg:"#f5f3ff", bgDark:"rgba(124,58,237,0.15)", border:"#c4b5fd" },
+    cancelled: { label:"projects.status.cancelled", color:"#9ca3af", bg:"#f9fafb", bgDark:"rgba(156,163,175,0.12)",border:"#d1d5db" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -87,13 +88,13 @@ function fmt(d) {
     if (!d) return "—";
     return new Date(d).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
 }
-function daysLeft(end, status) {
+function daysLeft(end, status, tr) {
     if (!end || status === "completed" || status === "cancelled") return null;
     const d = Math.ceil((new Date(end) - new Date()) / 864e5);
-    if (d < 0)   return { label:`${Math.abs(d)}d overdue`, color:"#ef4444", bgLight:"#fef2f2", bgDark:"rgba(239,68,68,0.14)" };
-    if (d === 0) return { label:"Due today",               color:"#f59e0b", bgLight:"#fefce8", bgDark:"rgba(245,158,11,0.14)" };
-    if (d <= 7)  return { label:`${d}d left`,              color:"#f59e0b", bgLight:"#fefce8", bgDark:"rgba(245,158,11,0.14)" };
-    return             { label:`${d} days left`,           color:"#6b7280", bgLight:"#f3f4f6", bgDark:"rgba(107,114,128,0.14)" };
+    if (d < 0)   return { label:`${Math.abs(d)}${tr("projects.units.dayOverdue")}`, color:"#ef4444", bgLight:"#fef2f2", bgDark:"rgba(239,68,68,0.14)" };
+    if (d === 0) return { label:tr("projects.units.dueToday"),               color:"#f59e0b", bgLight:"#fefce8", bgDark:"rgba(245,158,11,0.14)" };
+    if (d <= 7)  return { label:`${d}${tr("projects.units.dayLeft")}`,              color:"#f59e0b", bgLight:"#fefce8", bgDark:"rgba(245,158,11,0.14)" };
+    return             { label:`${d} ${tr("projects.units.daysLeft")}`,           color:"#6b7280", bgLight:"#f3f4f6", bgDark:"rgba(107,114,128,0.14)" };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,13 +115,13 @@ function Ava({ name, url, size = 28 }) {
         border:"2px solid rgba(255,255,255,0.2)", boxShadow:"0 1px 4px rgba(0,0,0,0.15)" }}>{letters}</div>;
 }
 
-function StatusPill({ status, dark }) {
+function StatusPill({ status, dark, tr }) {
     const s = ST[status] || ST.cancelled;
     return <span style={{ fontSize:10, fontWeight:700, color:s.color,
         background: dark ? s.bgDark : s.bg,
         border:`1px solid ${dark ? s.color+"44" : s.border}`,
         padding:"3px 10px", borderRadius:99, textTransform:"uppercase",
-        letterSpacing:"0.06em", whiteSpace:"nowrap" }}>{s.label}</span>;
+        letterSpacing:"0.06em", whiteSpace:"nowrap" }}>{tr(s.label)}</span>;
 }
 
 function Spinner({ color = "#fff" }) {
@@ -146,7 +147,7 @@ function inp(t, err=false) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Confirm Update Modal
 // ─────────────────────────────────────────────────────────────────────────────
-function ConfirmModal({ projectName, onConfirm, onCancel, t, dark }) {
+function ConfirmModal({ projectName, onConfirm, onCancel, t, dark, tr }) {
     return (
         <div style={{ position:"fixed", inset:0, background:t.overlay,
             display:"flex", alignItems:"center", justifyContent:"center",
@@ -160,21 +161,21 @@ function ConfirmModal({ projectName, onConfirm, onCancel, t, dark }) {
                     background: dark?"rgba(16,185,129,0.16)":"#d1fae5",
                     border:`1.5px solid ${dark?"rgba(16,185,129,0.3)":"#6ee7b7"}`,
                     display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>✏️</div>
-                <h3 style={{ fontSize:16, fontWeight:800, color:t.text, marginBottom:8 }}>Confirm Update</h3>
+                <h3 style={{ fontSize:16, fontWeight:800, color:t.text, marginBottom:8 }}>{tr("projects.modal.confirmUpdate")}</h3>
                 <p style={{ fontSize:13, color:t.textSoft, marginBottom:24, lineHeight:1.7 }}>
-                    Are you sure you want to update<br/>
+                    {tr("projects.modal.confirmUpdateMessage")}<br/>
                     <strong style={{ color:t.text }}>"{projectName}"</strong>?
                 </p>
                 <div style={{ display:"flex", gap:10 }}>
                     <button onClick={onCancel} style={{ flex:1, padding:"11px", background:t.surfaceSoft,
                         border:`1.5px solid ${t.border}`, borderRadius:12, color:t.textSoft,
-                        fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+                        fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{tr("projects.actions.cancel")}</button>
                     <button onClick={onConfirm} style={{ flex:1, padding:"11px",
                         background:"linear-gradient(135deg,#059669,#10b981)",
                         border:"none", borderRadius:12, color:"#fff",
                         fontSize:13, fontWeight:700, cursor:"pointer",
                         boxShadow:"0 4px 14px rgba(5,150,105,0.38)",
-                        fontFamily:"inherit" }}>✅ Yes, Update</button>
+                        fontFamily:"inherit" }}>✅ {tr("projects.actions.yesUpdate")}</button>
                 </div>
             </div>
         </div>
@@ -184,7 +185,7 @@ function ConfirmModal({ projectName, onConfirm, onCancel, t, dark }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Project Modal (Create / Edit) — all original logic preserved
 // ─────────────────────────────────────────────────────────────────────────────
-function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
+function ProjectModal({ project, onClose, onSuccess, onError, t, dark, tr }) {
     const isEdit = !!project;
     const [form, setForm] = useState({
         name:        project?.name        || "",
@@ -200,11 +201,11 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
 
     const validate = () => {
         const e = {};
-        if (!form.name)       e.name       = "Required";
-        if (!form.start_date) e.start_date = "Required";
-        if (!form.end_date)   e.end_date   = "Required";
+        if (!form.name)       e.name       = tr("projects.validation.required");
+        if (!form.start_date) e.start_date = tr("projects.validation.required");
+        if (!form.end_date)   e.end_date   = tr("projects.validation.required");
         if (form.start_date && form.end_date && form.end_date < form.start_date)
-            e.end_date = "Must be after start date";
+            e.end_date = tr("projects.validation.endDateAfterStart");
         return e;
     };
 
@@ -217,8 +218,8 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
             if (submitting) return;
             setSubmitting(true);
             router.post("/admin/projects", form, {
-                onSuccess: () => { setSubmitting(false); onSuccess("Project created successfully!"); onClose(); },
-                onError:   () => { setSubmitting(false); onError("Failed to create project. Please try again."); },
+                onSuccess: () => { setSubmitting(false); onSuccess(tr("projects.messages.created")); onClose(); },
+                onError:   () => { setSubmitting(false); onError(tr("projects.messages.createFailed")); },
             });
         }
     };
@@ -229,16 +230,16 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
         router.put(`/admin/projects/${project.id}`, form, {
             preserveState:  true,
             preserveScroll: true,
-            onSuccess: () => { setSubmitting(false); onSuccess("Project updated successfully!"); onClose(); },
-            onError:   () => { setSubmitting(false); onError("Failed to update project. Please try again."); },
+            onSuccess: () => { setSubmitting(false); onSuccess(tr("projects.messages.updated")); onClose(); },
+            onError:   () => { setSubmitting(false); onError(tr("projects.messages.updateFailed")); },
         });
     };
 
     const statusOpts = [
-        { value:"upcoming",  label:"Upcoming",  icon:"🕐" },
-        { value:"active",    label:"Active",    icon:"⚡" },
-        { value:"completed", label:"Completed", icon:"✅" },
-        { value:"cancelled", label:"Cancelled", icon:"🚫" },
+        { value:"upcoming",  label:"projects.status.upcoming",  icon:"🕐" },
+        { value:"active",    label:"projects.status.active",    icon:"⚡" },
+        { value:"completed", label:"projects.status.completed", icon:"✅" },
+        { value:"cancelled", label:"projects.status.cancelled", icon:"🚫" },
     ];
 
     return (
@@ -258,7 +259,7 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
                             <div>
                                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                                     <h2 style={{ fontSize:16, fontWeight:800, color:t.text, margin:0 }}>
-                                        {isEdit ? "Edit Project" : "New Project"}
+                                        {isEdit ? tr("projects.modal.editProject") : tr("projects.modal.newProject")}
                                     </h2>
                                     {isEdit && (
                                         <span style={{ fontSize:12, color:t.textMute }}>—</span>
@@ -268,7 +269,7 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
                                     )}
                                 </div>
                                 <p style={{ fontSize:12, color:t.textMute, marginTop:3, margin:"4px 0 0 0" }}>
-                                    {isEdit ? "Update the project details below" : "Fill in the project details below"}
+                                    {isEdit ? tr("projects.modal.updateSubtitle") : tr("projects.modal.createSubtitle")}
                                 </p>
                             </div>
                             <button onClick={onClose} style={{ background:t.surfaceSoft, border:`1.5px solid ${t.border}`,
@@ -282,23 +283,23 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
 
                         {/* Name */}
                         <div>
-                            <FieldLabel t={t}>Project Name *</FieldLabel>
+                            <FieldLabel t={t}>{tr("projects.fields.projectName")} *</FieldLabel>
                             <input value={form.name} onChange={e => set("name",e.target.value)}
-                                placeholder="e.g. CRM System v2" style={inp(t, !!errors.name)} />
+                                placeholder={tr("projects.placeholders.projectName")} style={inp(t, !!errors.name)} />
                             {errors.name && <p style={{ fontSize:11, color:"#ef4444", marginTop:3 }}>{errors.name}</p>}
                         </div>
 
                         {/* Description */}
                         <div>
-                            <FieldLabel t={t}>Description <span style={{ fontWeight:400, textTransform:"none" }}>(optional)</span></FieldLabel>
+                            <FieldLabel t={t}>{tr("projects.fields.description")} <span style={{ fontWeight:400, textTransform:"none" }}>({tr("projects.fields.optional")})</span></FieldLabel>
                             <textarea value={form.description} onChange={e => set("description",e.target.value)}
-                                placeholder="Brief project description…" rows={2}
+                                placeholder={tr("projects.placeholders.description")} rows={2}
                                 style={{ ...inp(t), resize:"vertical" }} />
                         </div>
 
                         {/* Status — segmented buttons */}
                         <div>
-                            <FieldLabel t={t}>Status</FieldLabel>
+                            <FieldLabel t={t}>{tr("projects.fields.status")}</FieldLabel>
                             <div style={{ display:"flex", gap:6 }}>
                                 {statusOpts.map(opt => {
                                     const s   = ST[opt.value];
@@ -314,7 +315,7 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
                                                 display:"flex", flexDirection:"column", alignItems:"center", gap:3,
                                                 fontFamily:"inherit" }}>
                                             <span style={{ fontSize:14 }}>{opt.icon}</span>
-                                            <span>{opt.label}</span>
+                                            <span>{tr(opt.label)}</span>
                                         </button>
                                     );
                                 })}
@@ -323,7 +324,7 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
 
                         {/* Dates */}
                         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                            {[["Start Date *","start_date"],["End Date *","end_date"]].map(([lbl,key]) => (
+                            {[[`${tr("projects.fields.startDate")} *`,"start_date"],[`${tr("projects.fields.endDate")} *`,"end_date"]].map(([lbl,key]) => (
                                 <div key={key}>
                                     <FieldLabel t={t}>{lbl}</FieldLabel>
                                     <input type="date" value={form[key]} onChange={e => set(key,e.target.value)}
@@ -338,7 +339,7 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
                     <div style={{ padding:"0 24px 22px", display:"flex", gap:10 }}>
                         <button onClick={onClose} style={{ flex:1, padding:"11px", background:t.surfaceSoft,
                             border:`1.5px solid ${t.border}`, borderRadius:12, color:t.textSoft,
-                            fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Cancel</button>
+                            fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{tr("projects.actions.cancel")}</button>
                         <button onClick={handleClick} disabled={submitting} style={{ flex:2, padding:"11px",
                             background: submitting
                                 ? (isEdit?"#6ee7b7":"#a5b4fc")
@@ -354,8 +355,8 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
                             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
                             transition:"all 0.15s", fontFamily:"inherit" }}>
                             {submitting
-                                ? <><Spinner/> {isEdit?"Updating…":"Creating…"}</>
-                                : isEdit ? "💾 Update" : "✨ Create Project"
+                                ? <><Spinner/> {isEdit ? tr("projects.loading.updating") : tr("projects.loading.creating")}</>
+                                : isEdit ? `💾 ${tr("projects.actions.update")}` : `✨ ${tr("projects.actions.createProject")}`
                             }
                         </button>
                     </div>
@@ -366,7 +367,7 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
                 <ConfirmModal projectName={project?.name}
                     onConfirm={handleConfirm}
                     onCancel={() => setConfirm(false)}
-                    t={t} dark={dark} />
+                    t={t} dark={dark} tr={tr} />
             )}
         </>
     );
@@ -375,15 +376,15 @@ function ProjectModal({ project, onClose, onSuccess, onError, t, dark }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Delete Modal — all original logic preserved
 // ─────────────────────────────────────────────────────────────────────────────
-function DeleteModal({ project, onClose, onSuccess, onError, t, dark }) {
+function DeleteModal({ project, onClose, onSuccess, onError, t, dark, tr }) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const confirm = () => {
         if (isDeleting) return;
         setIsDeleting(true);
         router.delete(`/admin/projects/${project.id}`, {
-            onSuccess: () => { onSuccess("Project deleted successfully."); onClose(); },
-            onError:   () => { onError("Failed to delete project."); setIsDeleting(false); },
+            onSuccess: () => { onSuccess(tr("projects.messages.deleted")); onClose(); },
+            onError:   () => { onError(tr("projects.messages.deleteFailed")); setIsDeleting(false); },
         });
     };
 
@@ -401,18 +402,17 @@ function DeleteModal({ project, onClose, onSuccess, onError, t, dark }) {
                     background: dark?"rgba(239,68,68,0.16)":"#fee2e2",
                     border:`1.5px solid ${dark?"rgba(239,68,68,0.3)":"#fca5a5"}`,
                     display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🗑️</div>
-                <h3 style={{ fontSize:16, fontWeight:800, color:t.text, marginBottom:8 }}>Delete Project?</h3>
+                <h3 style={{ fontSize:16, fontWeight:800, color:t.text, marginBottom:8 }}>{tr("projects.modal.deleteProject")}</h3>
                 <p style={{ fontSize:13, color:t.textSoft, marginBottom:24, lineHeight:1.7 }}>
-                    <strong style={{ color:t.text }}>"{project.name}"</strong> will be permanently deleted
-                    along with all its assignments.<br/>
-                    <span style={{ fontSize:12, color:t.textMute }}>This action cannot be undone.</span>
+                    <strong style={{ color:t.text }}>"{project.name}"</strong> {tr("projects.modal.deleteMessage")}<br/>
+                    <span style={{ fontSize:12, color:t.textMute }}>{tr("projects.modal.cannotBeUndone")}</span>
                 </p>
                 <div style={{ display:"flex", gap:10 }}>
                     <button onClick={onClose} disabled={isDeleting} style={{
                         flex:1, padding:"11px", background:t.surfaceSoft,
                         border:`1.5px solid ${t.border}`, borderRadius:12, color:t.textSoft,
                         fontSize:13, fontWeight:600, cursor:isDeleting?"not-allowed":"pointer",
-                        opacity:isDeleting?0.5:1, fontFamily:"inherit" }}>Cancel</button>
+                        opacity:isDeleting?0.5:1, fontFamily:"inherit" }}>{tr("projects.actions.cancel")}</button>
                     <button onClick={confirm} disabled={isDeleting} style={{
                         flex:1, padding:"11px",
                         background: isDeleting?"#fca5a5":"linear-gradient(135deg,#ef4444,#dc2626)",
@@ -421,7 +421,7 @@ function DeleteModal({ project, onClose, onSuccess, onError, t, dark }) {
                         boxShadow: isDeleting?"none":"0 4px 14px rgba(239,68,68,0.38)",
                         display:"flex", alignItems:"center", justifyContent:"center", gap:7,
                         fontFamily:"inherit" }}>
-                        {isDeleting ? <><Spinner/> Deleting…</> : "🗑 Delete"}
+                        {isDeleting ? <><Spinner/> {tr("projects.loading.deleting")}</> : `🗑 ${tr("projects.actions.delete")}`}
                     </button>
                 </div>
             </div>
@@ -433,6 +433,7 @@ function DeleteModal({ project, onClose, onSuccess, onError, t, dark }) {
 // Main Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
+    const { t: tr } = useTranslation();
     const dark = useReactiveTheme();
     const t    = getTheme(dark);
 
@@ -505,8 +506,8 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
     }
 
     return (
-        <AppLayout title="Project Assignments">
-            <Head title="Projects" />
+        <AppLayout title={tr("projects.pageTitle")}>
+            <Head title={tr("projects.pageTitle")} />
             <style>{focusCSS}</style>
 
             <div style={{ minHeight:"100%", transition:"background 0.3s" }}>
@@ -516,7 +517,7 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
 
                     {/* Back button — ဘယ်ဘက် */}
                     <div onClick={() => router.visit("/admin/assignments")}
-                        title="Back to Assignments"
+                        title={tr("projects.actions.backToAssignments")}
                         style={{
                             display:"inline-flex", alignItems:"center", justifyContent:"center",
                             width:40, height:40, borderRadius:12, cursor:"pointer",
@@ -558,7 +559,7 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                                     </div>
                                     <div style={{ textAlign:"left" }}>
                                         <div style={{ fontSize:20, fontWeight:800, color:isActive?s.color:t.text, lineHeight:1 }}>{val}</div>
-                                        <div style={{ fontSize:10, color:isActive?s.color:t.textMute, fontWeight:600, marginTop:2, textTransform:"uppercase", letterSpacing:"0.05em" }}>{s.label}</div>
+                                        <div style={{ fontSize:10, color:isActive?s.color:t.textMute, fontWeight:600, marginTop:2, textTransform:"uppercase", letterSpacing:"0.05em" }}>{tr(s.label)}</div>
                                     </div>
                                 </button>
                             );
@@ -584,7 +585,7 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                             <input value={search} onChange={e => handleSearch(e.target.value)}
-                                placeholder="Search projects…"
+                                placeholder={tr("projects.placeholders.searchProjects")}
                                 style={{ width:"100%", paddingLeft:32, paddingRight:12, paddingTop:8, paddingBottom:8,
                                     fontSize:12, color:t.text, background:t.inputBg,
                                     border:`1.5px solid ${t.inputBorder}`, borderRadius:10,
@@ -605,14 +606,14 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                                         color: sel ? (s?s.color:t.primary) : t.textMute,
                                         fontFamily:"inherit",
                                     }}>
-                                        {k === "all" ? "All" : s.label}
+                                        {k === "all" ? tr("projects.status.all") : tr(s.label)}
                                     </button>
                                 );
                             })}
                         </div>
 
                         <div style={{ marginLeft:"auto", fontSize:12, color:t.textMute, fontWeight:500 }}>
-                            <span style={{ fontWeight:700, color:t.text }}>{filtered.length}</span> project{filtered.length!==1?"s":""}
+                            <span style={{ fontWeight:700, color:t.text }}>{filtered.length}</span> {filtered.length !== 1 ? tr("projects.units.projects") : tr("projects.units.project")}
                         </div>
                     </div>
 
@@ -620,24 +621,24 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                     {paged.length === 0 ? (
                         <div style={{ textAlign:"center", padding:"64px 0" }}>
                             <div style={{ fontSize:40, marginBottom:12 }}>📂</div>
-                            <div style={{ fontSize:14, fontWeight:600, color:t.textMute }}>No projects found</div>
-                            {search && <div style={{ fontSize:12, color:t.textMute, marginTop:4 }}>Try a different search term</div>}
+                            <div style={{ fontSize:14, fontWeight:600, color:t.textMute }}>{tr("projects.empty.noProjectsFound")}</div>
+                            {search && <div style={{ fontSize:12, color:t.textMute, marginTop:4 }}>{tr("projects.empty.tryDifferentSearch")}</div>}
                         </div>
                     ) : (
                         <table style={{ width:"100%", borderCollapse:"collapse" }}>
                             <thead>
                                 <tr style={{ borderBottom:`1px solid ${t.border}`, background:t.surfaceSoft }}>
-                                    {["Project","Status","Duration","Members","Days Left","Actions"].map(h => (
+                                    {[tr("projects.table.project"),tr("projects.table.status"),tr("projects.table.duration"),tr("projects.table.members"),tr("projects.table.daysLeft"),tr("projects.table.actions")].map(h => (
                                         <th key={h} style={{ padding:"11px 16px", fontSize:10, fontWeight:800,
                                             color:t.textMute, textTransform:"uppercase", letterSpacing:"0.07em",
-                                            textAlign: h==="Actions" ? "right" : "left", whiteSpace:"nowrap" }}>{h}</th>
+                                            textAlign: h===tr("projects.table.actions") ? "right" : "left", whiteSpace:"nowrap" }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {paged.map((p, i) => {
                                     const members = p.assignments?.filter(a => a.status!=="removed") || [];
-                                    const dl      = daysLeft(p.end_date, p.status);
+                                    const dl      = daysLeft(p.end_date, p.status, tr);
                                     const s       = ST[p.status] || ST.cancelled;
                                     return (
                                         <tr key={p.id} style={{
@@ -667,7 +668,7 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
 
                                             {/* Status */}
                                             <td style={{ padding:"14px 16px" }}>
-                                                <StatusPill status={p.status} dark={dark} />
+                                                <StatusPill status={p.status} dark={dark} tr={tr} />
                                             </td>
 
                                             {/* Duration FROM/TO */}
@@ -676,13 +677,13 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                                                     <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                                                         <span style={{ fontSize:9, fontWeight:800, color:"#3b82f6",
                                                             textTransform:"uppercase", letterSpacing:"0.08em",
-                                                            width:28, flexShrink:0 }}>FROM</span>
+                                                            width:28, flexShrink:0 }}>{tr("projects.table.from")}</span>
                                                         <span style={{ fontSize:12, fontWeight:600, color:t.text }}>{fmt(p.start_date)}</span>
                                                     </div>
                                                     <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                                                         <span style={{ fontSize:9, fontWeight:800, color:"#10b981",
                                                             textTransform:"uppercase", letterSpacing:"0.08em",
-                                                            width:28, flexShrink:0 }}>TO</span>
+                                                            width:28, flexShrink:0 }}>{tr("projects.table.to")}</span>
                                                         <span style={{ fontSize:12, fontWeight:600, color:t.text }}>{fmt(p.end_date)}</span>
                                                     </div>
                                                 </div>
@@ -742,7 +743,7 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                                                         fontFamily:"inherit" }}
                                                         onMouseEnter={e => e.currentTarget.style.background=dark?"rgba(99,102,241,0.22)":"#ede9fe"}
                                                         onMouseLeave={e => e.currentTarget.style.background=dark?"rgba(99,102,241,0.12)":"#f5f3ff"}
-                                                    >👁 View</button>
+                                                    >👁 {tr("projects.actions.view")}</button>
                                                     <button onClick={() => setEdit(p)} 
                                                         style={{
                                                             width: 40,
@@ -794,7 +795,7 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                                     background: page===1 ? t.surfaceSoft : t.surface,
                                     color: page===1 ? t.textMute : t.textSoft,
                                     cursor: page===1 ? "not-allowed":"pointer", fontFamily:"inherit" }}>
-                                ← Prev
+                                ← {tr("projects.pagination.prev")}
                             </button>
                             {Array.from({ length:totalPages },(_,i)=>i+1).map(n => (
                                 <button key={n} onClick={() => setPage(n)} style={{
@@ -812,7 +813,7 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                                     background: page===totalPages ? t.surfaceSoft : t.surface,
                                     color: page===totalPages ? t.textMute : t.textSoft,
                                     cursor: page===totalPages ? "not-allowed":"pointer", fontFamily:"inherit" }}>
-                                Next →
+                                {tr("projects.pagination.next")} →
                             </button>
                         </div>
                     )}
@@ -826,7 +827,7 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                     onClose={() => setEdit(null)}
                     onSuccess={() => {}}
                     onError={() => {}}
-                    t={t} dark={dark}
+                    t={t} dark={dark} tr={tr}
                 />
             )}
             {deleteProject && (
@@ -835,7 +836,7 @@ export default function ProjectsIndex({ projects: projectsProp = [], auth }) {
                     onClose={() => setDelete(null)}
                     onSuccess={() => {}}
                     onError={() => {}}
-                    t={t} dark={dark}
+                    t={t} dark={dark} tr={tr}
                 />
             )}
         </AppLayout>

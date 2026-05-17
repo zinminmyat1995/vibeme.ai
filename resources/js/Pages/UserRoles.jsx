@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { useForm, router } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 const COUNTRIES = [
     { code: 'myanmar', label: 'Myanmar' },
@@ -714,6 +715,7 @@ function FieldError({ msg, darkMode = false }) {
 
 // FIX 3: currentUser prop added — HR role sees read-only country badge
 function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = null }) {
+    const { t: tr } = useTranslation();
     const theme = getTheme(darkMode);
     const isEdit = !!editUser;
     const isHR = currentUser?.role === 'hr';
@@ -750,7 +752,7 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
     };
 
     const roleOptions = [
-        { value: '', label: 'Select role...' },
+        { value: '', label: tr('userRoles.placeholders.selectRole') },
         ...roles.map(r => ({
             value: String(r.id),
             label: r.display_name,
@@ -758,13 +760,13 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
     ];
 
     const employmentTypeOptions = [
-        { value: 'probation', label: 'Probation' },
-        { value: 'permanent', label: 'Permanent' },
-        { value: 'contract', label: 'Contract' },
+        { value: 'probation', label: tr('profile.employmentTypes.probation') },
+        { value: 'permanent', label: tr('profile.employmentTypes.permanent') },
+        { value: 'contract', label: tr('profile.employmentTypes.contract') },
     ];
 
     const countryOptions = [
-        { value: '', label: 'Select country...', disabled: true },
+        { value: '', label: tr('userRoles.placeholders.selectCountry'), disabled: true },
         ...COUNTRIES.map(c => ({
             value: c.code,
             label: c.label,
@@ -804,19 +806,19 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
         <form onSubmit={submit} encType="multipart/form-data">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
                 <div style={{ gridColumn: '1/-1' }}>
-                    <label style={lbl}>Full Name <span style={{ color: theme.danger }}>*</span></label>
-                    <input value={form.data.name} onChange={e => form.setData('name', e.target.value)} placeholder="John Doe" style={inputStyle(theme, !!form.errors.name)} />
+                    <label style={lbl}>{tr('userRoles.fields.fullName')} <span style={{ color: theme.danger }}>*</span></label>
+                    <input value={form.data.name} onChange={e => form.setData('name', e.target.value)} placeholder={tr('userRoles.placeholders.fullName')} style={inputStyle(theme, !!form.errors.name)} />
                     <FieldError msg={form.errors.name} darkMode={darkMode} />
                 </div>
 
                 <div style={{ gridColumn: '1/-1' }}>
-                    <label style={lbl}>Email Address <span style={{ color: theme.danger }}>*</span></label>
-                    <input type="email" value={form.data.email} onChange={e => form.setData('email', e.target.value)} placeholder="john@vibeme.ai" style={inputStyle(theme, !!form.errors.email)} />
+                    <label style={lbl}>{tr('userRoles.fields.emailAddress')} <span style={{ color: theme.danger }}>*</span></label>
+                    <input type="email" value={form.data.email} onChange={e => form.setData('email', e.target.value)} placeholder={tr('userRoles.placeholders.email')} style={inputStyle(theme, !!form.errors.email)} />
                     <FieldError msg={form.errors.email} darkMode={darkMode} />
                 </div>
 
                 <div style={{ gridColumn: '1/-1' }}>
-                    <label style={lbl}>Date of Birth <span style={{ color: theme.danger }}>*</span></label>
+                    <label style={lbl}>{tr('userRoles.fields.dateOfBirth')} <span style={{ color: theme.danger }}>*</span></label>
                     <input
                         type="date"
                         value={form.data.date_of_birth || ''}
@@ -830,7 +832,7 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
                 {/* FIX 3: HR → read-only country badge; admin → dropdown selector */}
                 {isHR ? (
                     <div style={{ gridColumn: '1/-1' }}>
-                        <label style={lbl}>Country</label>
+                        <label style={lbl}>{tr('userRoles.fields.country')}</label>
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -847,18 +849,18 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
                                     : '—'}
                             </span>
                             <span style={{ fontSize: 11, color: theme.textMute, marginLeft: 'auto' }}>
-                                Auto-assigned
+                                {tr('userRoles.labels.autoAssigned')}
                             </span>
                         </div>
                     </div>
                 ) : (
                     <div style={{ gridColumn: '1/-1', position: 'relative', zIndex: 900 }}>
-                        <label style={lbl}>Country <span style={{ color: theme.danger }}>*</span></label>
+                        <label style={lbl}>{tr('userRoles.fields.country')} <span style={{ color: theme.danger }}>*</span></label>
                         <PremiumSelect
                             options={countryOptions}
                             value={form.data.country}
                             onChange={(val) => form.setData('country', val)}
-                            placeholder="Select country..."
+                            placeholder={tr('userRoles.placeholders.selectCountry')}
                             theme={theme}
                             darkMode={darkMode}
                             minWidth={0}
@@ -891,18 +893,18 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
                 )}
 
                 <div style={{ gridColumn: '1/-1' }}>
-                    <label style={lbl}>{isEdit ? 'New Password' : 'Password'} {!isEdit && <span style={{ color: theme.danger }}>*</span>}</label>
+                    <label style={lbl}>{isEdit ? tr('userRoles.fields.newPassword') : tr('userRoles.fields.password')} {!isEdit && <span style={{ color: theme.danger }}>*</span>}</label>
                     <input type="password" value={form.data.password} onChange={e => form.setData('password', e.target.value)} placeholder="••••••••" style={inputStyle(theme, !!form.errors.password)} />
                     <FieldError msg={form.errors.password} darkMode={darkMode} />
                 </div>
 
                 <div>
-                    <label style={lbl}>Role <span style={{ color: theme.danger }}>*</span></label>
+                    <label style={lbl}>{tr('userRoles.fields.role')} <span style={{ color: theme.danger }}>*</span></label>
                     <PremiumSelect
                         options={roleOptions}
                         value={form.data.role_id}
                         onChange={(val) => form.setData('role_id', val)}
-                        placeholder="Select role..."
+                        placeholder={tr('userRoles.placeholders.selectRole')}
                         theme={theme}
                         darkMode={darkMode}
                         minWidth={0}
@@ -913,31 +915,31 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
                 </div>
 
                 <div>
-                    <label style={lbl}>Department</label>
-                    <input value={form.data.department} onChange={e => form.setData('department', e.target.value)} placeholder="Engineering" style={inputStyle(theme, !!form.errors.department)} />
+                    <label style={lbl}>{tr('userRoles.fields.department')}</label>
+                    <input value={form.data.department} onChange={e => form.setData('department', e.target.value)} placeholder={tr('userRoles.placeholders.department')} style={inputStyle(theme, !!form.errors.department)} />
                     <FieldError msg={form.errors.department} darkMode={darkMode} />
                 </div>
 
                 <div>
-                    <label style={lbl}>Position</label>
-                    <input value={form.data.position} onChange={e => form.setData('position', e.target.value)} placeholder="Senior Developer" style={inputStyle(theme, !!form.errors.position)} />
+                    <label style={lbl}>{tr('userRoles.fields.position')}</label>
+                    <input value={form.data.position} onChange={e => form.setData('position', e.target.value)} placeholder={tr('userRoles.placeholders.position')} style={inputStyle(theme, !!form.errors.position)} />
                     <FieldError msg={form.errors.position} darkMode={darkMode} />
                 </div>
 
                 <div>
-                    <label style={lbl}>Phone</label>
+                    <label style={lbl}>{tr('userRoles.fields.phone')}</label>
                     <input value={form.data.phone} onChange={e => form.setData('phone', e.target.value)} placeholder="+855 12 345 678" style={inputStyle(theme, !!form.errors.phone)} />
                     <FieldError msg={form.errors.phone} darkMode={darkMode} />
                 </div>
 
                 <div>
-                    <label style={lbl}>Joined Date</label>
+                    <label style={lbl}>{tr('userRoles.fields.joinedDate')}</label>
                     <input type="date" value={form.data.joined_date || ''} onChange={e => form.setData('joined_date', e.target.value)} style={inputStyle(theme, !!form.errors.joined_date)} />
                     <FieldError msg={form.errors.joined_date} darkMode={darkMode} />
                 </div>
 
                 <div>
-                    <label style={lbl}>Employment Type</label>
+                    <label style={lbl}>{tr('userRoles.fields.employmentType')}</label>
                     <PremiumSelect
                         options={employmentTypeOptions}
                         value={form.data.employment_type || 'probation'}
@@ -959,14 +961,14 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
 
                 {form.data.employment_type === 'contract' && (
                     <div style={{ gridColumn: '1/-1' }}>
-                        <label style={lbl}>Contract End Date <span style={{ color: theme.danger }}>*</span></label>
+                        <label style={lbl}>{tr('userRoles.fields.contractEndDate')} <span style={{ color: theme.danger }}>*</span></label>
                         <input type="date" value={form.data.contract_end_date || ''} onChange={e => form.setData('contract_end_date', e.target.value)} style={inputStyle(theme, !!form.errors.contract_end_date)} min={new Date().toISOString().split('T')[0]} />
                         <FieldError msg={form.errors.contract_end_date} darkMode={darkMode} />
                     </div>
                 )}
 
                 <div style={{ gridColumn: '1/-1' }}>
-                    <label style={lbl}>Profile Photo</label>
+                    <label style={lbl}>{tr('userRoles.fields.profilePhoto')}</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ flex: 1, border: `1px solid ${theme.inputBorder}`, borderRadius: 16, padding: '10px 12px', background: theme.inputBg }}>
                             <input
@@ -1064,7 +1066,7 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
                         </button>
 
                         <span style={{ fontSize: 12, color: form.data.is_active ? theme.success : theme.textMute, fontWeight: 900, minWidth: 55 }}>
-                            {form.data.is_active ? 'Active' : 'Inactive'}
+                            {form.data.is_active ? tr('userRoles.status.active') : tr('userRoles.status.inactive')}
                         </span>
                     </div>
                 )}
@@ -1072,14 +1074,14 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
 
             <div style={{ display: 'flex', gap: 10, marginTop: 26, justifyContent: 'flex-end' }}>
                 <UIButton type="button" onClick={onClose} variant="ghost" theme={theme}>
-                    Cancel
+                    {tr('userRoles.actions.cancel')}
                 </UIButton>
 
                 <UIButton type="submit" disabled={form.processing} variant="primary" theme={theme}>
                     {form.processing && (
                         <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
                     )}
-                    {form.processing ? 'Saving...' : isEdit ? 'Update User' : 'Create User'}
+                    {form.processing ? tr('userRoles.actions.saving') : isEdit ? tr('userRoles.actions.updateUser') : tr('userRoles.actions.createUser')}
                 </UIButton>
             </div>
         </form>
@@ -1087,6 +1089,7 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
 }
 
 function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) {
+    const { t: tr } = useTranslation();
     const theme = getTheme(darkMode);
 
     return (
@@ -1114,13 +1117,13 @@ function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) 
 
             <p style={{ fontSize: 13, color: theme.textMute, marginBottom: 24, lineHeight: 1.7 }}>
                 Are you sure you want to delete <strong style={{ color: theme.text }}>{user?.name}</strong>?<br />
-                This action cannot be undone.
+                {tr('userRoles.confirm.cannotBeUndone')}
             </p>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
                 <UIButton onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
                 <UIButton onClick={onConfirm} disabled={loading} variant="danger" theme={theme}>
-                    {loading ? 'Deleting...' : 'Yes, Delete'}
+                    {loading ? tr('userRoles.actions.deleting') : tr('userRoles.actions.yesDelete')}
                 </UIButton>
             </div>
         </div>
@@ -1129,6 +1132,7 @@ function DeleteConfirm({ user, onClose, onConfirm, loading, darkMode = false }) 
 
 // FIX 3: currentUser prop added to component signature
 export default function UserRoles({ users = [], roles = [], roleName = '', currentUser = null }) {
+    const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
@@ -1204,16 +1208,16 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
     const totalActive = users.filter(u => u.is_active).length;
 
     const countryOptions = [
-        { value: '', label: 'All Countries' },
-        { value: 'cambodia', label: 'Cambodia', code: 'cambodia' },
-        { value: 'myanmar', label: 'Myanmar', code: 'myanmar' },
-        { value: 'vietnam', label: 'Vietnam', code: 'vietnam' },
-        { value: 'korea', label: 'Korea', code: 'korea' },
-        { value: 'japan', label: 'Japan', code: 'japan' },
+        { value: '', label: tr('userRoles.filters.allCountries') },
+        { value: 'cambodia', label: tr('profile.countries.cambodia'), code: 'cambodia' },
+        { value: 'myanmar', label: tr('profile.countries.myanmar'), code: 'myanmar' },
+        { value: 'vietnam', label: tr('profile.countries.vietnam'), code: 'vietnam' },
+        { value: 'korea', label: tr('profile.countries.korea'), code: 'korea' },
+        { value: 'japan', label: tr('profile.countries.japan'), code: 'japan' },
     ];
 
     const roleOptions = [
-        { value: '', label: 'All Roles' },           // ← disabled မပါ၊ ပြန်ရွေးနိုင်
+        { value: '', label: tr('userRoles.filters.allRoles') },           // ← disabled မပါ၊ ပြန်ရွေးနိုင်
         ...roles.map(r => ({
             value: r.name,                            // ← id မဟုတ်ဘဲ name သိမ်း
             label: r.display_name,
@@ -1221,7 +1225,7 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
     ];
 
     return (
-        <AppLayout title="User & Roles">
+        <AppLayout title={tr('userRoles.pageTitle')}>
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
                 @keyframes modalIn {
@@ -1242,22 +1246,22 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                     <div style={{ position: 'absolute', inset: 0, background: theme.glass, pointerEvents: 'none' }} />
                     <div style={{ position: 'relative' }}>
                         <SectionTitle
-                            eyebrow="User Management"
-                            title="Premium workspace overview"
-                            desc="Same flow and same logic, upgraded with a cleaner, more professional interface."
+                            eyebrow={tr('userRoles.hero.eyebrow')}
+                            title={tr('userRoles.hero.title')}
+                            desc={tr('userRoles.hero.desc')}
                             theme={theme}
                         />
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr repeat(4, 1fr)', gap: 14, marginTop: 22 }}>
                             <div style={{ ...card(theme, { padding: 18, minHeight: 112, position: 'relative', overflow: 'hidden' }) }}>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Members</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{tr('userRoles.stats.members')}</div>
                                 <div style={{ marginTop: 12, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10 }}>
                                     <div>
                                         <div style={{ fontSize: 32, lineHeight: 1, fontWeight: 900, color: theme.text }}>{users.length}</div>
-                                        <div style={{ marginTop: 7, fontSize: 12, color: theme.textMute }}>Total registered users</div>
+                                        <div style={{ marginTop: 7, fontSize: 12, color: theme.textMute }}>{tr('userRoles.stats.totalRegisteredUsers')}</div>
                                     </div>
                                     <div style={{ padding: '7px 11px', borderRadius: 999, background: theme.successSoft, color: theme.success, fontSize: 11, fontWeight: 900 }}>
-                                        {totalActive} active
+                                        {totalActive} {tr('userRoles.stats.active')}
                                     </div>
                                 </div>
                             </div>
@@ -1318,7 +1322,7 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="Search by name or email..."
+                            placeholder={tr('userRoles.placeholders.searchByNameOrEmail')}
                             style={{
                                 background: 'transparent',
                                 border: 'none',
@@ -1341,7 +1345,7 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                             options={countryOptions}
                             value={filterCountry}
                             onChange={setFilterCountry}
-                            placeholder="All Countries"
+                            placeholder={tr('userRoles.filters.allCountries')}
                             theme={theme}
                             darkMode={darkMode}
                             minWidth={180}
@@ -1368,7 +1372,7 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                         options={roleOptions}
                         value={filterRole}
                         onChange={setFilterRole}
-                        placeholder="All Roles"
+                        placeholder={tr('userRoles.filters.allRoles')}
                         theme={theme}
                         darkMode={darkMode}
                         minWidth={170}
@@ -1379,16 +1383,16 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                             <path d="M12 5v14" />
                             <path d="M5 12h14" />
                         </svg>
-                        Add New User
+                        {tr('userRoles.actions.addNewUser')}
                     </UIButton>
                 </div>
 
                 <div style={{ ...card(theme), overflow: 'hidden' }}>
                     <div style={{ padding: '18px 20px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <div>
-                            <div style={{ fontSize: 16, fontWeight: 900, color: theme.text }}>Team members</div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: theme.text }}>{tr('userRoles.table.teamMembers')}</div>
                             <div style={{ marginTop: 4, fontSize: 12, color: theme.textMute }}>
-                                {filtered.length} result{filtered.length !== 1 ? 's' : ''} found
+                                {filtered.length} {filtered.length !== 1 ? tr('userRoles.labels.results') : tr('userRoles.labels.result')} {tr('userRoles.labels.found')}
                             </div>
                         </div>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 999, background: theme.panelSoft, color: theme.textSoft, fontSize: 11, fontWeight: 900, boxShadow: theme.chipShadow }}>
@@ -1401,7 +1405,19 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
-                                    {['User', 'Country', 'Role', 'Department', 'Position', 'Phone', 'Date of Birth', 'Employment', 'Joined', 'Status', 'Actions'].map(h => (
+                                    {[
+                                        tr('userRoles.table.user'),
+                                        tr('userRoles.table.country'),
+                                        tr('userRoles.table.role'),
+                                        tr('userRoles.table.department'),
+                                        tr('userRoles.table.position'),
+                                        tr('userRoles.table.phone'),
+                                        tr('userRoles.table.dateOfBirth'),
+                                        tr('userRoles.table.employment'),
+                                        tr('userRoles.table.joined'),
+                                        tr('userRoles.table.status'),
+                                        tr('userRoles.table.actions')
+                                    ].map(h => (
                                         <th
                                             key={h}
                                             style={{
@@ -1431,8 +1447,8 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                                                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                                                 </svg>
                                             </div>
-                                            <div style={{ fontSize: 15, color: theme.text, fontWeight: 900 }}>No users found</div>
-                                            <div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>Try adjusting search or filters.</div>
+                                            <div style={{ fontSize: 15, color: theme.text, fontWeight: 900 }}>{tr('userRoles.empty.noUsersFound')}</div>
+                                            <div style={{ marginTop: 6, fontSize: 12, color: theme.textMute }}>{tr('userRoles.empty.tryAdjusting')}</div>
                                         </td>
                                     </tr>
                                 ) : filtered.map((user, i) => (
@@ -1539,7 +1555,7 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
                                                 }}
                                             >
                                                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: user.is_active ? theme.success : theme.danger, display: 'inline-block' }} />
-                                                {user.is_active ? 'Active' : 'Inactive'}
+                                                {user.is_active ? tr('userRoles.status.active') : tr('userRoles.status.inactive')}
                                             </button>
                                         </td>
 
@@ -1591,17 +1607,17 @@ export default function UserRoles({ users = [], roles = [], roleName = '', curre
             </div>
 
             {/* FIX 3: pass currentUser to UserForm */}
-            <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add New User" subtitle="User Management" darkMode={darkMode}>
+            <Modal open={showCreate} onClose={() => setShowCreate(false)} title={tr('userRoles.modal.addNewUser')} subtitle={tr('userRoles.modal.userManagement')} darkMode={darkMode}>
                 <UserForm roles={roles} onClose={() => setShowCreate(false)} darkMode={darkMode} currentUser={currentUser} />
             </Modal>
 
-            <Modal open={!!editUser} onClose={() => setEditUser(null)} title="Edit User" subtitle="Update Profile" darkMode={darkMode}>
+            <Modal open={!!editUser} onClose={() => setEditUser(null)} title={tr('userRoles.modal.editUser')} subtitle={tr('userRoles.modal.updateProfile')} darkMode={darkMode}>
                 {editUser && (
                     <UserForm key={editUser.id} roles={roles} editUser={editUser} onClose={() => setEditUser(null)} darkMode={darkMode} currentUser={currentUser} />
                 )}
             </Modal>
 
-            <Modal open={!!deleteUser} onClose={() => setDeleteUser(null)} title="Confirm Delete" subtitle="Danger Zone" darkMode={darkMode}>
+            <Modal open={!!deleteUser} onClose={() => setDeleteUser(null)} title={tr('userRoles.modal.confirmDelete')} subtitle={tr('userRoles.modal.dangerZone')} darkMode={darkMode}>
                 <DeleteConfirm user={deleteUser} onClose={() => setDeleteUser(null)} onConfirm={handleDelete} loading={deleting} darkMode={darkMode} />
             </Modal>
         </AppLayout>

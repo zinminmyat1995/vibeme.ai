@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ── Helpers ───────────────────────────────────────────────────────
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
@@ -212,10 +213,10 @@ function Spinner({ size = 14, color = '#7c3aed' }) {
 }
 
 // ── StatusPill ────────────────────────────────────────────────────
-function StatusPill({ status, dark }) {
+function StatusPill({ status, dark, tr }) {
     const c = status === 'paid'
-        ? { bg: dark ? 'rgba(52,211,153,0.16)' : '#d1fae5', color: dark ? '#34d399' : '#059669', label: 'Paid', dot: '#34d399' }
-        : { bg: dark ? 'rgba(139,92,246,0.18)' : '#ede9fe', color: dark ? '#a78bfa' : '#7c3aed', label: 'Confirmed', dot: '#a78bfa' };
+        ? { bg: dark ? 'rgba(52,211,153,0.16)' : '#d1fae5', color: dark ? '#34d399' : '#059669', label: tr('bankExport.statusPaid'), dot: '#34d399' }
+        : { bg: dark ? 'rgba(139,92,246,0.18)' : '#ede9fe', color: dark ? '#a78bfa' : '#7c3aed', label: tr('bankExport.statusConfirmed'), dot: '#a78bfa' };
     return (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: c.color, background: c.bg, borderRadius: 99, padding: '3px 10px', whiteSpace: 'nowrap' }}>
             <span style={{ width: 5, height: 5, borderRadius: '50%', background: c.dot, flexShrink: 0 }} />
@@ -228,6 +229,7 @@ function StatusPill({ status, dark }) {
 export default function BankExportIndex({ salaryRule, periodTemplates, employees }) {
     const dark  = useReactiveTheme();
     const theme = React.useMemo(() => getTheme(dark), [dark]);
+    const { t: tr } = useTranslation();
 
     const now         = new Date();
     const cycle       = salaryRule?.pay_cycle ?? 'monthly';
@@ -269,7 +271,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
             setPreview(data);
             if (data.bank_email) setBankEmail(data.bank_email);
         } catch {
-            toast('Failed to load preview', 'error');
+            toast(tr('bankExport.failedToLoad'), 'error');
         } finally {
             setLoading(false);
         }
@@ -281,7 +283,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
         setLoad(true);
         try {
             const res = await fetch(`/payroll/export/${type}?${buildParams()}`, { headers: { 'X-CSRF-TOKEN': csrf() } });
-            if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message ?? 'Download failed');
+            if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message ?? tr('bankExport.downloadFailed'));
             const blob = await res.blob();
             const url  = URL.createObjectURL(blob);
             const a    = document.createElement('a');
@@ -289,7 +291,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
             a.download = `bank_transfer_${preview?.period_label?.replace(/[^a-zA-Z0-9]/g, '_') ?? 'export'}.${type === 'excel' ? 'xlsx' : 'pdf'}`;
             a.click();
             URL.revokeObjectURL(url);
-            toast(`${type === 'excel' ? 'Excel' : 'PDF'} downloaded successfully!`);
+            toast(`${type === 'excel' ? 'Excel' : 'PDF'} ${tr('bankExport.downloadedSuccess')}`);
         } catch (e) {
             toast(e.message, 'error');
         } finally {
@@ -302,9 +304,9 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
         try {
             const res  = await fetch(`/payroll/export/mark-paid/${recordId}`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': csrf(), 'Content-Type': 'application/json' } });
             const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.message ?? 'Failed');
+            if (!res.ok) throw new Error(data.message ?? tr('bankExport.failed'));
             setPreview(prev => prev ? { ...prev, records: prev.records.map(r => r.id === recordId ? { ...r, status: 'paid' } : r) } : prev);
-            toast('Marked as paid');
+            toast(tr('bankExport.markedAsPaid'));
         } catch (e) {
             toast(e.message, 'error');
         } finally {
@@ -317,9 +319,9 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
         try {
             const res  = await fetch(`/payroll/export/mark-all-paid?${buildParams()}`, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': csrf(), 'Content-Type': 'application/json' } });
             const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.message ?? 'Failed');
+            if (!res.ok) throw new Error(data.message ?? tr('bankExport.failed'));
             setPreview(prev => prev ? { ...prev, records: prev.records.map(r => ({ ...r, status: 'paid' })) } : prev);
-            toast(`${data.updated ?? ''} records marked as paid`);
+            toast(`${data.updated ?? ''} ${tr('bankExport.recordsMarkedPaid')}`);
         } catch (e) {
             toast(e.message, 'error');
         } finally {
@@ -338,8 +340,8 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                 body: JSON.stringify({ email: bankEmail }),
             });
             const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.message ?? 'Failed to send');
-            toast('PDF sent to bank successfully! ✉️');
+            if (!res.ok) throw new Error(data.message ?? tr('bankExport.failedToSend'));
+            toast(tr('bankExport.sentSuccess'));
             setSendModal(false);
         } catch (e) {
             toast(e.message, 'error');
@@ -357,8 +359,8 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
     // ── Options ──
     const yearOpts   = years.map(y => ({ value: y, label: String(y) }));
     const monthOpts  = MONTHS.map((m, i) => ({ value: i + 1, label: m }));
-    const periodOpts = periodTemplates.map(p => ({ value: p.id, label: `Period ${p.period_number}` }));
-    const empOpts    = [{ value: '', label: 'All Employees' }, ...employees.map(e => ({ value: e.id, label: e.name }))];
+    const periodOpts = periodTemplates.map(p => ({ value: p.id, label: `${tr('bankExport.period')} ${p.period_number}` }));
+    const empOpts    = [{ value: '', label: tr('bankExport.allEmployees') }, ...employees.map(e => ({ value: e.id, label: e.name }))];
 
     return (
         <AppLayout title="Bank Export">
@@ -378,26 +380,26 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                 {/* ── Filter card ───────────────────────────────── */}
                 <div style={{ background: theme.surface, borderRadius: 14, border: `1px solid ${theme.border}`, padding: '16px 20px', marginBottom: 16, boxShadow: theme.shadow }}>
                     <div style={{ fontSize: 10, fontWeight: 800, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12 }}>
-                        Pay Period Filter
+                        {tr('bankExport.payPeriodFilter')}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
 
                         {/* Year */}
                         <div>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Year</div>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{tr('bankExport.year')}</div>
                             <PremiumSelect options={yearOpts} value={year} onChange={v => setYear(Number(v))} width={90} dark={dark} theme={theme} />
                         </div>
 
                         {/* Month */}
                         <div>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Month</div>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{tr('bankExport.month')}</div>
                             <PremiumSelect options={monthOpts} value={month} onChange={v => setMonth(Number(v))} width={130} dark={dark} theme={theme} />
                         </div>
 
                         {/* Period */}
                         {periodCount > 1 && (
                             <div>
-                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Period</div>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{tr('bankExport.period')}</div>
                                 <PremiumSelect options={periodOpts} value={periodId} onChange={v => setPeriodId(v)} width={120} dark={dark} theme={theme} />
                             </div>
                         )}
@@ -407,7 +409,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
 
                         {/* Employee */}
                         <div>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Employee</div>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: theme.textMute, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{tr('bankExport.employee')}</div>
                             <PremiumSelect options={empOpts} value={userId} onChange={v => setUserId(v)} width={200} dark={dark} theme={theme} />
                         </div>
 
@@ -416,7 +418,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                             onClick={loadPreview} disabled={loading}
                             style={{ alignSelf: 'flex-end', height: 38, padding: '0 16px', borderRadius: 8, border: `1.5px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.textSoft, fontSize: 12, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit', transition: 'all 0.15s' }}
                         >
-                            {loading ? <><Spinner size={12} color={theme.textMute} />Loading…</> : <>🔄 Refresh</>}
+                            {loading ? <><Spinner size={12} color={theme.textMute} />{tr('bankExport.loading')}</> : <>🔄 {tr('bankExport.refresh')}</>}
                         </button>
                     </div>
                 </div>
@@ -432,14 +434,14 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                             {loading ? (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                                     <Spinner size={13} />
-                                    <span style={{ fontSize: 12, color: theme.textMute }}>Loading…</span>
+                                    <span style={{ fontSize: 12, color: theme.textMute }}>{tr('bankExport.loading')}</span>
                                 </div>
                             ) : hasData ? (
                                 <>
                                     <span style={{ background: theme.primary, color: '#fff', fontSize: 12, fontWeight: 700, borderRadius: 7, padding: '3px 10px' }}>
-                                        {records.length} {records.length === 1 ? 'Record' : 'Records'}
+                                        {records.length} {records.length === 1 ? tr('bankExport.record') : tr('bankExport.records')}
                                     </span>
-                                    <span style={{ fontSize: 11, color: theme.textMute }}>ready for transfer</span>
+                                    <span style={{ fontSize: 11, color: theme.textMute }}>{tr('bankExport.readyForTransfer')}</span>
                                     {/* Total */}
                                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginLeft: 8 }}>
                                         <span style={{ fontSize: 10, fontWeight: 600, color: theme.textMute }}>{currency}</span>
@@ -447,7 +449,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                                     </div>
                                 </>
                             ) : (
-                                <span style={{ fontSize: 12, color: theme.textMute }}>No confirmed records found</span>
+                                <span style={{ fontSize: 12, color: theme.textMute }}>{tr('bankExport.noConfirmedRecords')}</span>
                             )}
                         </div>
 
@@ -461,7 +463,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: 'none', background: '#059669', color: '#fff', fontSize: 12, fontWeight: 700, cursor: excelLoad ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.15s', opacity: excelLoad ? 0.7 : 1 }}
                                 >
                                     {excelLoad ? <Spinner size={12} color="#fff" /> : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/></svg>}
-                                    {excelLoad ? 'Exporting…' : 'Excel'}
+                                    {excelLoad ? tr('bankExport.exporting') : 'Excel'}
                                 </button>
 
                                 {/* PDF */}
@@ -470,7 +472,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 700, cursor: pdfLoad ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.15s', opacity: pdfLoad ? 0.7 : 1 }}
                                 >
                                     {pdfLoad ? <Spinner size={12} color="#fff" /> : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>}
-                                    {pdfLoad ? 'Generating…' : 'PDF'}
+                                    {pdfLoad ? tr('bankExport.generating') : 'PDF'}
                                 </button>
 
                                 {/* Send to Bank */}
@@ -478,8 +480,9 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                                     onClick={() => setSendModal(true)}
                                     style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:8, border:`1.5px solid ${theme.primary}`, background:theme.primarySoft, color:theme.primary, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}
                                 >
-                                    ✉️ Send to Bank
+                                    ✉️ {tr('bankExport.sendToBank')}
                                 </button>
+
                                 {/* Mark All Paid */}
                                 {hasPending && (
                                     <>
@@ -488,7 +491,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                                             onClick={markAllPaid} disabled={markingAll}
                                             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: `1.5px solid ${theme.border}`, background: dark ? 'rgba(52,211,153,0.12)' : '#f0fdf4', color: dark ? '#34d399' : '#059669', fontSize: 12, fontWeight: 700, cursor: markingAll ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}
                                         >
-                                            {markingAll ? <><Spinner size={12} color={dark ? '#34d399' : '#059669'} />Saving…</> : <>✓ Mark All Paid</>}
+                                            {markingAll ? <><Spinner size={12} color={dark ? '#34d399' : '#059669'} />{tr('bankExport.saving')}</> : <>✓ {tr('bankExport.markAllPaid')}</>}
                                         </button>
                                     </>
                                 )}
@@ -500,7 +503,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                     {loading && (
                         <div style={{ padding: '48px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                             <Spinner size={28} />
-                            <span style={{ fontSize: 13, color: theme.textMute, fontWeight: 600 }}>Loading records…</span>
+                            <span style={{ fontSize: 13, color: theme.textMute, fontWeight: 600 }}>{tr('bankExport.loadingRecords')}</span>
                         </div>
                     )}
 
@@ -508,11 +511,10 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                     {!loading && !hasData && (
                         <div style={{ padding: '56px 22px', textAlign: 'center' }}>
                             <div style={{ fontSize: 40, marginBottom: 14 }}>🏦</div>
-                            <div style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 6 }}>No confirmed payroll records</div>
-                            <div style={{ fontSize: 12, color: theme.textMute, lineHeight: 1.6 }}>
-                                Payroll records must be <strong>confirmed</strong> before they appear here.<br />
-                                Go to Payroll → Preview &amp; Approve to confirm records.
-                            </div>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: theme.text, marginBottom: 6 }}>{tr('bankExport.noConfirmedPayroll')}</div>
+                            <div style={{ fontSize: 12, color: theme.textMute, lineHeight: 1.6 }}
+                                dangerouslySetInnerHTML={{ __html: tr('bankExport.emptyStateDesc') }}
+                            />
                         </div>
                     )}
 
@@ -523,14 +525,14 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                                 <thead>
                                     <tr style={{ background: theme.tableHead, borderBottom: `2px solid ${theme.border}` }}>
                                         {[
-                                            ['#',          'center', 40],
-                                            ['Employee',   'left',   null],
-                                            ['Bank',       'left',   null],
-                                            ['Account No', 'left',   null],
-                                            ['Dept',       'center', null],
-                                            ['Status',     'center', 110],
-                                            ['Net Salary', 'right',  160],
-                                            ['',           'center', 80],
+                                            ['#',                           'center', 40],
+                                            [tr('bankExport.colEmployee'), 'left',   null],
+                                            [tr('bankExport.colBank'),     'left',   null],
+                                            [tr('bankExport.colAccount'),  'left',   null],
+                                            [tr('bankExport.colDept'),     'center', null],
+                                            [tr('bankExport.colStatus'),   'center', 110],
+                                            [tr('bankExport.colNetSalary'),'right',  160],
+                                            ['',                           'center', 80],
                                         ].map(([label, align, width]) => (
                                             <th key={label} style={{ padding: '10px 14px', textAlign: align, fontSize: 10, fontWeight: 800, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', ...(width ? { width } : {}) }}>
                                                 {label}
@@ -555,14 +557,14 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                                             {/* Bank */}
                                             <td style={{ padding: '10px 14px', color: r.bank_name === '-' ? theme.warning : theme.textSoft }}>
                                                 {r.bank_name === '-'
-                                                    ? <span style={{ fontSize: 11, fontWeight: 600 }}>⚠ Not set</span>
+                                                    ? <span style={{ fontSize: 11, fontWeight: 600 }}>⚠ {tr('bankExport.notSet')}</span>
                                                     : r.bank_name}
                                             </td>
 
                                             {/* Account */}
                                             <td style={{ padding: '10px 14px', fontFamily: 'monospace', letterSpacing: '0.5px', color: r.account_number === '-' ? theme.warning : theme.textSoft }}>
                                                 {r.account_number === '-'
-                                                    ? <span style={{ fontSize: 11, fontWeight: 600 }}>⚠ Not set</span>
+                                                    ? <span style={{ fontSize: 11, fontWeight: 600 }}>⚠ {tr('bankExport.notSet')}</span>
                                                     : r.account_number}
                                             </td>
 
@@ -576,7 +578,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
 
                                             {/* Status */}
                                             <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                                                <StatusPill status={r.status} dark={dark} />
+                                                <StatusPill status={r.status} dark={dark} tr={tr} />
                                             </td>
 
                                             {/* Net Salary */}
@@ -594,7 +596,7 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                                                         style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: 'none', background: dark ? 'rgba(52,211,153,0.12)' : '#f0fdf4', color: dark ? '#34d399' : '#059669', fontSize: 11, fontWeight: 700, cursor: paying === r.id ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}
                                                     >
                                                         {paying === r.id ? <Spinner size={10} color={dark ? '#34d399' : '#059669'} /> : '✓'}
-                                                        {paying === r.id ? '' : 'Paid'}
+                                                        {paying === r.id ? '' : tr('bankExport.paid')}
                                                     </button>
                                                 ) : (
                                                     <span style={{ fontSize: 11, color: theme.textMute }}>—</span>
@@ -611,12 +613,12 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                 {/* ── Info note ──────────────────────────────────── */}
                 <div style={{ marginTop: 14, padding: '10px 16px', background: dark ? 'rgba(251,191,36,0.06)' : '#fffbeb', border: `1.5px solid ${dark ? 'rgba(251,191,36,0.2)' : '#fde68a'}`, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
-                    <span style={{ fontSize: 11, color: dark ? '#fbbf24' : '#92400e', fontWeight: 500, lineHeight: 1.6 }}>
-                        Only <strong>confirmed</strong> payroll records are included. Bank account details come from Employee Salary profiles.
-                        Employees with missing bank info are marked with ⚠.
-                    </span>
+                    <span style={{ fontSize: 11, color: dark ? '#fbbf24' : '#92400e', fontWeight: 500, lineHeight: 1.6 }}
+                        dangerouslySetInnerHTML={{ __html: tr('bankExport.infoNote') }}
+                    />
                 </div>
             </div>
+
             {/* Send to Bank Modal */}
             {sendModal && (
                 <div style={{ position:'fixed', inset:0, background:'rgba(17,7,46,0.55)', zIndex:9000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
@@ -625,8 +627,8 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                         <div style={{ background:'linear-gradient(135deg,#1e3a8a,#3b5998)', padding:'18px 20px' }}>
                             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                                 <div>
-                                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)', fontWeight:700, letterSpacing:'0.8px', marginBottom:3 }}>✉️ BANK TRANSFER</div>
-                                    <div style={{ fontSize:16, fontWeight:900, color:'#fff' }}>Send PDF to Bank</div>
+                                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)', fontWeight:700, letterSpacing:'0.8px', marginBottom:3 }}>✉️ {tr('bankExport.bankTransfer')}</div>
+                                    <div style={{ fontSize:16, fontWeight:900, color:'#fff' }}>{tr('bankExport.sendPdfToBank')}</div>
                                 </div>
                                 <button onClick={() => setSendModal(false)} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:8, width:30, height:30, cursor:'pointer', color:'#fff', fontSize:16, display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
                             </div>
@@ -635,26 +637,26 @@ export default function BankExportIndex({ salaryRule, periodTemplates, employees
                         <div style={{ padding:'20px' }}>
                             <div style={{ marginBottom:16, padding:'12px 14px', borderRadius:10, background: dark?'rgba(30,58,138,0.15)':'#eff6ff', border:`1px solid ${dark?'rgba(59,89,152,0.3)':'#bfdbfe'}` }}>
                                 <div style={{ fontSize:12, color: dark?'#93c5fd':'#1e40af', lineHeight:1.6 }}>
-                                    The Bank Transfer PDF for <strong>{preview?.period_label}</strong> will be sent as an email attachment.<br/>
-                                    Total: <strong>{currency} {Number(preview?.total ?? 0).toLocaleString('en-US', {minimumFractionDigits:2})}</strong> · <strong>{records.length} employees</strong>
+                                    {tr('bankExport.modalDesc1')} <strong>{preview?.period_label}</strong> {tr('bankExport.modalDesc2')}<br/>
+                                    {tr('bankExport.total')}: <strong>{currency} {Number(preview?.total ?? 0).toLocaleString('en-US', {minimumFractionDigits:2})}</strong> · <strong>{records.length} {tr('bankExport.employees')}</strong>
                                 </div>
                             </div>
                             <label style={{ fontSize:11, fontWeight:800, color: theme.textMute, textTransform:'uppercase', letterSpacing:'0.8px', display:'block', marginBottom:6 }}>
-                                Bank Email Address <span style={{ color:'#ef4444' }}>*</span>
+                                {tr('bankExport.bankEmailLabel')} <span style={{ color:'#ef4444' }}>*</span>
                             </label>
                             <input
                                 type="email"
                                 value={bankEmail}
                                 onChange={e => setBankEmail(e.target.value)}
-                                placeholder="e.g. finance@ababank.com"
+                                placeholder={tr('bankExport.bankEmailPlaceholder')}
                                 style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:`1.5px solid ${theme.border}`, background: theme.surface, color: theme.text, fontSize:13, fontFamily:'inherit', outline:'none', marginBottom:16, boxSizing:'border-box' }}
                             />
                             <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
                                 <button onClick={() => setSendModal(false)} disabled={sending} style={{ padding:'9px 16px', borderRadius:9, border:`1.5px solid ${theme.border}`, background:'transparent', color: theme.textSoft, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
-                                    Cancel
+                                    {tr('bankExport.cancel')}
                                 </button>
                                 <button onClick={sendToBank} disabled={sending || !bankEmail} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 18px', borderRadius:9, border:'none', background: sending || !bankEmail ? '#9ca3af' : 'linear-gradient(135deg,#1e3a8a,#3b5998)', color:'#fff', fontSize:13, fontWeight:700, cursor: sending || !bankEmail ? 'not-allowed':'pointer', fontFamily:'inherit' }}>
-                                    {sending ? <><Spinner size={12} color="#fff"/> Sending…</> : <>✉️ Send PDF</>}
+                                    {sending ? <><Spinner size={12} color="#fff"/> {tr('bankExport.sending')}</> : <>✉️ {tr('bankExport.sendPdf')}</>}
                                 </button>
                             </div>
                         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { createPortal } from 'react-dom';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 // ─── Theme ────────────────────────────────────────────────────
 function useReactiveTheme() {
@@ -60,7 +61,7 @@ function MiniModal({ title, subtitle, icon, onClose, children, theme }) {
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                         <div>
                             <div style={{ fontSize:10, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'0.8px', marginBottom:3 }}>
-                                {icon} {subtitle?.toUpperCase() || 'DETAILS'}
+                                {icon} {subtitle?.toUpperCase() || tr('payslip.labels.details')}
                             </div>
                             <div style={{ fontSize:15, fontWeight:900, color:'#fff', letterSpacing:'-0.2px' }}>{title}</div>
                         </div>
@@ -98,7 +99,7 @@ function DetailRow({ label, val, color, bold, dark }) {
     );
 }
 
-function ShortHourRow({ detail, curr, theme, dark }) {
+function ShortHourRow({ detail, curr, theme, dark, tr }) {
     const [popup, setPopup] = React.useState(false);
     const shortAmt = detail.short_hour_deduction ?? 0;
     // ✅ FIX: working_hours_per_day မသုံး — server ကနေ resolve လုပ်ထားတဲ့
@@ -114,14 +115,14 @@ function ShortHourRow({ detail, curr, theme, dark }) {
         <>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
                 <span style={{ fontSize:12, color: lblClr, fontWeight:500, flex:1, marginRight:12, display:'flex', alignItems:'center', gap:6 }}>
-                    Insufficient Hours
+                    {tr('payslip.detail.insufficientHours')}
                     {label && <ClickBadge label={label} color="#dc2626" bg={dark?'rgba(220,38,38,0.18)':'#fee2e2'} onClick={()=>setPopup(true)} />}
                 </span>
                 <span style={{ fontSize:12, fontWeight:600, color:'#dc2626' }}>− {fmt(shortAmt, curr)}</span>
             </div>
             {popup && (
-                <MiniModal title="Insufficient Hours" subtitle="Working Hours" icon="⏱" onClose={()=>setPopup(false)} theme={theme}>
-                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>No short records.</p>
+                <MiniModal title={tr('payslip.detail.insufficientHours')} subtitle={tr('payslip.detail.workingHours')} icon="⏱" onClose={()=>setPopup(false)} theme={theme}>
+                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>{tr('payslip.empty.noShortRecords')}</p>
                     : attRows.map((a,i) => {
                         // ✅ FIX: hard-coded 8 မသုံး
                         const sh = Math.max(0, hpd - a.work_hours - (a.late_minutes/60));
@@ -129,9 +130,9 @@ function ShortHourRow({ detail, curr, theme, dark }) {
                             <div key={i} style={{ padding:'10px 0', borderBottom:'1px solid #f3f4f6' }}>
                                 <div style={{ fontWeight:700, fontSize:13, color:'#374151', marginBottom:4 }}>{a.date}</div>
                                 <div style={{ fontSize:11, color:'#6b7280', display:'flex', gap:14 }}>
-                                    <span>In: <b>{fmtTime(a.check_in+':00')}</b></span>
-                                    <span>Out: <b>{fmtTime(a.check_out+':00')}</b></span>
-                                    <span style={{ color:'#dc2626' }}>Missing: <b>{fmtHours(sh)}</b></span>
+                                    <span>{tr('payslip.shortLabels.in')}: <b>{fmtTime(a.check_in+':00')}</b></span>
+                                    <span>{tr('payslip.shortLabels.out')}: <b>{fmtTime(a.check_out+':00')}</b></span>
+                                    <span style={{ color:'#dc2626' }}>{tr('payslip.labels.missing')}: <b>{fmtHours(sh)}</b></span>
                                 </div>
                             </div>
                         );
@@ -142,7 +143,7 @@ function ShortHourRow({ detail, curr, theme, dark }) {
     );
 }
 
-function LateArrivalRow({ detail, curr, theme, dark }) {
+function LateArrivalRow({ detail, curr, theme, dark, tr }) {
     const [popup, setPopup] = React.useState(false);
     const lateAmt  = detail.late_deduction ?? 0;
     const lateMins = detail.late_minutes_total ?? 0;
@@ -154,20 +155,20 @@ function LateArrivalRow({ detail, curr, theme, dark }) {
         <>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
                 <span style={{ fontSize:12, color: lblClr, fontWeight:500, flex:1, marginRight:12, display:'flex', alignItems:'center', gap:6 }}>
-                    Late Arrival
+                    {tr('payslip.detail.lateArrival')}
                     {lateMins > 0 && <ClickBadge label={`${lateMins}min`} color="#d97706" bg={dark?'rgba(217,119,6,0.18)':'#fef3c7'} onClick={()=>setPopup(true)} />}
                 </span>
                 <span style={{ fontSize:12, fontWeight:600, color:'#dc2626' }}>− {fmt(lateAmt, curr)}</span>
             </div>
             {popup && (
-                <MiniModal title="Late Arrival" subtitle="Attendance" icon="⏰" onClose={()=>setPopup(false)} theme={theme}>
-                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>No late records.</p>
+                <MiniModal title={tr('payslip.detail.lateArrival')} subtitle={tr('payslip.detail.attendance')} icon="⏰" onClose={()=>setPopup(false)} theme={theme}>
+                    {attRows.length===0 ? <p style={{ fontSize:12, color:'#9ca3af' }}>{tr('payslip.empty.noLateRecords')}</p>
                     : attRows.map((a,i) => (
                         <div key={i} style={{ padding:'10px 0', borderBottom:'1px solid #f3f4f6' }}>
                             <div style={{ fontWeight:700, fontSize:13, color:'#374151', marginBottom:4 }}>{a.date}</div>
                             <div style={{ fontSize:11, color:'#6b7280', display:'flex', gap:14 }}>
                                 <span>In: <b style={{ color:'#f59e0b' }}>{fmtTime(a.check_in+':00')}</b></span>
-                                <span style={{ color:'#dc2626' }}>Late: <b>{a.late_minutes}min</b></span>
+                                <span style={{ color:'#dc2626' }}>{tr('payslip.labels.late')}: <b>{a.late_minutes}{tr('payslip.units.min')}</b></span>
                             </div>
                         </div>
                     ))}
@@ -177,7 +178,7 @@ function LateArrivalRow({ detail, curr, theme, dark }) {
     );
 }
 
-function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
+function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark, tr }) {
     const [leavePop,  setLeavePop]  = React.useState(false);
     const [otPop,     setOtPop]     = React.useState(false);
     const [allowPop,  setAllowPop]  = React.useState(false);
@@ -186,7 +187,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
     const otHrs   = detail.overtime_hours ?? 0;
     const otLabel = otHrs > 0 ? fmtHours(otHrs) : null;
     const gross   = (detail.base_salary??0)+(detail.total_allowances??0)+(detail.overtime_amount??0)+(detail.bonus_amount??0)+(detail.expense_reimbursement??0);
-    const dayTypeLabel = (t) => ({ full_day:'Full Day', half_day_am:'AM Half', half_day_pm:'PM Half', half_day:'Half Day' }[t] || t || '');
+    const dayTypeLabel = (type) => ({ full_day:tr('payslip.dayTypes.fullDay'), half_day_am:tr('payslip.dayTypes.amHalf'), half_day_pm:tr('payslip.dayTypes.pmHalf'), half_day:tr('payslip.dayTypes.halfDay') }[type] || type || '');
 
     const rowBg  = dark ? 'rgba(255,255,255,0.02)' : '#fff';
     const rowBdr = dark ? 'rgba(255,255,255,0.06)' : '#f3f4f6';
@@ -194,48 +195,48 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
 
     return (
         <div>
-            <DetailCard icon="📅" title="Attendance" color="#ede9fe" titleColor="#7c3aed" dark={dark}>
-                <DetailRow label="Working Days" val={`${detail.working_days} days`} dark={dark} />
-                <DetailRow label="Present"      val={`${detail.present_days} days`} color={detail.present_days>0?'#059669':null} dark={dark} />
-                <DetailRow label="Absent"       val={`${detail.absent_days} days`}  color={detail.absent_days>0?'#ef4444':null} dark={dark} />
-                <DetailRow label="Late"         val={detail.late_minutes_total>0?`${detail.late_minutes_total} min`:'—'} color={detail.late_minutes_total>0?'#f59e0b':null} dark={dark} />
+            <DetailCard icon="📅" title={tr('payslip.detail.attendance')} color="#ede9fe" titleColor="#7c3aed" dark={dark}>
+                <DetailRow label={tr('payslip.detail.workingDays')} val={`${detail.working_days} ${tr('payslip.units.days')}`} dark={dark} />
+                <DetailRow label={tr('payslip.detail.present')}      val={`${detail.present_days} ${tr('payslip.units.days')}`} color={detail.present_days>0?'#059669':null} dark={dark} />
+                <DetailRow label={tr('payslip.detail.absent')}       val={`${detail.absent_days} ${tr('payslip.units.days')}`}  color={detail.absent_days>0?'#ef4444':null} dark={dark} />
+                <DetailRow label={tr('payslip.detail.late')}         val={detail.late_minutes_total>0?`${detail.late_minutes_total} ${tr('payslip.units.min')}`:'—'} color={detail.late_minutes_total>0?'#f59e0b':null} dark={dark} />
                 {(detail.leave_days_paid??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Paid Leave</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tr('payslip.detail.paidLeave')}</span>
                         <ClickBadge label={`${detail.leave_days_paid} days`} color="#059669" bg={dark?'rgba(5,150,105,0.18)':'#d1fae5'} onClick={()=>setLeavePop('paid')} />
                     </div>
                 )}
                 {(detail.leave_days_unpaid??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Unpaid Leave</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tr('payslip.detail.unpaidLeave')}</span>
                         <ClickBadge label={`${detail.leave_days_unpaid} days`} color="#ef4444" bg={dark?'rgba(239,68,68,0.16)':'#fee2e2'} onClick={()=>setLeavePop('unpaid')} />
                     </div>
                 )}
                 {otHrs>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Overtime</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tr('payslip.detail.overtime')}</span>
                         <ClickBadge label={otLabel} color="#7c3aed" bg={dark?'rgba(124,58,237,0.18)':'#ede9fe'} onClick={()=>setOtPop(true)} />
                     </div>
                 )}
             </DetailCard>
 
-            <DetailCard icon="💰" title="Earnings" color="#d1fae5" titleColor="#059669" dark={dark}>
-                <DetailRow label="Base Salary" val={fmt(detail.base_salary, curr)} bold dark={dark} />
+            <DetailCard icon="💰" title={tr('payslip.detail.earnings')} color="#d1fae5" titleColor="#059669" dark={dark}>
+                <DetailRow label={tr('payslip.detail.baseSalary')} val={fmt(detail.base_salary, curr)} bold dark={dark} />
                 {(detail.total_allowances??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Allowances</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tr('payslip.detail.allowances')}</span>
                         <span onClick={()=>setAllowPop(true)} style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}>+ {fmt(detail.total_allowances, curr)}</span>
                     </div>
                 )}
                 {(detail.overtime_amount??0)>0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Overtime Pay</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tr('payslip.detail.overtimePay')}</span>
                         <span onClick={()=>setOtPop(true)} style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}>+ {fmt(detail.overtime_amount, curr)}</span>
                     </div>
                 )}
                 {(detail.bonus_amount ?? 0) > 0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Bonus</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tr('payslip.detail.bonus')}</span>
                         <span
                             onClick={() => setBonusPop(true)}
                             style={{ fontSize:12, fontWeight:600, color:'#059669', cursor:'pointer' }}
@@ -246,7 +247,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                 )}
                 {(detail.expense_reimbursement ?? 0) > 0 && (
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'9px 16px', borderBottom:`1px solid ${rowBdr}`, background: rowBg }}>
-                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>Expense Reimbursement</span>
+                        <span style={{ fontSize:12, color: lblClr, fontWeight:500 }}>{tr('payslip.detail.expenseReimbursement')}</span>
                         <span
                             onClick={() => setExpensePop(true)}
                             style={{ fontSize:12, fontWeight:600, color:'#0284c7', cursor:'pointer' }}
@@ -256,20 +257,20 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                     </div>
                 )}
                 <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 16px', background: dark?'rgba(5,150,105,0.1)':'#f0fdf4' }}>
-                    <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>Total Before Deductions</span>
+                    <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>{tr('payslip.detail.totalBeforeDeductions')}</span>
                     <span style={{ fontSize:12, fontWeight:800, color:'#059669' }}>{fmt(gross, curr)}</span>
                 </div>
             </DetailCard>
 
             {((detail.late_deduction??0)+(detail.short_hour_deduction??0)+(detail.unpaid_leave_deduction??0)+((detail.salary_deduction_breakdown??[]).reduce((s,d)=>s+d.amount,0)))>0 && (
-                <DetailCard icon="✂️" title="Deductions" color="#fee2e2" titleColor="#dc2626" dark={dark}>
-                    {(detail.late_deduction??0)>0       && <LateArrivalRow detail={detail} curr={curr} theme={theme} dark={dark} />}
-                    {(detail.short_hour_deduction??0)>0 && <ShortHourRow   detail={detail} curr={curr} theme={theme} dark={dark} />}
+                <DetailCard icon="✂️" title={tr('payslip.detail.deductions')} color="#fee2e2" titleColor="#dc2626" dark={dark}>
+                    {(detail.late_deduction??0)>0       && <LateArrivalRow detail={detail} curr={curr} theme={theme} dark={dark} tr={tr} />}
+                    {(detail.short_hour_deduction??0)>0 && <ShortHourRow   detail={detail} curr={curr} theme={theme} dark={dark} tr={tr} />}
                     {(detail.salary_deduction_breakdown??[]).map((d,i)=>(
                         <DetailRow key={i} label={<span>{d.name} <span style={{ fontSize:10, color: lblClr }}>{d.type==='percentage'?`(${d.rate}%)`:'(flat)'}</span></span>} val={`− ${fmt(d.amount, curr)}`} color="#dc2626" dark={dark}/>
                     ))}
                     <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 16px', background: dark?'rgba(220,38,38,0.08)':'#fff5f5' }}>
-                        <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>Total Deductions</span>
+                        <span style={{ fontSize:11, fontWeight:700, color: lblClr }}>{tr('payslip.detail.totalDeductions')}</span>
                         <span style={{ fontSize:12, fontWeight:800, color:'#dc2626' }}>− {fmt(detail.total_deductions, curr)}</span>
                     </div>
                 </DetailCard>
@@ -277,7 +278,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
 
             <div style={{ background:'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)', borderRadius:14, padding:'18px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
                 <div>
-                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.65)', fontWeight:700, letterSpacing:'1px', marginBottom:2 }}>NET SALARY</div>
+                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.65)', fontWeight:700, letterSpacing:'1px', marginBottom:2 }}>{tr('payslip.detail.netSalary')}</div>
                     <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>{detail.period_start} — {detail.period_end}</div>
                 </div>
                 <div style={{ fontSize:24, fontWeight:900, color:'#fff', letterSpacing:'-1px' }}>{fmt(detail.net_salary, curr)}</div>
@@ -285,16 +286,16 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
 
 
             {leavePop && (
-                <MiniModal title={leavePop==='paid' ? 'Paid Leave' : 'Unpaid Leave'} subtitle="Leave Records" icon={leavePop==='paid' ? '✅' : '📋'} onClose={()=>setLeavePop(false)} theme={theme}>
+                <MiniModal title={leavePop==='paid' ? tr('payslip.detail.paidLeave') : tr('payslip.detail.unpaidLeave')} subtitle={tr('payslip.detail.leaveRecords')} icon={leavePop==='paid' ? '✅' : '📋'} onClose={()=>setLeavePop(false)} theme={theme}>
                     {(detail.leave_details??[]).filter(l=>leavePop==='paid'?l.is_paid:!l.is_paid).length===0
-                        ? <p style={{ fontSize:12, color: theme.textMute }}>No records.</p>
+                        ? <p style={{ fontSize:12, color: theme.textMute }}>{tr('payslip.empty.noRecords')}</p>
                         : (detail.leave_details??[]).filter(l=>leavePop==='paid'?l.is_paid:!l.is_paid).map((l,i)=>(
                             <div key={i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
                                 <div style={{ fontWeight:800, fontSize:14, color: theme.text, marginBottom:6 }}>{l.start_date === l.end_date ? l.start_date : `${l.start_date} — ${l.end_date}`}</div>
                                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                                     <span style={{ fontSize:12, color: theme.textSoft, fontWeight:600 }}>{l.leave_type}</span>
                                     {l.day_type && <span style={{ fontSize:10, background: dark?'rgba(124,58,237,0.18)':'#ede9fe', color:'#7c3aed', borderRadius:99, padding:'2px 8px', fontWeight:700 }}>{dayTypeLabel(l.day_type)}</span>}
-                                    <span style={{ fontSize:11, color: theme.textMute, marginLeft:'auto' }}>{l.total_days} day(s)</span>
+                                    <span style={{ fontSize:11, color: theme.textMute, marginLeft:'auto' }}>{l.total_days} {tr('payslip.units.days')}</span>
                                 </div>
                             </div>
                         ))
@@ -302,8 +303,8 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                 </MiniModal>
             )}
             {otPop && (
-                <MiniModal title="Overtime" subtitle="OT Records" icon="⚡" onClose={()=>setOtPop(false)} theme={theme}>
-                    {(detail.ot_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>No OT records.</p>
+                <MiniModal title={tr('payslip.detail.overtime')} subtitle={tr('payslip.detail.otRecords')} icon="⚡" onClose={()=>setOtPop(false)} theme={theme}>
+                    {(detail.ot_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>{tr('payslip.empty.noOTRecords')}</p>
                     : (detail.ot_details??[]).map((o,i)=>(
                         <div key={i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
                             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
@@ -318,34 +319,34 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                         </div>
                     ))}
                     <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between' }}>
-                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>OT Pay (this period)</span>
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>{tr('payslip.detail.otPayThisPeriod')}</span>
                         <span style={{ fontSize:13, fontWeight:800, color:'#7c3aed' }}>{fmt(detail.overtime_amount??0, curr)}</span>
                     </div>
                 </MiniModal>
             )}
             {allowPop && (
-                <MiniModal title="Allowances" subtitle="Breakdown" icon="💰" onClose={()=>setAllowPop(false)} theme={theme}>
-                    {(detail.allowance_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>No allowance details.</p>
+                <MiniModal title={tr('payslip.detail.allowances')} subtitle={tr('payslip.detail.breakdown')} icon="💰" onClose={()=>setAllowPop(false)} theme={theme}>
+                    {(detail.allowance_details??[]).length===0 ? <p style={{ fontSize:12, color: theme.textMute }}>{tr('payslip.empty.noAllowanceDetails')}</p>
                     : (detail.allowance_details??[]).map((a,i)=>(
                         <div key={i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                             <div>
                                 <div style={{ fontWeight:700, fontSize:13, color: theme.textSoft }}>{a.name}</div>
-                                <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>{a.type==='percentage'?`${a.rate}% of base salary`:`Fixed amount`}</div>
+                                <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>{a.type==='percentage'?`${a.rate}% {tr('payslip.labels.ofBaseSalary')}`:`{tr('payslip.labels.fixedAmount')}`}</div>
                             </div>
                             <span style={{ fontSize:13, fontWeight:700, color:'#059669' }}>+ {fmt(a.amount, curr)}</span>
                         </div>
                     ))}
                     <div style={{ marginTop:10, paddingTop:10, borderTop:'1px solid #e5e7eb', display:'flex', justifyContent:'space-between' }}>
-                        <span style={{ fontSize:11, fontWeight:700, color:'#6b7280' }}>Total Allowances</span>
+                        <span style={{ fontSize:11, fontWeight:700, color:'#6b7280' }}>Total {tr('payslip.detail.allowances')}</span>
                         <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>+ {fmt(detail.total_allowances??0, curr)}</span>
                     </div>
                 </MiniModal>
             )}
 
             {bonusPop && (
-                <MiniModal title="Bonuses" subtitle="Breakdown" icon="🎁" onClose={() => setBonusPop(false)} theme={theme}>
+                <MiniModal title={tr('payslip.detail.bonuses')} subtitle={tr('payslip.detail.breakdown')} icon="🎁" onClose={() => setBonusPop(false)} theme={theme}>
                     {(detail.bonuses ?? []).length === 0 ? (
-                        <p style={{ fontSize:12, color: theme.textMute }}>No bonus details.</p>
+                        <p style={{ fontSize:12, color: theme.textMute }}>{tr('payslip.empty.noBonusDetails')}</p>
                     ) : (
                         (detail.bonuses ?? []).map((b, i) => (
                             <div
@@ -364,8 +365,8 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                                     </div>
                                     <div style={{ fontSize:10, color: theme.textMute, marginTop:2 }}>
                                         {b.calculation_type === 'percentage'
-                                            ? `${b.rate}% of base salary`
-                                            : 'Fixed amount'}
+                                            ? `${b.rate}% {tr('payslip.labels.ofBaseSalary')}`
+                                            : `{tr('payslip.labels.fixedAmount')}`}
                                     </div>
                                 </div>
 
@@ -386,7 +387,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                         }}
                     >
                         <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>
-                            Total Bonus
+                            {tr('payslip.detail.totalBonus')}
                         </span>
                         <span style={{ fontSize:13, fontWeight:800, color:'#059669' }}>
                             + {fmt(detail.bonus_amount ?? 0, curr)}
@@ -396,9 +397,9 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
             )}
 
             {expensePop && (
-                <MiniModal title="Expense Reimbursement" subtitle="Approved Expenses" icon="🧾" onClose={() => setExpensePop(false)} theme={theme}>
+                <MiniModal title={tr('payslip.detail.expenseReimbursement')} subtitle={tr('payslip.detail.approvedExpenses')} icon="🧾" onClose={() => setExpensePop(false)} theme={theme}>
                     {(detail.expense_details ?? []).length === 0 ? (
-                        <p style={{ fontSize:12, color: theme.textMute }}>No expense details.</p>
+                        <p style={{ fontSize:12, color: theme.textMute }}>{tr('payslip.empty.noExpenseDetails')}</p>
                     ) : (
                         (detail.expense_details ?? []).map((e, i) => (
                             <div key={e.id ?? i} style={{ padding:'12px 0', borderBottom:`1px solid ${theme.border}` }}>
@@ -421,7 +422,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
                         ))
                     )}
                     <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${theme.border}`, display:'flex', justifyContent:'space-between' }}>
-                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>Total Reimbursement</span>
+                        <span style={{ fontSize:11, fontWeight:700, color: theme.textMute }}>{tr('payslip.detail.totalReimbursement')}</span>
                         <span style={{ fontSize:13, fontWeight:800, color:'#0284c7' }}>+ {fmt(detail.expense_reimbursement ?? 0, curr)}</span>
                     </div>
                 </MiniModal>
@@ -429,7 +430,7 @@ function DetailModalContent({ detail, curr, onApprove, onClose, theme, dark }) {
         </div>
     );
 }
-function SalaryDetailModal({ detail, curr, onApprove, onClose, theme, dark }) {
+function SalaryDetailModal({ detail, curr, onApprove, onClose, theme, dark, tr }) {
     return (
         <div style={{ position:'fixed', inset:0, background:'rgba(17,7,46,0.55)', zIndex:9000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
             <div style={{
@@ -444,7 +445,7 @@ function SalaryDetailModal({ detail, curr, onApprove, onClose, theme, dark }) {
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
                             <div style={{ minWidth:0 }}>
-                                <div style={{ fontSize:9, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase' }}>Salary Detail</div>
+                                <div style={{ fontSize:9, color:'rgba(255,255,255,0.55)', fontWeight:700, letterSpacing:'0.8px', textTransform:'uppercase' }}>{tr('payslip.detail.salaryDetail')}</div>
                                 <div style={{ fontSize:14, fontWeight:800, color:'#fff', letterSpacing:'-0.2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                                     {detail.name}
                                     {detail.position && <span style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.65)', marginLeft:5 }}>· {detail.position}</span>}
@@ -462,7 +463,7 @@ function SalaryDetailModal({ detail, curr, onApprove, onClose, theme, dark }) {
                 {/* ── Scrollable body, scrollbar hidden ── */}
                 <div style={{ overflowY:'auto', flex:1, padding:'14px 18px 18px', scrollbarWidth:'none', msOverflowStyle:'none' }}
                      className="sd-hide-scroll">
-                    <DetailModalContent detail={detail} curr={curr} onApprove={onApprove} onClose={onClose} theme={theme} dark={dark}/>
+                    <DetailModalContent detail={detail} curr={curr} onApprove={onApprove} onClose={onClose} theme={theme} dark={dark} tr={tr}/>
                 </div>
             </div>
         </div>
@@ -646,7 +647,7 @@ function groupByEmployee(records) {
 }
 
 // ─── Download Button ──────────────────────────────────────────
-function DownloadBtn({ recordId, type, name, year, month, periodLabel, onToast, theme, dark }) {
+function DownloadBtn({ recordId, type, name, year, month, periodLabel, onToast, theme, dark, tr }) {
     const [loading, setLoading] = useState(false);
     const isPdf = type==='pdf';
 
@@ -654,7 +655,7 @@ function DownloadBtn({ recordId, type, name, year, month, periodLabel, onToast, 
         setLoading(true);
         try {
             const res = await fetch(`/payroll/payslip/${recordId}/${type}`,{headers:{'X-CSRF-TOKEN':csrf()}});
-            if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.message??'Download failed');}
+            if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.message??tr('payslip.messages.downloadFailed'));}
             const blob=await res.blob();
             const url=URL.createObjectURL(blob);
             const a=document.createElement('a');
@@ -663,7 +664,7 @@ function DownloadBtn({ recordId, type, name, year, month, periodLabel, onToast, 
             const safeDate=(periodLabel||`${year}_${month}`).replace(/\s+–\s+/g,'_to_').replace(/\s+/g,'_');
             a.download=`payslip_${safeName}_${safeDate}.${isPdf?'pdf':'xlsx'}`;
             a.click();URL.revokeObjectURL(url);
-            onToast('Payslip downloaded successfully');
+            showToast(tr('payslip.messages.downloadedSuccessfully'));
         } catch(e){onToast(e.message,'error');}
         finally{setLoading(false);}
     };
@@ -682,13 +683,14 @@ function DownloadBtn({ recordId, type, name, year, month, periodLabel, onToast, 
             transition:'all 0.15s',
         }}>
             {loading?<Spinner color={isPdf?'#fff':theme.success} size={11}/>:<span>{isPdf?'📄':'📊'}</span>}
-            {loading?'…':(isPdf?'PDF':'Excel')}
+            {loading?'…':(isPdf?tr('payslip.actions.pdf'):tr('payslip.actions.excel'))}
         </button>
     );
 }
 
 // ─── Main Page ────────────────────────────────────────────────
 export default function PayslipIndex({ salaryRule, periodTemplates, employees, isHR }) {
+    const { t: tr } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = useMemo(()=>getTheme(dark),[dark]);
 
@@ -718,7 +720,7 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
             const data = await res.json();
             setDetailModal(data);
         } catch {
-            showToast('Failed to load detail', 'error');
+            showToast(tr('payslip.messages.failedToLoadDetail'), 'error');
         } finally {
             setDetailLoading(null);
         }
@@ -742,7 +744,7 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
             const res=await fetch(`/payroll/payslip/records?${p}`);
             const data=await res.json();
             setRecords(Array.isArray(data)?data:[]);
-        } catch{showToast('Failed to load payslips','error');}
+        } catch{showToast(tr('payslip.messages.failedToLoadPayslips'),'error');}
         finally{setLoading(false);}
     },[filterYear,filterMonth,filterPeriod]);
 
@@ -773,23 +775,23 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
             if(filterMonth)  p.set('month',filterMonth);
             if(filterPeriod) p.set('period_id',filterPeriod);
             const res=await fetch(`/payroll/payslip/bulk/${type}?${p}`,{headers:{'X-CSRF-TOKEN':csrf()}});
-            if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.message??'Download failed');}
+            if(!res.ok){const d=await res.json().catch(()=>({}));throw new Error(d.message??tr('payslip.messages.downloadFailed'));}
             const blob=await res.blob();
             const url=URL.createObjectURL(blob);
             const a=document.createElement('a');
             a.href=url;
             a.download=`payslips_${filterYear}_${filterMonth?MONTHS_SHORT[filterMonth-1]:'all'}${ext}`;
             a.click();URL.revokeObjectURL(url);
-            onToast('Payslip downloaded successfully');
+            showToast(tr('payslip.messages.downloadedSuccessfully'));
         }catch(e){showToast(e.message,'error');}
         finally{setLoad(false);}
     };
 
     // Dropdown options
     const yearOpts   = years.map(y=>({value:y,label:String(y)}));
-    const monthOpts  = [{value:'',label:'All Months'},...MONTHS.map((m,i)=>({value:i+1,label:m}))];
-    const periodOpts = [{value:'',label:'All Periods'},...(periodTemplates||[]).map(p=>({value:p.id,label:periodDateLabels[p.id]?periodDateLabels[p.id]:`Period ${p.period_number}`}))];
-    const cycleLabel = cycle==='semi_monthly'?'Semi-Monthly':cycle==='ten_day'?'10-Day':'Monthly';
+    const monthOpts  = [{value:'',label:tr('payslip.filters.allMonths')},...MONTHS.map((m,i)=>({value:i+1,label:tr(`payslip.months.${m}`)}))];
+    const periodOpts = [{value:'',label:tr('payslip.filters.allPeriods')},...(periodTemplates||[]).map(p=>({value:p.id,label:periodDateLabels[p.id]?periodDateLabels[p.id]:`${tr('payslip.labels.period')} ${p.period_number}`}))];
+    const cycleLabel = cycle==='semi_monthly'?tr('payslip.cycles.semiMonthly'):cycle==='ten_day'?tr('payslip.cycles.tenDay'):tr('payslip.cycles.monthly');
 
     // Summary bar stats (slim, meaningful only)
     const uniqueEmps   = isHR ? new Set(filtered.map(r=>r.user_id)).size : 1;
@@ -799,8 +801,8 @@ export default function PayslipIndex({ salaryRule, periodTemplates, employees, i
     const thS = (w,align='left') => ({ padding:'11px 18px', textAlign:align, fontSize:10, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'0.7px', whiteSpace:'nowrap', minWidth:w, background:theme.tableHead });
 console.log("grouped",grouped)
     return (
-        <AppLayout title="Payslip">
-            <Head title="Payslip"/>
+        <AppLayout title={tr('payslip.pageTitle')}>
+            <Head title={tr('payslip.pageTitle')}/>
             <style>{`
                 @keyframes psSpin  { to{transform:rotate(360deg);} }
                 @keyframes psDrop  { from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);} }
@@ -816,7 +818,7 @@ console.log("grouped",grouped)
                 <div style={{background:dark?theme.panelSolid:'#fff',borderRadius:18,border:`1px solid ${theme.border}`,padding:'16px 20px',boxShadow:dark?'none':theme.shadowSoft,display:'flex',flexDirection:'column',gap:14}}>
                     {/* Filter row */}
                     <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-                        <span style={{fontSize:10,fontWeight:800,color:theme.textMute,textTransform:'uppercase',letterSpacing:'0.8px',flexShrink:0}}>Pay Period</span>
+                        <span style={{fontSize:10,fontWeight:800,color:theme.textMute,textTransform:'uppercase',letterSpacing:'0.8px',flexShrink:0}}>{tr('payslip.fields.payPeriod')}</span>
                         <PremiumDropdown options={yearOpts}   value={filterYear}   onChange={v=>setFilterYear(Number(v))}   theme={theme} dark={dark} minWidth={100}/>
                         <PremiumDropdown options={monthOpts}  value={filterMonth}  onChange={v=>setFilterMonth(v===''?'':Number(v))} theme={theme} dark={dark} minWidth={145}/>
                         {count>1 && (
@@ -824,7 +826,7 @@ console.log("grouped",grouped)
                         )}
                         <span style={{fontSize:11,fontWeight:700,color:theme.primary,background:dark?theme.primarySoft:'#ede9fe',padding:'5px 12px',borderRadius:99,flexShrink:0}}>{cycleLabel.toUpperCase()}</span>
                         <button onClick={load} disabled={loading} style={{marginLeft:'auto',padding:'9px 16px',borderRadius:10,border:`1px solid ${theme.border}`,background:dark?theme.panelSoft:'#fff',color:theme.textSoft,fontSize:12,fontWeight:600,cursor:'pointer',display:'inline-flex',alignItems:'center',gap:6,transition:'all 0.15s'}}>
-                            {loading?<><Spinner size={12} color={theme.textMute}/>Loading…</>:'🔄 Refresh'}
+                            {loading?<><Spinner size={12} color={theme.textMute}/>{tr('payslip.actions.loading')}</>:`${tr('payslip.actions.refreshIcon')} ${tr('payslip.actions.refresh')}`}
                         </button>
                     </div>
 
@@ -832,13 +834,13 @@ console.log("grouped",grouped)
                     {!loading && filtered.length > 0 && (
                         <div style={{display:'flex',alignItems:'stretch',gap:0,background:dark?'rgba(255,255,255,0.03)':'#f8fafc',borderRadius:12,border:`1px solid ${theme.border}`,overflow:'hidden'}}>
                             {[
-                                { label:'Payslips',   value: filtered.length,           color: theme.primary,  icon:'📄' },
-                                { label:'Total Net',  value: fmt(totalNet, currency),   color: '#059669',       icon:'💰', big:true },
+                                { label:tr('payslip.stats.payslips'),   value: filtered.length,           color: theme.primary,  icon:'📄' },
+                                { label:tr('payslip.stats.totalNet'),  value: fmt(totalNet, currency),   color: '#059669',       icon:'💰', big:true },
                                 ...(isHR ? [
-                                    { label:'Employees',  value: uniqueEmps,                color: '#2563eb',       icon:'👥' },
-                                    { label:'Avg Net',    value: fmt(avgNet, currency),    color: theme.warning,   icon:'📊' },
+                                    { label:tr('payslip.stats.employees'),  value: uniqueEmps,                color: '#2563eb',       icon:'👥' },
+                                    { label:tr('payslip.stats.avgNet'),    value: fmt(avgNet, currency),    color: theme.warning,   icon:'📊' },
                                 ] : [
-                                    { label:'Highest',    value: fmt(highestNet, currency),color: theme.warning,   icon:'📊' },
+                                    { label:tr('payslip.stats.highest'),    value: fmt(highestNet, currency),color: theme.warning,   icon:'📊' },
                                 ]),
                             ].map((s, i, arr) => (
                                 <div key={s.label} style={{flex:1,padding:'12px 18px',display:'flex',alignItems:'center',gap:12,borderRight:i<arr.length-1?`1px solid ${theme.border}`:'none'}}>
@@ -861,11 +863,11 @@ console.log("grouped",grouped)
                         {/* Left */}
                         <div style={{display:'flex',alignItems:'center',gap:10}}>
                             <span style={{fontSize:14,fontWeight:800,color:theme.text}}>
-                                {loading?'Loading…':`${filtered.length} Payslip${filtered.length!==1?'s':''}`}
+                                {loading?tr('payslip.actions.loading'):`${filtered.length} ${filtered.length!==1?tr('payslip.labels.payslips'):tr('payslip.labels.payslip')}`}
                             </span>
                             {!loading&&filtered.length>0&&(
                                 <span style={{fontSize:12,fontWeight:700,color:theme.primary,background:dark?theme.primarySoft:'#ede9fe',padding:'3px 10px',borderRadius:99}}>
-                                    Total: {fmt(totalNet,currency)}
+                                    {tr('payslip.stats.total')}: {fmt(totalNet,currency)}
                                 </span>
                             )}
                         </div>
@@ -877,7 +879,7 @@ console.log("grouped",grouped)
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{position:'absolute',left:11,top:'50%',transform:'translateY(-50%)'}}>
                                         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                                     </svg>
-                                    <input type="text" placeholder="Search employee…" value={search} onChange={e=>setSearch(e.target.value)}
+                                    <input type="text" placeholder={tr('payslip.placeholders.searchEmployee')} value={search} onChange={e=>setSearch(e.target.value)}
                                         style={{padding:'8px 30px 8px 32px',borderRadius:10,border:`1px solid ${theme.border}`,fontSize:12,color:theme.text,background:dark?theme.panelSoft:'#fff',outline:'none',width:200}}/>
                                     {search&&<button onClick={()=>setSearch('')} style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:theme.textMute,fontSize:15}}>×</button>}
                                 </div>
@@ -886,11 +888,11 @@ console.log("grouped",grouped)
                                 <>
                                     <button onClick={()=>bulkDownload('pdf',setBulkPdfLoad,'.zip')} disabled={bulkPdfLoad}
                                         style={{padding:'8px 14px',borderRadius:10,border:'none',background:bulkPdfLoad?(dark?theme.primarySoft:'#ddd6fe'):`linear-gradient(135deg,${theme.primary},${dark?'#6d28d9':'#4f46e5'})`,color:'#fff',fontSize:12,fontWeight:700,cursor:bulkPdfLoad?'not-allowed':'pointer',display:'inline-flex',alignItems:'center',gap:6,boxShadow:bulkPdfLoad?'none':`0 4px 12px ${theme.primary}44`}}>
-                                        {bulkPdfLoad?<><Spinner color="#fff" size={11}/>Preparing…</>:'📦 All PDFs (ZIP)'}
+                                        {bulkPdfLoad?<><Spinner color="#fff" size={11}/>{tr('payslip.actions.preparing')}</>:`${tr('payslip.actions.allPdfsZipIcon')} ${tr('payslip.actions.allPdfsZip')}`}
                                     </button>
                                     <button onClick={()=>bulkDownload('excel',setBulkXlsLoad,'.xlsx')} disabled={bulkXlsLoad}
                                         style={{padding:'8px 14px',borderRadius:10,border:`1.5px solid ${dark?'rgba(16,185,129,0.4)':theme.success}`,background:bulkXlsLoad?(dark?theme.successSoft:'#d1fae5'):'transparent',color:theme.success,fontSize:12,fontWeight:700,cursor:bulkXlsLoad?'not-allowed':'pointer',display:'inline-flex',alignItems:'center',gap:6}}>
-                                        {bulkXlsLoad?<><Spinner color={theme.success} size={11}/>Preparing…</>:'📊 All Excel'}
+                                        {bulkXlsLoad?<><Spinner color={theme.success} size={11}/>{tr('payslip.actions.preparing')}</>:`${tr('payslip.actions.allExcelIcon')} ${tr('payslip.actions.allExcel')}`}
                                     </button>
                                 </>
                             )}
@@ -903,11 +905,11 @@ console.log("grouped",grouped)
                             <thead>
                                 <tr style={{borderBottom:`1px solid ${theme.border}`}}>
                                     {isHR&&<th style={thS('44px','center')}>#</th>}
-                                    {isHR&&<th style={thS('170px')}>Employee</th>}
-                                    <th style={thS('180px')}>Pay Period</th>
-                                    <th style={thS('140px','right')}>Net Salary</th>
-                                    <th style={thS('100px', 'center')}>Detail</th>
-                                    <th style={thS('160px','center')}>Download</th>
+                                    {isHR&&<th style={thS('170px')}>{tr('payslip.fields.employee')}</th>}
+                                    <th style={thS('180px')}>{tr('payslip.fields.payPeriod')}</th>
+                                    <th style={thS('140px','right')}>{tr('payslip.fields.netSalary')}</th>
+                                    <th style={thS('100px', 'center')}>{tr('payslip.fields.detail')}</th>
+                                    <th style={thS('160px','center')}>{tr('payslip.fields.download')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -915,16 +917,16 @@ console.log("grouped",grouped)
                                     <tr><td colSpan={isHR?5:3} style={{textAlign:'center',padding:64}}>
                                         <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
                                             <Spinner size={32} color={theme.primary}/>
-                                            <span style={{fontSize:13,fontWeight:600,color:theme.textMute}}>Loading payslips…</span>
+                                            <span style={{fontSize:13,fontWeight:600,color:theme.textMute}}>{tr('payslip.messages.loadingPayslips')}</span>
                                         </div>
                                     </td></tr>
                                 ):grouped.length===0?(
                                     <tr><td colSpan={isHR?5:3} style={{textAlign:'center',padding:64}}>
                                         <div style={{fontSize:38,marginBottom:10}}>📭</div>
                                         <div style={{fontSize:14,fontWeight:700,color:theme.textSoft,marginBottom:4}}>
-                                            {search?`No results for "${search}"`:'No confirmed payslips found'}
+                                            {search?`${tr('payslip.empty.noResultsFor')} "${search}"`:tr('payslip.empty.noConfirmedPayslips')}
                                         </div>
-                                        <div style={{fontSize:12,color:theme.textMute}}>Try adjusting the period filter above.</div>
+                                        <div style={{fontSize:12,color:theme.textMute}}>{tr('payslip.empty.tryAdjustingPeriod')}</div>
                                     </td></tr>
                                 ):grouped.map(r=>(
                                     <tr key={r.id} className="ps-row"
@@ -966,7 +968,7 @@ console.log("grouped",grouped)
                                                     borderRadius:99,
                                                     padding:'2px 9px'
                                                 }}>
-                                                    {r.status === 'paid' ? '💳 Paid' : '✓ Confirmed'}
+                                                    {r.status === 'paid' ? `💳 ${tr('payslip.status.paid')}` : `✓ ${tr('payslip.status.confirmed')}`}
                                                 </span>
                                             </div>
                                         </td>
@@ -997,14 +999,14 @@ console.log("grouped",grouped)
                                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                             >
                                             
-                                                {detailLoading === r.id ? 'Loading…' : 'Detail'}
+                                                {detailLoading === r.id ? tr('payslip.actions.loading') : tr('payslip.fields.detail')}
                                             </button>
                                         </td>
                                         {/* Download */}
                                         <td style={{padding:'14px 18px',textAlign:'center',width:160}}>
                                             <div style={{display:'inline-flex',gap:7}}>
-                                                <DownloadBtn recordId={r.id} type="pdf"   name={r.name} year={r.year} month={r.month} periodLabel={r.period_label} onToast={showToast} theme={theme} dark={dark}/>
-                                                <DownloadBtn recordId={r.id} type="excel" name={r.name} year={r.year} month={r.month} periodLabel={r.period_label} onToast={showToast} theme={theme} dark={dark}/>
+                                                <DownloadBtn recordId={r.id} type="pdf"   name={r.name} year={r.year} month={r.month} periodLabel={r.period_label} onToast={showToast} theme={theme} dark={dark} tr={tr}/>
+                                                <DownloadBtn recordId={r.id} type="excel" name={r.name} year={r.year} month={r.month} periodLabel={r.period_label} onToast={showToast} theme={theme} dark={dark} tr={tr}/>
                                             </div>
                                         </td>
                                     </tr>
@@ -1023,6 +1025,7 @@ console.log("grouped",grouped)
                     onClose={() => setDetailModal(null)}
                     theme={theme}
                     dark={dark}
+                    tr={tr}
                 />
             )}
         </AppLayout>

@@ -1,27 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
+import { useTranslation } from '@/Contexts/LanguageContext';
 import { router } from '@inertiajs/react';
 
 const LANGUAGES = [
-    { value: 'english', label: 'English', flag: '🇬🇧' },
-    { value: 'myanmar', label: 'Myanmar', flag: '🇲🇲' },
-    { value: 'khmer', label: 'Khmer', flag: '🇰🇭' },
-    { value: 'vietnamese', label: 'Vietnamese', flag: '🇻🇳' },
-    { value: 'korean', label: 'Korean', flag: '🇰🇷' },
-    { value: 'japanese', label: 'Japanese', flag: '🇯🇵' },
+    { value: 'english', label: 'proposalDetail.languages.english', flag: '🇬🇧' },
+    { value: 'myanmar', label: 'proposalDetail.languages.myanmar', flag: '🇲🇲' },
+    { value: 'khmer', label: 'proposalDetail.languages.khmer', flag: '🇰🇭' },
+    { value: 'vietnamese', label: 'proposalDetail.languages.vietnamese', flag: '🇻🇳' },
+    { value: 'korean', label: 'proposalDetail.languages.korean', flag: '🇰🇷' },
+    { value: 'japanese', label: 'proposalDetail.languages.japanese', flag: '🇯🇵' },
 ];
 
 const STATUS_MAP = {
-    draft: { label: 'Draft', color: '#6b7280', bg: '#f3f4f6', dot: '#9ca3af' },
-    sent: { label: 'Sent', color: '#2563eb', bg: '#dbeafe', dot: '#3b82f6' },
-    accepted: { label: 'Accepted', color: '#059669', bg: '#d1fae5', dot: '#10b981' },
-    rejected: { label: 'Rejected', color: '#dc2626', bg: '#fee2e2', dot: '#ef4444' },
+    draft: { label: 'proposalDetail.status.draft', color: '#6b7280', bg: '#f3f4f6', dot: '#9ca3af' },
+    sent: { label: 'proposalDetail.status.sent', color: '#2563eb', bg: '#dbeafe', dot: '#3b82f6' },
+    accepted: { label: 'proposalDetail.status.accepted', color: '#059669', bg: '#d1fae5', dot: '#10b981' },
+    rejected: { label: 'proposalDetail.status.rejected', color: '#dc2626', bg: '#fee2e2', dot: '#ef4444' },
 };
 
 const TEMPLATES = [
-    { value: 'executive', label: 'Executive', desc: 'Dark Luxury' },
-    { value: 'magazine', label: 'Magazine', desc: 'Bold Editorial' },
-    { value: 'minimal', label: 'Minimal', desc: 'Swiss Grid' },
+    { value: 'executive', label: 'proposalDetail.templates.executive.label', desc: 'proposalDetail.templates.executive.desc' },
+    { value: 'magazine', label: 'proposalDetail.templates.magazine.label', desc: 'proposalDetail.templates.magazine.desc' },
+    { value: 'minimal', label: 'proposalDetail.templates.minimal.label', desc: 'proposalDetail.templates.minimal.desc' },
 ];
 
 function useReactiveTheme() {
@@ -455,7 +456,7 @@ function SectionTitle({ eyebrow, title, desc, theme, action = null }) {
     );
 }
 
-function StatusBadge({ status, darkMode = false }) {
+function StatusBadge({ status, darkMode = false, tr }) {
     const s = STATUS_MAP[status] || STATUS_MAP.draft;
 
     const darkMap = {
@@ -493,7 +494,7 @@ function StatusBadge({ status, darkMode = false }) {
                     display: 'inline-block',
                 }}
             />
-            {s.label}
+            {tr ? tr(s.label) : s.label}
         </span>
     );
 }
@@ -550,6 +551,7 @@ function BrowserPreviewFrame({
     pdfUrl,
     height = '1123px',
     maximized = false,
+    tr,
 }) {
     return (
         <div
@@ -606,7 +608,7 @@ function BrowserPreviewFrame({
                             fontWeight: 700,
                         }}
                     >
-                        Proposal Live Preview
+                        {tr ? tr('proposalDetail.preview.livePreview') : 'Proposal Live Preview'}
                     </span>
                 </div>
 
@@ -632,7 +634,7 @@ function BrowserPreviewFrame({
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
                         </svg>
-                        {maximized ? 'Minimize' : 'Maximize'}
+                        {maximized ? tr('proposalDetail.actions.minimize') : tr('proposalDetail.actions.maximize')}
                     </button>
                 </div>
             </div>
@@ -659,6 +661,7 @@ function BrowserPreviewFrame({
 }
 
 export default function ProposalDetail({ proposal }) {
+    const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
@@ -709,14 +712,14 @@ export default function ProposalDetail({ proposal }) {
         );
     };
 
-    const totalInvestment = c.total_investment || c.total_cost || 'Not specified';
-    const validity = c.validity_period || 'Not specified';
-    const proposalNo = c.proposal_number || 'N/A';
+    const totalInvestment = c.total_investment || c.total_cost || tr('proposalDetail.common.notSpecified');
+    const validity = c.validity_period || tr('proposalDetail.common.notSpecified');
+    const proposalNo = c.proposal_number || tr('proposalDetail.common.na');
     const statusOptions = [
-        { value: 'draft', label: 'Draft' },
-        { value: 'sent', label: 'Sent' },
-        { value: 'accepted', label: 'Accepted' },
-        { value: 'rejected', label: 'Rejected' },
+        { value: 'draft', label: tr('proposalDetail.status.draft') },
+        { value: 'sent', label: tr('proposalDetail.status.sent') },
+        { value: 'accepted', label: tr('proposalDetail.status.accepted') },
+        { value: 'rejected', label: tr('proposalDetail.status.rejected') },
     ];
 
 
@@ -729,7 +732,7 @@ export default function ProposalDetail({ proposal }) {
         };
     };
     return (
-        <AppLayout title="Proposal Detail">
+        <AppLayout title={tr('proposalDetail.pageTitle')}>
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -774,6 +777,7 @@ export default function ProposalDetail({ proposal }) {
                         pdfUrl={pdfUrl}
                         height="calc(100vh - 120px)"
                         maximized
+                    tr={tr}
                     />
                 </div>
             )}
@@ -793,9 +797,9 @@ export default function ProposalDetail({ proposal }) {
 
                     <div style={{ position: 'relative', display: 'grid', gap: 22 }}>
                         <SectionTitle
-                            eyebrow="Proposal Detail"
-                            title={analysis.project_title || 'Proposal Detail'}
-                            desc="Premium proposal review workspace with template switching, preview, PDF export, status updates, and regeneration while keeping the same backend routes and logic."
+                            eyebrow={tr('proposalDetail.pageTitle')}
+                            title={analysis.project_title || tr('proposalDetail.pageTitle')}
+                            desc={tr('proposalDetail.description')}
                             theme={theme}
                             action={
                                 <div className="pd-actions-wrap" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -818,7 +822,7 @@ export default function ProposalDetail({ proposal }) {
                                             textDecoration: 'none',
                                         }}
                                     >
-                                        ← Back
+                                        ← {tr('proposalDetail.actions.back')}
                                     </a>
 
                                     <UIButton onClick={handleRegenerate} disabled={regenerating} variant="ghost" theme={theme}>
@@ -837,7 +841,7 @@ export default function ProposalDetail({ proposal }) {
                                         ) : (
                                             '🔄'
                                         )}
-                                        {regenerating ? 'Regenerating...' : 'Regenerate'}
+                                        {regenerating ? tr('proposalDetail.actions.regenerating') : tr('proposalDetail.actions.regenerate')}
                                     </UIButton>
 
                              <UIButton
@@ -845,7 +849,7 @@ export default function ProposalDetail({ proposal }) {
                                 variant="primary"
                                 theme={theme}
                             >
-                                📥 Download PDF
+                                📥 {tr('proposalDetail.actions.downloadPdf')}
                             </UIButton>
                                 </div>
                             }
@@ -881,10 +885,10 @@ export default function ProposalDetail({ proposal }) {
                                             marginBottom: 10,
                                         }}
                                     >
-                                        Proposal Status
+                                        {tr('proposalDetail.sections.proposalStatus')}
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                                        <StatusBadge status={proposal.status} darkMode={darkMode} />
+                                        <StatusBadge status={proposal.status} darkMode={darkMode} tr={tr} />
                                         <span
                                             style={{
                                                 display: 'inline-flex',
@@ -899,7 +903,7 @@ export default function ProposalDetail({ proposal }) {
                                                 fontWeight: 800,
                                             }}
                                         >
-                                            Template: {TEMPLATES.find((t) => t.value === tpl)?.label || 'Executive'}
+                                            {tr('proposalDetail.labels.template')}: {tr(TEMPLATES.find((t) => t.value === tpl)?.label || 'proposalDetail.templates.executive.label')}
                                         </span>
                                     </div>
                                 </div>
@@ -986,7 +990,7 @@ export default function ProposalDetail({ proposal }) {
                                                     animation: 'spin 0.7s linear infinite',
                                                 }}
                                             />
-                                            Updating...
+                                            {tr('proposalDetail.actions.updating')}
                                         </div>
                                     )}
                                 </div>
@@ -1040,9 +1044,9 @@ export default function ProposalDetail({ proposal }) {
                                             boxShadow: active ? `0 10px 24px ${theme.primary}25` : 'none',
                                         }}
                                     >
-                                        {t.label}
+                                        {tr(t.label)}
                                         <span style={{ opacity: active ? 0.86 : 0.66, fontWeight: 600 }}>
-                                            — {t.desc}
+                                            — {tr(t.desc)}
                                         </span>
                                     </button>
                                 );
@@ -1069,7 +1073,8 @@ export default function ProposalDetail({ proposal }) {
                             darkMode={darkMode}
                             onMaximize={() => setMaximized(true)}
                             pdfUrl={pdfUrl}
-                        />
+                        tr={tr}
+                    />
                     </div>
 
                     <div style={{ display: 'grid', gap: 18 }}>
@@ -1084,28 +1089,28 @@ export default function ProposalDetail({ proposal }) {
                                     marginBottom: 14,
                                 }}
                             >
-                                Client Summary
+                                {tr('proposalDetail.sections.clientSummary')}
                             </div>
 
                             <div style={{ display: 'grid', gap: 14 }}>
                                 <div>
-                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>Company</div>
+                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>{tr('proposalDetail.fields.company')}</div>
                                     <div style={{ fontSize: 14, fontWeight: 800, color: theme.text }}>
-                                        {client.company_name || 'Unknown Client'}
+                                        {client.company_name || tr('proposalDetail.common.unknownClient')}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>Industry</div>
+                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>{tr('proposalDetail.fields.industry')}</div>
                                     <div style={{ fontSize: 14, fontWeight: 700, color: theme.textSoft }}>
-                                        {client.industry || 'Not specified'}
+                                        {client.industry || tr('proposalDetail.common.notSpecified')}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>Email</div>
+                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>{tr('proposalDetail.fields.email')}</div>
                                     <div style={{ fontSize: 14, fontWeight: 700, color: theme.textSoft }}>
-                                        {client.email || 'Not specified'}
+                                        {client.email || tr('proposalDetail.common.notSpecified')}
                                     </div>
                                 </div>
                             </div>
@@ -1122,40 +1127,40 @@ export default function ProposalDetail({ proposal }) {
                                     marginBottom: 14,
                                 }}
                             >
-                                Proposal Insights
+                                {tr('proposalDetail.sections.proposalInsights')}
                             </div>
 
                             <div style={{ display: 'grid', gap: 14 }}>
                                 <div>
-                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>Project</div>
+                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>{tr('proposalDetail.fields.project')}</div>
                                     <div style={{ fontSize: 14, fontWeight: 800, color: theme.text }}>
-                                        {analysis.project_title || 'Untitled Project'}
+                                        {analysis.project_title || tr('proposalDetail.common.untitledProject')}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>Language</div>
+                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>{tr('proposalDetail.fields.language')}</div>
                                     <div style={{ fontSize: 14, fontWeight: 700, color: theme.textSoft }}>
-                                        {lang.flag} {lang.label}
+                                        {lang.flag} {tr(lang.label)}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>Template</div>
+                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>{tr('proposalDetail.labels.template')}</div>
                                     <div style={{ fontSize: 14, fontWeight: 700, color: theme.textSoft }}>
-                                        {TEMPLATES.find((t) => t.value === tpl)?.label || 'Executive'}
+                                        {tr(TEMPLATES.find((t) => t.value === tpl)?.label || 'proposalDetail.templates.executive.label')}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>Investment</div>
+                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>{tr('proposalDetail.fields.investment')}</div>
                                     <div style={{ fontSize: 14, fontWeight: 700, color: theme.textSoft }}>
                                         {totalInvestment}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>Validity</div>
+                                    <div style={{ fontSize: 12, color: theme.textMute, marginBottom: 4 }}>{tr('proposalDetail.fields.validity')}</div>
                                     <div style={{ fontSize: 14, fontWeight: 700, color: theme.textSoft }}>
                                         {validity}
                                     </div>
@@ -1179,7 +1184,7 @@ export default function ProposalDetail({ proposal }) {
                                     marginBottom: 8,
                                 }}
                             >
-                                Ready for final delivery?
+                                {tr('proposalDetail.sections.readyDelivery')}
                             </div>
 
                             <div
@@ -1190,12 +1195,12 @@ export default function ProposalDetail({ proposal }) {
                                     marginBottom: 18,
                                 }}
                             >
-                                Review the selected template preview, confirm client details, then update the status or download the final PDF.
+                                {tr('proposalDetail.messages.readyDeliveryDesc')}
                             </div>
 
                             <div className="pd-footer-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                                 <UIButton onClick={() => handleStatus('accepted')} variant="success" theme={theme}>
-                                    Mark Accepted
+                                    {tr('proposalDetail.actions.markAccepted')}
                                 </UIButton>
 
                               

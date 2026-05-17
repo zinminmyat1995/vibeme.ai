@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import AppLayout from '@/Layouts/AppLayout';
 import { usePage, router } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 function useReactiveTheme() {
     const getDark = () => {
@@ -86,9 +87,9 @@ function getTheme(dark) {
 }
 
 const STATUS_CONFIG = {
-    pending:  { label: 'Pending',  color: '#d97706', bg: '#fef3c7', bgDark: 'rgba(217,119,6,0.18)', icon: '⏳' },
-    approved: { label: 'Approved', color: '#059669', bg: '#d1fae5', bgDark: 'rgba(5,150,105,0.18)', icon: '✓' },
-    rejected: { label: 'Rejected', color: '#dc2626', bg: '#fee2e2', bgDark: 'rgba(220,38,38,0.18)', icon: '✕' },
+    pending:  { labelKey: 'attendanceRequest.status.pending', label: 'Pending',  color: '#d97706', bg: '#fef3c7', bgDark: 'rgba(217,119,6,0.18)', icon: '⏳' },
+    approved: { labelKey: 'attendanceRequest.status.approved', label: 'Approved', color: '#059669', bg: '#d1fae5', bgDark: 'rgba(5,150,105,0.18)', icon: '✓' },
+    rejected: { labelKey: 'attendanceRequest.status.rejected', label: 'Rejected', color: '#dc2626', bg: '#fee2e2', bgDark: 'rgba(220,38,38,0.18)', icon: '✕' },
 };
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -365,7 +366,7 @@ function PremiumDropdown({ options, value, onChange, placeholder = 'Select...', 
     );
 }
 
-function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme, countryConfig, onClose, onSuccess, onError }) {
+function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme, countryConfig, onClose, onSuccess, onError, tr }) {
     const WORK_START  = countryConfig?.work_start || '08:00';
     const WORK_END    = countryConfig?.work_end || '17:00';
     const LUNCH_START = countryConfig?.lunch_start || '12:00';
@@ -410,19 +411,19 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
     function validate() {
         const e = {};
 
-        if (!form.date) e.date = 'Date is required';
+        if (!form.date) e.date = tr('attendanceRequest.validation.dateRequired');
 
         if (form.request_type === 'check_in_only' && !form.check_in_time) {
-            e.check_in_time = 'Check In is required';
+            e.check_in_time = tr('attendanceRequest.validation.checkInRequired');
         }
 
         if (form.request_type === 'check_out_only' && !form.check_out_time) {
-            e.check_out_time = 'Check Out is required';
+            e.check_out_time = tr('attendanceRequest.validation.checkOutRequired');
         }
 
         if (form.request_type === 'both') {
-            if (!form.check_in_time)  e.check_in_time  = 'Check In is required';
-            if (!form.check_out_time) e.check_out_time = 'Check Out is required';
+            if (!form.check_in_time)  e.check_in_time  = tr('attendanceRequest.validation.checkInRequired');
+            if (!form.check_out_time) e.check_out_time = tr('attendanceRequest.validation.checkOutRequired');
 
             // ✅ ဒီ block တိုးထည့်ပါ
             if (form.check_in_time && form.check_out_time) {
@@ -430,13 +431,13 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
                 const outMins = timeToMinutes(form.check_out_time);
                 // ✅ NaN check ထည့်
                 if (!isNaN(inMins) && !isNaN(outMins) && outMins <= inMins) {
-                    e.check_out_time = 'Check Out must be later than Check In';
+                    e.check_out_time = tr('attendanceRequest.validation.checkOutLater');
                 }
             }
         }
 
-        if (!form.note) e.note = 'Reason is required';
-        if (roleName !== 'admin' && !form.approver_id) e.approver_id = 'Approver is required';
+        if (!form.note) e.note = tr('attendanceRequest.validation.reasonRequired');
+        if (roleName !== 'admin' && !form.approver_id) e.approver_id = tr('attendanceRequest.validation.approverRequired');
 
         setErrors(e);
         return Object.keys(e).length === 0;
@@ -456,7 +457,7 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
                 setSaving(false);
                 setErrors(errs);
                 const firstErr = Object.values(errs)[0];
-                onError(Array.isArray(firstErr) ? firstErr[0] : firstErr || 'Validation error');
+                onError(Array.isArray(firstErr) ? firstErr[0] : firstErr || tr('attendanceRequest.validation.validationError'));
             },
         });
     }
@@ -484,7 +485,7 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
     };
 
     const approverOptions = [
-        { value: '', label: 'Select approver', disabled: true },
+        { value: '', label: tr('attendanceRequest.placeholders.selectApprover'), disabled: true },
         ...approvers.map(a => ({ value: a.id, label: a.name })),
     ];
 
@@ -506,12 +507,8 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
                 <div style={{ background: theme.modalHeader, padding: '20px 24px 18px', flexShrink: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 3 }}>
-                                Attendance Request
-                            </div>
-                            <div style={{ fontSize: 17, fontWeight: 900, color: '#fff', letterSpacing: '-0.3px' }}>
-                                Check In/Out Request
-                            </div>
+                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 3 }}>{tr('attendanceRequest.modal.badge')}</div>
+                            <div style={{ fontSize: 17, fontWeight: 900, color: '#fff', letterSpacing: '-0.3px' }}>{tr('attendanceRequest.pageTitle')}</div>
                         </div>
                         <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(255,255,255,0.14)', border: 'none', cursor: 'pointer', fontSize: 20, color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
                             ×
@@ -522,23 +519,21 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
                 <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', flex: 1 }} className="hide-scrollbar">
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                            <label style={lbl}>Date <span style={{ color: theme.danger }}>*</span></label>
+                            <label style={lbl}>{tr('attendanceRequest.fields.date')} <span style={{ color: theme.danger }}>*</span></label>
                             <input type="date" value={form.date} onChange={e => set('date', e.target.value)} style={inp(errors.date)} />
                             {errors.date && <span style={{ fontSize: 11, color: theme.danger, fontWeight: 600 }}>{errors.date}</span>}
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                            <label style={lbl}>Approver {roleName !== 'admin' && <span style={{ color: theme.danger }}>*</span>}</label>
+                            <label style={lbl}>{tr('attendanceRequest.fields.approver')} {roleName !== 'admin' && <span style={{ color: theme.danger }}>*</span>}</label>
                             {roleName === 'admin' ? (
-                                <div style={{ ...inp(false), display: 'flex', alignItems: 'center', color: theme.success, fontWeight: 700 }}>
-                                    Auto Approved
-                                </div>
+                                <div style={{ ...inp(false), display: 'flex', alignItems: 'center', color: theme.success, fontWeight: 700 }}>{tr('attendanceRequest.status.autoApproved')}</div>
                             ) : (
                                 <PremiumDropdown
                                     options={approverOptions}
                                     value={form.approver_id}
                                     onChange={v => set('approver_id', v)}
-                                    placeholder="Select approver"
+                                    placeholder={tr('attendanceRequest.placeholders.selectApprover')}
                                     theme={theme}
                                     dark={dark}
                                     width="100%"
@@ -549,12 +544,12 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                        <label style={lbl}>Request Type <span style={{ color: theme.danger }}>*</span></label>
+                        <label style={lbl}>{tr('attendanceRequest.fields.requestType')} <span style={{ color: theme.danger }}>*</span></label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                             {[
-                                { value: 'check_in_only', label: 'Check In Only' },
-                                { value: 'check_out_only', label: 'Check Out Only' },
-                                { value: 'both', label: 'Both In/Out' },
+                                { value: 'check_in_only', label: tr('attendanceRequest.requestTypes.checkInOnly') },
+                                { value: 'check_out_only', label: tr('attendanceRequest.requestTypes.checkOutOnly') },
+                                { value: 'both', label: tr('attendanceRequest.requestTypes.both') },
                             ].map(opt => {
                                 const active = form.request_type === opt.value;
                                 return (
@@ -583,7 +578,7 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                            <label style={lbl}>
-                                Requested Check In
+                                {tr('attendanceRequest.fields.requestedCheckIn')}
                                 {form.request_type !== 'check_out_only' && <span style={{ color: theme.danger }}> *</span>}
                             </label>
                             <TimePicker
@@ -603,7 +598,7 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                             <label style={lbl}>
-                                Requested Check Out
+                                {tr('attendanceRequest.fields.requestedCheckOut')}
                                 {form.request_type !== 'check_in_only' && <span style={{ color: theme.danger }}> *</span>}
                             </label>
                             <TimePicker
@@ -624,37 +619,37 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
 
                     <div style={{ background: dark ? 'rgba(139,92,246,0.16)' : '#ede9fe', border: `1px solid ${dark ? 'rgba(139,92,246,0.3)' : '#ddd6fe'}`, borderRadius: 10, padding: '12px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                         <div>
-                            <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, textTransform: 'uppercase' }}>Work Schedule</div>
+                            <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, textTransform: 'uppercase' }}>{tr('attendanceRequest.preview.workSchedule')}</div>
                             <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: theme.text }}>
                                 {WORK_START} - {WORK_END}
                             </div>
                         </div>
                         <div>
-                            <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, textTransform: 'uppercase' }}>Lunch Break</div>
+                            <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, textTransform: 'uppercase' }}>{tr('attendanceRequest.preview.lunchBreak')}</div>
                             <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: theme.text }}>
                                 {LUNCH_START} - {LUNCH_END}
                             </div>
                         </div>
                         <div>
-                            <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, textTransform: 'uppercase' }}>Auto Preview</div>
+                            <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 700, textTransform: 'uppercase' }}>{tr('attendanceRequest.preview.autoPreview')}</div>
                             <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: theme.primary }}>
                                 {form.request_type === 'check_in_only' && form.check_in_time
-                                    ? `Late ${latePreview}m`
+                                    ? `${tr('attendanceRequest.labels.late')} ${latePreview}m`
                                     : form.request_type === 'check_out_only' && form.check_out_time
-                                    ? `Check Out only`
+                                    ? tr('attendanceRequest.requestTypes.checkOutOnly')
                                     : workHoursPreview !== ''
-                                    ? `${hToHM(workHoursPreview)} / Late ${latePreview}m`
+                                    ? `${hToHM(workHoursPreview)} / ${tr('attendanceRequest.labels.late')} ${latePreview}m`
                                     : '—'}
                             </div>
                         </div>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                        <label style={lbl}>Reason <span style={{ color: theme.danger }}>*</span></label>
+                        <label style={lbl}>{tr('attendanceRequest.fields.reason')} <span style={{ color: theme.danger }}>*</span></label>
                         <textarea
                             value={form.note}
                             onChange={e => set('note', e.target.value)}
-                            placeholder="Why are you requesting this check in/out update?"
+                            placeholder={tr('attendanceRequest.placeholders.reason')}
                             style={{ ...inp(errors.note), height: 88, resize: 'vertical' }}
                         />
                         {errors.note && <span style={{ fontSize: 11, color: theme.danger, fontWeight: 600 }}>{errors.note}</span>}
@@ -663,13 +658,11 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '14px 24px', borderTop: `1px solid ${theme.border}`, flexShrink: 0, background: dark ? 'rgba(255,255,255,0.02)' : '#fff' }}>
                     <button onClick={onClose}
-                        style={{ background: dark ? 'rgba(255,255,255,0.07)' : '#f3f4f6', border: `1px solid ${theme.border}`, borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: theme.textSoft }}>
-                        Cancel
-                    </button>
+                        style={{ background: dark ? 'rgba(255,255,255,0.07)' : '#f3f4f6', border: `1px solid ${theme.border}`, borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: theme.textSoft }}>{tr('attendanceRequest.actions.cancel')}</button>
                     <button onClick={handleSubmit} disabled={saving}
                         style={{ background: `linear-gradient(135deg, ${theme.primary}, ${dark ? '#6d28d9' : '#4f46e5'})`, border: 'none', borderRadius: 12, padding: '10px 24px', fontSize: 13, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', color: '#fff', opacity: saving ? 0.65 : 1, display: 'flex', alignItems: 'center', gap: 8, boxShadow: `0 8px 24px ${theme.primary}44`, transition: 'all 0.15s' }}>
                         {saving && <span style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />}
-                        {saving ? 'Submitting...' : 'Submit Request'}
+                        {saving ? tr('attendanceRequest.actions.submitting') : tr('attendanceRequest.actions.submitRequest')}
                     </button>
                 </div>
             </div>
@@ -678,7 +671,7 @@ function RequestFormModal({ saving, setSaving, approvers, roleName, dark, theme,
     );
 }
 
-function ConfirmModal({ type, request, loading, dark, theme, onCancel, onApprove, onReject, onDelete }) {
+function ConfirmModal({ type, request, loading, dark, theme, onCancel, onApprove, onReject, onDelete, tr }) {
     const isApprove = type === 'approve';
     const isDelete  = type === 'delete';
 
@@ -690,9 +683,9 @@ function ConfirmModal({ type, request, loading, dark, theme, onCancel, onApprove
                    : isApprove ? (dark ? 'rgba(16,185,129,0.15)' : '#d1fae5')
                    :             (dark ? 'rgba(248,113,113,0.14)' : '#fee2e2');
 
-    const title   = isDelete ? 'Delete Request' : isApprove ? 'Approve Request' : 'Reject Request';
+    const title   = isDelete ? tr('attendanceRequest.confirm.deleteTitle') : isApprove ? tr('attendanceRequest.confirm.approveTitle') : tr('attendanceRequest.confirm.rejectTitle');
     const icon    = isDelete ? '🗑' : isApprove ? '✓' : '✕';
-    const subtext = isDelete ? 'This action cannot be undone' : 'Employee will be notified';
+    const subtext = isDelete ? tr('attendanceRequest.confirm.deleteSubtext') : tr('attendanceRequest.confirm.notifySubtext');
 
     return createPortal(
         <div style={{ position:'fixed', inset:0, background:theme.overlay, display:'flex', alignItems:'center', justifyContent:'center', zIndex:9000, padding:20 }}>
@@ -711,12 +704,12 @@ function ConfirmModal({ type, request, loading, dark, theme, onCancel, onApprove
 
                     <div style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#f9fafb', border:`1px solid ${theme.border}`, borderRadius:14, padding:'16px 18px', display:'flex', flexDirection:'column', gap:10 }}>
                         <div style={{ fontSize:13, fontWeight:800, color:theme.text }}>
-                            {isDelete ? 'Your request' : request.user?.name}
+                            {isDelete ? tr('attendanceRequest.confirm.yourRequest') : request.user?.name}
                         </div>
                         <div style={{ fontSize:12, color:theme.textSoft }}>{formatDate(request.date)}</div>
                         <div style={{ display:'flex', gap:12, fontSize:12, color:theme.textSoft }}>
-                            <span>In: <strong>{to12h(request.requested_check_in_time)}</strong></span>
-                            <span>Out: <strong>{to12h(request.requested_check_out_time)}</strong></span>
+                            <span>{tr('attendanceRequest.shortLabels.in')}: <strong>{to12h(request.requested_check_in_time)}</strong></span>
+                            <span>{tr('attendanceRequest.shortLabels.out')}: <strong>{to12h(request.requested_check_out_time)}</strong></span>
                         </div>
                         {request.note && (
                             <div style={{ fontSize:11, color:theme.textMute, fontStyle:'italic', borderTop:`1px solid ${theme.border}`, paddingTop:8 }}>
@@ -728,24 +721,22 @@ function ConfirmModal({ type, request, loading, dark, theme, onCancel, onApprove
 
                 <div style={{ display:'flex', justifyContent:'flex-end', gap:10, padding:'0 26px 22px' }}>
                     <button onClick={onCancel} disabled={loading}
-                        style={{ background: dark ? 'rgba(255,255,255,0.07)' : '#f3f4f6', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 18px', fontSize:13, fontWeight:600, cursor:'pointer', color:theme.textSoft }}>
-                        Cancel
-                    </button>
+                        style={{ background: dark ? 'rgba(255,255,255,0.07)' : '#f3f4f6', border:`1px solid ${theme.border}`, borderRadius:10, padding:'9px 18px', fontSize:13, fontWeight:600, cursor:'pointer', color:theme.textSoft }}>{tr('attendanceRequest.actions.cancel')}</button>
 
                     {isDelete ? (
                         <button onClick={onDelete} disabled={loading}
                             style={{ background: dark ? 'rgba(248,113,113,0.18)' : '#ef4444', border:`1px solid ${dark ? 'rgba(248,113,113,0.35)' : 'transparent'}`, borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:700, cursor:'pointer', color: dark ? '#f87171' : '#fff', opacity: loading ? 0.6 : 1 }}>
-                            {loading ? 'Deleting...' : '🗑 Delete'}
+                            {loading ? tr('attendanceRequest.actions.deleting') : `🗑 ${tr('attendanceRequest.actions.delete')}`}
                         </button>
                     ) : isApprove ? (
                         <button onClick={onApprove} disabled={loading}
                             style={{ background: dark ? 'rgba(16,185,129,0.2)' : '#059669', border:`1px solid ${dark ? 'rgba(16,185,129,0.4)' : 'transparent'}`, borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:700, cursor:'pointer', color: dark ? '#34d399' : '#fff', opacity: loading ? 0.6 : 1 }}>
-                            {loading ? 'Approving...' : '✓ Approve'}
+                            {loading ? tr('attendanceRequest.actions.approving') : `✓ ${tr('attendanceRequest.actions.approve')}`}
                         </button>
                     ) : (
                         <button onClick={onReject} disabled={loading}
                             style={{ background: dark ? 'rgba(248,113,113,0.18)' : '#ef4444', border:`1px solid ${dark ? 'rgba(248,113,113,0.35)' : 'transparent'}`, borderRadius:10, padding:'9px 22px', fontSize:13, fontWeight:700, cursor:'pointer', color: dark ? '#f87171' : '#fff', opacity: loading ? 0.6 : 1 }}>
-                            {loading ? 'Rejecting...' : '✕ Reject'}
+                            {loading ? tr('attendanceRequest.actions.rejecting') : `✕ ${tr('attendanceRequest.actions.reject')}`}
                         </button>
                     )}
                 </div>
@@ -758,8 +749,9 @@ function ConfirmModal({ type, request, loading, dark, theme, onCancel, onApprove
 // ─── REPLACE the entire RequestRow function with this ───────────────────────
 // UI ONLY — logic unchanged
 
-function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDelete, isLast }) {
+function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject, onDelete, isLast, tr }) {
     const statusCfg       = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending;
+    const statusLabel     = tr(statusCfg.labelKey || 'attendanceRequest.status.pending');
     const isMyRequest     = req.user_id === userId;
     const isAssignedToMe  = req.approver_id === userId;
     const showActions     = canApprove && req.status === 'pending' && isAssignedToMe && !isMyRequest;
@@ -771,8 +763,8 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                       : theme.primary;
 
     const typeLabel = req.requested_check_in_time && req.requested_check_out_time
-        ? 'Both'
-        : req.requested_check_in_time ? 'In Only' : 'Out Only';
+        ? tr('attendanceRequest.requestTypes.bothShort')
+        : req.requested_check_in_time ? tr('attendanceRequest.requestTypes.inOnly') : tr('attendanceRequest.requestTypes.outOnly');
 
     // Shared chip label style (IN / OUT / WH / Late / Reason)
     const chipLabel = {
@@ -820,7 +812,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                             borderRadius: 99, padding: '2px 8px',
                             display: 'inline-flex', alignItems: 'center', gap: 3,
                         }}>
-                            {statusCfg.icon} {statusCfg.label}
+                            {statusCfg.icon} {statusLabel}
                         </span>
                         <span style={{ fontSize: 10, fontWeight: 600, color: theme.textMute }}>
                             {typeLabel}
@@ -833,9 +825,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                         {/* CHANGE 1: Awaiting stacked — "Awaiting" label + name below */}
                         {req.status === 'pending' && req.approver && !showActions && (
                             <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>
-                                    Awaiting
-                                </div>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>{tr('attendanceRequest.labels.awaiting')}</div>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: theme.secondary }}>
                                     {req.approver.name}
                                 </div>
@@ -845,9 +835,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                         {/* Approved by */}
                         {req.status === 'approved' && req.approvedBy && (
                             <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>
-                                    Approved by
-                                </div>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>{tr('attendanceRequest.labels.approvedBy')}</div>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: theme.success }}>
                                     {req.approvedBy.name}
                                 </div>
@@ -857,9 +845,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                         {/* Rejected by */}
                         {req.status === 'rejected' && req.approvedBy && (
                             <div style={{ textAlign: 'right', lineHeight: 1.5 }}>
-                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>
-                                    Rejected by
-                                </div>
+                                <div style={{ fontSize: 10, color: theme.textMute, fontWeight: 500 }}>{tr('attendanceRequest.labels.rejectedBy')}</div>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: theme.danger }}>
                                     {req.approvedBy.name}
                                 </div>
@@ -899,9 +885,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                                         stroke="currentColor" strokeWidth="3"
                                         strokeLinecap="round" strokeLinejoin="round">
                                         <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
-                                    Approve
-                                </button>
+                                    </svg>{tr('attendanceRequest.actions.approve')}</button>
 
                                 {/* Reject — solid red pill, same shape */}
                                 <button
@@ -939,9 +923,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                                         stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                                         <line x1="18" y1="6" x2="6" y2="18"/>
                                         <line x1="6" y1="6" x2="18" y2="18"/>
-                                    </svg>
-                                    Reject
-                                </button>
+                                    </svg>{tr('attendanceRequest.actions.reject')}</button>
                             </div>
                         )}
 
@@ -949,7 +931,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                         {showDelete && (
                             <button
                                 onClick={() => onDelete(req)}
-                                title="Delete request"
+                                title={tr('attendanceRequest.actions.deleteRequest')}
                                 style={{
                                     width: 28, height: 28, borderRadius: 7,
                                     background: 'transparent',
@@ -1015,7 +997,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                 }}>
                     {req.requested_check_in_time && (
                         <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                            <span style={{ ...chipLabel, color: theme.textMute }}>IN</span>
+                            <span style={{ ...chipLabel, color: theme.textMute }}>{tr('attendanceRequest.shortLabels.in')}</span>
                             <span style={{ ...chipValue, color: theme.text }}>
                                 {to12h(req.requested_check_in_time)}
                             </span>
@@ -1032,7 +1014,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
 
                     {req.requested_check_out_time && (
                         <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                            <span style={{ ...chipLabel, color: theme.textMute }}>OUT</span>
+                            <span style={{ ...chipLabel, color: theme.textMute }}>{tr('attendanceRequest.shortLabels.out')}</span>
                             <span style={{ ...chipValue, color: theme.text }}>
                                 {to12h(req.requested_check_out_time)}
                             </span>
@@ -1044,7 +1026,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                         <>
                             <span style={{ color: theme.border, fontSize: 12, lineHeight: 1 }}>·</span>
                             <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                                <span style={{ ...chipLabel, color: theme.textMute }}>WH</span>
+                                <span style={{ ...chipLabel, color: theme.textMute }}>{tr('attendanceRequest.shortLabels.wh')}</span>
                                 <span style={{ ...chipValue, color: theme.text }}>
                                     {hToHM(req.requested_work_hours)}
                                 </span>
@@ -1057,7 +1039,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                         <>
                             <span style={{ color: theme.border, fontSize: 12, lineHeight: 1 }}>·</span>
                             <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
-                                <span style={{ ...chipLabel, color: theme.warning }}>Late</span>
+                                <span style={{ ...chipLabel, color: theme.warning }}>{tr('attendanceRequest.labels.late')}</span>
                                 <span style={{ ...chipValue, color: theme.warning }}>
                                     {req.requested_late_minutes}m
                                 </span>
@@ -1072,7 +1054,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
                         display: 'inline-flex', alignItems: 'baseline',
                         marginTop: 6,
                     }}>
-                        <span style={{ ...chipLabel, color: theme.textMute }}>Reason</span>
+                        <span style={{ ...chipLabel, color: theme.textMute }}>{tr('attendanceRequest.fields.reason')}</span>
                         <span style={{ fontSize: 12, fontWeight: 500, color: theme.textSoft }}>
                             {req.note}
                         </span>
@@ -1086,6 +1068,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
 
 export default function AttendanceRequestIndex({ requests, approvers, filters, selectedMonth, selectedYear, countryConfig }) {
     const { auth } = usePage().props;
+    const { t: tr } = useTranslation();
     const user     = auth?.user;
     const roleName = user?.role?.name || 'employee';
     const dark     = useReactiveTheme();
@@ -1123,7 +1106,7 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
                 setActionLoading(false);
                 setConfirmModal(null);
                 // 404 — request ကို requester က ဖျက်သွားပြီ
-                const msg = errors?.message || 'Request no longer exists. It may have been deleted by the requester.';
+                const msg = errors?.message || tr('attendanceRequest.messages.requestNoLongerExists');
                 window.dispatchEvent(new CustomEvent('global-toast', {
                     detail: { message: msg, type: 'error' }
                 }));
@@ -1141,7 +1124,7 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
             onError: (errors) => {
                 setActionLoading(false);
                 setConfirmModal(null);
-                const msg = errors?.message || 'Request no longer exists. It may have been deleted by the requester.';
+                const msg = errors?.message || tr('attendanceRequest.messages.requestNoLongerExists');
                 window.dispatchEvent(new CustomEvent('global-toast', {
                     detail: { message: msg, type: 'error' }
                 }));
@@ -1161,7 +1144,7 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
                 setActionLoading(false);
                 setConfirmModal(null);
                 window.dispatchEvent(new CustomEvent('global-toast', {
-                    detail: { message: 'Request no longer exists or could not be deleted.', type: 'error' }
+                    detail: { message: tr('attendanceRequest.messages.requestDeleteFailed'), type: 'error' }
                 }));
             },
         });
@@ -1176,23 +1159,23 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
     else if (mainTab === 'approvals') displayList = pendingForMe;
     else displayList = requests.data;
 
-    const monthOpts = MONTHS.map((m, i) => ({ value: i + 1, label: m }));
+    const monthOpts = MONTHS.map((m, i) => ({ value: i + 1, label: tr(`attendanceRequest.months.${m}`) }));
     const yearOpts  = [2024, 2025, 2026, 2027].map(y => ({ value: y, label: String(y) }));
     const statusOpts = [
-        { value: '', label: 'All Status' },
-        { value: 'pending', label: '⏳ Pending' },
-        { value: 'approved', label: '✓ Approved' },
-        { value: 'rejected', label: '✕ Rejected' },
+        { value: '', label: tr('attendanceRequest.filters.allStatus') },
+        { value: 'pending', label: `⏳ ${tr('attendanceRequest.status.pending')}` },
+        { value: 'approved', label: `✓ ${tr('attendanceRequest.status.approved')}` },
+        { value: 'rejected', label: `✕ ${tr('attendanceRequest.status.rejected')}` },
     ];
 
     const tabs = [
-        { key: 'my', label: 'My Requests', count: myRequests.length, alert: false },
-        ...(canApprove ? [{ key: 'approvals', label: 'Pending Approvals', count: pendingCount, alert: pendingCount > 0 }] : []),
-        ...(canViewAll ? [{ key: 'all', label: 'All Requests', count: requests.total, alert: false }] : []),
+        { key: 'my', label: tr('attendanceRequest.tabs.myRequests'), count: myRequests.length, alert: false },
+        ...(canApprove ? [{ key: 'approvals', label: tr('attendanceRequest.tabs.pendingApprovals'), count: pendingCount, alert: pendingCount > 0 }] : []),
+        ...(canViewAll ? [{ key: 'all', label: tr('attendanceRequest.tabs.allRequests'), count: requests.total, alert: false }] : []),
     ];
 
     return (
-        <AppLayout title="Check In/Out Request">
+        <AppLayout title={tr('attendanceRequest.pageTitle')}>
             <style>{`
                 @keyframes popIn   { from { opacity:0; transform:scale(0.96); } to { opacity:1; transform:scale(1); } }
                 @keyframes spin    { to { transform:rotate(360deg); } }
@@ -1243,7 +1226,7 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
                             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
-                        Request Check In/Out
+                        {tr('attendanceRequest.actions.requestCheckInOut')}
                     </button>
                 </div>
 
@@ -1278,10 +1261,10 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
                         <div style={{ padding: '56px 24px', textAlign: 'center' }}>
                             <div style={{ fontSize: 36, marginBottom: 12 }}>{mainTab === 'approvals' ? '🎉' : '📭'}</div>
                             <div style={{ fontSize: 14, fontWeight: 600, color: theme.textSoft, marginBottom: 4 }}>
-                                {mainTab === 'approvals' ? 'No pending approvals' : 'No check in/out requests found'}
+                                {mainTab === 'approvals' ? tr('attendanceRequest.empty.noPendingApprovals') : tr('attendanceRequest.empty.noRequestsFound')}
                             </div>
                             <div style={{ fontSize: 12, color: theme.textMute }}>
-                                {mainTab === 'approvals' ? 'All caught up!' : 'Click "Request Check In/Out" to submit a new request.'}
+                                {mainTab === 'approvals' ? tr('attendanceRequest.empty.allCaughtUp') : tr('attendanceRequest.empty.clickToSubmit')}
                             </div>
                         </div>
                     ) : (
@@ -1297,6 +1280,7 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
                                 onReject={r => setConfirmModal({ type: 'reject', request: r })}
                                 onDelete={r => setConfirmModal({ type: 'delete', request: r })}
                                 isLast={idx === displayList.length - 1}
+                                tr={tr}
                             />
                         ))
                     )}
@@ -1332,6 +1316,7 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
                     onClose={() => setShowModal(false)}
                     onSuccess={() => setShowModal(false)}
                     onError={msg => window.dispatchEvent(new CustomEvent('global-toast', { detail: { message: msg, type: 'error' } }))}
+                    tr={tr}
                 />
             )}
 
@@ -1346,6 +1331,7 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
                     onApprove={() => handleApprove(confirmModal.request)}
                     onReject={() => handleReject(confirmModal.request)}
                     onDelete={() => handleDelete(confirmModal.request)}
+                    tr={tr}
 
                 />
             )}

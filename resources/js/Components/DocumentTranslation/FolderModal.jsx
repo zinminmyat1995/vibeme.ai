@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from '@inertiajs/react';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 const COLORS = ['#7c3aed', '#2563eb', '#059669', '#d97706', '#ef4444', '#ec4899', '#0891b2', '#374151'];
 const ICONS = ['📁', '📂', '🗂️', '💼', '📋', '📊', '📌', '🗃️', '💡', '🔒', '🌐', '⭐'];
@@ -74,6 +75,7 @@ function FieldError({ msg, theme }) {
 }
 
 export default function FolderModal({ open, onClose, editFolder = null, parentFolder = null }) {
+    const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
 
@@ -115,7 +117,7 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
             onError: () => {
                 window.dispatchEvent(new CustomEvent('global-toast', {
                     detail: {
-                        message: isEdit ? 'Failed to update folder.' : 'Failed to create folder.',
+                        message: isEdit ? tr('documentTranslation.folderModal.messages.updateFailed') : tr('documentTranslation.folderModal.messages.createFailed'),
                         type: 'error',
                     },
                 }));
@@ -137,9 +139,9 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
     });
 
     const visOptions = [
-        { value: 'all', label: 'All Branches', desc: 'Visible to all branches', icon: '🌐' },
-        { value: 'branch', label: 'My Branch', desc: 'Visible to your branch only', icon: '🏢' },
-        { value: 'private', label: 'Private', desc: 'Only visible to you', icon: '🔒' },
+        { value: 'all', label: tr('documentTranslation.folderModal.visibility.allBranches'), desc: tr('documentTranslation.folderModal.visibility.allBranchesDesc'), icon: '🌐' },
+        { value: 'branch', label: tr('documentTranslation.folderModal.visibility.myBranch'), desc: tr('documentTranslation.folderModal.visibility.myBranchDesc'), icon: '🏢' },
+        { value: 'private', label: tr('documentTranslation.folderModal.visibility.private'), desc: tr('documentTranslation.folderModal.visibility.privateDesc'), icon: '🔒' },
     ];
 
     return (
@@ -185,13 +187,13 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
                         <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 18 }}>
                             <div>
                                 <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.78)', marginBottom: 8 }}>
-                                    Folder Workspace
+                                    {tr('documentTranslation.folderModal.header.eyebrow')}
                                 </div>
                                 <div style={{ fontSize: 21, fontWeight: 900, color: '#fff', lineHeight: 1.15 }}>
-                                    {isEdit ? 'Edit Folder' : 'Create Folder'}
+                                    {isEdit ? tr('documentTranslation.folderModal.header.editTitle') : tr('documentTranslation.folderModal.header.createTitle')}
                                 </div>
                                 <div style={{ marginTop: 8, fontSize: 12.5, color: 'rgba(255,255,255,0.82)' }}>
-                                    {parentFolder ? `Parent: ${parentFolder.icon} ${parentFolder.name}` : 'Root level folder'}
+                                    {parentFolder ? `${tr('documentTranslation.folderModal.header.parent')}: ${parentFolder.icon} ${parentFolder.name}` : tr('documentTranslation.folderModal.header.rootLevel')}
                                 </div>
                             </div>
 
@@ -223,12 +225,12 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
                         <div style={{ display: 'grid', gap: 18 }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 800, color: theme.textSoft }}>
-                                    Folder Name
+                                    {tr('documentTranslation.folderModal.fields.folderName')}
                                 </label>
                                 <input
                                     value={form.data.name}
                                     onChange={(e) => form.setData('name', e.target.value)}
-                                    placeholder="Enter folder name"
+                                    placeholder={tr('documentTranslation.folderModal.placeholders.folderName')}
                                     style={inputStyle('name')}
                                 />
                                 <FieldError msg={form.errors.name} theme={theme} />
@@ -236,12 +238,12 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
 
                             <div>
                                 <label style={{ display: 'block', marginBottom: 8, fontSize: 12, fontWeight: 800, color: theme.textSoft }}>
-                                    Description
+                                    {tr('documentTranslation.folderModal.fields.description')}
                                 </label>
                                 <textarea
                                     value={form.data.description}
                                     onChange={(e) => form.setData('description', e.target.value)}
-                                    placeholder="Optional short description"
+                                    placeholder={tr('documentTranslation.folderModal.placeholders.description')}
                                     rows={3}
                                     style={{ ...inputStyle('description'), resize: 'vertical', minHeight: 96, paddingTop: 14 }}
                                 />
@@ -250,7 +252,7 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
 
                             <div>
                                 <label style={{ display: 'block', marginBottom: 10, fontSize: 12, fontWeight: 800, color: theme.textSoft }}>
-                                    Visibility
+                                    {tr('documentTranslation.folderModal.fields.visibility')}
                                 </label>
                                 <div style={{ display: 'grid', gap: 10 }}>
                                     {visOptions.map((opt) => {
@@ -302,7 +304,7 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
 
                             <div>
                                 <label style={{ display: 'block', marginBottom: 10, fontSize: 12, fontWeight: 800, color: theme.textSoft }}>
-                                    Folder Color
+                                    {tr('documentTranslation.folderModal.fields.folderColor')}
                                 </label>
                                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                                     {COLORS.map((color) => {
@@ -329,7 +331,7 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
 
                             <div>
                                 <label style={{ display: 'block', marginBottom: 10, fontSize: 12, fontWeight: 800, color: theme.textSoft }}>
-                                    Folder Icon
+                                    {tr('documentTranslation.folderModal.fields.folderIcon')}
                                 </label>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: 10 }}>
                                     {ICONS.map((icon) => {
@@ -373,7 +375,7 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
                                     cursor: 'pointer',
                                 }}
                             >
-                                Cancel
+                                {tr('documentTranslation.actions.cancel')}
                             </button>
                             <button
                                 type="submit"
@@ -391,7 +393,7 @@ export default function FolderModal({ open, onClose, editFolder = null, parentFo
                                     opacity: form.processing ? 0.7 : 1,
                                 }}
                             >
-                                {form.processing ? 'Saving...' : isEdit ? 'Update Folder' : 'Create Folder'}
+                                {form.processing ? tr('documentTranslation.folderModal.actions.saving') : isEdit ? tr('documentTranslation.folderModal.actions.updateFolder') : tr('documentTranslation.folderModal.actions.createFolder')}
                             </button>
                         </div>
                     </form>

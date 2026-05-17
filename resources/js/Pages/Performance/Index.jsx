@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
+import { useTranslation } from '@/Contexts/LanguageContext';
 
 function useReactiveTheme() {
     const getDark = () => {
@@ -123,16 +124,16 @@ function PremiumDropdown({ options, value, onChange, placeholder='Select...', th
 
 // ── Metric toggle pills ────────────────────────────────────────
 const METRICS = [
-    { key:'late',   label:'Late',     icon:'⏰', color:'#f87171', soft:'rgba(248,113,113,0.12)' },
-    { key:'absent', label:'Absent',   icon:'📅', color:'#fb923c', soft:'rgba(251,146,60,0.12)'  },
-    { key:'leave',  label:'Leave',    icon:'🏖️', color:'#fbbf24', soft:'rgba(251,191,36,0.12)'  },
-    { key:'ot',     label:'Overtime', icon:'⚡', color:'#34d399', soft:'rgba(52,211,153,0.12)'  },
+    { key:'late',   labelKey:'performance.metrics.late', label:'Late',     icon:'⏰', color:'#f87171', soft:'rgba(248,113,113,0.12)' },
+    { key:'absent', labelKey:'performance.metrics.absent', label:'Absent',   icon:'📅', color:'#fb923c', soft:'rgba(251,146,60,0.12)'  },
+    { key:'leave',  labelKey:'performance.metrics.leave', label:'Leave',    icon:'🏖️', color:'#fbbf24', soft:'rgba(251,191,36,0.12)'  },
+    { key:'ot',     labelKey:'performance.metrics.overtime', label:'Overtime', icon:'⚡', color:'#34d399', soft:'rgba(52,211,153,0.12)'  },
 ];
 
-function MetricPills({ selected, onChange, theme }) {
+function MetricPills({ selected, onChange, theme, tr }) {
     return (
         <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
-            <span style={{ fontSize:10, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.08em', marginRight:4 }}>Metrics</span>
+            <span style={{ fontSize:10, fontWeight:800, color:theme.textMute, textTransform:'uppercase', letterSpacing:'.08em', marginRight:4 }}>{tr('performance.labels.metrics')}</span>
             {METRICS.map(m => {
                 const active = selected.includes(m.key);
                 return (
@@ -147,7 +148,7 @@ function MetricPills({ selected, onChange, theme }) {
                             color: active ? m.color : theme.textSoft,
                         }}>
                         <span style={{ fontSize:11 }}>{m.icon}</span>
-                        {m.label}
+                        {tr(m.labelKey)}
                     </button>
                 );
             })}
@@ -156,7 +157,7 @@ function MetricPills({ selected, onChange, theme }) {
 }
 
 // ── Rating badge ───────────────────────────────────────────────
-function RatingBadge({ rating, theme }) {
+function RatingBadge({ rating, theme, tr }) {
     const map = {
         'Excellent': theme.ratingExcellent,
         'Good': theme.ratingGood,
@@ -170,7 +171,7 @@ function RatingBadge({ rating, theme }) {
             display:'inline-block', padding:'3px 10px', borderRadius:99,
             fontSize:11, fontWeight:700,
             background: cfg.bg, color: cfg.text, border:`1px solid ${cfg.border}`,
-        }}>{rating || '—'}</span>
+        }}>{rating ? tr(`performance.ratings.${String(rating).replace(/\s+/g, '')}`) : '—'}</span>
     );
 }
 
@@ -252,7 +253,7 @@ function getRatingCfg(rating) {
 
 
 
-function exportPDF(results, year, countryName) {
+function exportPDF(results, year, countryName, labels = {}) {
     const company = getCompanyName(countryName);
     const date    = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
     const total   = results.length;
@@ -284,7 +285,7 @@ function exportPDF(results, year, countryName) {
             <td style="padding:10px 14px;text-align:center;border-bottom:1px solid #f1f5f9;color:#10b981;font-weight:700;font-size:13px">${r.ot_hours??0}</td>
             <td style="padding:10px 14px;text-align:center;border-bottom:1px solid #f1f5f9">
                 <span style="-webkit-print-color-adjust:exact;print-color-adjust:exact;display:inline-block;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;background:${cfg.bg};color:${cfg.text};border:1px solid ${cfg.border}">
-                    ${r.rating||'—'}
+                    ${labels.ratings?.[r.rating] || r.rating || '—'}
                 </span>
             </td>
             <td style="padding:10px 14px;font-size:11.5px;color:#475569;line-height:1.5;border-bottom:1px solid #f1f5f9;width:220px;max-width:220px;word-wrap:break-word">${r.remark||'—'}</td>
@@ -298,7 +299,7 @@ function exportPDF(results, year, countryName) {
         return `
         <div style="-webkit-print-color-adjust:exact;print-color-adjust:exact;background:${cfg.bg};border:1px solid ${cfg.border};border-radius:8px;padding:10px 14px;text-align:center;min-width:88px">
             <div style="font-size:20px;font-weight:800;color:${cfg.text};line-height:1">${count}</div>
-            <div style="font-size:10px;font-weight:700;color:${cfg.text};margin-top:3px">${label}</div>
+            <div style="font-size:10px;font-weight:700;color:${cfg.text};margin-top:3px">${labels.ratings?.[label] || label}</div>
             <div style="font-size:10px;color:${cfg.text};opacity:0.6;margin-top:1px">${pct}%</div>
         </div>`;
     }).join('');
@@ -334,16 +335,16 @@ function exportPDF(results, year, countryName) {
     <div style="position:absolute;bottom:-60px;left:-20px;width:180px;height:180px;background:rgba(255,255,255,0.03);border-radius:50%"></div>
     <div style="position:relative">
       <div style="display:inline-block;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.9);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:4px 14px;border-radius:99px;margin-bottom:16px">
-        HR Performance Report
+        ${labels.hrPerformanceReport || 'HR Performance Report'}
       </div>
       <div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px;margin-bottom:4px">${company}</div>
-      <div style="font-size:15px;color:rgba(255,255,255,0.75);">Annual Performance Review — ${year}</div>
+      <div style="font-size:15px;color:rgba(255,255,255,0.75);">${labels.annualPerformanceReview || 'Annual Performance Review'} — ${year}</div>
     </div>
   </div>
  
   <!-- Summary cards -->
   <div style="padding:24px 40px;border-bottom:1px solid #f1f5f9">
-    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Rating Distribution</div>
+    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">${labels.ratingDistribution || 'Rating Distribution'}</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">${summaryCards}</div>
   </div>
  
@@ -353,14 +354,14 @@ function exportPDF(results, year, countryName) {
       <thead>
         <tr style="background:#f8fafc">
           <th style="padding:12px 14px;text-align:left;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">#</th>
-          <th style="padding:12px 14px;text-align:left;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">Employee</th>
-          <th style="padding:12px 14px;text-align:left;font-size:10px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">Attendance</th>
-          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">Late Days</th>
-          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#fb923c;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">Absent</th>
-          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">Leave</th>
-          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">OT Hrs</th>
-          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">Score</th>
-          <th style="padding:9px 14px;text-align:left;font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0;width:220px;max-width:220px">AI Remark</th>        </tr>
+          <th style="padding:12px 14px;text-align:left;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">${labels.employee || 'Employee'}</th>
+          <th style="padding:12px 14px;text-align:left;font-size:10px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">${labels.attendance || 'Attendance'}</th>
+          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">${labels.lateDays || 'Late Days'}</th>
+          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#fb923c;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">${labels.absent || 'Absent'}</th>
+          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">${labels.leave || 'Leave'}</th>
+          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">${labels.otHrs || 'OT Hrs'}</th>
+          <th style="padding:12px 14px;text-align:center;font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0">${labels.score || 'Score'}</th>
+          <th style="padding:9px 14px;text-align:left;font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #e2e8f0;width:220px;max-width:220px">${labels.aiRemark || 'AI Remark'}</th>        </tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
@@ -368,15 +369,15 @@ function exportPDF(results, year, countryName) {
  
   <!-- Footer -->
   <div style="padding:16px 40px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">
-    <div style="font-size:11px;color:#94a3b8">${company} · Confidential HR Document</div>
-    <div style="font-size:11px;color:#94a3b8">Generated by Smart HR · ${date}</div>
+    <div style="font-size:11px;color:#94a3b8">${company} · ${labels.confidentialHrDocument || 'Confidential HR Document'}</div>
+    <div style="font-size:11px;color:#94a3b8">${labels.generatedBySmartHr || 'Generated by Smart HR'} · ${date}</div>
   </div>
  
 </div>
  
 <div class="no-print" style="text-align:center;padding:20px">
   <button onclick="window.print()" style="padding:12px 32px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
-    🖨️ Print / Save as PDF
+    🖨️ ${labels.printSavePdf || 'Print / Save as PDF'}
   </button>
 </div>
  
@@ -403,6 +404,7 @@ export default function PerformanceIndex({
     availableYears = [],
     countryName: initCountryName = '', 
 }) {
+    const { t: tr } = useTranslation();
     const dark  = useReactiveTheme();
     const theme = getTheme(dark);
 
@@ -474,16 +476,16 @@ export default function PerformanceIndex({
     const countryOpts  = countries.map(c => ({ value:c.id, label:c.name }));
 
     const kpis = [
-        { label:'Total Employees', value:averages.total_employees||0, icon:'👥', color:theme.primary,  soft:theme.primarySoft  },
-        { label:'Avg Late Days',   value:averages.avg_late_days||0,   icon:'⏰', color:'#f87171',      soft:'rgba(248,113,113,0.12)' },
-        { label:'Avg Absent Days', value:averages.avg_absent_days||0, icon:'📅', color:'#fb923c',      soft:'rgba(251,146,60,0.12)'  },
-        { label:'Avg Leave Days',  value:averages.avg_leave_days||0,  icon:'🏖️', color:'#fbbf24',      soft:'rgba(251,191,36,0.12)'  },
-        { label:'Avg OT Hours',    value:averages.avg_ot_hours||0,    icon:'⚡', color:theme.success,  soft:theme.successSoft  },
+        { label:tr('performance.kpis.totalEmployees'), value:averages.total_employees||0, icon:'👥', color:theme.primary,  soft:theme.primarySoft  },
+        { label:tr('performance.kpis.avgLateDays'),   value:averages.avg_late_days||0,   icon:'⏰', color:'#f87171',      soft:'rgba(248,113,113,0.12)' },
+        { label:tr('performance.kpis.avgAbsentDays'), value:averages.avg_absent_days||0, icon:'📅', color:'#fb923c',      soft:'rgba(251,146,60,0.12)'  },
+        { label:tr('performance.kpis.avgLeaveDays'),  value:averages.avg_leave_days||0,  icon:'🏖️', color:'#fbbf24',      soft:'rgba(251,191,36,0.12)'  },
+        { label:tr('performance.kpis.avgOTHours'),    value:averages.avg_ot_hours||0,    icon:'⚡', color:theme.success,  soft:theme.successSoft  },
     ];
 
     return (
-        <AppLayout title="Performance Review">
-            <Head title="Performance Review"/>
+        <AppLayout title={tr('performance.pageTitle')}>
+            <Head title={tr('performance.pageTitle')}/>
             <style>{`
                 @keyframes pf-spin { to{transform:rotate(360deg)} }
                 @keyframes pf-fade { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
@@ -538,22 +540,44 @@ export default function PerformanceIndex({
                     }}/>
                     {/* Year */}
                     <PremiumDropdown options={yearOpts} value={year} onChange={handleYear}
-                        placeholder="Year" theme={theme} dark={dark} minWidth={110} />
+                        placeholder={tr('performance.placeholders.year')} theme={theme} dark={dark} minWidth={110} />
 
                     {/* Country — admin only */}
                     {userRole === 'admin' && (
                         <PremiumDropdown options={countryOpts} value={country} onChange={handleCountry}
-                            placeholder="Country" theme={theme} dark={dark} minWidth={150} />
+                            placeholder={tr('performance.placeholders.country')} theme={theme} dark={dark} minWidth={150} />
                     )}
 
                     <div style={{ width:1, height:24, background:theme.border, flexShrink:0 }}/>
 
-                    <MetricPills selected={filters} onChange={handleFilters} theme={theme} />
+                    <MetricPills selected={filters} onChange={handleFilters} theme={theme} tr={tr} />
 
                     <div style={{ marginLeft:'auto', display:'flex', gap:8, alignItems:'center' }}>
                         {/* Export PDF */}
                         {showResult && results.length > 0 && !analyzing && (
-                            <button onClick={() => exportPDF(results, year, countryName)} style={{
+                            <button onClick={() => exportPDF(results, year, countryName, {
+                                    hrPerformanceReport: tr('performance.pdf.hrPerformanceReport'),
+                                    annualPerformanceReview: tr('performance.pdf.annualPerformanceReview'),
+                                    ratingDistribution: tr('performance.pdf.ratingDistribution'),
+                                    employee: tr('performance.table.employee'),
+                                    attendance: tr('performance.table.attendance'),
+                                    lateDays: tr('performance.table.lateDays'),
+                                    absent: tr('performance.table.absent'),
+                                    leave: tr('performance.table.leave'),
+                                    otHrs: tr('performance.table.otHrs'),
+                                    score: tr('performance.table.score'),
+                                    aiRemark: tr('performance.table.aiRemark'),
+                                    confidentialHrDocument: tr('performance.pdf.confidentialHrDocument'),
+                                    generatedBySmartHr: tr('performance.pdf.generatedBySmartHr'),
+                                    printSavePdf: tr('performance.pdf.printSavePdf'),
+                                    ratings: {
+                                        Excellent: tr('performance.ratings.Excellent'),
+                                        Good: tr('performance.ratings.Good'),
+                                        Average: tr('performance.ratings.Average'),
+                                        'Needs Improvement': tr('performance.ratings.NeedsImprovement'),
+                                        Poor: tr('performance.ratings.Poor'),
+                                    },
+                                })} style={{
                                 height:38, padding:'0 16px', borderRadius:10,
                                 border:`1px solid ${theme.border}`, background:theme.surfaceSoft,
                                 color:theme.textSoft, fontSize:12, fontWeight:600,
@@ -565,7 +589,7 @@ export default function PerformanceIndex({
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                                 </svg>
-                                Export PDF
+                                {tr('performance.actions.exportPdf')}
                             </button>
                         )}
 
@@ -587,14 +611,14 @@ export default function PerformanceIndex({
                                         style={{animation:'pf-spin 1s linear infinite'}}>
                                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                                     </svg>
-                                    Analyzing {progress?.current||0}/{progress?.total||'—'}
+                                    {tr('performance.actions.analyzing')} {progress?.current||0}/{progress?.total||'—'}
                                 </>
                             ) : (
                                 <>
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
                                     </svg>
-                                    AI Analysis
+                                    {tr('performance.actions.aiAnalysis')}
                                 </>
                             )}
                         </button>
@@ -614,11 +638,11 @@ export default function PerformanceIndex({
                         display:'flex', alignItems:'center', gap:10,
                     }}>
                         <span style={{ fontSize:14, fontWeight:700, color:theme.text }}>
-                            {showResult && results.length > 0 ? 'Analysis Results' : 'Employee Metrics'}
+                            {showResult && results.length > 0 ? tr('performance.labels.analysisResults') : tr('performance.labels.employeeMetrics')}
                         </span>
                         <span style={{ fontSize:11, fontWeight:700, padding:'2px 9px', borderRadius:99,
                             background:theme.primarySoft, color:theme.primary }}>
-                            {displayRows.length} employees
+                            {displayRows.length} {tr('performance.labels.employees')}
                         </span>
                         {fetching && (
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2"
@@ -635,15 +659,15 @@ export default function PerformanceIndex({
                                 <tr>
                                     {[
                                         { label:'#',          w:40  },
-                                        { label:'Employee',   w:180 },
-                                        { label:'Dept',       w:120 },
-                                        { label:'Attendance',  w:150 },
-                                        { label:'Late Days',  w:140 },
-                                        { label:'Absent',     w:130 },
-                                        { label:'Leave Days', w:130 },
-                                        { label:'OT Hours',   w:130 },
+                                        { label:tr('performance.table.employee'),   w:180 },
+                                        { label:tr('performance.table.dept'),       w:120 },
+                                        { label:tr('performance.table.attendance'),  w:150 },
+                                        { label:tr('performance.table.lateDays'),  w:140 },
+                                        { label:tr('performance.table.absent'),     w:130 },
+                                        { label:tr('performance.table.leaveDays'), w:130 },
+                                        { label:tr('performance.table.otHours'),   w:130 },
                                         ...(showResult && results.length > 0
-                                            ? [{ label:'Rating', w:140 }, { label:'Remark', w:260 }]
+                                            ? [{ label:tr('performance.table.rating'), w:140 }, { label:tr('performance.table.remark'), w:260 }]
                                             : []
                                         ),
                                     ].map(h => (
@@ -662,7 +686,7 @@ export default function PerformanceIndex({
                                 {displayRows.length === 0 ? (
                                     <tr><td colSpan={10} style={{ padding:'48px 24px', textAlign:'center', color:theme.textMute }}>
                                         <div style={{ fontSize:28, marginBottom:8 }}>📊</div>
-                                        No employee data found for the selected filters.
+                                        {tr('performance.empty.noEmployeeData')}
                                     </td></tr>
                                 ) : displayRows.map((emp, i) => (
                                     <tr key={emp.id||emp.user_id} className="pf-row" style={{ borderBottom:`1px solid ${theme.border}` }}>
@@ -695,7 +719,7 @@ export default function PerformanceIndex({
                                         <td style={{ padding:'12px 16px' }}><HBar value={emp.ot_hours||0}    max={maxOT}     color="#34d399" theme={theme}/></td>
                                         {showResult && results.length > 0 && <>
                                             <td style={{ padding:'12px 16px', whiteSpace:'nowrap' }}>
-                                                {emp.rating ? <RatingBadge rating={emp.rating} theme={theme}/> : <span style={{color:theme.textMute,fontSize:12}}>—</span>}
+                                                {emp.rating ? <RatingBadge rating={emp.rating} theme={theme} tr={tr}/> : <span style={{color:theme.textMute,fontSize:12}}>—</span>}
                                             </td>
                                             <td style={{ padding:'12px 16px', fontSize:12, color:theme.textSoft, lineHeight:1.55, maxWidth:260 }}>
                                                 {emp.remark||'—'}

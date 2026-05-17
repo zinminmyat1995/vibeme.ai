@@ -17,7 +17,7 @@ function highlightVars(html) {
         { value: '7', label: 'X-Large' },
     ];
 
-    function FontSizeDropdown({ exec, theme, darkMode }) {
+    function FontSizeDropdown({ exec, theme, darkMode, tr }) {
         const [open, setOpen]       = useState(false);
         const [current, setCurrent] = useState('3');
         const ref                   = useRef(null);
@@ -60,7 +60,7 @@ function highlightVars(html) {
                         boxShadow: open ? `0 0 0 2px ${theme.primary}22` : 'none',
                     }}
                 >
-                    {selected?.label ?? 'Normal'}
+                    {tr(`smartMail.compose.fontSizes.${selected?.value || '3'}`, {}, selected?.label ?? 'Normal')}
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                         style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s', flexShrink: 0 }}>
                         <polyline points="6 9 12 15 18 9"/>
@@ -109,7 +109,7 @@ function highlightVars(html) {
                                     onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.06)' : '#f5f3ff'; }}
                                     onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
                                 >
-                                    <span>{f.label}</span>
+                                    <span>{tr(`smartMail.compose.fontSizes.${f.value}`, {}, f.label)}</span>
                                     {isSel && (
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="3">
                                             <polyline points="20 6 9 17 4 12"/>
@@ -124,7 +124,7 @@ function highlightVars(html) {
         );
     }
 // ── Rich Toolbar ──────────────────────────────────────────────
-function RichToolbar({ editorRef, theme, darkMode }) {
+function RichToolbar({ editorRef, theme, darkMode, tr }) {
     const exec = (cmd, val = null) => {
         editorRef.current?.focus();
         document.execCommand(cmd, false, val);
@@ -163,19 +163,19 @@ function RichToolbar({ editorRef, theme, darkMode }) {
             alignItems: 'center',
             flexShrink: 0,
         }}>
-            <Btn onClick={() => exec('bold')}          title="Bold"><strong>B</strong></Btn>
-            <Btn onClick={() => exec('italic')}        title="Italic"><em>I</em></Btn>
-            <Btn onClick={() => exec('underline')}     title="Underline"><u>U</u></Btn>
-            <Btn onClick={() => exec('strikeThrough')} title="Strike"><s>S</s></Btn>
+            <Btn onClick={() => exec('bold')}          title={tr('smartMail.compose.toolbar.bold')}><strong>B</strong></Btn>
+            <Btn onClick={() => exec('italic')}        title={tr('smartMail.compose.toolbar.italic')}><em>I</em></Btn>
+            <Btn onClick={() => exec('underline')}     title={tr('smartMail.compose.toolbar.underline')}><u>U</u></Btn>
+            <Btn onClick={() => exec('strikeThrough')} title={tr('smartMail.compose.toolbar.strike')}><s>S</s></Btn>
             <Divider />
-            <Btn onClick={() => exec('insertUnorderedList')} title="Bullet List">• List</Btn>
-            <Btn onClick={() => exec('insertOrderedList')}   title="Numbered">1. List</Btn>
+            <Btn onClick={() => exec('insertUnorderedList')} title={tr('smartMail.compose.toolbar.bulletList')}>{tr('smartMail.compose.toolbar.bulletListShort')}</Btn>
+            <Btn onClick={() => exec('insertOrderedList')}   title={tr('smartMail.compose.toolbar.numbered')}>{tr('smartMail.compose.toolbar.numberedListShort')}</Btn>
             <Divider />
-            <Btn onClick={() => exec('justifyLeft')}   title="Left">⬅</Btn>
-            <Btn onClick={() => exec('justifyCenter')} title="Center">≡</Btn>
-            <Btn onClick={() => exec('justifyRight')}  title="Right">➡</Btn>
+            <Btn onClick={() => exec('justifyLeft')}   title={tr('smartMail.compose.toolbar.left')}>⬅</Btn>
+            <Btn onClick={() => exec('justifyCenter')} title={tr('smartMail.compose.toolbar.center')}>≡</Btn>
+            <Btn onClick={() => exec('justifyRight')}  title={tr('smartMail.compose.toolbar.right')}>➡</Btn>
             <Divider />
-            <FontSizeDropdown exec={exec} theme={theme} darkMode={darkMode} />
+            <FontSizeDropdown exec={exec} theme={theme} darkMode={darkMode} tr={tr} tr={tr} />
         </div>
     );
 }
@@ -184,12 +184,12 @@ function RichToolbar({ editorRef, theme, darkMode }) {
 const LEAVE_SESSIONS = ['Full Day','Morning (AM Half)','Afternoon (PM Half)'];
 const DATE_FIELDS    = ['date','from_date','to_date','deadline','effective_date','start_date'];
 
-function SmartField({ varKey, value, onChange, theme, leaveTypes = [] }) {
+function SmartField({ varKey, value, onChange, theme, leaveTypes = [], tr }) {
     const [dropOpen, setDropOpen] = useState(false);
     const isDate    = DATE_FIELDS.includes(varKey);
     const isLeave   = varKey === 'leave_type';
     const isSession = varKey === 'session';
-    const label     = varKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const label     = tr(`smartMail.compose.vars.${varKey}`, {}, varKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
 
     const inputStyle = {
         width: '100%', padding: '10px 14px', borderRadius: 12,
@@ -262,9 +262,9 @@ function SmartField({ varKey, value, onChange, theme, leaveTypes = [] }) {
     if (isLeave) {
         // Use DB leave types, fallback to common ones
         const opts = leaveTypes.length > 0 ? leaveTypes : [];
-        field = <CustomDropdown options={opts} placeholder="Select leave type..." />;
+        field = <CustomDropdown options={opts} placeholder={tr('smartMail.placeholders.selectLeaveType')} />;
     } else if (isSession) {
-        field = <CustomDropdown options={LEAVE_SESSIONS} placeholder="Select session..." />;
+        field = <CustomDropdown options={LEAVE_SESSIONS} placeholder={tr('smartMail.placeholders.selectSession')} />;
     } else if (isDate) {
         field = (
             <input
@@ -279,7 +279,7 @@ function SmartField({ varKey, value, onChange, theme, leaveTypes = [] }) {
             <input
                 value={value || ''}
                 onChange={e => onChange(e.target.value)}
-                placeholder={`Enter ${label.toLowerCase()}...`}
+                placeholder={tr('smartMail.placeholders.enterField', { field: String(label).toLowerCase() }, `Enter ${String(label).toLowerCase()}...`)}
                 style={inputStyle}
             />
         );
@@ -296,7 +296,7 @@ function SmartField({ varKey, value, onChange, theme, leaveTypes = [] }) {
 }
 
 // ── Template Variables Modal ──────────────────────────────────
-function TemplateVarsModal({ open, template, onClose, onApply, leaveTypes = [], theme }) {
+function TemplateVarsModal({ open, template, onClose, onApply, leaveTypes = [], theme, tr }) {
     const [vars, setVars] = useState({});
 
     useEffect(() => {
@@ -366,7 +366,7 @@ function TemplateVarsModal({ open, template, onClose, onApply, leaveTypes = [], 
                     flexShrink: 0,
                 }}>
                     <div>
-                        <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>Template</div>
+                        <div style={{ fontSize: 10, fontWeight: 900, color: theme.primary, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 3 }}>{tr('smartMail.compose.template')}</div>
                         <div style={{ fontSize: 15, fontWeight: 900, color: theme.text }}>{template.name}</div>
                     </div>
                     <button onClick={onClose} style={{
@@ -389,6 +389,7 @@ function TemplateVarsModal({ open, template, onClose, onApply, leaveTypes = [], 
                             onChange={val => setVars(p => ({ ...p, [v]: val }))}
                             leaveTypes={leaveTypes}
                             theme={theme}
+                            tr={tr}
                         />
                     ))}
                 </div>
@@ -399,13 +400,13 @@ function TemplateVarsModal({ open, template, onClose, onApply, leaveTypes = [], 
                         padding: '9px 20px', borderRadius: 12,
                         border: `1px solid ${theme.border}`, background: theme.panelSoft,
                         color: theme.textSoft, fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                    }}>Cancel</button>
+                    }}>{tr('smartMail.actions.cancel')}</button>
                     <button onClick={handleApply} style={{
                         padding: '9px 22px', borderRadius: 12, border: 'none',
                         background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
                         color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
                         boxShadow: `0 6px 18px ${theme.primary}35`,
-                    }}>Apply Template</button>
+                    }}>{tr('smartMail.compose.applyTemplate')}</button>
                 </div>
             </div>
         </div>
@@ -413,7 +414,7 @@ function TemplateVarsModal({ open, template, onClose, onApply, leaveTypes = [], 
 }
 
 // ── Email Input (To / CC / BCC) ───────────────────────────────
-function ToField({ value = [], onChange, systemUsers = [], theme }) {
+function ToField({ value = [], onChange, systemUsers = [], theme, tr }) {
     const [query, setQuery]   = useState('');
     const [show, setShow]     = useState(false);
     const inputRef            = useRef(null);
@@ -477,7 +478,7 @@ function ToField({ value = [], onChange, systemUsers = [], theme }) {
                     onKeyDown={handleKeyDown}
                     onFocus={() => setShow(true)}
                     onBlur={() => setTimeout(() => setShow(false), 150)}
-                    placeholder={value.length === 0 ? 'Type email + Enter, or search...' : ''}
+                    placeholder={value.length === 0 ? tr('smartMail.placeholders.typeEmailSearch') : ''}
                     style={{
                         border: 'none', outline: 'none',
                         background: 'transparent',
@@ -536,7 +537,7 @@ export default function ComposeModal({
     open, onClose, onSuccess,
     systemUsers = [], templates = [], leaveTypes = [],
     hasApi = false, replyTo = null, forwardMail = null,
-    theme, darkMode = false,
+    theme, darkMode = false, tr = (key, vars = {}, fallback = '') => fallback || key,
 }) {
     if (!open) return null;
     return (
@@ -544,13 +545,13 @@ export default function ComposeModal({
             onClose={onClose} onSuccess={onSuccess}
             systemUsers={systemUsers} templates={templates} leaveTypes={leaveTypes}
             hasApi={hasApi} replyTo={replyTo} forwardMail={forwardMail}
-            theme={theme} darkMode={darkMode}
+            theme={theme} darkMode={darkMode} tr={tr}
         />
     );
 }
 
 // ── Inner Component ───────────────────────────────────────────
-function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, hasApi, replyTo, forwardMail, theme, darkMode }) {
+function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, hasApi, replyTo, forwardMail, theme, darkMode, tr }) {
     const editorRef    = useRef(null);
     const editorReady  = useRef(false);
     const { props }    = usePage();
@@ -737,13 +738,13 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
-        if (toAddresses.length === 0) { setErrors({ to: 'Please add at least one recipient.' }); return; }
+        if (toAddresses.length === 0) { setErrors({ to: tr('smartMail.validation.recipientRequired') }); return; }
         setSending(true);
         const fd = new FormData();
         toAddresses.forEach(a  => fd.append('to_addresses[]', a));
         ccAddresses.forEach(a  => fd.append('cc_addresses[]', a));
         bccAddresses.forEach(a => fd.append('bcc_addresses[]', a));
-        fd.append('subject',      subject.trim() || '(No Subject)');
+        fd.append('subject',      subject.trim() || tr('smartMail.labels.noSubject'));
         fd.append('body_html',    getContent());
         fd.append('ai_generated', aiGenerated ? '1' : '0');
         if (templateUsed) fd.append('template_used', templateUsed);
@@ -751,9 +752,9 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
         try {
             const res = await window.apiFetch('/smart-mail/send', { method: 'POST', body: fd });
             const data = await res.json();
-            if (res.ok && data.success) { onSuccess?.('Mail sent successfully! ✉️', data.mail ?? null); onClose(); }
-            else setErrors(data.errors || { send: data.message || 'Failed to send.' });
-        } catch { setErrors({ send: 'Network error. Please try again.' }); }
+            if (res.ok && data.success) { onSuccess?.(tr('smartMail.messages.mailSent'), data.mail ?? null); onClose(); }
+            else setErrors(data.errors || { send: data.message || tr('smartMail.messages.failedToSend') });
+        } catch { setErrors({ send: tr('smartMail.messages.networkError') }); }
         setSending(false);
     };
 
@@ -769,19 +770,19 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
 
     // AI mode configs
     const aiActions = [
-        { mode: 'generate',  label: 'Write',     color: theme.primary,  soft: theme.primarySoft },
-        { mode: 'improve',   label: 'Improve',   color: theme.success,  soft: theme.successSoft },
-        { mode: 'translate', label: 'Translate', color: theme.secondary, soft: theme.secondarySoft },
+        { mode: 'generate',  label: tr('smartMail.compose.ai.write'),     color: theme.primary,  soft: theme.primarySoft },
+        { mode: 'improve',   label: tr('smartMail.compose.ai.improve'),   color: theme.success,  soft: theme.successSoft },
+        { mode: 'translate', label: tr('smartMail.compose.ai.translate'), color: theme.secondary, soft: theme.secondarySoft },
     ];
 
     const TONES = ['professional', 'friendly', 'formal', 'casual', 'persuasive'];
     const LANGS = [
-        { code: 'en', label: 'English',    flag: '🇬🇧' },
-        { code: 'ja', label: 'Japanese',   flag: '🇯🇵' },
-        { code: 'my', label: 'Burmese',    flag: '🇲🇲' },
-        { code: 'km', label: 'Khmer',      flag: '🇰🇭' },
-        { code: 'vi', label: 'Vietnamese', flag: '🇻🇳' },
-        { code: 'ko', label: 'Korean',     flag: '🇰🇷' },
+        { code: 'en', label: tr('smartMail.languages.en'),    flag: '🇬🇧' },
+        { code: 'ja', label: tr('smartMail.languages.ja'),   flag: '🇯🇵' },
+        { code: 'my', label: tr('smartMail.languages.my'),    flag: '🇲🇲' },
+        { code: 'km', label: tr('smartMail.languages.km'),      flag: '🇰🇭' },
+        { code: 'vi', label: tr('smartMail.languages.vi'), flag: '🇻🇳' },
+        { code: 'ko', label: tr('smartMail.languages.ko'),     flag: '🇰🇷' },
     ];
 
     return (
@@ -834,7 +835,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                             {replyTo ? '↩' : forwardMail ? '↪' : '✉'}
                         </div>
                         <h3 style={{ fontSize: 14, fontWeight: 900, color: '#fff', margin: 0 }}>
-                            {replyTo ? 'Reply' : forwardMail ? 'Forward' : 'New Message'}
+                            {replyTo ? tr('smartMail.actions.reply') : forwardMail ? tr('smartMail.actions.forward') : tr('smartMail.compose.newMessage')}
                         </h3>
                         {aiGenerated && (
                             <span style={{
@@ -880,7 +881,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                 }}>
                                     {templates.filter(t => !['job_offer','project_update'].includes(t.slug)).length === 0 ? (
                                         <div style={{ padding: '14px 16px', fontSize: 12, color: theme.textMute, textAlign: 'center' }}>
-                                            No templates available
+                                            {tr('smartMail.empty.noTemplatesAvailable')}
                                         </div>
                                     ) : templates.filter(t => !['job_offer','project_update'].includes(t.slug)).map(t => (
                                         <button key={t.id} type="button" onClick={() => handleTemplateClick(t)} style={{
@@ -911,7 +912,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                         </div>
 
                         {/* Maximize / Minimize */}
-                        <button onClick={() => setMaximized(v => !v)} title={maximized ? 'Minimize' : 'Maximize'} style={{
+                        <button onClick={() => setMaximized(v => !v)} title={maximized ? tr('smartMail.actions.minimize') : tr('smartMail.actions.maximize')} style={{
                             background: 'rgba(255,255,255,0.15)',
                             border: '1px solid rgba(255,255,255,0.3)',
                             width: 30, height: 30, borderRadius: 8,
@@ -954,12 +955,12 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                         {/* To row */}
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 5 }}>
-                                <label style={lbl}>To</label>
+                                <label style={lbl}>{tr('smartMail.labels.to')}</label>
                                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                                     <button type="button" onClick={() => setShowCC(!showCC)}
-                                        style={{ fontSize: 11, color: showCC ? theme.primary : theme.textMute, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>CC</button>
+                                        style={{ fontSize: 11, color: showCC ? theme.primary : theme.textMute, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>{tr('smartMail.labels.cc')}</button>
                                     <button type="button" onClick={() => setShowBCC(!showBCC)}
-                                        style={{ fontSize: 11, color: showBCC ? theme.primary : theme.textMute, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>BCC</button>
+                                        style={{ fontSize: 11, color: showBCC ? theme.primary : theme.textMute, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>{tr('smartMail.labels.bcc')}</button>
                                 </div>
                             </div>
                             {replyTo ? (
@@ -970,7 +971,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                     fontSize: 12, color: theme.primary, fontWeight: 700,
                                 }}>{replyTo.from_address}</div>
                             ) : (
-                                <ToField value={toAddresses} onChange={setToAddresses} systemUsers={systemUsers} theme={theme} />
+                                <ToField value={toAddresses} onChange={setToAddresses} systemUsers={systemUsers} theme={theme} tr={tr} />
                             )}
                             {errors.to && <p style={{ fontSize: 11, color: theme.danger, marginTop: 4, fontWeight: 700 }}>{errors.to}</p>}
                         </div>
@@ -979,7 +980,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                         {showCC && (
                             <div>
                                 <label style={{ ...lbl, display: 'block', marginBottom: 5 }}>CC</label>
-                                <ToField value={ccAddresses} onChange={setCcAddresses} systemUsers={systemUsers} theme={theme} />
+                                <ToField value={ccAddresses} onChange={setCcAddresses} systemUsers={systemUsers} theme={theme} tr={tr} />
                             </div>
                         )}
 
@@ -987,15 +988,15 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                         {showBCC && (
                             <div>
                                 <label style={{ ...lbl, display: 'block', marginBottom: 5 }}>BCC</label>
-                                <ToField value={bccAddresses} onChange={setBccAddresses} systemUsers={systemUsers} theme={theme} />
+                                <ToField value={bccAddresses} onChange={setBccAddresses} systemUsers={systemUsers} theme={theme} tr={tr} />
                             </div>
                         )}
 
                         {/* Subject */}
                         <div>
-                            <label style={{ ...lbl, display: 'block', marginBottom: 5 }}>Subject</label>
+                            <label style={{ ...lbl, display: 'block', marginBottom: 5 }}>{tr('smartMail.labels.subject')}</label>
                             <input value={subject} onChange={e => setSubject(e.target.value)}
-                                placeholder="Email subject..."
+                                placeholder={tr('smartMail.placeholders.emailSubject')}
                                 style={inp} />
                         </div>
                     </div>
@@ -1037,7 +1038,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                 <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                                     <div style={{ flex: 1, minWidth: 200 }}>
                                         <input value={aiPrompt} onChange={e => setAiPrompt(e.target.value)}
-                                            placeholder="Describe what to write..."
+                                            placeholder={tr('smartMail.placeholders.describeEmail')}
                                             onKeyDown={e => e.key === 'Enter' && handleAiGenerate()}
                                             style={{ ...inp, padding: '8px 12px' }} />
                                     </div>
@@ -1065,7 +1066,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                                 fontFamily: 'inherit',
                                             }}
                                         >
-                                            <span>{aiTone.charAt(0).toUpperCase() + aiTone.slice(1)}</span>
+                                            <span>{tr(`smartMail.compose.tones.${aiTone}`, {}, aiTone.charAt(0).toUpperCase() + aiTone.slice(1))}</span>
                                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                                                 style={{ transform: toneOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s', color: theme.textMute, flexShrink: 0 }}>
                                                 <polyline points="6 9 12 15 18 9"/>
@@ -1116,7 +1117,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                                         >
                                                             {active && <span style={{ color: theme.primary, fontSize: 10 }}>✓</span>}
                                                             {!active && <span style={{ width: 14 }} />}
-                                                            {tone.charAt(0).toUpperCase() + tone.slice(1)}
+                                                            {tr(`smartMail.compose.tones.${tone}`, {}, tone.charAt(0).toUpperCase() + tone.slice(1))}
                                                         </button>
                                                     );
                                                 })}
@@ -1130,7 +1131,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                         display: 'flex', alignItems: 'center', gap: 6,
                                         opacity: !aiPrompt ? 0.5 : 1,
                                     }}>
-                                        {aiLoading ? <><span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />Writing...</> : '✨ Write'}
+                                        {aiLoading ? <><span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />{tr('smartMail.actions.writing')}</> : `✨ ${tr('smartMail.compose.ai.write')}`}
                                     </button>
                                 </div>
                             )}
@@ -1143,9 +1144,9 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                         color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                                         display: 'flex', alignItems: 'center', gap: 6,
                                     }}>
-                                        {aiLoading ? <><span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />Improving...</> : '🔧 Improve Content'}
+                                        {aiLoading ? <><span style={{ width: 12, height: 12, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />{tr('smartMail.actions.improving')}</> : `🔧 ${tr('smartMail.compose.ai.improveContent')}`}
                                     </button>
-                                    <span style={{ fontSize: 11, color: theme.textMute, alignSelf: 'center' }}>Rewrites your current draft professionally</span>
+                                    <span style={{ fontSize: 11, color: theme.textMute, alignSelf: 'center' }}>{tr('smartMail.compose.ai.improveHint')}</span>
                                 </div>
                             )}
 
@@ -1180,7 +1181,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                                 opacity: aiLoading ? 0.7 : 1, minWidth: 80, textAlign: 'center',
                                             }}
                                         >
-                                            {aiLoading ? 'Translating...' : 'Preview'}
+                                            {aiLoading ? tr('smartMail.actions.translating') : tr('smartMail.actions.preview')}
                                         </button>
                                     )}
                                 </div>
@@ -1213,7 +1214,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                                                 color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer',
                                             }}
                                         >
-                                            ✓ Apply to Body
+                                            ✓ {tr('smartMail.compose.applyToBody')}
                                         </button>
                                     </div>
                                     <div style={{ whiteSpace: 'pre-wrap', maxHeight: 100, overflowY: 'auto' }}>
@@ -1225,13 +1226,13 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                     )}
 
                     {/* ── Rich Toolbar + Editor ── */}
-                    <RichToolbar editorRef={editorRef} theme={theme} darkMode={darkMode} />
+                    <RichToolbar editorRef={editorRef} theme={theme} darkMode={darkMode} tr={tr} />
 
                     <div
                         ref={editorRef}
                         contentEditable
                         suppressContentEditableWarning
-                        data-placeholder="Write your message..."
+                        data-placeholder={tr('smartMail.placeholders.writeMessage')}
                         style={{
                             flex: 1, padding: maximized ? '24px 32px' : '16px 20px',
                             outline: 'none', overflowY: 'auto',
@@ -1313,7 +1314,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                         }}
                             onMouseEnter={e => e.currentTarget.style.background = theme.panelSofter}
                             onMouseLeave={e => e.currentTarget.style.background = theme.panelSolid}
-                        >Cancel</button>
+                        >{tr('smartMail.actions.cancel')}</button>
 
                         {/* Send */}
                         <button type="submit" disabled={sending} style={{
@@ -1356,6 +1357,7 @@ function ComposeInner({ onClose, onSuccess, systemUsers, templates, leaveTypes, 
                 onApply={handleTemplateApply}
                 leaveTypes={leaveTypes}
                 theme={theme}
+                tr={tr}
             />
 
             <style>{`
