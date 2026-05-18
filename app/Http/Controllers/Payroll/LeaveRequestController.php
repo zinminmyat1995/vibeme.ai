@@ -14,7 +14,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
-
+use App\Models\OvertimeRequest; 
+use App\Models\PublicHoliday;  
 class LeaveRequestController extends Controller
 {
     private const LOWER_ROLES  = ['member', 'employee'];
@@ -30,17 +31,17 @@ class LeaveRequestController extends Controller
         $month    = $request->integer('month', now()->month);
         $year     = $request->integer('year',  now()->year);
 
+        // ── Leave requests query (ဟောင်းတဲ့ logic မပြောင်း) ──────────────────────
         $query = LeaveRequest::with([
             'user:id,name,avatar_url,position,department',
             'approver:id,name',
         ])->latest();
 
-        // Overlap query — leave က selected month နဲ့ overlap ဖြစ်ရင် အကုန်ဖမ်း
         $query->where(function ($q) use ($month, $year) {
             $periodStart = Carbon::create($year, $month, 1)->startOfMonth()->toDateString();
             $periodEnd   = Carbon::create($year, $month, 1)->endOfMonth()->toDateString();
             $q->where('start_date', '<=', $periodEnd)
-              ->where('end_date',   '>=', $periodStart);
+            ->where('end_date',   '>=', $periodStart);
         });
 
         if (in_array($roleName, self::MANAGE_ROLES)) {
@@ -53,57 +54,129 @@ class LeaveRequestController extends Controller
 
         if ($request->filled('status')) $query->where('status', $request->status);
 
+        // ── Leave balances & policies (မပြောင်း) ─────────────────────────────────
         $leaveBalances = LeaveBalance::where('user_id', $user->id)->where('year', now()->year)->get();
         $leavePolicies = LeavePolicy::where('country_id', $user->country_id)->where('is_active', true)->get();
 
+        // ── Approvers (မပြောင်း) ──────────────────────────────────────────────────
         $employees = match (true) {
-            // Employee / Member → ကိုယ့် country ထဲက management role
             in_array($roleName, self::LOWER_ROLES) =>
                 User::select('id', 'name', 'avatar_url', 'role_id')->with('role:id,name')
-                    ->where('is_active', 1)
-                    ->where('country_id', $user->country_id)
-                    ->whereHas('role', fn($q) => $q->where('name', 'management'))
-                    ->get(),
-        
-            
-            // Driver → ကိုယ့် country ထဲက hr role
+                    ->where('is_active', 1)->where('country_id', $user->country_id)
+                    ->whereHas('role', fn($q) => $q->where('name', 'management'))->get(),
+
             $roleName === 'driver' =>
                 User::select('id', 'name', 'avatar_url', 'role_id')->with('role:id,name')
-                    ->where('is_active', 1)
-                    ->where('country_id', $user->country_id)
-                    ->whereHas('role', fn($q) => $q->where('name', 'hr'))
-                    ->get(),
+                    ->where('is_active', 1)->where('country_id', $user->country_id)
+                    ->whereHas('role', fn($q) => $q->where('name', 'hr'))->get(),
 
-            // Management → ကိုယ့် country ထဲက hr role
             $roleName === 'management' =>
                 User::select('id', 'name', 'avatar_url', 'role_id')->with('role:id,name')
-                    ->where('is_active', 1)
-                    ->where('country_id', $user->country_id)
-                    ->whereHas('role', fn($q) => $q->where('name', 'hr'))
-                    ->get(),
-        
-            // HR → ကိုယ့် country ထဲက admin role (country filter ထည့်)
+                    ->where('is_active', 1)->where('country_id', $user->country_id)
+                    ->whereHas('role', fn($q) => $q->where('name', 'hr'))->get(),
+
             $roleName === 'hr' =>
                 User::select('id', 'name', 'avatar_url', 'role_id')->with('role:id,name')
-                    ->where('is_active', 1)
-                    ->where('country_id', $user->country_id)   // ← ဒါထည့်
-                    ->whereHas('role', fn($q) => $q->where('name', 'admin'))
-                    ->get(),
-        
+                    ->where('is_active', 1)->where('country_id', $user->country_id)
+                    ->whereHas('role', fn($q) => $q->where('name', 'admin'))->get(),
+
             default => collect(),
         };
 
+        // ── ✨ NEW: Calendar data ──────────────────────────────────────────────────
+        // Calendar panel အတွက် လိုအပ်တဲ့ data ၃ မျိုး:
+        //   1. attendanceMap  — { "2026-05-01": { status, check_in, check_out, work_hours } }
+        //   2. calLeaveDateMap — { "2026-05-15": [{ type, is_half, day_type }] }
+        //   3. publicHolidays  — [ { date: "2026-05-03", name: "..." } ]
+        //   4. otDateSet       — [ "2026-05-21", ... ]  (approved/pending OT dates)
 
-        // Mobile API request ဆိုရင်
+        $periodStart = Carbon::create($year, $month, 1)->startOfMonth();
+        $periodEnd   = Carbon::create($year, $month, 1)->endOfMonth();
+
+        // 1. Attendance records for the month
+        $attendanceRecords = AttendanceRecord::where('user_id', $user->id)
+            ->whereBetween('date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+            ->get();
+
+        $attendanceMap = [];
+        foreach ($attendanceRecords as $rec) {
+            $dk = Carbon::parse($rec->date)->toDateString();
+            $attendanceMap[$dk] = [
+                'status'      => $rec->status,
+                'check_in'    => $rec->check_in_time  ? substr($rec->check_in_time,  0, 5) : null,
+                'check_out'   => $rec->check_out_time ? substr($rec->check_out_time, 0, 5) : null,
+                'work_hours'  => $rec->work_hours_actual ? round((float) $rec->work_hours_actual, 1) : null,
+                'late_minutes'=> $rec->late_minutes ?? 0,
+            ];
+        }
+
+        // 2. Leave dates for calendar (approved only — ကိုယ်ပိုင် leave)
+        $calLeaveRecords = LeaveRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where(function ($q) use ($periodStart, $periodEnd) {
+                $q->where('start_date', '<=', $periodEnd->toDateString())
+                ->where('end_date',   '>=', $periodStart->toDateString());
+            })
+            ->get();
+
+        $calLeaveDateMap = [];
+        foreach ($calLeaveRecords as $leave) {
+            $start   = Carbon::parse($leave->start_date);
+            $end     = Carbon::parse($leave->end_date);
+            $current = $start->copy();
+            while ($current <= $end) {
+                $dk = $current->toDateString();
+                $calLeaveDateMap[$dk][] = [
+                    'type'     => $leave->leave_type,
+                    'is_half'  => $leave->total_days < 1,
+                    'day_type' => $leave->day_type,
+                ];
+                $current->addDay();
+            }
+        }
+
+        // 3. Public holidays for the month
+        $holidays = \App\Models\PublicHoliday::where('country_id', $user->country_id)
+            ->whereBetween('date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+            ->get()
+            ->map(fn($h) => [
+                'date' => Carbon::parse($h->date)->toDateString(),
+                'name' => $h->name,
+            ])
+            ->toArray();
+
+        // 4. OT dates (pending + approved) — just the date strings
+        $otRecords = \App\Models\OvertimeRequest::where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->where(function ($q) use ($periodStart, $periodEnd) {
+                $q->where('start_date', '<=', $periodEnd->toDateString())
+                ->where('end_date',   '>=', $periodStart->toDateString());
+            })
+            ->get();
+
+        $otDateSet = [];
+        foreach ($otRecords as $ot) {
+            $start   = Carbon::parse($ot->start_date);
+            $end     = Carbon::parse($ot->end_date);
+            $current = $start->copy();
+            while ($current <= $end) {
+                $dk = $current->toDateString();
+                if (!in_array($dk, $otDateSet)) $otDateSet[] = $dk;
+                $current->addDay();
+            }
+        }
+
+        // ── Mobile JSON response ──────────────────────────────────────────────────
         if ($request->expectsJson()) {
             return response()->json([
                 'requests'      => $query->paginate(20),
                 'leaveBalances' => $leaveBalances,
                 'leavePolicies' => $leavePolicies,
-                'approvers'     => $employees, // approver list
+                'approvers'     => $employees,
             ]);
         }
 
+        // ── Inertia response ──────────────────────────────────────────────────────
         return Inertia::render('Payroll/Leave/Index', [
             'requests'      => $query->paginate(20),
             'leaveBalances' => $leaveBalances,
@@ -112,6 +185,12 @@ class LeaveRequestController extends Controller
             'filters'       => $request->only(['status', 'month', 'year']),
             'selectedMonth' => $month,
             'selectedYear'  => $year,
+
+            // ✨ Calendar props အသစ်
+            'attendanceMap'    => $attendanceMap,    // { date: { status, check_in, check_out, work_hours } }
+            'calLeaveDateMap'  => $calLeaveDateMap,  // { date: [{ type, is_half, day_type }] }
+            'publicHolidays'   => $holidays,         // [{ date, name }]
+            'otDateSet'        => $otDateSet,         // ["2026-05-21", ...]
         ]);
     }
 
@@ -592,6 +671,96 @@ public function destroy(Request $request, int $id)
     }
 
     return back()->with('success', 'Leave request deleted successfully.');
+}
+
+public function calendarData(Request $request): \Illuminate\Http\JsonResponse
+{
+    $user   = Auth::user();
+    $month  = $request->integer('month', now()->month);
+    $year   = $request->integer('year',  now()->year);
+ 
+    $periodStart = \Carbon\Carbon::create($year, $month, 1)->startOfMonth()->toDateString();
+    $periodEnd   = \Carbon\Carbon::create($year, $month, 1)->endOfMonth()->toDateString();
+ 
+    // ── 1. Attendance ─────────────────────────────────────────
+    $attendanceRecords = AttendanceRecord::where('user_id', $user->id)
+        ->whereBetween('date', [$periodStart, $periodEnd])
+        ->get();
+ 
+    $attendanceMap = [];
+    foreach ($attendanceRecords as $rec) {
+        $dk = \Carbon\Carbon::parse($rec->date)->toDateString();
+        $attendanceMap[$dk] = [
+            'status'       => $rec->status,
+            'check_in'     => $rec->check_in_time  ? substr($rec->check_in_time,  0, 5) : null,
+            'check_out'    => $rec->check_out_time ? substr($rec->check_out_time, 0, 5) : null,
+            'work_hours'   => $rec->work_hours_actual ? round((float) $rec->work_hours_actual, 1) : null,
+            'late_minutes' => $rec->late_minutes ?? 0,
+        ];
+    }
+ 
+    // ── 2. Leave dates (approved only) ───────────────────────
+    $calLeaveRecords = LeaveRequest::where('user_id', $user->id)
+        ->where('status', 'approved')
+        ->where(function ($q) use ($periodStart, $periodEnd) {
+            $q->where('start_date', '<=', $periodEnd)
+              ->where('end_date',   '>=', $periodStart);
+        })
+        ->get();
+ 
+    $calLeaveDateMap = [];
+    foreach ($calLeaveRecords as $leave) {
+        $start   = \Carbon\Carbon::parse($leave->start_date);
+        $end     = \Carbon\Carbon::parse($leave->end_date);
+        $current = $start->copy();
+        while ($current <= $end) {
+            $dk = $current->toDateString();
+            $calLeaveDateMap[$dk][] = [
+                'type'     => $leave->leave_type,
+                'is_half'  => $leave->total_days < 1,
+                'day_type' => $leave->day_type,
+            ];
+            $current->addDay();
+        }
+    }
+ 
+    // ── 3. Public holidays ────────────────────────────────────
+    $holidays = \App\Models\PublicHoliday::where('country_id', $user->country_id)
+        ->whereBetween('date', [$periodStart, $periodEnd])
+        ->get()
+        ->map(fn($h) => [
+            'date' => \Carbon\Carbon::parse($h->date)->toDateString(),
+            'name' => $h->name,
+        ])
+        ->toArray();
+ 
+    // ── 4. OT dates (pending + approved) ─────────────────────
+    $otRecords = \App\Models\OvertimeRequest::where('user_id', $user->id)
+        ->whereIn('status', ['pending', 'approved'])
+        ->where(function ($q) use ($periodStart, $periodEnd) {
+            $q->where('start_date', '<=', $periodEnd)
+              ->where('end_date',   '>=', $periodStart);
+        })
+        ->get();
+ 
+    $otDateSet = [];
+    foreach ($otRecords as $ot) {
+        $start   = \Carbon\Carbon::parse($ot->start_date);
+        $end     = \Carbon\Carbon::parse($ot->end_date);
+        $current = $start->copy();
+        while ($current <= $end) {
+            $dk = $current->toDateString();
+            if (!in_array($dk, $otDateSet)) $otDateSet[] = $dk;
+            $current->addDay();
+        }
+    }
+ 
+    return response()->json([
+        'attendanceMap'   => $attendanceMap,
+        'calLeaveDateMap' => $calLeaveDateMap,
+        'publicHolidays'  => $holidays,
+        'otDateSet'       => $otDateSet,
+    ]);
 }
 
 }

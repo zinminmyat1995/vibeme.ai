@@ -90,23 +90,109 @@ class OvertimeRequestController extends Controller
                 'project_name' => $a->project?->name,
             ]);
 
-        if ($request->expectsJson()) {
-            return response()->json([
+            // ── ✨ Calendar data (Leave Index နဲ့ same pattern) ──────────
+            $periodStart = \Carbon\Carbon::create($year, $month, 1)->startOfMonth()->toDateString();
+            $periodEnd   = \Carbon\Carbon::create($year, $month, 1)->endOfMonth()->toDateString();
+    
+            // Attendance
+            $attendanceRecords = \App\Models\AttendanceRecord::where('user_id', $user->id)
+                ->whereBetween('date', [$periodStart, $periodEnd])
+                ->get();
+    
+            $attendanceMap = [];
+            foreach ($attendanceRecords as $rec) {
+                $dk = \Carbon\Carbon::parse($rec->date)->toDateString();
+                $attendanceMap[$dk] = [
+                    'status'       => $rec->status,
+                    'check_in'     => $rec->check_in_time  ? substr($rec->check_in_time,  0, 5) : null,
+                    'check_out'    => $rec->check_out_time ? substr($rec->check_out_time, 0, 5) : null,
+                    'work_hours'   => $rec->work_hours_actual ? round((float) $rec->work_hours_actual, 1) : null,
+                    'late_minutes' => $rec->late_minutes ?? 0,
+                ];
+            }
+    
+            // Approved leave dates
+            $leaveRecords = \App\Models\LeaveRequest::where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->where(function ($q) use ($periodStart, $periodEnd) {
+                    $q->where('start_date', '<=', $periodEnd)
+                    ->where('end_date',   '>=', $periodStart);
+                })
+                ->get();
+    
+            $calLeaveDateMap = [];
+            foreach ($leaveRecords as $leave) {
+                $start   = \Carbon\Carbon::parse($leave->start_date);
+                $end     = \Carbon\Carbon::parse($leave->end_date);
+                $current = $start->copy();
+                while ($current <= $end) {
+                    $dk = $current->toDateString();
+                    $calLeaveDateMap[$dk][] = [
+                        'type'     => $leave->leave_type,
+                        'is_half'  => $leave->total_days < 1,
+                        'day_type' => $leave->day_type,
+                    ];
+                    $current->addDay();
+                }
+            }
+    
+            // Public holidays
+            $holidays = \App\Models\PublicHoliday::where('country_id', $user->country_id)
+                ->whereBetween('date', [$periodStart, $periodEnd])
+                ->get()
+                ->map(fn($h) => [
+                    'date' => \Carbon\Carbon::parse($h->date)->toDateString(),
+                    'name' => $h->name,
+                ])
+                ->toArray();
+    
+            // OT dates (pending + approved)
+            $otRecords = OvertimeRequest::where('user_id', $user->id)
+                ->whereIn('status', ['pending', 'approved'])
+                ->where(function ($q) use ($periodStart, $periodEnd) {
+                    $q->where('start_date', '<=', $periodEnd)
+                    ->where('end_date',   '>=', $periodStart);
+                })
+                ->get();
+    
+            $otDateSet = [];
+            foreach ($otRecords as $ot) {
+                $start   = \Carbon\Carbon::parse($ot->start_date);
+                $end     = \Carbon\Carbon::parse($ot->end_date);
+                $current = $start->copy();
+                while ($current <= $end) {
+                    $dk = $current->toDateString();
+                    if (!in_array($dk, $otDateSet)) $otDateSet[] = $dk;
+                    $current->addDay();
+                }
+            }
+    
+            // ── Inertia response ──────────────────────────────────
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'requests'         => $query->paginate(20),
+                    'overtimePolicies' => $overtimePolicies,
+                    'employees'        => $employees,
+                    'userAssignments'  => $userAssignments,
+                ]);
+            }
+    \Log::info('otDateSet', $otDateSet);
+\Log::info('OT Records count', ['count' => $otRecords->count()]);
+            return Inertia::render('Payroll/Overtime/Index', [
                 'requests'         => $query->paginate(20),
                 'overtimePolicies' => $overtimePolicies,
                 'employees'        => $employees,
+                'filters'          => $request->only(['status','month','year']),
+                'selectedMonth'    => $month,
+                'selectedYear'     => $year,
                 'userAssignments'  => $userAssignments,
+                // ✨ Calendar props အသစ်
+                'attendanceMap'    => $attendanceMap,
+                'calLeaveDateMap'  => $calLeaveDateMap,
+                'publicHolidays'   => $holidays,
+                'otDateSet'        => $otDateSet,
             ]);
-        }
-        return Inertia::render('Payroll/Overtime/Index', [
-            'requests'         => $query->paginate(20),
-            'overtimePolicies' => $overtimePolicies,
-            'employees'        => $employees,
-            'filters'          => $request->only(['status','month','year']),
-            'selectedMonth'    => $month,
-            'selectedYear'     => $year,
-            'userAssignments' => $userAssignments,
-        ]);
+    
     }
 
     // ─────────────────────────────────────────────────────────
@@ -472,5 +558,95 @@ class OvertimeRequestController extends Controller
 
         return back()->with('success', 'Overtime request deleted successfully.');
     }
+
+public function calendarData(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+{
+    $user   = \Illuminate\Support\Facades\Auth::user();
+    $month  = $request->integer('month', now()->month);
+    $year   = $request->integer('year',  now()->year);
+ 
+    $periodStart = \Carbon\Carbon::create($year, $month, 1)->startOfMonth()->toDateString();
+    $periodEnd   = \Carbon\Carbon::create($year, $month, 1)->endOfMonth()->toDateString();
+ 
+    // ── 1. Attendance ─────────────────────────────────────────
+    $attendanceRecords = \App\Models\AttendanceRecord::where('user_id', $user->id)
+        ->whereBetween('date', [$periodStart, $periodEnd])
+        ->get();
+ 
+    $attendanceMap = [];
+    foreach ($attendanceRecords as $rec) {
+        $dk = \Carbon\Carbon::parse($rec->date)->toDateString();
+        $attendanceMap[$dk] = [
+            'status'       => $rec->status,
+            'check_in'     => $rec->check_in_time  ? substr($rec->check_in_time,  0, 5) : null,
+            'check_out'    => $rec->check_out_time ? substr($rec->check_out_time, 0, 5) : null,
+            'work_hours'   => $rec->work_hours_actual ? round((float) $rec->work_hours_actual, 1) : null,
+            'late_minutes' => $rec->late_minutes ?? 0,
+        ];
+    }
+ 
+    // ── 2. Approved leave dates ───────────────────────────────
+    $leaveRecords = \App\Models\LeaveRequest::where('user_id', $user->id)
+        ->where('status', 'approved')
+        ->where(function ($q) use ($periodStart, $periodEnd) {
+            $q->where('start_date', '<=', $periodEnd)
+              ->where('end_date',   '>=', $periodStart);
+        })
+        ->get();
+ 
+    $calLeaveDateMap = [];
+    foreach ($leaveRecords as $leave) {
+        $start   = \Carbon\Carbon::parse($leave->start_date);
+        $end     = \Carbon\Carbon::parse($leave->end_date);
+        $current = $start->copy();
+        while ($current <= $end) {
+            $dk = $current->toDateString();
+            $calLeaveDateMap[$dk][] = [
+                'type'     => $leave->leave_type,
+                'is_half'  => $leave->total_days < 1,
+                'day_type' => $leave->day_type,
+            ];
+            $current->addDay();
+        }
+    }
+ 
+    // ── 3. Public holidays ────────────────────────────────────
+    $holidays = \App\Models\PublicHoliday::where('country_id', $user->country_id)
+        ->whereBetween('date', [$periodStart, $periodEnd])
+        ->get()
+        ->map(fn($h) => [
+            'date' => \Carbon\Carbon::parse($h->date)->toDateString(),
+            'name' => $h->name,
+        ])
+        ->toArray();
+ 
+    // ── 4. OT dates (pending + approved) ─────────────────────
+    $otRecords = OvertimeRequest::where('user_id', $user->id)
+        ->whereIn('status', ['pending', 'approved'])
+        ->where(function ($q) use ($periodStart, $periodEnd) {
+            $q->where('start_date', '<=', $periodEnd)
+              ->where('end_date',   '>=', $periodStart);
+        })
+        ->get();
+ 
+    $otDateSet = [];
+    foreach ($otRecords as $ot) {
+        $start   = \Carbon\Carbon::parse($ot->start_date);
+        $end     = \Carbon\Carbon::parse($ot->end_date);
+        $current = $start->copy();
+        while ($current <= $end) {
+            $dk = $current->toDateString();
+            if (!in_array($dk, $otDateSet)) $otDateSet[] = $dk;
+            $current->addDay();
+        }
+    }
+ 
+    return response()->json([
+        'attendanceMap'   => $attendanceMap,
+        'calLeaveDateMap' => $calLeaveDateMap,
+        'publicHolidays'  => $holidays,
+        'otDateSet'       => $otDateSet,
+    ]);
+}
 
 }

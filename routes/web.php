@@ -330,6 +330,7 @@ Route::middleware(['auth'])->group(function () {
     Route::patch ('/payroll/leaves/{id}/approve', [LeaveRequestController::class, 'approve']);
     Route::patch ('/payroll/leaves/{id}/reject',  [LeaveRequestController::class, 'reject']);
     Route::delete('/payroll/leaves/{id}',         [LeaveRequestController::class, 'destroy']);
+    Route::get('/payroll/leaves/calendar-data', [LeaveRequestController::class, 'calendarData'])->name('payroll.leaves.calendar-data');
 
     // Overtime
     Route::get   ('/payroll/overtimes',               [OvertimeRequestController::class, 'index'])  ->name('payroll.overtimes.index');
@@ -337,6 +338,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch ('/payroll/overtimes/{id}/approve',  [OvertimeRequestController::class, 'approve'])->name('payroll.overtimes.approve');
     Route::patch ('/payroll/overtimes/{id}/reject',   [OvertimeRequestController::class, 'reject']) ->name('payroll.overtimes.reject');
     Route::delete('/payroll/overtimes/{id}',          [OvertimeRequestController::class, 'destroy'])->name('payroll.overtimes.destroy');
+    Route::get('/payroll/overtimes/calendar-data', [OvertimeRequestController::class, 'calendarData'])->name('payroll.overtimes.calendar-data');
+
 
     // Expense
     Route::get   ('/payroll/expenses',                          [ExpenseRequestController::class, 'index'])             ->name('payroll.expenses.index');
