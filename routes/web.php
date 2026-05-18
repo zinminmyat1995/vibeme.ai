@@ -323,6 +323,7 @@ Route::middleware(['auth'])->group(function () {
     Route::patch ('/payroll/check-in-out-requests/{id}/approve', [AttendanceRequestController::class, 'approve']);
     Route::patch ('/payroll/check-in-out-requests/{id}/reject',  [AttendanceRequestController::class, 'reject']);
     Route::delete('/payroll/check-in-out-requests/{attendanceRequest}', [AttendanceRequestController::class, 'destroy']);
+    Route::get('/payroll/check-in-out-requests/calendar-data', [AttendanceRequestController::class, 'calendarData']);
 
     // Leave
     Route::get   ('/payroll/leaves',          [LeaveRequestController::class, 'index']);

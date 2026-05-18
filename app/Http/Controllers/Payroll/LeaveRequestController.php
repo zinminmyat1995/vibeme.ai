@@ -154,6 +154,7 @@ class LeaveRequestController extends Controller
             })
             ->get();
 
+        // အသစ်
         $otDateSet = [];
         foreach ($otRecords as $ot) {
             $start   = Carbon::parse($ot->start_date);
@@ -161,10 +162,22 @@ class LeaveRequestController extends Controller
             $current = $start->copy();
             while ($current <= $end) {
                 $dk = $current->toDateString();
-                if (!in_array($dk, $otDateSet)) $otDateSet[] = $dk;
+                if (!isset($otDateSet[$dk]) || $ot->status === 'approved') {
+                    $otDateSet[$dk] = [
+                        'status' => $ot->status,
+                        'hours'  => $ot->status === 'approved'
+                            ? (float) $ot->hours_approved
+                            : (float) $ot->hours_requested,
+                    ];
+                }
                 $current->addDay();
             }
         }
+        $otDateSet = array_values(array_map(
+            fn($date, $info) => array_merge(['date' => $date], $info),
+            array_keys($otDateSet),
+            $otDateSet
+        ));
 
         // ── Mobile JSON response ──────────────────────────────────────────────────
         if ($request->expectsJson()) {
@@ -743,17 +756,30 @@ public function calendarData(Request $request): \Illuminate\Http\JsonResponse
         })
         ->get();
  
+    // အသစ်
     $otDateSet = [];
     foreach ($otRecords as $ot) {
-        $start   = \Carbon\Carbon::parse($ot->start_date);
-        $end     = \Carbon\Carbon::parse($ot->end_date);
+        $start   = Carbon::parse($ot->start_date);
+        $end     = Carbon::parse($ot->end_date);
         $current = $start->copy();
         while ($current <= $end) {
             $dk = $current->toDateString();
-            if (!in_array($dk, $otDateSet)) $otDateSet[] = $dk;
+            if (!isset($otDateSet[$dk]) || $ot->status === 'approved') {
+                $otDateSet[$dk] = [
+                    'status' => $ot->status,
+                    'hours'  => $ot->status === 'approved'
+                        ? (float) $ot->hours_approved
+                        : (float) $ot->hours_requested,
+                ];
+            }
             $current->addDay();
         }
     }
+    $otDateSet = array_values(array_map(
+        fn($date, $info) => array_merge(['date' => $date], $info),
+        array_keys($otDateSet),
+        $otDateSet
+    ));
  
     return response()->json([
         'attendanceMap'   => $attendanceMap,

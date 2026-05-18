@@ -746,6 +746,209 @@ function ConfirmModal({ type, request, loading, dark, theme, onCancel, onApprove
     );
 }
 
+
+function MiniCalendar({ month, year, attendanceMap, calLeaveDateMap, publicHolidays, otDateSet, dark, theme }) {
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [calMonth,     setCalMonth]     = useState(month);
+    const [calYear,      setCalYear]      = useState(year);
+    const [loading,      setLoading]      = useState(false);
+    const [calData,      setCalData]      = useState({ attendanceMap, calLeaveDateMap, publicHolidays, otDateSet });
+
+    const prevFilterRef = useRef({ month, year });
+    useEffect(() => {
+        const prev = prevFilterRef.current;
+        if (prev.month !== month || prev.year !== year) {
+            prevFilterRef.current = { month, year };
+            navigateTo(month, year);
+        }
+    }, [month, year]);
+
+    useEffect(() => {
+        if (calMonth === month && calYear === year) {
+            setCalData({ attendanceMap, calLeaveDateMap, publicHolidays, otDateSet });
+        }
+    }, [attendanceMap, calLeaveDateMap, publicHolidays, otDateSet, calMonth, calYear, month, year]);
+
+    async function navigateTo(m, y) {
+        setCalMonth(m); setCalYear(y); setSelectedDate(null);
+        if (m === month && y === year) {
+            setCalData({ attendanceMap, calLeaveDateMap, publicHolidays, otDateSet });
+            return;
+        }
+        setLoading(true);
+        try {
+            const res = await window.apiFetch(`/payroll/check-in-out-requests/calendar-data?month=${m}&year=${y}`);
+            if (res.ok) {
+                const data = await res.json();
+                setCalData({ attendanceMap: data.attendanceMap || {}, calLeaveDateMap: data.calLeaveDateMap || {}, publicHolidays: data.publicHolidays || [], otDateSet: data.otDateSet || [] });
+            }
+        } catch (err) { console.error('MiniCalendar fetch failed:', err); }
+        finally { setLoading(false); }
+    }
+
+    function prevMonth() { navigateTo(calMonth === 1 ? 12 : calMonth - 1, calMonth === 1 ? calYear - 1 : calYear); }
+    function nextMonth() { navigateTo(calMonth === 12 ? 1 : calMonth + 1, calMonth === 12 ? calYear + 1 : calYear); }
+
+    const today       = new Date().toISOString().split('T')[0];
+    const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+    const firstDow    = new Date(calYear, calMonth - 1, 1).getDay();
+
+    const holidayMap = useMemo(() => {
+        const m = {};
+        (calData.publicHolidays || []).forEach(h => { m[h.date] = h.name; });
+        return m;
+    }, [calData.publicHolidays]);
+
+    function getDayStyle(dateStr, isWeekend) {
+        const holiday = holidayMap[dateStr];
+        const leave   = calData.calLeaveDateMap?.[dateStr];
+        const att     = calData.attendanceMap?.[dateStr];
+        const isSel   = dateStr === selectedDate;
+        const isTod   = dateStr === today;
+        let bg = 'transparent', color = theme.text, outline = 'none';
+        if (isSel)                                                    { bg = theme.primary; color = '#fff'; }
+        else if (holiday)                                             { bg = dark ? 'rgba(217,119,6,0.22)' : '#fef3c7'; color = dark ? '#fbbf24' : '#b45309'; }
+        else if (leave)                                               { bg = dark ? 'rgba(124,58,237,0.22)' : '#ede9fe'; color = dark ? '#a78bfa' : '#6d28d9'; }
+        else if (att?.status === 'present' || att?.status === 'late') { bg = dark ? 'rgba(5,150,105,0.22)'  : '#d1fae5'; color = dark ? '#34d399' : '#065f46'; }
+        else if (att?.status === 'absent')                            { bg = dark ? 'rgba(248,113,113,0.18)': '#fee2e2'; color = dark ? '#f87171' : '#b91c1c'; }
+        else if (isWeekend)                                           { color = theme.textMute; }
+        if (isTod && !isSel) outline = `2px solid ${theme.primary}`;
+        return { bg, color, outline };
+    }
+
+    const detail = useMemo(() => {
+        if (!selectedDate) return null;
+        const otInfo = (calData.otDateSet || []).find(o => o.date === selectedDate) || null;
+        return {
+            att:     calData.attendanceMap?.[selectedDate],
+            leaves:  calData.calLeaveDateMap?.[selectedDate] || [],
+            holiday: holidayMap[selectedDate],
+            otInfo,
+            date:    selectedDate,
+        };
+    }, [selectedDate, calData, holidayMap]);
+
+    return (
+        <div style={{ width:220, flexShrink:0, background: dark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderLeft:`1px solid ${theme.border}`, display:'flex', flexDirection:'column' }}>
+            <div style={{ padding:'14px 12px 8px' }}>
+                {/* Header */}
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+                    <button onClick={prevMonth} style={{ width:22, height:22, borderRadius:5, border:`1px solid ${theme.border}`, background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:theme.textMute, padding:0, transition:'all 0.12s' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.08)' : '#f1f5f9'; e.currentTarget.style.color = theme.text; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.textMute; }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span style={{ fontSize:12, fontWeight:700, color:theme.textSoft, display:'flex', alignItems:'center', gap:5 }}>
+                        {loading && <span style={{ width:10, height:10, border:`1.5px solid ${theme.border}`, borderTopColor:theme.primary, borderRadius:'50%', display:'inline-block', animation:'spin 0.7s linear infinite', flexShrink:0 }} />}
+                        {MONTHS[calMonth - 1]} {calYear}
+                    </span>
+                    <button onClick={nextMonth} style={{ width:22, height:22, borderRadius:5, border:`1px solid ${theme.border}`, background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:theme.textMute, padding:0, transition:'all 0.12s' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.08)' : '#f1f5f9'; e.currentTarget.style.color = theme.text; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.textMute; }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </div>
+                {/* Day labels */}
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2, marginBottom:4 }}>
+                    {DAY_LABELS.map(d => <div key={d} style={{ fontSize:9, fontWeight:700, color:theme.textMute, textAlign:'center', padding:'2px 0' }}>{d}</div>)}
+                </div>
+                {/* Day cells */}
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2 }}>
+                    {Array.from({ length: firstDow }).map((_, i) => <div key={`e${i}`} />)}
+                    {Array.from({ length: daysInMonth }, (_, i) => {
+                        const day     = i + 1;
+                        const dateStr = `${calYear}-${pad2(calMonth)}-${pad2(day)}`;
+                        const dow     = new Date(calYear, calMonth - 1, day).getDay();
+                        const isWknd  = dow === 0 || dow === 6;
+                        const hasOT   = (calData.otDateSet || []).some(o => o.date === dateStr);
+                        const isSel   = dateStr === selectedDate;
+                        const { bg, color, outline } = getDayStyle(dateStr, isWknd);
+                        return (
+                            <div key={day} onClick={() => setSelectedDate(prev => prev === dateStr ? null : dateStr)}
+                                style={{ aspectRatio:'1', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', borderRadius:5, cursor:'pointer', background:bg, color, outline, outlineOffset:'-1px', fontSize:10, fontWeight:isSel?700:500, position:'relative', transition:'all 0.12s' }}
+                                onMouseEnter={e => { if (!isSel) e.currentTarget.style.opacity = '0.75'; }}
+                                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}>
+                                {day}
+                                {hasOT && <div style={{ position:'absolute', bottom:2, left:'50%', transform:'translateX(-50%)', width:3, height:3, borderRadius:'50%', background: isSel ? '#fff' : (dark ? '#f59e0b' : '#d97706') }} />}
+                            </div>
+                        );
+                    })}
+                </div>
+                {/* Legend */}
+                <div style={{ marginTop:10, display:'flex', flexWrap:'wrap', gap:'4px 10px' }}>
+                    {[
+                        { color: dark?'#34d399':'#065f46', bg: dark?'rgba(5,150,105,0.22)':'#d1fae5', label:'Attended' },
+                        { color: dark?'#a78bfa':'#6d28d9', bg: dark?'rgba(124,58,237,0.22)':'#ede9fe', label:'Leave' },
+                        { color: dark?'#fbbf24':'#b45309', bg: dark?'rgba(217,119,6,0.22)':'#fef3c7',  label:'Holiday' },
+                        { color: dark?'#f59e0b':'#d97706', dot:true, label:'OT' },
+                    ].map(l => (
+                        <div key={l.label} style={{ display:'flex', alignItems:'center', gap:4 }}>
+                            {l.dot ? <div style={{ width:6, height:6, borderRadius:'50%', background:l.color, flexShrink:0 }} /> : <div style={{ width:10, height:10, borderRadius:3, background:l.bg, border:`1px solid ${l.color}33`, flexShrink:0 }} />}
+                            <span style={{ fontSize:9, color:theme.textMute }}>{l.label}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            {/* Detail panel */}
+            <div style={{ flex:1, borderTop:`1px solid ${theme.border}`, padding:'12px', minHeight:120 }}>
+                {!detail ? (
+                    <div style={{ fontSize:11, color:theme.textMute, textAlign:'center', marginTop:16, lineHeight:1.6 }}>Click a date<br/>to see details</div>
+                ) : (
+                    <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
+                        <div>
+                            <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{new Date(detail.date + 'T00:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' })}</div>
+                            {detail.date === today && <span style={{ fontSize:9, fontWeight:700, background:theme.primarySoft, color:theme.primary, borderRadius:4, padding:'1px 6px' }}>Today</span>}
+                        </div>
+                        {detail.holiday && (
+                            <div style={{ display:'flex', alignItems:'center', gap:6, background: dark?'rgba(217,119,6,0.15)':'#fef3c7', borderRadius:6, padding:'5px 8px' }}>
+                                <div style={{ width:6, height:6, borderRadius:'50%', background: dark?'#fbbf24':'#d97706', flexShrink:0 }} />
+                                <span style={{ fontSize:10, fontWeight:600, color: dark?'#fbbf24':'#92400e' }}>{detail.holiday}</span>
+                            </div>
+                        )}
+                        {detail.att && (
+                            <div style={{ fontSize:10, color:theme.textSoft, display:'flex', flexDirection:'column', gap:3 }}>
+                                <div style={{ display:'flex', justifyContent:'space-between' }}><span style={{ color:theme.textMute }}>Status</span><span style={{ fontWeight:600, color: detail.att.status==='present'?(dark?'#34d399':'#059669'):detail.att.status==='late'?(dark?'#fbbf24':'#d97706'):(dark?'#f87171':'#dc2626') }}>{detail.att.status}</span></div>
+                                {detail.att.check_in  && <div style={{ display:'flex', justifyContent:'space-between' }}><span style={{ color:theme.textMute }}>In</span>  <span style={{ fontWeight:600, color:theme.text }}>{detail.att.check_in}</span></div>}
+                                {detail.att.check_out && <div style={{ display:'flex', justifyContent:'space-between' }}><span style={{ color:theme.textMute }}>Out</span> <span style={{ fontWeight:600, color:theme.text }}>{detail.att.check_out}</span></div>}
+                                {detail.att.work_hours && <div style={{ display:'flex', justifyContent:'space-between' }}><span style={{ color:theme.textMute }}>Hours</span><span style={{ fontWeight:600, color: dark?'#34d399':'#059669' }}>{detail.att.work_hours}h</span></div>}
+                                {detail.att.late_minutes > 0 && <div style={{ display:'flex', justifyContent:'space-between' }}><span style={{ color:theme.textMute }}>Late</span><span style={{ fontWeight:600, color: dark?'#fbbf24':'#d97706' }}>{detail.att.late_minutes}m</span></div>}
+                            </div>
+                        )}
+                        {detail.leaves.length > 0 && (
+                            <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                                {detail.leaves.map((lv, i) => (
+                                    <div key={i} style={{ fontSize:10, fontWeight:600, borderRadius:5, padding:'3px 7px', background: dark?'rgba(124,58,237,0.2)':'#ede9fe', color: dark?'#a78bfa':'#6d28d9', display:'flex', alignItems:'center', gap:4 }}>
+                                        <span>{lv.type}</span>
+                                        {lv.is_half && <span style={{ opacity:0.7 }}>· {lv.day_type==='half_day_am'?'AM':'PM'}</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {detail.otInfo && (
+                            <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:theme.textSoft }}>
+                                <span style={{ color:theme.textMute }}>OT</span>
+                                <span style={{ display:'flex', gap:6, alignItems:'center' }}>
+                                    {detail.otInfo.status !== 'approved' && (
+                                        <span style={{ fontWeight:700, fontSize:9, borderRadius:99, padding:'1px 6px',
+                                            background: detail.otInfo.status === 'rejected' ? (dark?'rgba(248,113,113,0.18)':'#fee2e2') : (dark?'rgba(245,158,11,0.18)':'#fef3c7'),
+                                            color: detail.otInfo.status === 'rejected' ? (dark?'#f87171':'#dc2626') : (dark?'#fbbf24':'#d97706')
+                                        }}>
+                                            {detail.otInfo.status.charAt(0).toUpperCase() + detail.otInfo.status.slice(1)}
+                                        </span>
+                                    )}
+                                    <span style={{ fontWeight:600, color:theme.text }}>{fmtHrs(detail.otInfo.hours)}</span>
+                                </span>
+                            </div>
+                        )}
+                        {!detail.att && !detail.holiday && detail.leaves.length === 0 && !detail.otInfo && (
+                            <div style={{ fontSize:10, color:theme.textMute }}>No records for this day.</div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
 // ─── REPLACE the entire RequestRow function with this ───────────────────────
 // UI ONLY — logic unchanged
 
@@ -781,12 +984,7 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
 
     return (
         <div
-            style={{
-                display: 'flex',
-                alignItems: 'stretch',
-                borderBottom: isLast ? 'none' : `1px solid ${theme.border}`,
-                transition: 'background 0.15s',
-            }}
+            style={{ display: 'flex', alignItems: 'stretch', borderBottom: `1px solid ${theme.border}`, transition: 'background 0.15s' }}
             onMouseEnter={e => e.currentTarget.style.background = theme.rowHover}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
@@ -1066,7 +1264,21 @@ function RequestRow({ req, dark, theme, canApprove, userId, onApprove, onReject,
     );
 }
 
-export default function AttendanceRequestIndex({ requests, approvers, filters, selectedMonth, selectedYear, countryConfig }) {
+const DAY_LABELS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+function pad2(n) { return String(n).padStart(2, '0'); }
+function fmtHrs(h) {
+    const n = parseFloat(h);
+    if (!n || isNaN(n)) return '0hr';
+    const hrs = Math.floor(n), mins = Math.round((n - hrs) * 60);
+    if (hrs === 0) return `${mins}m`;
+    if (mins === 0) return `${hrs}hr`;
+    return `${hrs}hr ${mins}m`;
+}
+
+export default function AttendanceRequestIndex({ 
+    requests, approvers, filters, selectedMonth, selectedYear, countryConfig,
+    attendanceMap = {}, calLeaveDateMap = {}, publicHolidays = [], otDateSet = [],
+}) {
     const { auth } = usePage().props;
     const { t: tr } = useTranslation();
     const user     = auth?.user;
@@ -1230,77 +1442,93 @@ export default function AttendanceRequestIndex({ requests, approvers, filters, s
                     </button>
                 </div>
 
-                <div style={{ background: dark ? '#0f1b34' : '#fff', borderRadius: 18, border: `1px solid ${theme.border}`, boxShadow: theme.shadowSoft, overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', borderBottom: `1px solid ${theme.border}`, padding: '0 4px', overflowX: 'auto' }} className="hide-scrollbar">
-                        {tabs.map(tab => {
-                            const isActive = mainTab === tab.key;
-                            return (
-                                <button
-                                    key={tab.key}
-                                    onClick={() => setMainTab(tab.key)}
-                                    style={{
-                                        padding: '14px 18px', fontSize: 13, fontWeight: isActive ? 800 : 500,
-                                        color: isActive ? theme.primary : theme.textMute,
-                                        background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                                        borderBottom: isActive ? `2.5px solid ${theme.primary}` : '2.5px solid transparent',
-                                        display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.15s'
-                                    }}
-                                >
-                                    {tab.label}
-                                    {tab.count > 0 && (
-                                        <span style={{ fontSize: 10, fontWeight: 800, borderRadius: 99, padding: '2px 8px', background: tab.alert ? (dark ? 'rgba(245,158,11,0.2)' : '#fef3c7') : (isActive ? theme.primarySoft : (dark ? 'rgba(255,255,255,0.08)' : '#f3f4f6')), color: tab.alert ? theme.warning : (isActive ? theme.primary : theme.textMute) }}>
-                                            {tab.count}
-                                        </span>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
+                <div style={{ background: dark ? '#0f1b34' : '#fff', borderRadius: 18, border: `1px solid ${theme.border}`, boxShadow: theme.shadowSoft, overflow: 'hidden', display: 'flex', minHeight: 320 }}>
 
-                    {displayList.length === 0 ? (
-                        <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-                            <div style={{ fontSize: 36, marginBottom: 12 }}>{mainTab === 'approvals' ? '🎉' : '📭'}</div>
-                            <div style={{ fontSize: 14, fontWeight: 600, color: theme.textSoft, marginBottom: 4 }}>
-                                {mainTab === 'approvals' ? tr('attendanceRequest.empty.noPendingApprovals') : tr('attendanceRequest.empty.noRequestsFound')}
-                            </div>
-                            <div style={{ fontSize: 12, color: theme.textMute }}>
-                                {mainTab === 'approvals' ? tr('attendanceRequest.empty.allCaughtUp') : tr('attendanceRequest.empty.clickToSubmit')}
-                            </div>
-                        </div>
-                    ) : (
-                        displayList.map((req, idx) => (
-                            <RequestRow
-                                key={req.id}
-                                req={req}
-                                dark={dark}
-                                theme={theme}
-                                canApprove={canApprove}
-                                userId={user?.id}
-                                onApprove={r => setConfirmModal({ type: 'approve', request: r })}
-                                onReject={r => setConfirmModal({ type: 'reject', request: r })}
-                                onDelete={r => setConfirmModal({ type: 'delete', request: r })}
-                                isLast={idx === displayList.length - 1}
-                                tr={tr}
-                            />
-                        ))
-                    )}
-
-                    {mainTab === 'all' && requests.last_page > 1 && (
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '16px 20px', borderTop: `1px solid ${theme.border}` }}>
-                            {Array.from({ length: requests.last_page }, (_, i) => i + 1).map(page => {
-                                const isActive = requests.current_page === page;
+                    {/* Left: tabs + list */}
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', borderBottom: `1px solid ${theme.border}`, padding: '0 4px', overflowX: 'auto' }} className="hide-scrollbar">
+                            {tabs.map(tab => {
+                                const isActive = mainTab === tab.key;
                                 return (
                                     <button
-                                        key={page}
-                                        onClick={() => router.get('/payroll/check-in-out-requests', { page, status: statusFilter, month, year })}
-                                        style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${isActive ? theme.primary : theme.border}`, background: isActive ? theme.primary : 'transparent', color: isActive ? '#fff' : theme.textSoft, fontWeight: 600, cursor: 'pointer', fontSize: 13, transition: 'all 0.15s' }}
+                                        key={tab.key}
+                                        onClick={() => setMainTab(tab.key)}
+                                        style={{
+                                            padding: '14px 18px', fontSize: 13, fontWeight: isActive ? 800 : 500,
+                                            color: isActive ? theme.primary : theme.textMute,
+                                            background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+                                            borderBottom: isActive ? `2.5px solid ${theme.primary}` : '2.5px solid transparent',
+                                            display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.15s'
+                                        }}
                                     >
-                                        {page}
+                                        {tab.label}
+                                        {tab.count > 0 && (
+                                            <span style={{ fontSize: 10, fontWeight: 800, borderRadius: 99, padding: '2px 8px', background: tab.alert ? (dark ? 'rgba(245,158,11,0.2)' : '#fef3c7') : (isActive ? theme.primarySoft : (dark ? 'rgba(255,255,255,0.08)' : '#f3f4f6')), color: tab.alert ? theme.warning : (isActive ? theme.primary : theme.textMute) }}>
+                                                {tab.count}
+                                            </span>
+                                        )}
                                     </button>
                                 );
                             })}
                         </div>
-                    )}
+
+                        {displayList.length === 0 ? (
+                            <div style={{ padding: '56px 24px', textAlign: 'center' }}>
+                                <div style={{ fontSize: 36, marginBottom: 12 }}>{mainTab === 'approvals' ? '🎉' : '📭'}</div>
+                                <div style={{ fontSize: 14, fontWeight: 600, color: theme.textSoft, marginBottom: 4 }}>
+                                    {mainTab === 'approvals' ? tr('attendanceRequest.empty.noPendingApprovals') : tr('attendanceRequest.empty.noRequestsFound')}
+                                </div>
+                                <div style={{ fontSize: 12, color: theme.textMute }}>
+                                    {mainTab === 'approvals' ? tr('attendanceRequest.empty.allCaughtUp') : tr('attendanceRequest.empty.clickToSubmit')}
+                                </div>
+                            </div>
+                        ) : (
+                            displayList.map((req, idx) => (
+                                <RequestRow
+                                    key={req.id}
+                                    req={req}
+                                    dark={dark}
+                                    theme={theme}
+                                    canApprove={canApprove}
+                                    userId={user?.id}
+                                    onApprove={r => setConfirmModal({ type: 'approve', request: r })}
+                                    onReject={r => setConfirmModal({ type: 'reject', request: r })}
+                                    onDelete={r => setConfirmModal({ type: 'delete', request: r })}
+                                    isLast={idx === displayList.length - 1}
+                                    tr={tr}
+                                />
+                            ))
+                        )}
+
+                        {mainTab === 'all' && requests.last_page > 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '16px 20px', borderTop: `1px solid ${theme.border}` }}>
+                                {Array.from({ length: requests.last_page }, (_, i) => i + 1).map(page => {
+                                    const isActive = requests.current_page === page;
+                                    return (
+                                        <button
+                                            key={page}
+                                            onClick={() => router.get('/payroll/check-in-out-requests', { page, status: statusFilter, month, year })}
+                                            style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${isActive ? theme.primary : theme.border}`, background: isActive ? theme.primary : 'transparent', color: isActive ? '#fff' : theme.textSoft, fontWeight: 600, cursor: 'pointer', fontSize: 13, transition: 'all 0.15s' }}
+                                        >
+                                            {page}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Right: MiniCalendar */}
+                    <MiniCalendar
+                        month={month}
+                        year={year}
+                        attendanceMap={attendanceMap}
+                        calLeaveDateMap={calLeaveDateMap}
+                        publicHolidays={publicHolidays}
+                        otDateSet={otDateSet}
+                        dark={dark}
+                        theme={theme}
+                    />
                 </div>
             </div>
 

@@ -162,10 +162,24 @@ class OvertimeRequestController extends Controller
                 $current = $start->copy();
                 while ($current <= $end) {
                     $dk = $current->toDateString();
-                    if (!in_array($dk, $otDateSet)) $otDateSet[] = $dk;
+                    // ထပ်နေရင် status priority: approved > pending
+                    if (!isset($otDateSet[$dk]) || $ot->status === 'approved') {
+                        $otDateSet[$dk] = [
+                            'status' => $ot->status,
+                            'hours'  => $ot->status === 'approved'
+                                ? (float) $ot->hours_approved
+                                : (float) $ot->hours_requested,
+                        ];
+                    }
                     $current->addDay();
                 }
             }
+            // array ကို values သာ return (key မပါ)
+            $otDateSet = array_values(array_map(
+                fn($date, $info) => array_merge(['date' => $date], $info),
+                array_keys($otDateSet),
+                $otDateSet
+            ));
     
             // ── Inertia response ──────────────────────────────────
             if ($request->expectsJson()) {
@@ -176,8 +190,7 @@ class OvertimeRequestController extends Controller
                     'userAssignments'  => $userAssignments,
                 ]);
             }
-    \Log::info('otDateSet', $otDateSet);
-\Log::info('OT Records count', ['count' => $otRecords->count()]);
+
             return Inertia::render('Payroll/Overtime/Index', [
                 'requests'         => $query->paginate(20),
                 'overtimePolicies' => $overtimePolicies,
@@ -629,17 +642,31 @@ public function calendarData(\Illuminate\Http\Request $request): \Illuminate\Htt
         })
         ->get();
  
-    $otDateSet = [];
-    foreach ($otRecords as $ot) {
-        $start   = \Carbon\Carbon::parse($ot->start_date);
-        $end     = \Carbon\Carbon::parse($ot->end_date);
-        $current = $start->copy();
-        while ($current <= $end) {
-            $dk = $current->toDateString();
-            if (!in_array($dk, $otDateSet)) $otDateSet[] = $dk;
-            $current->addDay();
+        $otDateSet = [];
+        foreach ($otRecords as $ot) {
+            $start   = \Carbon\Carbon::parse($ot->start_date);
+            $end     = \Carbon\Carbon::parse($ot->end_date);
+            $current = $start->copy();
+            while ($current <= $end) {
+                $dk = $current->toDateString();
+                // ထပ်နေရင် status priority: approved > pending
+                if (!isset($otDateSet[$dk]) || $ot->status === 'approved') {
+                    $otDateSet[$dk] = [
+                        'status' => $ot->status,
+                        'hours'  => $ot->status === 'approved'
+                            ? (float) $ot->hours_approved
+                            : (float) $ot->hours_requested,
+                    ];
+                }
+                $current->addDay();
+            }
         }
-    }
+        // array ကို values သာ return (key မပါ)
+        $otDateSet = array_values(array_map(
+            fn($date, $info) => array_merge(['date' => $date], $info),
+            array_keys($otDateSet),
+            $otDateSet
+        ));
  
     return response()->json([
         'attendanceMap'   => $attendanceMap,

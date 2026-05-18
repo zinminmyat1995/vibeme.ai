@@ -476,9 +476,17 @@ function MiniCalendar({ month, year, attendanceMap, calLeaveDateMap, publicHolid
         return { bg, color, outline };
     }
 
+    // အသစ်
     const detail = useMemo(() => {
         if (!selectedDate) return null;
-        return { att: calData.attendanceMap?.[selectedDate], leaves: calData.calLeaveDateMap?.[selectedDate] || [], holiday: holidayMap[selectedDate], hasOT: (calData.otDateSet || []).includes(selectedDate), date: selectedDate };
+        const otInfo = (calData.otDateSet || []).find(o => o.date === selectedDate) || null;
+        return {
+            att:     calData.attendanceMap?.[selectedDate],
+            leaves:  calData.calLeaveDateMap?.[selectedDate] || [],
+            holiday: holidayMap[selectedDate],
+            otInfo,   // { date, status, hours } or null
+            date:    selectedDate,
+        };
     }, [selectedDate, calData, holidayMap]);
 
     return (
@@ -510,7 +518,7 @@ function MiniCalendar({ month, year, attendanceMap, calLeaveDateMap, publicHolid
                         const dateStr = `${calYear}-${pad2(calMonth)}-${pad2(day)}`;
                         const dow     = new Date(calYear, calMonth - 1, day).getDay();
                         const isWknd  = dow === 0 || dow === 6;
-                        const hasOT   = (calData.otDateSet || []).includes(dateStr);
+                        const hasOT = (calData.otDateSet || []).some(o => o.date === dateStr);
                         const isSel   = dateStr === selectedDate;
                         const { bg, color, outline } = getDayStyle(dateStr, isWknd);
                         return (
@@ -572,7 +580,24 @@ function MiniCalendar({ month, year, attendanceMap, calLeaveDateMap, publicHolid
                                 ))}
                             </div>
                         )}
-                        {detail.hasOT && <div style={{ fontSize:10, fontWeight:600, borderRadius:5, padding:'3px 7px', background: dark?'rgba(245,158,11,0.18)':'#fef3c7', color: dark?'#fbbf24':'#92400e' }}>Overtime scheduled</div>}
+                        
+                    
+                        {detail.otInfo && (
+                            <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:theme.textSoft }}>
+                                <span style={{ color:theme.textMute }}>OT</span>
+                                <span style={{ display:'flex', gap:6, alignItems:'center' }}>
+                                    {detail.otInfo.status !== 'approved' && (
+                                        <span style={{ fontWeight:700, fontSize:9, borderRadius:99, padding:'1px 6px',
+                                            background: detail.otInfo.status === 'rejected' ? (dark?'rgba(248,113,113,0.18)':'#fee2e2') : (dark?'rgba(245,158,11,0.18)':'#fef3c7'),
+                                            color: detail.otInfo.status === 'rejected' ? (dark?'#f87171':'#dc2626') : (dark?'#fbbf24':'#d97706')
+                                        }}>
+                                            {detail.otInfo.status.charAt(0).toUpperCase() + detail.otInfo.status.slice(1)}
+                                        </span>
+                                    )}
+                                    <span style={{ fontWeight:600, color:theme.text }}>{fmtHrs(detail.otInfo.hours)}</span>
+                                </span>
+                            </div>
+                        )}
                         {!detail.att && !detail.holiday && detail.leaves.length === 0 && !detail.hasOT && <div style={{ fontSize:10, color:theme.textMute }}>No records for this day.</div>}
                     </div>
                 )}
