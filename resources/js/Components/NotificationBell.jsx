@@ -1,22 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-//  NotificationBell.jsx
-//  Drop-in component for AppLayout header.
-//
-//  Features:
-//    • REST fetch on mount (GET /notifications)
-//    • WebSocket (Reverb) listener on private-user.{id} → notification.sent
-//    • Unread count badge (purple dot)
-//    • Dropdown panel — grouped by date, type icons, relative timestamps
-//    • Click item → markRead (PATCH) → count decreases
-//    • "Mark all read" button
-//    • Smooth open/close animation
-//    • Dark / Light mode via props
-//
-//  Usage in AppLayout.jsx header:
-//    import NotificationBell from '@/Components/NotificationBell';
-//    ...
-//    <NotificationBell userId={user?.id} theme={theme} darkMode={darkMode} />
-// ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
@@ -58,40 +39,86 @@ const TYPE_CONFIG = {
         bgNight:'rgba(5,150,105,0.18)',
         label:  'Payroll',
     },
-    system: {
+    attendance: {
         icon: (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
         ),
         color:  '#2563eb',
         bgDay:  '#dbeafe',
         bgNight:'rgba(37,99,235,0.18)',
+        label:  'Attendance',
+    },
+    expense_request: {
+        icon: (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <path d="M8 21h8M12 17v4"/>
+            </svg>
+        ),
+        color:  '#dc2626',
+        bgDay:  '#fee2e2',
+        bgNight:'rgba(220,38,38,0.18)',
+        label:  'Expense',
+    },
+    system: {
+        icon: (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+            </svg>
+        ),
+        color:  '#0891b2',
+        bgDay:  '#cffafe',
+        bgNight:'rgba(8,145,178,0.18)',
         label:  'System',
     },
 };
 
-const getTypeCfg = (type) => TYPE_CONFIG[type] || TYPE_CONFIG.system;
+const DEFAULT_CFG = {
+    icon: (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+    ),
+    color:  '#64748b',
+    bgDay:  '#f1f5f9',
+    bgNight:'rgba(100,116,139,0.18)',
+    label:  'Notice',
+};
+
+function getTypeCfg(type) {
+    return TYPE_CONFIG[type] || DEFAULT_CFG;
+}
 
 // ── Relative time ─────────────────────────────────────────────
 function relTime(iso) {
     if (!iso) return '';
-    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-    if (diff < 60)   return 'just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1)  return 'Just now';
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.floor(h / 24);
+    if (d < 7)  return `${d}d ago`;
     return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// ── Group notifications by date ───────────────────────────────
+// ── Group by date ─────────────────────────────────────────────
 function groupByDate(items) {
     const groups = {};
+    const today     = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
     items.forEach(n => {
         const d = new Date(n.created_at);
-        const today = new Date();
-        const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
         let key;
         if (d.toDateString() === today.toDateString())     key = 'Today';
         else if (d.toDateString() === yesterday.toDateString()) key = 'Yesterday';
@@ -110,7 +137,7 @@ export default function NotificationBell({ userId, theme, darkMode }) {
     const [items, setItems]         = useState([]);
     const [unread, setUnread]       = useState(0);
     const [loading, setLoading]     = useState(false);
-    const [pulse, setPulse]         = useState(false);   // badge pulse on new notification
+    const [pulse, setPulse]         = useState(false);
     const panelRef                  = useRef(null);
     const btnRef                    = useRef(null);
     const fetchedRef                = useRef(false);
@@ -147,15 +174,12 @@ export default function NotificationBell({ userId, theme, darkMode }) {
         const channel = window.Echo.private(`user.${userId}`);
 
         channel.listen('.notification.sent', (payload) => {
-            // Prepend new notification
             setItems(prev => [payload, ...prev]);
             setUnread(prev => prev + 1);
 
-            // Pulse animation on badge
             setPulse(true);
             setTimeout(() => setPulse(false), 1000);
 
-            // Browser notification (optional — only if tab not focused)
             if (document.hidden && Notification?.permission === 'granted') {
                 new Notification(payload.title, { body: payload.body, icon: '/favicon.ico' });
             }
@@ -181,7 +205,6 @@ export default function NotificationBell({ userId, theme, darkMode }) {
     // ── Mark single read ──────────────────────────────────────
     const markRead = async (item) => {
         if (item.read_at) {
-            // Already read — just navigate
             if (item.url) window.location.href = item.url;
             return;
         }
@@ -224,25 +247,28 @@ export default function NotificationBell({ userId, theme, darkMode }) {
         itemUnread:  isDark ? 'rgba(124,58,237,0.08)'  : '#faf5ff',
         divider:     isDark ? 'rgba(148,163,184,0.07)' : 'rgba(15,23,42,0.05)',
         emptyIcon:   isDark ? '#334155' : '#e2e8f0',
-        btnBg:       isDark ? 'rgba(255,255,255,0.05)'  : '#ffffff',
-        btnBorder:   isDark ? 'rgba(148,163,184,0.14)'  : 'rgba(15,23,42,0.06)',
-        btnColor:    isDark ? '#e2e8f0' : '#334155',
+        // ── Ghost button — no border ──
+        btnBg:       'transparent',
+        btnBorder:   'transparent',
+        btnColor:    isDark ? '#94a3b8' : '#64748b',
     };
 
     return (
         <div style={{ position: 'relative' }}>
-            {/* ── Bell button ── */}
+            {/* ── Bell button — ghost, no border ── */}
             <button
                 ref={btnRef}
                 type="button"
                 onClick={toggle}
                 style={{
                     position: 'relative',
-                    width: 44,
-                    height: 44,
-                    borderRadius: 16,
-                    border: `1px solid ${T.btnBorder}`,
-                    background: open ? (isDark ? 'rgba(124,58,237,0.15)' : '#f3e8ff') : T.btnBg,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    border: 'none',
+                    background: open
+                        ? (isDark ? 'rgba(124,58,237,0.15)' : '#f3e8ff')
+                        : 'transparent',
                     color: open ? '#7c3aed' : T.btnColor,
                     cursor: 'pointer',
                     display: 'flex',
@@ -250,17 +276,20 @@ export default function NotificationBell({ userId, theme, darkMode }) {
                     justifyContent: 'center',
                     transition: 'all 0.18s',
                     outline: 'none',
+                    opacity: 0.85,
                 }}
                 onMouseEnter={e => {
+                    e.currentTarget.style.opacity = '1';
                     if (!open) {
-                        e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.07)' : '#f1f5f9';
-                        e.currentTarget.style.borderColor = isDark ? 'rgba(148,163,184,0.25)' : 'rgba(15,23,42,0.12)';
+                        e.currentTarget.style.background = isDark
+                            ? 'rgba(255,255,255,0.07)'
+                            : 'rgba(15,23,42,0.05)';
                     }
                 }}
                 onMouseLeave={e => {
+                    e.currentTarget.style.opacity = '0.85';
                     if (!open) {
-                        e.currentTarget.style.background = T.btnBg;
-                        e.currentTarget.style.borderColor = T.btnBorder;
+                        e.currentTarget.style.background = 'transparent';
                     }
                 }}
                 title="Notifications"
@@ -275,8 +304,8 @@ export default function NotificationBell({ userId, theme, darkMode }) {
                 {unread > 0 && (
                     <span style={{
                         position: 'absolute',
-                        top: 6,
-                        right: 6,
+                        top: 4,
+                        right: 4,
                         minWidth: 17,
                         height: 17,
                         borderRadius: 99,
@@ -336,8 +365,8 @@ export default function NotificationBell({ userId, theme, darkMode }) {
                                 <span style={{
                                     padding: '2px 8px',
                                     borderRadius: 99,
-                                    background: isDark ? 'rgba(124,58,237,0.2)' : '#f3e8ff',
-                                    color: '#7c3aed',
+                                    background: isDark ? 'rgba(124,58,237,0.22)' : '#ede9fe',
+                                    color: isDark ? '#c4b5fd' : '#7c3aed',
                                     fontSize: 11,
                                     fontWeight: 800,
                                 }}>
@@ -349,19 +378,20 @@ export default function NotificationBell({ userId, theme, darkMode }) {
                             <button
                                 onClick={markAllRead}
                                 style={{
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    color: isDark ? '#a78bfa' : '#7c3aed',
                                     background: 'none',
                                     border: 'none',
                                     cursor: 'pointer',
-                                    fontSize: 12,
-                                    fontWeight: 700,
-                                    color: '#7c3aed',
                                     padding: '4px 8px',
                                     borderRadius: 8,
                                     fontFamily: 'inherit',
-                                    transition: 'background 0.15s',
+                                    opacity: 0.85,
+                                    transition: 'opacity 0.15s',
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(124,58,237,0.12)' : '#f3e8ff'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                                onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}
                             >
                                 Mark all read
                             </button>
@@ -369,57 +399,58 @@ export default function NotificationBell({ userId, theme, darkMode }) {
                     </div>
 
                     {/* ── Body ── */}
-                    <div style={{
-                        overflowY: 'auto',
-                        flex: 1,
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: isDark ? 'rgba(255,255,255,0.1) transparent' : 'rgba(0,0,0,0.08) transparent',
-                    }}>
-                        {loading && items.length === 0 ? (
-                            <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+                    <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
+                        {loading ? (
+                            <div style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                padding: '40px',
+                                gap: 10,
+                                color: T.textMute,
+                                fontSize: 13,
+                            }}>
                                 <div style={{
-                                    width: 24,
-                                    height: 24,
-                                    borderRadius: '50%',
-                                    border: `2px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`,
+                                    width: 16, height: 16,
+                                    border: `2px solid ${isDark ? 'rgba(124,58,237,0.3)' : '#e9d5ff'}`,
                                     borderTopColor: '#7c3aed',
+                                    borderRadius: '50%',
                                     animation: 'ntfSpin 0.7s linear infinite',
-                                    margin: '0 auto',
-                                }}/>
+                                }} />
+                                Loading…
                             </div>
                         ) : items.length === 0 ? (
-                            /* ── Empty state ── */
-                            <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+                            <div style={{
+                                display: 'flex', flexDirection: 'column',
+                                alignItems: 'center', justifyContent: 'center',
+                                padding: '48px 24px', gap: 12,
+                            }}>
                                 <div style={{
-                                    width: 56,
-                                    height: 56,
-                                    borderRadius: 18,
+                                    width: 56, height: 56, borderRadius: 18,
                                     background: T.emptyIcon,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    margin: '0 auto 14px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 }}>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={T.textMute} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={isDark ? '#64748b' : '#94a3b8'} strokeWidth="1.5">
                                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                                         <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                                     </svg>
                                 </div>
-                                <div style={{ fontSize: 12, color: T.textMute }}>No notifications yet</div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: T.textSoft }}>All caught up!</div>
+                                <div style={{ fontSize: 12, color: T.textMute, textAlign: 'center' }}>
+                                    No notifications yet
+                                </div>
                             </div>
                         ) : (
-                            Object.entries(groups).map(([dateLabel, groupItems]) => (
-                                <div key={dateLabel}>
-                                    {/* Date group label */}
+                            Object.entries(groups).map(([groupKey, groupItems]) => (
+                                <div key={groupKey}>
+                                    {/* Group label */}
                                     <div style={{
-                                        padding: '10px 18px 4px',
+                                        padding: '10px 18px 6px',
                                         fontSize: 10,
                                         fontWeight: 800,
                                         letterSpacing: '0.08em',
                                         textTransform: 'uppercase',
                                         color: T.groupLabel,
                                     }}>
-                                        {dateLabel}
+                                        {groupKey}
                                     </div>
 
                                     {groupItems.map((item, idx) => {

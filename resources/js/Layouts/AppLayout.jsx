@@ -836,45 +836,76 @@ export default function AppLayout({ children, title = 'Dashboard', hideWidget = 
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <LanguageSwitcher darkMode={darkMode} />
-                        <NotificationBell userId={user?.id} theme={theme} darkMode={darkMode} />
-                        <button
-                            type="button"
-                            onClick={() => setDarkMode(!darkMode)}
-                            style={{
-                                minWidth: 98, height: 42,
-                                padding: '0 14px', borderRadius: 13,
-                                border: `1px solid ${theme.iconBtnBorder}`,
-                                background: theme.iconBtnBg,
-                                color: theme.iconBtnColor,
-                                display: 'flex', alignItems: 'center',
-                                justifyContent: 'center', gap: 8,
-                                cursor: 'pointer',
-                                boxShadow: '0 6px 18px rgba(0,0,0,0.07)',
-                                fontWeight: 800, fontSize: 13,
-                                fontFamily: 'inherit',
-                                transition: 'all 0.15s',
-                            }}
-                        >
-                            {darkMode ? (
-                                <>
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M21 12.79A9 9 0 1 1 11.21 3c0 .28 0 .57.02.85A7 7 0 0 0 20.15 12c.28 0 .57 0 .85-.02Z"/>
-                                    </svg>
-                                    Dark
-                                </>
-                            ) : (
-                                <>
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="4"/>
-                                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-                                    </svg>
-                                    Light
-                                </>
-                            )}
-                        </button>
-                    </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+
+                            {/* Language Switcher — already borderless in new design */}
+                            <LanguageSwitcher darkMode={darkMode} />
+
+                            {/* Subtle divider */}
+                            <div style={{
+                                width: 1, height: 20, margin: '0 4px',
+                                background: darkMode ? 'rgba(148,163,184,0.15)' : 'rgba(15,23,42,0.08)',
+                                flexShrink: 0,
+                            }} />
+
+                            {/* Notification Bell — pass no border props */}
+                            <NotificationBell userId={user?.id} theme={theme} darkMode={darkMode} />
+
+                            {/* Subtle divider */}
+                            <div style={{
+                                width: 1, height: 20, margin: '0 4px',
+                                background: darkMode ? 'rgba(148,163,184,0.15)' : 'rgba(15,23,42,0.08)',
+                                flexShrink: 0,
+                            }} />
+
+                            {/* Dark / Light toggle — no border, ghost button */}
+                            <button
+                                type="button"
+                                onClick={() => setDarkMode(!darkMode)}
+                                style={{
+                                    height: 36,
+                                    padding: '0 12px',
+                                    borderRadius: 10,
+                                    border: 'none',
+                                    background: 'transparent',
+                                    color: darkMode ? '#94a3b8' : '#64748b',
+                                    display: 'flex', alignItems: 'center',
+                                    justifyContent: 'center', gap: 6,
+                                    cursor: 'pointer',
+                                    fontWeight: 700, fontSize: 12.5,
+                                    fontFamily: 'inherit',
+                                    opacity: 0.75,
+                                    transition: 'all 0.15s',
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.opacity = '1';
+                                    e.currentTarget.style.background = darkMode
+                                        ? 'rgba(255,255,255,0.06)'
+                                        : 'rgba(15,23,42,0.05)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.opacity = '0.75';
+                                    e.currentTarget.style.background = 'transparent';
+                                }}
+                            >
+                                {darkMode ? (
+                                    <>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M21 12.79A9 9 0 1 1 11.21 3c0 .28 0 .57.02.85A7 7 0 0 0 20.15 12c.28 0 .57 0 .85-.02Z"/>
+                                        </svg>
+                                        Dark
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <circle cx="12" cy="12" r="4"/>
+                                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+                                        </svg>
+                                        Light
+                                    </>
+                                )}
+                            </button>
+                        </div>
                 </header>
 
                 <main style={{ flex: 1, padding: 28, background: 'transparent' }}>

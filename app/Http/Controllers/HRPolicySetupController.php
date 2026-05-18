@@ -722,4 +722,77 @@ public function destroyPublicHoliday(\App\Models\PublicHoliday $publicHoliday): 
     $publicHoliday->delete();
     return back()->with('success', 'Public holiday deleted.');
 }
+
+public function autoFillPublicHolidays(Request $request): \Illuminate\Http\RedirectResponse
+{
+    $request->validate(['year' => 'required|integer|min:2020|max:2035']);
+
+    $countryId = $this->getCountryId();
+    $country   = \App\Models\Country::find($countryId);
+    $year      = $request->year;
+
+    // ── Claude API call ──
+    $response = \Illuminate\Support\Facades\Http::timeout(30)
+        ->withoutVerifying()
+        ->withHeaders([
+            'x-api-key'         => config('services.anthropic.key'),
+            'anthropic-version' => '2023-06-01',
+            'content-type'      => 'application/json',
+        ])
+        ->post('https://api.anthropic.com/v1/messages', [
+            'model'      => 'claude-haiku-4-5-20251001',
+            'max_tokens' => 1024,
+            'messages'   => [
+                [
+                    'role'    => 'user',
+                    'content' => "List all official public holidays for {$country->name} in {$year}. 
+Return ONLY a JSON array, no explanation. Format:
+[{\"name\":\"Holiday Name\",\"date\":\"YYYY-MM-DD\",\"is_recurring\":true}]
+Use is_recurring true for fixed-date holidays, false for lunar/variable holidays.",
+                ],
+            ],
+        ]);
+
+    if (!$response->ok()) {
+        return back()->withErrors(['auto_fill' => 'Failed to fetch holidays. Please try again.']);
+    }
+
+    $text = $response->json('content.0.text') ?? '';
+
+    // JSON parse — backtick fences ဖြုတ်
+    $text = preg_replace('/```json|```/i', '', $text);
+    $text = trim($text);
+
+    $holidays = json_decode($text, true);
+    if (!is_array($holidays)) {
+        return back()->withErrors(['auto_fill' => 'Failed to parse holiday data. Please try again.']);
+    }
+
+    $inserted = 0;
+    $skipped  = 0;
+
+    foreach ($holidays as $h) {
+        $date = substr($h['date'] ?? '', 0, 10);
+        if (!$date) continue;
+
+        $exists = \App\Models\PublicHoliday::where('country_id', $countryId)
+            ->whereDate('date', $date)
+            ->exists();
+
+        if ($exists) { $skipped++; continue; }
+
+        \App\Models\PublicHoliday::create([
+            'country_id'   => $countryId,
+            'name'         => $h['name'],
+            'date'         => $date,
+            'is_recurring' => $h['is_recurring'] ?? true,
+        ]);
+        $inserted++;
+    }
+
+    $msg = "Auto-filled {$inserted} holidays for {$year}.";
+    if ($skipped > 0) $msg .= " ({$skipped} skipped — already existed)";
+
+    return back()->with('success', $msg);
+}
 }

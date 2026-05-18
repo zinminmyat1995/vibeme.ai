@@ -665,39 +665,64 @@ export default function AttendanceIndex({
 
                                         {(() => {
                                             const rows = [];
-                                            if (record?.check_in_time)    rows.push({ key:'in',    label:trans('attendance.shortLabels.in'),    value: to12h(record.check_in_time),     color:'#6366f1', tip: null });
-                                            if (record?.check_out_time)   rows.push({ key:'out',   label:trans('attendance.shortLabels.out'),   value: to12h(record.check_out_time),    color:'#6366f1', tip: null });
-                                            if (record?.work_hours_actual) rows.push({ key:'wh',   label:trans('attendance.shortLabels.wh'),    value: hToHM(record.work_hours_actual), color:'#10b981', tip: null });
+                                            if (record?.check_in_time)     rows.push({ key:'in',    label: trans('attendance.shortLabels.in'),    value: to12h(record.check_in_time),     color:'#6366f1' });
+                                            if (record?.check_out_time)    rows.push({ key:'out',   label: trans('attendance.shortLabels.out'),   value: to12h(record.check_out_time),    color:'#6366f1' });
+                                            if (record?.work_hours_actual) rows.push({ key:'wh',    label: trans('attendance.shortLabels.wh'),    value: hToHM(record.work_hours_actual), color:'#10b981' });
+                                        
                                             const leaveInfos = Array.isArray(leaveInfo) ? leaveInfo : (leaveInfo ? [leaveInfo] : []);
                                             leaveInfos.forEach((li, idx) => {
-                                                const lv = li.is_half ? (li.day_type==='half_day_am' ? trans('attendance.leaveDayTypes.amHalf') : trans('attendance.leaveDayTypes.pmHalf')) : trans('attendance.leaveDayTypes.fullDay');
-                                                const lc = li.is_half ? (li.day_type==='half_day_am' ? '#d97706' : '#7c3aed') : '#dc2626';
-                                                rows.push({ key:`leave-${idx}`, label:trans('attendance.shortLabels.leave'), value: lv, color: lc, tip: li.reason || (trans(`attendance.leaveTypes.${li.type}`) || LEAVE_LABELS[li.type] || li.type) });
+                                                const lv = li.is_half
+                                                    ? (li.day_type === 'half_day_am'
+                                                        ? trans('attendance.leaveDayTypes.amHalf')
+                                                        : trans('attendance.leaveDayTypes.pmHalf'))
+                                                    : trans('attendance.leaveDayTypes.fullDay');
+                                                const lc = li.is_half
+                                                    ? (li.day_type === 'half_day_am' ? '#d97706' : '#7c3aed')
+                                                    : '#dc2626';
+                                                rows.push({ key: `leave-${idx}`, label: trans('attendance.shortLabels.leave'), value: lv, color: lc, tip: li.reason || (trans(`attendance.leaveTypes.${li.type}`) || li.type) });
                                             });
+                                        
                                             if (otRecord && parseFloat(otRecord.hours_approved) > 0) {
                                                 const ov = parseFloat(otRecord.hours_approved) % 1 === 0
-                                                    ? `${parseInt(otRecord.hours_approved)}h` : hToHM(otRecord.hours_approved);
-                                                rows.push({ key:'ot', label:trans('attendance.shortLabels.ot'), value: ov, color:'#8b5cf6', tip: otRecord.reason || null });
+                                                    ? `${parseInt(otRecord.hours_approved)}h`
+                                                    : hToHM(otRecord.hours_approved);
+                                                rows.push({ key:'ot',    label: trans('attendance.shortLabels.ot'),    value: ov,                        color:'#8b5cf6', tip: otRecord.reason || null });
                                             }
                                             if (record?.late_minutes > 0)
-                                                rows.push({ key:'late', label:trans('attendance.shortLabels.late'), value: `${record.late_minutes}m`, color:'#f59e0b', tip: null });
+                                                rows.push({ key:'late',  label: trans('attendance.shortLabels.late'),  value: `${record.late_minutes}m`, color:'#f59e0b' });
                                             if (parseFloat(record?.short_hours) > 0)
-                                                rows.push({ key:'short', label:trans('attendance.shortLabels.short'), value: hToHM(record.short_hours), color:'#ef4444', tip: null });
+                                                rows.push({ key:'short', label: trans('attendance.shortLabels.short'), value: hToHM(record.short_hours), color:'#ef4444' });
+                                        
                                             if (!rows.length) return null;
+                                        
                                             return (
-                                                <table style={{ borderCollapse:'collapse', marginTop:3, tableLayout:'fixed', width:'100%' }}>
-                                                    <tbody>
-                                                        {rows.map(row => (
-                                                            <tr key={row.key}>
-                                                                <td style={{ fontSize:10, fontWeight:600, color:t.textMute, width:28, paddingBottom:1, verticalAlign:'top', lineHeight:'16px', whiteSpace:'nowrap' }}>{row.label}</td>
-                                                                <td style={{ fontSize:10, fontWeight:600, color:t.textMute, width:10, paddingBottom:1, verticalAlign:'top', lineHeight:'16px', textAlign:'center' }}>:</td>
-                                                                <td style={{ fontSize:10, fontWeight:700, color:row.color, paddingBottom:1, verticalAlign:'top', lineHeight:'16px' }}>
-                                                                    {row.tip ? <CellTooltip text={row.tip}><span>{row.value}</span></CellTooltip> : row.value}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
+                                                <div style={{ marginTop: 3 }}>
+                                                    {rows.map(row => (
+                                                        <div key={row.key} style={{
+                                                            fontSize: 9,
+                                                            lineHeight: '13px',
+                                                            marginBottom: 1,
+                                                            // inline-block so label + colon + value flow naturally
+                                                            // and wrap as one unit if needed
+                                                        }}>
+                                                            {/* Label — plain text, no truncation */}
+                                                            <span style={{ fontWeight: 600, color: t.textMute }}>
+                                                                {row.label}
+                                                            </span>
+                                        
+                                                            {/* Colon with spacing */}
+                                                            <span style={{ color: t.textMute, margin: '0 3px' }}>:</span>
+                                        
+                                                            {/* Value — colored, bold */}
+                                                            <span style={{ fontWeight: 700, color: row.color }}>
+                                                                {row.tip
+                                                                    ? <CellTooltip text={row.tip}><span>{row.value}</span></CellTooltip>
+                                                                    : row.value
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             );
                                         })()}
                                     </div>

@@ -18,6 +18,7 @@ use App\Http\Controllers\Payroll\LeaveRequestController;
 use App\Http\Controllers\Payroll\OvertimeRequestController;
 use App\Http\Controllers\HRPolicySetupController;
 use App\Http\Controllers\Payroll\EmployeePayrollProfileController;
+use App\Http\Controllers\Payroll\PublicHolidayController;
 use App\Http\Controllers\Payroll\AttendanceImportController;
 use App\Http\Controllers\Payroll\PayrollRecordController;
 use App\Http\Controllers\Payroll\PayslipController;
@@ -368,6 +369,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post  ('/bank',                          [HRPolicySetupController::class, 'storeBank'])        ->name('bank.store');
         Route::put   ('/bank/{bank}',                   [HRPolicySetupController::class, 'updateBank'])       ->name('bank.update');
         Route::delete('/bank/{bank}',                   [HRPolicySetupController::class, 'destroyBank'])      ->name('bank.destroy');
+        Route::post('/public-holiday/auto-fill',        [HRPolicySetupController::class, 'autoFillPublicHolidays'])->name('public-holiday.auto-fill');
         Route::post  ('/public-holiday',                [HRPolicySetupController::class, 'storePublicHoliday'])  ->name('public-holiday.store');
         Route::put   ('/public-holiday/{publicHoliday}',[HRPolicySetupController::class, 'updatePublicHoliday']) ->name('public-holiday.update');
         Route::delete('/public-holiday/{publicHoliday}',[HRPolicySetupController::class, 'destroyPublicHoliday'])->name('public-holiday.destroy');
