@@ -278,7 +278,17 @@ function OnLeaveTodayList({ items = [], t }) {
                 const inits = b.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
                 return (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom: i < visible.length - 1 ? `1px solid ${t.border}` : 'none' }}>
-                        <div style={{ width:30, height:30, borderRadius:'50%', background:t.greenSoft, color:t.green, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>{inits}</div>
+                        
+                        {b.avatar_url ? (
+                            <img src={`/storage/${b.avatar_url}`} alt={b.name}
+                                style={{ width:30, height:30, borderRadius:'50%', objectFit:'cover', flexShrink:0, border:`1px solid ${t.border}` }}
+                                onError={e => { e.target.style.display='none'; }}
+                            />
+                        ) : (
+                            <div style={{ width:30, height:30, borderRadius:'50%', background:t.greenSoft, color:t.green, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>
+                                {inits}
+                            </div>
+                        )}
                         <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ fontSize:12, fontWeight:600, color:t.text }}>{b.name}</div>
                             <div style={{ fontSize:10, color:t.textMute }}>{ucfirst(b.leave_type || dashText(tr, 'leave', 'Leave'))} · {b.department}</div>

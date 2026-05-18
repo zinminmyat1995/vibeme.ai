@@ -96,7 +96,7 @@ function Field({ label, children, error }) {
 }
 
 // ── Question Card ──────────────────────────────────────────────
-function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemove, onMove, tr }) {
+function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemove, onMove, tr, errors = {} }) {
     const showOptions = ['single_choice','multi_choice'].includes(q.type);
     const parentQs    = questions.slice(0, idx);
 
@@ -182,12 +182,15 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
             <div style={{ padding:'16px 18px', display:'flex', flexDirection:'column', gap:14 }}>
 
                 {/* Question text */}
-                <Field label={tr('surveys.create.fields.question')}>
+                <Field label={tr('surveys.create.fields.question')} error={errors[`q_${idx}`]}>
                     <textarea value={q.question} onChange={e=>onChange(idx,'question',e.target.value)}
                         placeholder={tr('surveys.create.placeholders.question')} rows={2}
-                        style={{...inp(!q.question&&false), resize:'none'}}
+                        style={{
+                            ...inp(errors[`q_${idx}`]),  // ← error ဆိုရင် red border
+                            resize:'none'
+                        }}
                         onFocus={e=>e.target.style.borderColor=theme.borderFocus}
-                        onBlur={e=>e.target.style.borderColor=theme.inputBorder}/>
+                        onBlur={e=>e.target.style.borderColor=errors[`q_${idx}`]?theme.danger:theme.inputBorder}/>
                 </Field>
 
                 {/* Type pills */}
@@ -214,7 +217,7 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
 
                 {/* Options */}
                 {showOptions && (
-                    <Field label="Options">
+                    <Field label="Options" error={errors[`q_${idx}_opts`]}>
                         <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
                             {(q.options||[]).map((opt,oi) => (
                                 <div key={oi} style={{ display:'flex', gap:7, alignItems:'center' }}>
@@ -224,7 +227,7 @@ function QuestionCard({ q, idx, total, questions, dark, theme, onChange, onRemov
                                         opts[oi]=e.target.value;
                                         onChange(idx,'options',opts);
                                     }} placeholder={`${tr('surveys.create.placeholders.option')} ${oi+1}`}
-                                    style={{...inp(false), flex:1}}
+                                    style={{...inp(errors[`q_${idx}_opts`] && !opt.trim()), flex:1}}
                                     onFocus={e=>e.target.style.borderColor=theme.borderFocus}
                                     onBlur={e=>e.target.style.borderColor=theme.inputBorder}/>
                                     {(q.options||[]).length > 2 && (
@@ -533,6 +536,7 @@ console.log('editSurvey questions:', editSurvey?.questions);
                                     onRemove={(i)=>setQuestions(prev=>prev.filter((_,x)=>x!==i))}
                                     onMove={handleMove}
                                     tr={tr}
+                                    errors={errors}
                                 />
                             </div>
                         ))}

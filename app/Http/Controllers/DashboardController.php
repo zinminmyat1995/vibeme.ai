@@ -63,9 +63,7 @@ class DashboardController extends Controller
         if ($isHr) {
             $scopeUsersQuery->where('country', $country);
         } elseif ($isManagement) {
-            $department
-                ? $scopeUsersQuery->where('department', $department)
-                : $scopeUsersQuery->where('country', $country);
+            $scopeUsersQuery->where('country', $country);
         } elseif (!$isAdmin) {
             $scopeUsersQuery->where('id', $user->id);
         }
@@ -137,7 +135,6 @@ class DashboardController extends Controller
             ->unique();
 
         $onLeaveToday = User::whereIn('id', $onLeaveTodayIds)->get()->map(function ($u) use ($today) {
-            // Get the specific leave record for today
             $leave = LeaveRequest::where('user_id', $u->id)
                 ->where('status', 'approved')
                 ->whereDate('start_date', '<=', $today)
@@ -148,8 +145,10 @@ class DashboardController extends Controller
                 'name'       => $u->name,
                 'department' => $u->department,
                 'leave_type' => $leave?->leave_type ?? 'leave',
+                'avatar_url' => $u->avatar_url,  // ← ဒါထည့်
             ];
         })->values();
+
 
         // ─────────────────────────────────────────────────────────────────
         // HR / Admin / Management data
@@ -501,8 +500,24 @@ class DashboardController extends Controller
         $latestPayroll   = PayrollRecord::where('user_id', $user->id)->orderByDesc('created_at')->first();
 
         // Leave balances
-        $leaveBalances = \App\Models\LeaveBalance::where('user_id', $user->id)->where('year', Carbon::now($tz)->year)->get()
-            ->map(fn($lb) => ['type' => ucfirst($lb->leave_type), 'remaining' => (float) $lb->remaining_days, 'entitled' => (float) $lb->entitled_days, 'used' => (float) $lb->used_days])->values()->toArray();
+        $leavePolicies = \App\Models\LeavePolicy::where('country_id', $countryId)
+            ->where('is_active', true)
+            ->get();
+
+        $leaveBalanceMap = \App\Models\LeaveBalance::where('user_id', $user->id)
+            ->where('year', Carbon::now($tz)->year)
+            ->get()
+            ->keyBy('leave_type');
+
+        $leaveBalances = $leavePolicies->map(function ($policy) use ($leaveBalanceMap) {
+            $balance = $leaveBalanceMap->get($policy->leave_type);
+            return [
+                'type'      => $policy->leave_type,
+                'remaining' => $balance ? (float) $balance->remaining_days : (float) $policy->days_per_year,
+                'entitled'  => $balance ? (float) $balance->entitled_days  : (float) $policy->days_per_year,
+                'used'      => $balance ? (float) $balance->used_days      : 0,
+            ];
+        })->values()->toArray();
 
         // Personal late stats (this month)
         $lateRow = AttendanceRecord::selectRaw('COUNT(*) as late_count, AVG(late_minutes) as avg_late_minutes')
@@ -663,14 +678,24 @@ class DashboardController extends Controller
             ->first();
 
         // ── Leave balances ──────────────────────────────────────────────────
-        $leaveBalances = \App\Models\LeaveBalance::where('user_id', $user->id)
-            ->where('year', Carbon::now($tz)->year)->get()
-            ->map(fn($lb) => [
-                'type'           => ucfirst($lb->leave_type),
-                'remaining'      => (float) $lb->remaining_days,
-                'entitled'       => (float) $lb->entitled_days,
-                'used'           => (float) $lb->used_days,
-            ])->values()->toArray();
+        $leavePolicies = \App\Models\LeavePolicy::where('country_id', $user->country_id)
+            ->where('is_active', true)
+            ->get();
+
+        $leaveBalanceMap = \App\Models\LeaveBalance::where('user_id', $user->id)
+            ->where('year', Carbon::now($tz)->year)
+            ->get()
+            ->keyBy('leave_type');
+
+        $leaveBalances = $leavePolicies->map(function ($policy) use ($leaveBalanceMap) {
+            $balance = $leaveBalanceMap->get($policy->leave_type);
+            return [
+                'type'      => $policy->leave_type,
+                'remaining' => $balance ? (float) $balance->remaining_days : (float) $policy->days_per_year,
+                'entitled'  => $balance ? (float) $balance->entitled_days  : (float) $policy->days_per_year,
+                'used'      => $balance ? (float) $balance->used_days      : 0,
+            ];
+        })->values()->toArray();
 
         // ── My pending requests (all 4 types) ──────────────────────────────
         $myPendingLeave = \App\Models\LeaveRequest::where('user_id', $user->id)

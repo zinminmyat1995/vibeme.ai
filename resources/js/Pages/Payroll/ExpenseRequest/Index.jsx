@@ -399,14 +399,37 @@ function ExpenseRow({ req, dark, theme, canViewAll, userId, onApprove, onReject,
                 {/* Attachments */}
                 {req.attachments?.length>0 && (
                     <div style={{display:'flex',gap:6,marginTop:7,flexWrap:'wrap'}}>
-                        {req.attachments.map((f,i)=>(
-                            <a key={i} href={`/payroll/expenses/${req.id}/attachments/${i}`} target="_blank" rel="noopener noreferrer"
-                                style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 12px',borderRadius:20,background:dark?'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(37,99,235,0.12))':'linear-gradient(135deg,#eff6ff,#dbeafe)',color:dark?'#60a5fa':'#2563eb',fontSize:11,fontWeight:700,textDecoration:'none',boxShadow:dark?'0 1px 6px rgba(59,130,246,0.15)':'0 1px 4px rgba(37,99,235,0.10)',transition:'opacity 0.15s'}}
-                                onMouseEnter={e=>e.currentTarget.style.opacity='0.8'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                {f.name?.length>20?f.name.slice(0,18)+'…':(f.name||`File ${i+1}`)}
-                            </a>
-                        ))}
+                        {req.attachments.map((f,i)=>{
+                            const viewableTypes = ['image/jpeg','image/jpg','image/png','image/gif','image/webp','application/pdf'];
+                            const isViewable = viewableTypes.includes(f.type);
+                            const downloadUrl = `/payroll/expenses/${req.id}/attachments/${i}`;
+                            const fileName = f.name?.length>20 ? f.name.slice(0,18)+'…' : (f.name||`File ${i+1}`);
+                            const btnBase = {display:'inline-flex',alignItems:'center',gap:5,padding:'5px 12px',borderRadius:20,fontSize:11,fontWeight:700,textDecoration:'none',transition:'opacity 0.15s',cursor:'pointer'};
+                            const blueStyle = {background:dark?'linear-gradient(135deg,rgba(59,130,246,0.18),rgba(37,99,235,0.12))':'linear-gradient(135deg,#eff6ff,#dbeafe)',color:dark?'#60a5fa':'#2563eb',boxShadow:dark?'0 1px 6px rgba(59,130,246,0.15)':'0 1px 4px rgba(37,99,235,0.10)'};
+                            const greenStyle = {background:dark?'linear-gradient(135deg,rgba(5,150,105,0.18),rgba(16,185,129,0.12))':'linear-gradient(135deg,#ecfdf5,#d1fae5)',color:dark?'#34d399':'#059669',boxShadow:dark?'0 1px 6px rgba(16,185,129,0.15)':'0 1px 4px rgba(5,150,105,0.10)'};
+                            return (
+                                <div key={i} style={{display:'inline-flex',alignItems:'center',gap:4}}>
+                                    {/* Download button — always show */}
+                                    <a href={downloadUrl} target="_blank" rel="noopener noreferrer"
+                                        style={{...btnBase,...blueStyle}}
+                                        onMouseEnter={e=>e.currentTarget.style.opacity='0.8'}
+                                        onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                        {fileName}
+                                    </a>
+                                    {/* View button — only for viewable types */}
+                                    {isViewable && (
+                                        <a href={`/storage/${f.path}`} target="_blank" rel="noopener noreferrer"
+                                            style={{...btnBase,...greenStyle}}
+                                            onMouseEnter={e=>e.currentTarget.style.opacity='0.8'}
+                                            onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                            View
+                                        </a>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
 

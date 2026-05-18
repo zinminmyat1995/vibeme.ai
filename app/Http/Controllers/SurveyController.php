@@ -222,7 +222,7 @@ public function results(Survey $survey)
             ->with('questions')
             ->firstOrFail();
 
-        $user = Auth::guard('sanctum')->user() ?? Auth::user();
+        $user = $this->resolveUser();
         $ip   = request()->ip();
 
         if ($survey->isClosed() || $survey->isExpired()) {
@@ -271,7 +271,7 @@ public function results(Survey $survey)
             return response()->json(['error' => 'Survey is no longer accepting responses.'], 422);
         }
 
-        $user = Auth::guard('sanctum')->user() ?? Auth::user();
+        $user = $this->resolveUser();
         $ip   = $request->ip();
 
         if ($this->service->hasResponded($survey, $user?->id, $ip)) {
@@ -301,5 +301,24 @@ public function results(Survey $survey)
         $user = Auth::user();
         $role = $user->role?->name;
         abort_unless(in_array($role, ['admin', 'hr']), 403);
+    }
+
+    private function resolveUser(): ?\App\Models\User
+    {
+        // 1. Web session (browser)
+        if ($user = Auth::user()) {
+            return $user;
+        }
+
+        // 2. Sanctum Bearer token (mobile app)
+        $bearerToken = request()->bearerToken();
+        if ($bearerToken) {
+            $pat = \Laravel\Sanctum\PersonalAccessToken::findToken($bearerToken);
+            if ($pat && $pat->tokenable_type === \App\Models\User::class) {
+                return \App\Models\User::find($pat->tokenable_id);
+            }
+        }
+
+        return null;
     }
 }
