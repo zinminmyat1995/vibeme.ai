@@ -184,7 +184,7 @@ function ResponseRow({ resp, idx, survey, questions, dark, theme, isLast, tr }) 
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                         <Avatar name={resp.respondent?.name} avatarUrl={resp.respondent?.avatar_url}/>
                         <div>
-                            <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{resp.respondent?.name || `{tr('surveys.results.unknown')}`}</div>
+                            <div style={{ fontSize:13, fontWeight:700, color:theme.text }}>{resp.respondent?.name || tr('surveys.results.unknown')}</div>
                             {resp.respondent?.department && <div style={{ fontSize:11, color:theme.textMute }}>{resp.respondent.department}</div>}
                         </div>
                     </div>
@@ -377,7 +377,7 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                             {!responses.length ? (
                                 <div style={{ padding:'56px 24px', textAlign:'center' }}>
                                     <div style={{ fontSize:36, marginBottom:12 }}>📭</div>
-                                    <div style={{ fontSize:14, fontWeight:600, color:theme.textSoft }}>No responses yet</div>
+                                    <div style={{ fontSize:14, fontWeight:600, color:theme.textSoft }}>{tr('surveys.results.noResponsesYet')}</div>
                                 </div>
                             ) : responses.map((resp, idx) => (
                                 <ResponseRow
@@ -429,7 +429,7 @@ export default function SurveysResults({ survey, results, responses = [] }) {
                                     <div style={{ fontSize:42, marginBottom:12 }}>🤖</div>
                                     <div style={{ fontSize:14, fontWeight:600, color:theme.textSoft, marginBottom:6 }}>{tr('surveys.results.noInsightGeneratedYet')}</div>
                                     <div style={{ fontSize:12, color:theme.textMute }}>
-                                        {totalResp === 0 ? `{tr('surveys.results.collectResponsesBeforeInsights')}` : `{tr('surveys.results.clickGenerateInsight')}`}
+                                        {totalResp === 0 ? tr('surveys.results.collectResponsesBeforeInsights') : tr('surveys.results.clickGenerateInsight')}
                                     </div>
                                 </div>
                             )}
