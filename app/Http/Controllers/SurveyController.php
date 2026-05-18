@@ -305,23 +305,36 @@ public function results(Survey $survey)
 
     private function resolveUser(): ?\App\Models\User
     {
-        // 1. Web session (browser)
+        // 1. Web session
         if ($user = Auth::user()) {
             return $user;
         }
 
-        // 2. Sanctum Bearer token (mobile app)
+        // 2. Bearer token — Authorization header
         $bearerToken = request()->bearerToken();
-            \Log::info('resolveUser', [
-                'bearer' => $bearerToken ? 'yes' : 'no',
-                'user'   => $user?->id ?? null,
-            ]);
+        
+        // 3. Header မပါရင် X-Auth-Token header လည်း စစ်
+        if (!$bearerToken) {
+            $bearerToken = request()->header('X-Auth-Token');
+        }
+        
+        // 4. Query string မှာပါလာရင်လည်း စစ် (?token=xxx)
+        if (!$bearerToken) {
+            $bearerToken = request()->query('api_token');
+        }
+
         if ($bearerToken) {
             $pat = \Laravel\Sanctum\PersonalAccessToken::findToken($bearerToken);
             if ($pat && $pat->tokenable_type === \App\Models\User::class) {
+                \Log::info('resolveUser: found via token', ['user_id' => $pat->tokenable_id]);
                 return \App\Models\User::find($pat->tokenable_id);
             }
         }
+
+        \Log::info('resolveUser: no user found', [
+            'bearer' => $bearerToken ? 'yes' : 'no',
+            'headers' => request()->headers->all(),
+        ]);
 
         return null;
     }
