@@ -23,11 +23,14 @@ use App\Http\Controllers\Payroll\AttendanceRequestController;
 use App\Http\Controllers\Payroll\PayslipController;
 use App\Http\Controllers\DriverScheduleController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SurveyController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::get ('v1/survey/{token}',        [SurveyController::class, 'publicShow']);
+Route::post('v1/survey/{token}/submit', [SurveyController::class, 'publicSubmit']);
 
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
 
