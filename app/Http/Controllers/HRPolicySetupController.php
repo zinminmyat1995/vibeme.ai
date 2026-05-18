@@ -731,35 +731,35 @@ public function autoFillPublicHolidays(Request $request): \Illuminate\Http\Redir
     $country   = \App\Models\Country::find($countryId);
     $year      = $request->year;
 
-    // ── Claude API call ──
-    $response = \Illuminate\Support\Facades\Http::timeout(30)
-        ->withoutVerifying()
-        ->withHeaders([
-            'x-api-key'         => config('services.anthropic.key'),
-            'anthropic-version' => '2023-06-01',
-            'content-type'      => 'application/json',
-        ])
-        ->post('https://api.anthropic.com/v1/messages', [
-            'model'      => 'claude-haiku-4-5-20251001',
-            'max_tokens' => 1024,
-            'messages'   => [
-                [
-                    'role'    => 'user',
-                    'content' => "List all official public holidays for {$country->name} in {$year}. 
-Return ONLY a JSON array, no explanation. Format:
-[{\"name\":\"Holiday Name\",\"date\":\"YYYY-MM-DD\",\"is_recurring\":true}]
-Use is_recurring true for fixed-date holidays, false for lunar/variable holidays.",
-                ],
-            ],
-        ]);
+    $prompt = "List all official public holidays for {$country->name} in {$year}. Return ONLY a JSON array, no explanation. Format: [{\"name\":\"Holiday Name\",\"date\":\"YYYY-MM-DD\",\"is_recurring\":true}] Use is_recurring true for fixed-date holidays, false for lunar/variable holidays.";
+
+    // ── Retry up to 3x on 529 Overloaded ──
+    $response = null;
+    for ($attempt = 1; $attempt <= 3; $attempt++) {
+        $response = \Illuminate\Support\Facades\Http::timeout(30)
+            ->withoutVerifying()
+            ->withHeaders([
+                'x-api-key'         => config('services.anthropic.key'),
+                'anthropic-version' => '2023-06-01',
+                'content-type'      => 'application/json',
+            ])
+            ->post('https://api.anthropic.com/v1/messages', [
+                'model'      => 'claude-haiku-4-5-20251001',
+                'max_tokens' => 1024,
+                'messages'   => [['role' => 'user', 'content' => $prompt]],
+            ]);
+
+        if ($response->status() !== 529) break;
+        if ($attempt < 3) sleep(2);
+    }
 
     if (!$response->ok()) {
-        return back()->withErrors(['auto_fill' => 'Failed to fetch holidays. Please try again.']);
+        return back()->withErrors([
+            'auto_fill' => 'Failed to fetch holidays. Please try again. (Error: ' . $response->status() . ')',
+        ]);
     }
 
     $text = $response->json('content.0.text') ?? '';
-
-    // JSON parse — backtick fences ဖြုတ်
     $text = preg_replace('/```json|```/i', '', $text);
     $text = trim($text);
 
