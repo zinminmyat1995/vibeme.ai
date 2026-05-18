@@ -70,10 +70,8 @@ Route::post('/logout',[LoginController::class, 'logout'])->name('logout');
 
 // ── Public Survey ─────────────────────────────────────────────────────────────
 
-
-// အသစ် — sanctum optional guard ထည့်
-Route::get('/survey/{token}',         [App\Http\Controllers\SurveyController::class, 'publicShow'])  ->name('survey.public')->middleware('auth:sanctum,web')->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
-Route::post('/survey/{token}/submit', [App\Http\Controllers\SurveyController::class, 'publicSubmit'])->name('survey.submit')->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+Route::get('/survey/{token}',         [App\Http\Controllers\SurveyController::class, 'publicShow'])  ->name('survey.public');
+Route::post('/survey/{token}/submit', [App\Http\Controllers\SurveyController::class, 'publicSubmit'])->name('survey.submit');
 
 
 // ── Driver Only ───────────────────────────────────────────────────────────────
