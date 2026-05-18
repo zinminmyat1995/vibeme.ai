@@ -222,7 +222,7 @@ public function results(Survey $survey)
             ->with('questions')
             ->firstOrFail();
 
-        $user = Auth::user();
+        $user = Auth::guard('sanctum')->user() ?? Auth::user();
         $ip   = request()->ip();
 
         if ($survey->isClosed() || $survey->isExpired()) {
@@ -271,7 +271,7 @@ public function results(Survey $survey)
             return response()->json(['error' => 'Survey is no longer accepting responses.'], 422);
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('sanctum')->user() ?? Auth::user();
         $ip   = $request->ip();
 
         if ($this->service->hasResponded($survey, $user?->id, $ip)) {
