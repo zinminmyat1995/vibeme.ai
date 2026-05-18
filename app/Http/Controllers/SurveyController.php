@@ -234,10 +234,10 @@ public function results(Survey $survey)
         }
 
         // ← Named survey + not logged in → redirect to login
-        if (!$survey->is_anonymous && !$user) {
-            return redirect()->route('login')
-                ->with('message', 'Please login to complete this survey.');
-        }
+        // if (!$survey->is_anonymous && !$user) {
+        //     return redirect()->route('login')
+        //         ->with('message', 'Please login to complete this survey.');
+        // }
 
         $alreadyResponded = $this->service->hasResponded($survey, $user?->id, $ip);
 
