@@ -1,30 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { createPortal } from 'react-dom';
-import { useTranslation } from '@/Contexts/LanguageContext';
 
 const LANGUAGES = {
-    en: { label: 'English',    labelKey: 'documentTranslation.languages.en', flag: null },
-    ja: { label: 'Japanese',   labelKey: 'documentTranslation.languages.ja', flag: null },
-    my: { label: 'Myanmar',    labelKey: 'documentTranslation.languages.my', flag: null },
-    km: { label: 'Khmer',      labelKey: 'documentTranslation.languages.km', flag: null },
-    vi: { label: 'Vietnamese', labelKey: 'documentTranslation.languages.vi', flag: null },
-    ko: { label: 'Korean',     labelKey: 'documentTranslation.languages.ko', flag: null },
+    en: { label: 'English',    flag: null },
+    ja: { label: 'Japanese',   flag: null },
+    my: { label: 'Myanmar',    flag: null },  // Burmese → Myanmar
+    km: { label: 'Khmer',      flag: null },
+    vi: { label: 'Vietnamese', flag: null },
+    ko: { label: 'Korean',     flag: null },
 };
-
-function langLabel(tr, code) {
-    const item = LANGUAGES[code];
-    if (!item) return code;
-    const translated = item.labelKey ? tr(item.labelKey) : item.label;
-    return translated === item.labelKey ? item.label : translated;
-}
 
 const FILE_META = {
     pdf: {
         label: 'PDF',
         color: '#ef4444',
         soft: '#fee2e2',
-        note: 'Portable document', noteKey: 'documentTranslation.fileNotes.portableDocument',
+        note: 'Portable document',
         icon: (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
@@ -38,7 +30,7 @@ const FILE_META = {
         label: 'DOC',
         color: '#2563eb',
         soft: '#dbeafe',
-        note: 'Editable document', noteKey: 'documentTranslation.fileNotes.editableDocument',
+        note: 'Editable document',
         icon: (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
@@ -53,7 +45,7 @@ const FILE_META = {
         label: 'DOCX',
         color: '#2563eb',
         soft: '#dbeafe',
-        note: 'Editable document', noteKey: 'documentTranslation.fileNotes.editableDocument',
+        note: 'Editable document',
         icon: (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
@@ -68,7 +60,7 @@ const FILE_META = {
         label: 'TXT',
         color: '#64748b',
         soft: '#e2e8f0',
-        note: 'Plain text', noteKey: 'documentTranslation.fileNotes.plainText',
+        note: 'Plain text',
         icon: (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
@@ -82,7 +74,7 @@ const FILE_META = {
         label: 'PNG',
         color: '#059669',
         soft: '#d1fae5',
-        note: 'Image file', noteKey: 'documentTranslation.fileNotes.imageFile',
+        note: 'Image file',
         icon: (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="16" rx="3" />
@@ -95,7 +87,7 @@ const FILE_META = {
         label: 'JPG',
         color: '#059669',
         soft: '#d1fae5',
-        note: 'Image file', noteKey: 'documentTranslation.fileNotes.imageFile',
+        note: 'Image file',
         icon: (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="16" rx="3" />
@@ -108,7 +100,7 @@ const FILE_META = {
         label: 'JPEG',
         color: '#059669',
         soft: '#d1fae5',
-        note: 'Image file', noteKey: 'documentTranslation.fileNotes.imageFile',
+        note: 'Image file',
         icon: (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="16" rx="3" />
@@ -121,10 +113,10 @@ const FILE_META = {
 
 const STATUS_META = {
     pending: {
-        label: 'Pending', labelKey: 'documentTranslation.status.pending',
+        label: 'Pending',
         color: '#d97706',
         soft: '#fef3c7',
-        note: 'Waiting in queue', noteKey: 'documentTranslation.statusNotes.waitingInQueue',
+        note: 'Waiting in queue',
         icon: (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="9" />
@@ -133,10 +125,10 @@ const STATUS_META = {
         ),
     },
     translating: {
-        label: 'Translating', labelKey: 'documentTranslation.status.translating',
+        label: 'Translating',
         color: '#2563eb',
         soft: '#dbeafe',
-        note: 'Jobs currently running', noteKey: 'documentTranslation.statusNotes.jobsRunning',
+        note: 'Jobs currently running',
         icon: (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 4v6h-6" />
@@ -147,10 +139,10 @@ const STATUS_META = {
         ),
     },
     completed: {
-        label: 'Completed', labelKey: 'documentTranslation.status.completed',
+        label: 'Completed',
         color: '#059669',
         soft: '#d1fae5',
-        note: 'Downloads available', noteKey: 'documentTranslation.statusNotes.downloadsAvailable',
+        note: 'Downloads available',
         icon: (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 6L9 17l-5-5" />
@@ -158,10 +150,10 @@ const STATUS_META = {
         ),
     },
     failed: {
-        label: 'Failed', labelKey: 'documentTranslation.status.failed',
+        label: 'Failed',
         color: '#ef4444',
         soft: '#fee2e2',
-        note: 'Needs review or retry', noteKey: 'documentTranslation.statusNotes.needsReview',
+        note: 'Needs review or retry',
         icon: (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
@@ -192,6 +184,19 @@ function useReactiveTheme() {
     }, []);
 
     return darkMode;
+}
+
+function useViewportWidth() {
+    const getWidth = () => (typeof window === 'undefined' ? 1440 : window.innerWidth);
+    const [width, setWidth] = useState(getWidth);
+
+    useEffect(() => {
+        const onResize = () => setWidth(getWidth());
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    return width;
 }
 
 function getTheme(darkMode) {
@@ -508,7 +513,7 @@ function fileMetaFor(doc) {
     return FILE_META[doc.file_type?.toLowerCase()] || FILE_META.txt;
 }
 
-function DownloadModal({ document: doc, hasApi, onClose, darkMode = false, tr }) {
+function DownloadModal({ document: doc, hasApi, onClose, darkMode = false }) {
     const theme = getTheme(darkMode);
     if (!doc) return null;
 
@@ -539,8 +544,8 @@ function DownloadModal({ document: doc, hasApi, onClose, darkMode = false, tr })
                     <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top left, rgba(255,255,255,0.18), transparent 40%)' }} />
                     <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, width: 32, height: 32, borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>×</button>
                     <div style={{ position: 'relative' }}>
-                        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>{tr('documentTranslation.downloadModal.eyebrow')}</div>
-                        <div style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{tr('documentTranslation.downloadModal.title')}</div>
+                        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>DOWNLOADS</div>
+                        <div style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>Choose file version</div>
                         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>{doc.original_filename}</div>
                     </div>
                 </div>
@@ -554,33 +559,33 @@ function DownloadModal({ document: doc, hasApi, onClose, darkMode = false, tr })
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         </div>
                         <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 13, fontWeight: 800, color: theme.text }}>{tr('documentTranslation.downloadModal.originalFile')}</div>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: theme.text }}>Original file</div>
                             <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{doc.file_type?.toUpperCase()} · {doc.file_size ? Math.round(doc.file_size / 1024) + ' KB' : '—'}</div>
                         </div>
-                        <button onClick={() => handleDownload('original')} style={{ padding: '7px 16px', borderRadius: 10, border: 'none', background: theme.primary, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{tr('documentTranslation.actions.download')}</button>
+                        <button onClick={() => handleDownload('original')} style={{ padding: '7px 16px', borderRadius: 10, border: 'none', background: theme.primary, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Download</button>
                     </div>
 
                     {/* Translated versions */}
                     {availableLangs.length > 0 && (
                         <>
-                            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.textMute, marginTop: 4 }}>{tr('documentTranslation.downloadModal.translatedVersions')}</div>
+                            <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.textMute, marginTop: 4 }}>Translated Versions</div>
                             {availableLangs.map(lang => (
                                 <div key={lang} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 14, border: `1px solid ${theme.success}30`, background: darkMode ? 'rgba(16,185,129,0.06)' : '#f0fdf4' }}>
                                     <div style={{ width: 40, height: 40, borderRadius: 12, background: darkMode ? 'rgba(16,185,129,0.15)' : '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                         {FLAG_SVGS[lang] || <span style={{ fontSize: 18 }}>🌐</span>}
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: 13, fontWeight: 800, color: theme.text }}>{langLabel(tr, lang)}</div>
-                                        <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>{tr('documentTranslation.downloadModal.translated')} · {doc.file_type?.toUpperCase()}</div>
+                                        <div style={{ fontSize: 13, fontWeight: 800, color: theme.text }}>{LANGUAGES[lang]?.label || lang}</div>
+                                        <div style={{ fontSize: 11, color: theme.textMute, marginTop: 2 }}>Translated · {doc.file_type?.toUpperCase()}</div>
                                     </div>
-                                    <button onClick={() => handleDownload(lang)} style={{ padding: '7px 16px', borderRadius: 10, border: 'none', background: theme.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{tr('documentTranslation.actions.download')}</button>
+                                    <button onClick={() => handleDownload(lang)} style={{ padding: '7px 16px', borderRadius: 10, border: 'none', background: theme.success, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Download</button>
                                 </div>
                             ))}
                         </>
                     )}
 
                     {/* Close */}
-                    <button onClick={onClose} style={{ marginTop: 4, width: '100%', padding: '10px', borderRadius: 12, border: `1px solid ${theme.border}`, background: 'transparent', color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{tr('documentTranslation.actions.close')}</button>
+                    <button onClick={onClose} style={{ marginTop: 4, width: '100%', padding: '10px', borderRadius: 12, border: `1px solid ${theme.border}`, background: 'transparent', color: theme.textSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Close</button>
                 </div>
             </div>
         </div>
@@ -589,7 +594,7 @@ function DownloadModal({ document: doc, hasApi, onClose, darkMode = false, tr })
     return createPortal(modal, window.document.body);  // ← full screen ဖြစ်မယ်
 }
 
-function DeleteConfirm({ document, onClose, onConfirm, loading, darkMode = false, tr }) {
+function DeleteConfirm({ document, onClose, onConfirm, loading, darkMode = false }) {
     const theme = getTheme(darkMode);
     if (!document) return null;
 
@@ -607,15 +612,15 @@ function DeleteConfirm({ document, onClose, onConfirm, loading, darkMode = false
                             <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                         </svg>
                     </div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: theme.text }}>{tr('documentTranslation.deleteDocument.confirmTitle')}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: theme.text }}>Delete document?</div>
                     <div style={{ marginTop: 10, fontSize: 13, color: theme.textMute, lineHeight: 1.7 }}>
-                        {tr('documentTranslation.deleteDocument.confirmPrefix')} <strong style={{ color: theme.text }}>{document.original_filename}</strong> {tr('documentTranslation.deleteDocument.confirmSuffix')}
+                        This will remove <strong style={{ color: theme.text }}>{document.original_filename}</strong> and all translated versions linked to it.
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 26 }}>
-                    <UIButton onClick={onClose} variant="ghost" theme={theme}>{tr('documentTranslation.actions.cancel')}</UIButton>
+                    <UIButton onClick={onClose} variant="ghost" theme={theme}>Cancel</UIButton>
                     <UIButton onClick={onConfirm} disabled={loading} variant="danger" theme={theme}>
-                        {loading ? tr('documentTranslation.actions.deleting') : tr('documentTranslation.actions.delete')}
+                        {loading ? 'Deleting...' : 'Delete'}
                     </UIButton>
                 </div>
             </div>
@@ -625,7 +630,7 @@ function DeleteConfirm({ document, onClose, onConfirm, loading, darkMode = false
     return createPortal(modal, window.document.body);
 }
 
-function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false, tr }) {
+function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false }) {
     const theme = getTheme(darkMode);
     const file = fileMetaFor(doc);
     const status = statusFor(doc);
@@ -646,7 +651,7 @@ function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false, 
                             {doc.original_filename}
                         </div>
                         <div style={{ marginTop: 4, fontSize: 11.5, color: theme.textMute }}>
-                            {doc.file_size} · {file.label} · {(file.noteKey && tr(file.noteKey) !== file.noteKey) ? tr(file.noteKey) : file.note}
+                            {doc.file_size} · {file.label} · {file.note}
                         </div>
                     </div>
                 </div>
@@ -655,7 +660,7 @@ function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false, 
             <td style={{ padding: '16px 18px' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderRadius: 999, background: status.soft, color: status.color, fontSize: 11, fontWeight: 900 }}>
                     {status.icon}
-                    {(status.labelKey && tr(status.labelKey) !== status.labelKey) ? tr(status.labelKey) : status.label}
+                    {status.label}
                 </span>
             </td>
 
@@ -664,7 +669,7 @@ function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false, 
                    
                     {doc.target_languages?.map((lang) => (
                         <span key={lang} style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5', color: theme.success, fontWeight: 800 }}>
-                            {LANGUAGES[lang]?.flag} {langLabel(tr, lang)}
+                            {LANGUAGES[lang]?.flag} {LANGUAGES[lang]?.label}
                         </span>
                     ))}
                 </div>
@@ -694,7 +699,7 @@ function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false, 
 
             <td style={{ padding: '16px 18px' }}>
                 <div style={{ display: 'flex', gap: 8 }}>
-                    <IconButton onClick={() => onDownload(doc)} theme={theme} title={tr('documentTranslation.actions.download')}>
+                    <IconButton onClick={() => onDownload(doc)} theme={theme} title="Download">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                             <path d="M7 10l5 5 5-5" />
@@ -703,7 +708,7 @@ function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false, 
                     </IconButton>
 
                     {doc.canDelete && (
-                        <IconButton onClick={() => onDelete(doc)} theme={theme} variant="danger" title={tr('documentTranslation.actions.delete')}>
+                        <IconButton onClick={() => onDelete(doc)} theme={theme} variant="danger" title="Delete">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="3 6 5 6 21 6" />
                                 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
@@ -719,7 +724,7 @@ function ListRow({ doc, onDownload, onDelete, darkMode = false, isLast = false, 
     );
 }
 
-function DocumentCard({ doc, onDownload, onDelete, darkMode = false, tr }) {
+function DocumentCard({ doc, onDownload, onDelete, darkMode = false }) {
     const theme = getTheme(darkMode);
     const file = fileMetaFor(doc);
     const status = statusFor(doc);
@@ -733,7 +738,7 @@ function DocumentCard({ doc, onDownload, onDelete, darkMode = false, tr }) {
                 </div>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 10px', borderRadius: 999, background: status.soft, color: status.color, fontSize: 10, fontWeight: 900 }}>
                     {status.icon}
-                    {(status.labelKey && tr(status.labelKey) !== status.labelKey) ? tr(status.labelKey) : status.label}
+                    {status.label}
                 </span>
             </div>
 
@@ -750,7 +755,7 @@ function DocumentCard({ doc, onDownload, onDelete, darkMode = false, tr }) {
                 
                 {doc.target_languages?.map((lang) => (
                     <span key={lang} style={{ fontSize: 10, padding: '5px 9px', borderRadius: 999, background: darkMode ? 'rgba(16,185,129,0.16)' : '#d1fae5', color: theme.success, fontWeight: 800 }}>
-                        {LANGUAGES[lang]?.flag} {langLabel(tr, lang)}
+                        {LANGUAGES[lang]?.flag} {LANGUAGES[lang]?.label}
                     </span>
                 ))}
             </div>
@@ -766,7 +771,7 @@ function DocumentCard({ doc, onDownload, onDelete, darkMode = false, tr }) {
             )}
 
             <div style={{ position: 'relative', fontSize: 12, color: theme.textMute }}>
-                {tr('documentTranslation.labels.uploadedBy')} <strong style={{ color: theme.textSoft }}>{doc.uploader || '—'}</strong>
+                Uploaded by <strong style={{ color: theme.textSoft }}>{doc.uploader || '—'}</strong>
             </div>
 
             <div style={{ position: 'relative', display: 'flex', gap: 10, marginTop: 'auto' }}>
@@ -776,7 +781,7 @@ function DocumentCard({ doc, onDownload, onDelete, darkMode = false, tr }) {
                         <path d="M7 10l5 5 5-5" />
                         <path d="M12 15V3" />
                     </svg>
-                    {tr('documentTranslation.actions.download')}
+                    Download
                 </UIButton>
 
                 {doc.canDelete && (
@@ -796,9 +801,11 @@ function DocumentCard({ doc, onDownload, onDelete, darkMode = false, tr }) {
 }
 
 export default function DocumentList({ documents = [], hasApi = false, folderName = 'All Files', onShowToast,onDeleteSuccess, }) {
-    const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
+    const viewportWidth = useViewportWidth();
+    const isMobile = viewportWidth < 760;
+    const isCompact = viewportWidth < 980;
 
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -847,22 +854,22 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                 setDeleteTarget(null);
             },
             onError: () => {
-                onShowToast?.(tr('documentTranslation.messages.documentDeleteFailed'), 'error');
+                onShowToast?.('Failed to delete document.', 'error');
             },
             onFinish: () => setDeleting(false),
         });
     };
 
     const statusOptions = [
-        { value: '', label: tr('documentTranslation.filters.allStatuses') },
-        { value: 'pending', label: tr('documentTranslation.status.pending') },
-        { value: 'translating', label: tr('documentTranslation.status.translating') },
-        { value: 'completed', label: tr('documentTranslation.status.completed') },
-        { value: 'failed', label: tr('documentTranslation.status.failed') },
+        { value: '', label: 'All statuses' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'translating', label: 'Translating' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'failed', label: 'Failed' },
     ];
 
     const typeOptions = [
-        { value: '', label: tr('documentTranslation.filters.allFileTypes') },
+        { value: '', label: 'All file types' },
         { value: 'pdf', label: 'PDF' },
         { value: 'doc', label: 'DOC' },
         { value: 'docx', label: 'DOCX' },
@@ -876,12 +883,17 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
         <>
             <style>{`
                 @keyframes dtSpin { to { transform: rotate(360deg); } }
+                @media (max-width: 760px) {
+                    .dt-doc-table th:nth-child(3), .dt-doc-table td:nth-child(3),
+                    .dt-doc-table th:nth-child(5), .dt-doc-table td:nth-child(5),
+                    .dt-doc-table th:nth-child(6), .dt-doc-table td:nth-child(6) { display: none; }
+                }
             `}</style>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'transparent' }}>
-                <div style={{ padding: 20, borderBottom: `1px solid ${theme.border}`, background: theme.panel, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: 'transparent', height: '100%' }}>
+                <div style={{ padding: isMobile ? 14 : 18, borderBottom: `1px solid ${theme.border}`, background: theme.panel, position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'absolute', inset: 0, background: theme.glass, opacity: 0.5, pointerEvents: 'none' }} />
-                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: isCompact ? 'flex-start' : 'center', flexWrap: 'wrap' }}>
                         <div>
                             <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: theme.primary, marginBottom: 8 }}>
                                 Document Library
@@ -890,28 +902,29 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                                 {folderName}
                             </div>
                             <div style={{ marginTop: 8, fontSize: 12.5, color: theme.textMute }}>
-                                {filtered.length} {filtered.length !== 1 ? tr('documentTranslation.library.visibleFiles') : tr('documentTranslation.library.visibleFile')} · {tr('documentTranslation.library.flowPreserved')}
+                                {filtered.length} visible file{filtered.length !== 1 ? 's' : ''} · Same route/API flow preserved
                             </div>
                         </div>
 
                         <div style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                            gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(96px, 1fr))',
                             gap: 10,
-                            width: '100%',
+                            width: isCompact ? '100%' : 520,
+                            maxWidth: '100%',
                         }}>
                             {[
-                                { label: tr('documentTranslation.statsShort.total'), value: stats.total, color: theme.primary, soft: theme.primarySoft },
-                                { label: 'Completed', labelKey: 'documentTranslation.status.completed', value: stats.completed, color: theme.success, soft: darkMode ? 'rgba(16,185,129,0.14)' : '#d1fae5' },
-                                { label: tr('documentTranslation.statsShort.running'), value: stats.translating, color: theme.secondary, soft: darkMode ? 'rgba(37,99,235,0.14)' : '#dbeafe' },
-                                { label: 'Failed', labelKey: 'documentTranslation.status.failed', value: stats.failed, color: theme.danger, soft: darkMode ? 'rgba(248,113,113,0.12)' : '#fee2e2' },
+                                { label: 'Total', value: stats.total, color: theme.primary, soft: theme.primarySoft },
+                                { label: 'Completed', value: stats.completed, color: theme.success, soft: darkMode ? 'rgba(16,185,129,0.14)' : '#d1fae5' },
+                                { label: 'Running', value: stats.translating, color: theme.secondary, soft: darkMode ? 'rgba(37,99,235,0.14)' : '#dbeafe' },
+                                { label: 'Failed', value: stats.failed, color: theme.danger, soft: darkMode ? 'rgba(248,113,113,0.12)' : '#fee2e2' },
                             ].map((item) => (
-                                <div key={item.label} style={{ ...card(theme, { padding: '14px 14px 12px', borderRadius: 18, background: theme.panelSoft }) }}>
+                                <div key={item.label} style={{ ...card(theme, { padding: isMobile ? '10px 10px' : '12px 12px 10px', borderRadius: 18, background: theme.panelSoft }) }}>
                                     <div style={{ fontSize: 10, color: theme.textMute, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900 }}>
                                         {item.label}
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 10 }}>
-                                        <div style={{ fontSize: 22, lineHeight: 1, fontWeight: 900, color: item.color }}>
+                                        <div style={{ fontSize: isMobile ? 18 : 20, lineHeight: 1, fontWeight: 900, color: item.color }}>
                                             {item.value}
                                         </div>
                                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.color, boxShadow: `0 0 0 6px ${item.soft}` }} />
@@ -922,8 +935,8 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                     </div>
                 </div>
 
-                <div style={{ padding: 18, borderBottom: `1px solid ${theme.border}`, background: theme.panelSolid, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ ...card(theme, { flex: 1, minWidth: 240, display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 18 }) }}>
+                <div style={{ padding: isMobile ? 12 : 16, borderBottom: `1px solid ${theme.border}`, background: theme.panelSolid, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ ...card(theme, { flex: 1, minWidth: isMobile ? '100%' : 240, display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px', borderRadius: 18 }) }}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={theme.textMute} strokeWidth="2">
                             <circle cx="11" cy="11" r="8" />
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -932,7 +945,7 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                         <input
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder={tr('documentTranslation.placeholders.searchDocuments')}
+                            placeholder="Search documents, uploader, tag..."
                             style={{
                                 background: 'transparent',
                                 border: 'none',
@@ -954,27 +967,27 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                         options={statusOptions}
                         value={statusFilter}
                         onChange={setStatusFilter}
-                        placeholder={tr('documentTranslation.filters.allStatuses')}
+                        placeholder="All statuses"
                         theme={theme}
                         darkMode={darkMode}
-                        minWidth={170}
+                        minWidth={isMobile ? '100%' : 170}
                     />
 
                     <PremiumSelect
                         options={typeOptions}
                         value={typeFilter}
                         onChange={setTypeFilter}
-                        placeholder={tr('documentTranslation.filters.allFileTypes')}
+                        placeholder="All file types"
                         theme={theme}
                         darkMode={darkMode}
-                        minWidth={160}
+                        minWidth={isMobile ? '100%' : 160}
                     />
 
                     <div style={{ ...card(theme, { display: 'inline-flex', padding: 6, borderRadius: 18, gap: 6, background: theme.panelSoft }) }}>
                         {[
                             {
                                 value: 'grid',
-                                label: tr('documentTranslation.view.grid'),
+                                label: 'Grid',
                                 icon: (
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -986,7 +999,7 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                             },
                             {
                                 value: 'list',
-                                label: tr('documentTranslation.view.list'),
+                                label: 'List',
                                 icon: (
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <line x1="8" y1="6" x2="21" y2="6" />
@@ -1028,7 +1041,7 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                     </div>
                 </div>
 
-                <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: 18, background: theme.panelSolid }}>
+                <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: isMobile ? 12 : 16, background: theme.panelSolid }}>
                     {filtered.length === 0 ? (
                         <div style={{
                             ...card(theme, {
@@ -1049,9 +1062,9 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                                         <line x1="21" y1="21" x2="16.65" y2="16.65" />
                                     </svg>
                                 </div>
-                                <div style={{ fontSize: 16, color: theme.text, fontWeight: 900 }}>{tr('documentTranslation.empty.noDocumentsFound')}</div>
+                                <div style={{ fontSize: 16, color: theme.text, fontWeight: 900 }}>No documents found</div>
                                 <div style={{ marginTop: 6, fontSize: 12.5, color: theme.textMute }}>
-                                    {tr('documentTranslation.empty.tryAdjusting')}
+                                    Try adjusting search or filters.
                                 </div>
                             </div>
                         </div>
@@ -1064,7 +1077,6 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                                     onDownload={setDownloadTarget}
                                     onDelete={setDeleteTarget}
                                     darkMode={darkMode}
-                                    tr={tr}
                                 />
                             ))}
                         </div>
@@ -1072,10 +1084,10 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                         <div style={{ ...card(theme, { overflow: 'hidden' }) }}>
                             <div style={{ overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                 <style>{`.hide-scroll::-webkit-scrollbar{display:none}`}</style>
-                                <table className="hide-scroll" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <table className="hide-scroll dt-doc-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead>
                                         <tr style={{ background: theme.tableHead, borderBottom: `1px solid ${theme.border}` }}>
-                                            {[tr('documentTranslation.table.document'), tr('documentTranslation.table.status'), tr('documentTranslation.table.languages'), tr('documentTranslation.table.created'), tr('documentTranslation.table.uploader'), tr('documentTranslation.table.tags'), tr('documentTranslation.table.actions')].map((head) => (
+                                            {['Document', 'Status', 'Languages', 'Created', 'Uploader', 'Tags', 'Actions'].map((head) => (
                                                 <th
                                                     key={head}
                                                     style={{
@@ -1103,7 +1115,6 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                                                 onDelete={setDeleteTarget}
                                                 darkMode={darkMode}
                                                 isLast={index === filtered.length - 1}
-                                                tr={tr}
                                             />
                                         ))}
                                     </tbody>
@@ -1114,8 +1125,8 @@ export default function DocumentList({ documents = [], hasApi = false, folderNam
                 </div>
             </div>
 
-            <DownloadModal document={downloadTarget} hasApi={hasApi} onClose={() => setDownloadTarget(null)} darkMode={darkMode} tr={tr} />
-            <DeleteConfirm document={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} loading={deleting} darkMode={darkMode} tr={tr} />
+            <DownloadModal document={downloadTarget} hasApi={hasApi} onClose={() => setDownloadTarget(null)} darkMode={darkMode} />
+            <DeleteConfirm document={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} loading={deleting} darkMode={darkMode} />
         </>
     );
 }

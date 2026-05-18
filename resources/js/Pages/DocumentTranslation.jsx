@@ -29,6 +29,19 @@ function useReactiveTheme() {
     return darkMode;
 }
 
+function useViewportWidth() {
+    const getWidth = () => (typeof window === 'undefined' ? 1440 : window.innerWidth);
+    const [width, setWidth] = useState(getWidth);
+
+    useEffect(() => {
+        const onResize = () => setWidth(getWidth());
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    return width;
+}
+
 function getTheme(darkMode) {
     if (darkMode) {
         return {
@@ -271,6 +284,9 @@ export default function DocumentTranslation({
     const { t: tr } = useTranslation();
     const darkMode = useReactiveTheme();
     const theme = useMemo(() => getTheme(darkMode), [darkMode]);
+    const viewportWidth = useViewportWidth();
+    const isTablet = viewportWidth < 1120;
+    const isMobile = viewportWidth < 760;
 
     const [selectedFolder, setSelectedFolder] = useState(null);
     const [folderDocs, setFolderDocs] = useState(null);
@@ -457,47 +473,89 @@ export default function DocumentTranslation({
                 }
             `}</style>
 
-            <div style={{ display: 'grid', gap: 18 }}>
-                <div style={{ ...card(theme, { padding: 24, position: 'relative', overflow: 'hidden' }) }}>
-                    <div style={{ position: 'absolute', inset: 0, background: theme.glass, pointerEvents: 'none' }} />
-                    <div style={{ position: 'relative', display: 'grid', gap: 22 }}>
-                        <SectionTitle
-                            eyebrow={tr('documentTranslation.hero.eyebrow')}
-                            title={tr('documentTranslation.hero.title')}
-                            desc={`${tr('documentTranslation.hero.desc')}${!hasApi ? ` ${tr('documentTranslation.hero.demoMode')}` : ''}`}
-                            theme={theme}
-                            action={
-                                <UIButton onClick={() => setShowUpload(true)} variant="primary" theme={theme}>
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                        <polyline points="17 8 12 3 7 8" />
-                                        <line x1="12" y1="3" x2="12" y2="15" />
-                                    </svg>
-                                    {tr('documentTranslation.actions.uploadDocument')}
-                                </UIButton>
-                            }
-                        />
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
-                            {statCards.map((item) => (
-                                <StatCard key={item.label} item={item} theme={theme} />
+            <div style={{ display: 'grid', gap: isMobile ? 12 : 16 }}>
+                <div style={{
+                    ...card(theme, {
+                        padding: isMobile ? 14 : 18,
+                        position: 'relative',
+                        overflow: 'hidden',
+                        borderRadius: isMobile ? 20 : 24,
+                    })
+                }}>
+                    <div style={{ position: 'absolute', inset: 0, background: theme.glass, opacity: 0.55, pointerEvents: 'none' }} />
+                    <div style={{
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: isTablet ? 'stretch' : 'center',
+                        justifyContent: 'space-between',
+                        gap: isMobile ? 12 : 18,
+                        flexDirection: isTablet ? 'column' : 'row',
+                    }}>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(130px, 1fr))',
+                            gap: isMobile ? 10 : 14,
+                            flex: 1,
+                            minWidth: 0,
+                        }}>
+                            {statCards.map((item, index) => (
+                                <div key={item.label} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: isMobile ? 10 : 13,
+                                    padding: isMobile ? '12px 10px' : '10px 14px',
+                                    minHeight: isMobile ? 72 : 82,
+                                    borderRight: !isTablet && index < statCards.length - 1 ? `1px solid ${theme.border}` : 'none',
+                                }}>
+                                    <div style={{
+                                        width: isMobile ? 42 : 52,
+                                        height: isMobile ? 42 : 52,
+                                        borderRadius: isMobile ? 15 : 18,
+                                        background: item.soft,
+                                        color: item.color,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flexShrink: 0,
+                                    }}>
+                                        {item.icon}
+                                    </div>
+                                    <div style={{ minWidth: 0 }}>
+                                        <div style={{ fontSize: isMobile ? 18 : 22, lineHeight: 1, fontWeight: 900, color: theme.text }}>{item.value}</div>
+                                        <div style={{ marginTop: 5, fontSize: isMobile ? 11 : 12, fontWeight: 850, color: theme.textSoft }}>{item.label}</div>
+                                        {!isMobile && <div style={{ marginTop: 5, fontSize: 11.5, color: theme.textMute, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.note}</div>}
+                                    </div>
+                                </div>
                             ))}
                         </div>
+
+                        <UIButton onClick={() => setShowUpload(true)} variant="primary" theme={theme} style={{
+                            height: isMobile ? 44 : 52,
+                            width: isTablet ? '100%' : 190,
+                            borderRadius: 16,
+                            flexShrink: 0,
+                        }}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            {tr('documentTranslation.actions.uploadDocument')}
+                        </UIButton>
                     </div>
                 </div>
 
-
-
-                <div style={{ ...card(theme, { overflow: 'hidden', padding: 12 }) }}>
+                <div style={{ ...card(theme, { overflow: 'hidden', padding: isMobile ? 8 : 12, borderRadius: isMobile ? 20 : 24 }) }}>
                     <div
                         style={{
                             display: 'grid',
-                            gridTemplateColumns: '280px minmax(0, 1fr)',
-                            gap: 12,
-                            minHeight: 520,
-                            height: 'calc(100vh - 280px)',
+                            gridTemplateColumns: isTablet ? '1fr' : '300px minmax(0, 1fr)',
+                            gap: isMobile ? 8 : 12,
+                            minHeight: isMobile ? 0 : 520,
+                            height: isTablet ? 'auto' : 'calc(100vh - 235px)',
                         }}
                     >
-                        <div style={{ minWidth: 0, height: '100%', borderRadius: 22, overflow: 'hidden', border: `1px solid ${theme.border}`, boxShadow: theme.shadowSoft }}>
+                        <div style={{ minWidth: 0, height: isTablet ? 320 : '100%', borderRadius: 20, overflow: 'hidden', border: `1px solid ${theme.border}`, boxShadow: theme.shadowSoft }}>
                             <FolderTree
                                 folders={folders}
                                 selectedFolder={selectedFolder}
@@ -509,7 +567,7 @@ export default function DocumentTranslation({
                             />
                         </div>
 
-                        <div style={{ minWidth: 0, height: '100%', borderRadius: 22, overflow: 'hidden', border: `1px solid ${theme.border}`, boxShadow: theme.shadowSoft, background: theme.panelSolid, position: 'relative' }}>
+                        <div style={{ minWidth: 0, height: isTablet ? 'min(720px, calc(100vh - 160px))' : '100%', minHeight: isMobile ? 520 : 0, borderRadius: 20, overflow: 'hidden', border: `1px solid ${theme.border}`, boxShadow: theme.shadowSoft, background: theme.panelSolid, position: 'relative' }}>
                             {loadingFolder ? (
                                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.panel }}>
                                     <div style={{ textAlign: 'center' }}>
