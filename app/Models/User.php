@@ -32,7 +32,8 @@ class User extends Authenticatable
         'employment_type',
         'contract_end_date',
         'country',
-        'country_id'
+        'country_id',
+        'cv_files'
     ];
 
     protected $hidden = [
@@ -47,6 +48,7 @@ class User extends Authenticatable
             'password'          => 'hashed',
             'is_active'         => 'boolean',
             'joined_date'       => 'date',
+            'cv_files' => 'array',
         ];
     }
 

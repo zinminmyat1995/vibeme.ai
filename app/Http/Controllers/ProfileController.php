@@ -69,6 +69,7 @@ class ProfileController extends Controller
                     'name'         => $user->role?->name,
                     'display_name' => $user->role?->display_name ?? $user->role?->name,
                 ],
+                'cv_files' => $user->cv_files ?? [],
             ],
             'payrollProfile' => $profileData,
         ]);

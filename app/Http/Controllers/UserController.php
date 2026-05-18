@@ -37,7 +37,8 @@ class UserController extends Controller
                 'avatar_url',
                 'joined_date',
                 'employment_type',
-                'contract_end_date'
+                'contract_end_date',
+                'cv_files'  
             );
 
         if ($roleName === 'hr') {
@@ -90,6 +91,8 @@ class UserController extends Controller
             'joined_date'       => 'nullable|date',
             'employment_type'   => 'nullable|in:probation,permanent,contract',
             'contract_end_date' => 'exclude_unless:employment_type,contract|required|date|after:today',
+            'cv_files'   => 'nullable|array|max:5',
+            'cv_files.*' => 'file|max:10240|mimes:jpg,jpeg,png,pdf,doc,docx',
         ], [
             'date_of_birth.required'      => 'Date of birth is required.',
             'date_of_birth.before'        => 'Date of birth must be before today.',
@@ -103,6 +106,23 @@ class UserController extends Controller
             $ext        = $request->file('avatar')->getClientOriginalExtension();
             $fileName   = $slug . '-' . time() . '.' . $ext;
             $avatarPath = $request->file('avatar')->storeAs('user', $fileName, 'public');
+        }
+
+        // ── CV Files upload ──
+        $cvFiles = [];
+        if ($request->hasFile('cv_files')) {
+            foreach ($request->file('cv_files') as $file) {
+                $slug     = Str::slug($request->name);
+                $ext      = $file->getClientOriginalExtension();
+                $fileName = $slug . '-cv-' . time() . '-' . uniqid() . '.' . $ext;
+                $path     = $file->storeAs('user-attach', $fileName, 'public');
+                $cvFiles[] = [
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $this->formatFileSize($file->getSize()),
+                    'type' => $file->getMimeType(),
+                ];
+            }
         }
 
         $country = \App\Models\Country::whereRaw('LOWER(name) = ?', [strtolower($request->country)])->first();
@@ -127,6 +147,7 @@ class UserController extends Controller
             'country_id'        => $countryId,
             'joined_date'       => $joinedDate,
             'employment_type'   => $employmentType,
+            'cv_files' => !empty($cvFiles) ? $cvFiles : null,
             'contract_end_date' => $employmentType === 'contract' ? $request->contract_end_date : null,
         ]);
 
@@ -182,6 +203,37 @@ class UserController extends Controller
             $user->avatar_url = $request->file('avatar')->storeAs('user', $fileName, 'public');
         }
 
+        // ── CV Files — append new uploads ──
+        if ($request->hasFile('cv_files')) {
+            $existing = $user->cv_files
+                ? (is_array($user->cv_files) ? $user->cv_files : json_decode($user->cv_files, true))
+                : [];
+            foreach ($request->file('cv_files') as $file) {
+                $slug     = Str::slug($request->name);
+                $ext      = $file->getClientOriginalExtension();
+                $fileName = $slug . '-cv-' . time() . '-' . uniqid() . '.' . $ext;
+                $path     = $file->storeAs('user-attach', $fileName, 'public');
+                $existing[] = [
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $this->formatFileSize($file->getSize()),
+                    'type' => $file->getMimeType(),
+                ];
+            }
+            $user->cv_files = $existing;
+        }
+
+        // ── CV File delete (single file by index) ──
+        if ($request->filled('remove_cv_index')) {
+            $existing = $user->cv_files ?? [];
+            $idx = (int) $request->remove_cv_index;
+            if (isset($existing[$idx])) {
+                Storage::disk('public')->delete($existing[$idx]['path']);
+                array_splice($existing, $idx, 1);
+                $user->cv_files = array_values($existing);
+            }
+        }
+
         $country = \App\Models\Country::whereRaw('LOWER(name) = ?', [strtolower($request->country)])->first();
         $countryId = $country?->id;
 
@@ -235,6 +287,14 @@ class UserController extends Controller
             Storage::disk('public')->delete($user->avatar_url);
         }
 
+        // ── CV Files delete ──
+        if ($user->cv_files) {
+            foreach ($user->cv_files as $file) {
+                if (Storage::disk('public')->exists($file['path'])) {
+                    Storage::disk('public')->delete($file['path']);
+                }
+            }
+        }
         $user->delete();
         return back()->with('success', 'User deleted successfully!');
     }
@@ -244,5 +304,12 @@ class UserController extends Controller
         $user->update(['is_active' => !$user->is_active]);
         $status = $user->is_active ? 'activated' : 'deactivated';
         return back()->with('success', "{$user->name} has been {$status}.");
+    }
+
+    private function formatFileSize(int $bytes): string
+    {
+        if ($bytes >= 1048576) return round($bytes / 1048576, 1) . 'MB';
+        if ($bytes >= 1024)    return round($bytes / 1024, 1) . 'KB';
+        return $bytes . 'B';
     }
 }

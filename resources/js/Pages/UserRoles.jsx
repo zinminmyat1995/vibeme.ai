@@ -1020,6 +1020,79 @@ function UserForm({ roles, editUser, onClose, darkMode = false, currentUser = nu
                     <FieldError msg={form.errors.avatar} darkMode={darkMode} />
                 </div>
 
+                {/* CV Files */}
+                <div style={{ gridColumn: '1/-1' }}>
+                    <label style={lbl}>CV / Documents</label>
+
+                    <div style={{
+                        border: `1px solid ${theme.inputBorder}`,
+                        borderRadius: 16, padding: '10px 12px',
+                        background: theme.inputBg,
+                    }}>
+                        <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            multiple
+                            onChange={e => {
+                                const files = Array.from(e.target.files);
+                                form.setData('cv_files', files);
+                            }}
+                            style={{ fontSize: 13, color: theme.textSoft, width: '100%' }}
+                        />
+                        <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>
+                            PDF, Word, Image — max 10MB each, up to 5 files
+                        </div>
+                    </div>
+
+                    {/* Edit mode: show existing files */}
+                    {isEdit && (() => {
+                        const cvFiles = typeof editUser?.cv_files === 'string'
+                            ? JSON.parse(editUser.cv_files)
+                            : (editUser?.cv_files ?? []);
+
+                        return cvFiles.length > 0 && (
+                            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                <div style={{ fontSize: 11, fontWeight: 800, color: theme.textMute, marginBottom: 2 }}>
+                                    Uploaded Files
+                                </div>
+                                {cvFiles.map((f, idx) => (
+                                    <div key={idx} style={{
+                                        display: 'flex', alignItems: 'center', gap: 10,
+                                        padding: '8px 12px', borderRadius: 12,
+                                        background: theme.panelSoft,
+                                        border: `1px solid ${theme.border}`,
+                                    }}>
+                                        <span style={{ fontSize: 16 }}>
+                                            {f.type?.includes('pdf') ? '📄' : f.type?.includes('image') ? '🖼️' : '📝'}
+                                        </span>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: theme.text,
+                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {f.name}
+                                            </div>
+                                            <div style={{ fontSize: 10, color: theme.textMute }}>{f.size}</div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => form.setData('remove_cv_index', idx)}
+                                            style={{
+                                                width: 28, height: 28, borderRadius: 8,
+                                                border: `1px solid ${theme.border}`,
+                                                background: theme.dangerSoft,
+                                                color: theme.danger, cursor: 'pointer', fontSize: 14,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            }}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })()}
+                    <FieldError msg={form.errors.cv_files} darkMode={darkMode} />
+                </div>
+
                 {isEdit && (
                     <div
                         style={{
