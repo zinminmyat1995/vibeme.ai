@@ -312,6 +312,10 @@ public function results(Survey $survey)
 
         // 2. Sanctum Bearer token (mobile app)
         $bearerToken = request()->bearerToken();
+            \Log::info('resolveUser', [
+                'bearer' => $bearerToken ? 'yes' : 'no',
+                'user'   => $user?->id ?? null,
+            ]);
         if ($bearerToken) {
             $pat = \Laravel\Sanctum\PersonalAccessToken::findToken($bearerToken);
             if ($pat && $pat->tokenable_type === \App\Models\User::class) {
